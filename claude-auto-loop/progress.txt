@@ -12,3 +12,10 @@
 - 问题：无
 - Git: 6d3ff00 - feat(feat-001): 后端项目初始化
 - 下次注意：开始 feat-002 前端项目初始化，需要配置 Next.js + Tailwind CSS + shadcn/ui
+=== Session 3 | 2026-03-02 17:30 ===
+- 任务：feat-002 前端项目初始化
+- 状态：done
+- 完成：创建 Next.js 15 + TypeScript + Tailwind CSS 项目，集成 shadcn/ui 组件库（按钮组件），配置基础布局和页面路由，设置 API 代理到后端（需进一步调试），验证前端开发服务器可启动
+- 问题：Node.js 版本 18.20.8 低于 Next.js 16 要求，降级到 Next.js 15；CSS 编译错误，暂时移除 globals.css；API 代理配置需调试
+- Git: d7f91f3 - feat(feat-002): 前端项目初始化
+- 下次注意：开始 feat-003 教材内容输入，需要确保后端服务运行，安装 OCR 和 PDF 解析依赖
