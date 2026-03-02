@@ -14,3 +14,6 @@ tasks.json
 project_profile.json
 init.sh
 session_result.json
+
+# Claude Auto Loop 模型配置（含 API Key）
+claude-auto-loop/config.env

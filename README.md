@@ -45,3 +45,66 @@ ai-teaching-ppt/
 ├── requirements.md   # 项目需求文档
 └── README.md
 ```
+
+## 快速开始
+
+### 环境要求
+
+- Python 3.11+
+- Node.js 20+
+- pnpm
+- Docker (可选)
+
+### 开发环境启动
+
+1. **克隆项目**
+   ```bash
+   git clone <仓库地址>
+   cd ai-teaching-ppt
+   ```
+
+2. **初始化环境**
+   ```bash
+   bash claude-auto-loop/init.sh
+   ```
+
+3. **启动后端服务**
+   ```bash
+   cd backend
+   source ../.venv/bin/activate
+   uvicorn app.main:app --reload --port 8000
+   ```
+
+4. **启动前端服务**
+   ```bash
+   cd frontend
+   pnpm dev
+   ```
+
+5. **访问应用**
+   - 前端：http://localhost:3000
+   - 后端 API 文档：http://localhost:8000/docs
+
+### Docker 部署
+
+```bash
+# 使用 docker-compose 启动完整服务
+docker-compose up -d
+
+# 查看服务状态
+docker-compose ps
+
+# 停止服务
+docker-compose down
+```
+
+### 项目开发
+
+本项目使用 [claude-auto-loop](https://github.com/lk19940215/claude-auto-loop) 进行自动化开发。任务已分解到 `claude-auto-loop/tasks.json` 中，Agent 将按优先级逐步实现功能。
+
+### 技术栈详情
+
+- **后端**：FastAPI + SQLite + python-pptx + PaddleOCR + PyMuPDF
+- **前端**：Next.js 14 + TypeScript + Tailwind CSS + shadcn/ui
+- **AI 集成**：支持 DeepSeek / OpenAI / Claude / 智谱 GLM
+- **部署**：Docker 容器化，支持独立部署
