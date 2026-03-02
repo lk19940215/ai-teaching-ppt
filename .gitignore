@@ -5,18 +5,11 @@ node_modules
 dist
 build
 
-# claude-auto-loop
-claude-auto-loop/
-config.env
-.phase
-progress.txt
-tasks.json
-project_profile.json
-init.sh
-session_result.json
-
-# Claude Auto Loop 模型配置（含 API Key）
+# claude-auto-loop 运行时/敏感文件（不提交）
 claude-auto-loop/config.env
+claude-auto-loop/logs/
+claude-auto-loop/.phase
+claude-auto-loop/.phase_step
 
 # Python
 .venv/

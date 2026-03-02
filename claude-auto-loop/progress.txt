@@ -1,0 +1,14 @@
+=== Session 1 | 2026-03-02 14:56 ===
+- 任务：项目初始化扫描和脚手架搭建
+- 状态：done
+- 完成：扫描项目结构，确定为全新项目。生成 project_profile.json、init.sh、tasks.json。创建基础目录结构（backend/、frontend/），编写基础配置文件。更新 README.md 添加开发指南。
+- 问题：无
+- Git: f5fec72 - init: 项目扫描 + 任务分解
+- 下次注意：从 tasks.json 中优先级最高的任务开始（feat-001 后端项目初始化）。需要确保环境配置正确（Python 虚拟环境、Node.js 20+、pnpm）。
+=== Session 2 | 2026-03-02 16:22 ===
+- 任务：feat-001 后端项目初始化
+- 状态：done
+- 完成：完善 FastAPI 脚手架，添加 CORS 和静态文件服务，创建健康检查 API，验证服务可启动
+- 问题：无
+- Git: 6d3ff00 - feat(feat-001): 后端项目初始化
+- 下次注意：开始 feat-002 前端项目初始化，需要配置 Next.js + Tailwind CSS + shadcn/ui
