@@ -9,14 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "14.0.0",
-    "react": "^18",
-    "react-dom": "^18",
-    "axios": "^1.6.0",
-    "tailwindcss": "^3.3.0",
+    "@radix-ui/react-slot": "^1.2.4",
     "autoprefixer": "^10.0.0",
+    "axios": "^1.6.0",
+    "clsx": "^2.1.1",
+    "next": "15.5.12",
     "postcss": "^8.0.0",
-    "shadcn-ui": "latest"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "shadcn-ui": "latest",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "^3.3.0"
   },
   "devDependencies": {
     "@types/node": "^20",

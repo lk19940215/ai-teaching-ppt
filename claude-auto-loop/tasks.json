@@ -31,7 +31,7 @@
         "设置 API 代理到后端",
         "验证前端开发服务器可启动"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     },
     {
