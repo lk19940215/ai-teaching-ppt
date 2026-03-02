@@ -1,5 +1,16 @@
 node_modules
 .DS_Store
 .env
+.env.*
 dist
 build
+
+# claude-auto-loop
+claude-auto-loop/
+config.env
+.phase
+progress.txt
+tasks.json
+project_profile.json
+init.sh
+session_result.json
