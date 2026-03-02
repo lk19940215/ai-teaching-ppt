@@ -1,7 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 from pathlib import Path
+from .config import settings
 
 app = FastAPI(
     title="AI 教学 PPT 生成器 API",
@@ -17,6 +19,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 静态文件服务
+app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+app.mount("/templates", StaticFiles(directory=settings.TEMPLATE_DIR), name="templates")
 
 @app.get("/")
 async def root():
