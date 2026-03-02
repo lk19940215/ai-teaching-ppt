@@ -47,7 +47,7 @@
         "添加文件大小限制和类型验证",
         "测试三种输入方式（图片/PDF/文字）"
       ],
-      "status": "testing",
+      "status": "failed",
       "depends_on": ["feat-001"]
     },
     {

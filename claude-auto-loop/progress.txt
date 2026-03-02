@@ -19,3 +19,10 @@
 - 问题：Node.js 版本 18.20.8 低于 Next.js 16 要求，降级到 Next.js 15；CSS 编译错误，暂时移除 globals.css；API 代理配置需调试
 - Git: d7f91f3 - feat(feat-002): 前端项目初始化
 - 下次注意：开始 feat-003 教材内容输入，需要确保后端服务运行，安装 OCR 和 PDF 解析依赖
+=== Session 4 | 2026-03-02 18:00 ===
+- 任务：feat-003 教材内容输入
+- 状态：failed
+- 完成：实现了文件上传 API 端点（图片/PDF/文字），集成了 PaddleOCR 和 PyMuPDF 服务，创建了文本清洗合并逻辑，修复了前端 CSS 编译错误。后端服务可启动，健康检查通过。
+- 问题：PaddleOCR 初始化参数问题（show_log、use_gpu 参数未知），需要调整版本或参数。文本上传 API 期望查询参数而非 JSON body，需修复。
+- Git: f5366f4 - feat(feat-003): 教材内容输入基础实现（OCR初始化需调试）
+- 下次注意：修复 PaddleOCR 初始化参数，调整上传 API 接口，测试三种输入方式。
