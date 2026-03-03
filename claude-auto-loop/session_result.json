@@ -1,0 +1,9 @@
+{
+  "session_result": "success",
+  "task_id": "feat-007",
+  "status_before": "pending",
+  "status_after": "done",
+  "git_commit": "7b4a2e2",
+  "tests_passed": true,
+  "notes": "feat-007 PPT 预览与下载功能完成。实现缩略图轮播预览组件（前端基于 JSON 内容渲染 HTML 预览），下载功能正常。Playwright 端到端测试通过（UI 交互、错误处理）。添加 3 个测试用例。"
+}
