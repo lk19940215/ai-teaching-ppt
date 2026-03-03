@@ -48,7 +48,9 @@
         "测试三种输入方式（图片/PDF/文字）"
       ],
       "status": "done",
-      "depends_on": ["feat-001"]
+      "depends_on": [
+        "feat-001"
+      ]
     },
     {
       "id": "feat-004",
@@ -64,7 +66,9 @@
         "与后端 API 连接传递配置参数"
       ],
       "status": "done",
-      "depends_on": ["feat-002"]
+      "depends_on": [
+        "feat-002"
+      ]
     },
     {
       "id": "feat-005",
@@ -80,7 +84,10 @@
         "添加 LLM 调用超时和错误处理"
       ],
       "status": "done",
-      "depends_on": ["feat-001", "feat-003"]
+      "depends_on": [
+        "feat-001",
+        "feat-003"
+      ]
     },
     {
       "id": "feat-006",
@@ -95,8 +102,11 @@
         "确保生成的 .pptx 兼容 WPS Office",
         "添加模板管理和样式配置"
       ],
-      "status": "pending",
-      "depends_on": ["feat-001", "feat-005"]
+      "status": "done",
+      "depends_on": [
+        "feat-001",
+        "feat-005"
+      ]
     },
     {
       "id": "feat-007",
@@ -112,7 +122,11 @@
         "添加加载状态和进度提示"
       ],
       "status": "pending",
-      "depends_on": ["feat-002", "feat-004", "feat-006"]
+      "depends_on": [
+        "feat-002",
+        "feat-004",
+        "feat-006"
+      ]
     },
     {
       "id": "feat-008",
@@ -128,7 +142,10 @@
         "集成到主生成流程中（根据学科条件触发）"
       ],
       "status": "pending",
-      "depends_on": ["feat-005", "feat-006"]
+      "depends_on": [
+        "feat-005",
+        "feat-006"
+      ]
     },
     {
       "id": "feat-009",
@@ -144,7 +161,9 @@
         "验证各年级生成效果符合设计要求"
       ],
       "status": "pending",
-      "depends_on": ["feat-006"]
+      "depends_on": [
+        "feat-006"
+      ]
     },
     {
       "id": "feat-010",
@@ -160,7 +179,11 @@
         "添加历史记录分页和搜索"
       ],
       "status": "pending",
-      "depends_on": ["feat-001", "feat-002", "feat-007"]
+      "depends_on": [
+        "feat-001",
+        "feat-002",
+        "feat-007"
+      ]
     },
     {
       "id": "feat-011",
@@ -176,7 +199,11 @@
         "集成到 LLM 调用接口，支持 DeepSeek/OpenAI/Claude/GLM"
       ],
       "status": "pending",
-      "depends_on": ["feat-001", "feat-002", "feat-005"]
+      "depends_on": [
+        "feat-001",
+        "feat-002",
+        "feat-005"
+      ]
     },
     {
       "id": "feat-012",
@@ -192,7 +219,10 @@
         "更新 README 中的部署说明"
       ],
       "status": "pending",
-      "depends_on": ["feat-001", "feat-002"]
+      "depends_on": [
+        "feat-001",
+        "feat-002"
+      ]
     },
     {
       "id": "feat-013",
@@ -208,7 +238,9 @@
         "测试数据库操作功能"
       ],
       "status": "pending",
-      "depends_on": ["feat-001"]
+      "depends_on": [
+        "feat-001"
+      ]
     }
   ]
 }

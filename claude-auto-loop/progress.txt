@@ -50,3 +50,11 @@
 - 问题：openai 1.12.0 版本存在兼容性问题，升级到 2.24.0 解决。
 - Git: 1378535 - feat(feat-005): AI 内容生成 - LLM 统一调用接口和提示词工程
 - 下次注意：LLM 服务调用需要有效的 API Key，测试时需要用户提供真实 API Key。
+
+=== Session 8 | 2026-03-03 12:30 ===
+- 任务：配置管理系统设计
+- 状态：done（额外功能）
+- 完成：设计并实现 LLM API Key 配置管理方案。添加后端 .env 配置文件（包含 LLM API Key），添加前端 .env.local 配置文件。创建设置页面 /settings，支持 LLM 服务商选择（DeepSeek/OpenAI/Claude/GLM）、API Key 输入（本地存储）、Base URL 和模型配置、LLM 连接测试功能。更新上传页面 /upload，集成 LLM 生成功能，显示生成结果（PPT 内容），使用 localStorage 持久化 LLM 配置。修复 openai 导入兼容性问题。
+- 配置方案：前端使用 localStorage 存储用户配置，后端使用 .env 文件存储默认配置。Playwright MCP 测试时，用户可以先在设置页面配置 API Key，配置保存在 localStorage 中。
+- Git: 9223049 - feat: 配置管理系统 - API Key 配置和 LLM 测试
+- 下次注意：openai 2.x 版本的 APIError 导入方式变更，需要从 openai 直接导入而不是 openai.types。

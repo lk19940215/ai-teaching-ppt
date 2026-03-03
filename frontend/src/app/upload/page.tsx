@@ -82,6 +82,8 @@ export default function UploadPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedContent, setGeneratedContent] = useState<PPTContent | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
+  const [fileName, setFileName] = useState<string | null>(null)
 
   // 从 localStorage 加载 LLM 配置
   const getLLMConfig = () => {
@@ -130,6 +132,8 @@ export default function UploadPage() {
     setIsGenerating(true)
     setError(null)
     setGeneratedContent(null)
+    setDownloadUrl(null)
+    setFileName(null)
 
     try {
       // 获取 LLM 配置
@@ -139,18 +143,19 @@ export default function UploadPage() {
         return
       }
 
-      // 调用后端 API 生成 PPT 内容
-      const response = await fetch("http://localhost:8000/api/v1/generate/ppt", {
+      // 调用后端 API 完整生成 PPT（内容 + 文件）
+      const response = await fetch("http://localhost:8000/api/v1/ppt/generate-full", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          content: textContent,
+          text_content: textContent,
           grade: config.grade,
           subject: config.subject,
           slideCount: config.slideCount,
           chapter: config.chapter || undefined,
           provider: llmConfig.provider,
           api_key: llmConfig.apiKey,
+          style: config.style,
         }),
       })
 
@@ -160,11 +165,19 @@ export default function UploadPage() {
       }
 
       const result = await response.json()
-      setGeneratedContent(result.data)
+      setGeneratedContent(result.content)
+      setDownloadUrl(`http://localhost:8000${result.download_url}`)
+      setFileName(result.file_name)
     } catch (err) {
       setError(err instanceof Error ? err.message : "生成失败，请稍后重试")
     } finally {
       setIsGenerating(false)
+    }
+  }
+
+  const handleDownload = () => {
+    if (downloadUrl && fileName) {
+      window.open(downloadUrl, "_blank")
     }
   }
 
@@ -194,9 +207,16 @@ export default function UploadPage() {
         <div className="bg-white rounded-xl border p-6 shadow-sm mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">生成结果</h2>
-            <Button variant="outline" onClick={handleReset}>
-              重新生成
-            </Button>
+            <div className="flex gap-2">
+              {downloadUrl && (
+                <Button onClick={handleDownload}>
+                  下载 PPT
+                </Button>
+              )}
+              <Button variant="outline" onClick={handleReset}>
+                重新生成
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-4">

@@ -7,7 +7,7 @@ sqlalchemy==2.0.23
 python-pptx==0.6.23
 pymupdf==1.23.8
 paddleocr>=2.7.0
-openai==1.12.0
+openai>=2.24.0
 pillow==10.1.0
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
