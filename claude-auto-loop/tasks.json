@@ -271,27 +271,8 @@
     },
     {
       "id": "feat-015",
-      "category": "frontend",
-      "priority": 15,
-      "description": "上传页面文件输入测试：为 http://localhost:3000/upload 页面增加文件上传测试功能",
-      "steps": [
-        "检查现有上传页面路由和组件",
-        "设计文件上传测试输入区域（支持拖拽和点击选择）",
-        "实现测试文件预览功能（显示文件名、大小、类型）",
-        "添加上传进度提示和状态反馈",
-        "集成到现有上传流程，支持测试模式",
-        "验证文件上传功能正常工作"
-      ],
-      "status": "pending",
-      "depends_on": [
-        "feat-004",
-        "feat-014"
-      ]
-    },
-    {
-      "id": "feat-016",
       "category": "backend",
-      "priority": 16,
+      "priority": 15,
       "description": "PPT 生成质量优化：优化 LLM 提示词工程和 PPT 模板设计，提升生成效果",
       "steps": [
         "分析现有生成文件（如 fractions_recognition_d2820f4e.pptx）的质量问题",
@@ -299,6 +280,7 @@
         "优化 PPT 模板：改进字号、配色、留白、视觉层次",
         "增加页面类型多样性（图示、表格、流程图等）",
         "调整年级自适应规则的精细度",
+        "准备测试素材（示例文本、PDF 文件）用于验证 upload 页面功能",
         "生成测试样本并对比优化前后效果"
       ],
       "status": "pending",
@@ -309,22 +291,42 @@
       ]
     },
     {
-      "id": "feat-017",
-      "category": "infra",
-      "priority": 17,
-      "description": "uploads 目录用途规范：明确 uploads 目录结构，清理测试文件存储策略",
+      "id": "feat-016",
+      "category": "backend",
+      "priority": 16,
+      "description": "PPT 动画效果注入：通过 OOXML 直接操作实现 PPT 动画",
       "steps": [
-        "检查现有 uploads 目录结构和内容",
-        "设计 uploads 目录规范：generated/（生成结果）、inputs/（测试输入）、temp/（临时文件）",
-        "迁移或清理现有测试文件（如 test_sample.jpg、texts/*.txt）",
-        "更新后端文件存储路径配置",
-        "添加目录说明文档（README 或 .gitignore）",
-        "确认目录规范后删除或重构不必要的目录"
+        "研究 OOXML 动画规范（CT_Animate、CT_Transition 等）",
+        "设计动画配置结构（页面切换动画、元素进入动画）",
+        "实现 python-pptx 生成后处理：解压 pptx 修改 XML 再打包",
+        "实现页面切换动画（淡入、滑动、推进等效果）",
+        "实现元素动画（标题飞入、内容逐项显示）",
+        "测试生成的动画 PPT 在 WPS/Office 的兼容性"
       ],
       "status": "pending",
       "depends_on": [
-        "feat-001",
-        "feat-003"
+        "feat-006",
+        "feat-015"
+      ]
+    },
+    {
+      "id": "feat-017",
+      "category": "backend",
+      "priority": 17,
+      "description": "PPT 课堂互动功能增强：实现互动问答和点击显示答案效果",
+      "steps": [
+        "设计互动问答页模板（带 ABCD 选项按钮布局）",
+        "设计“点击显示答案”效果（使用 OOXML 触发器或超链接）",
+        "设计拖拽匹配游戏页（如单词 - 释义配对）",
+        "设计随堂测验页（选择题、填空题）",
+        "实现互动元素的 OOXML 注入逻辑",
+        "测试互动功能在 WPS/Office 的可用性"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-006",
+        "feat-015",
+        "feat-016"
       ]
     }
   ]
