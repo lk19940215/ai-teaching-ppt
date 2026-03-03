@@ -167,7 +167,7 @@
         "services": ["backend"],
         "real_api_key": false
       },
-      "steps": "验证 GET /api/v1/history 返回空列表（新 session），验证 GET /api/v1/history/search 端点存在",
+      "steps": "验证 GET /api/v1/history/search 返回空列表（新 session），验证搜索参数 session_id、keyword、grade、subject 正常工作",
       "test_data_summary": "历史记录 API 端点验证",
       "expected_result": "API 端点存在并返回正确的响应格式（包含 success、data、total 字段）",
       "auto_generated": true,
@@ -218,6 +218,52 @@
       "created_session": 14,
       "last_result": "pass",
       "last_run_session": 16
+    },
+    {
+      "id": "test-feat014-e2e-flow",
+      "feature_id": "feat-014",
+      "name": "Playwright MCP 端到端测试 - 完整页面流程走查",
+      "type": "browser",
+      "priority": "critical",
+      "affected_paths": [
+        "frontend/src/app/upload/page.tsx",
+        "frontend/src/app/settings/page.tsx",
+        "frontend/src/app/history/page.tsx",
+        "frontend/src/app/layout.tsx"
+      ],
+      "preconditions": {
+        "services": ["frontend", "backend"],
+        "real_api_key": false
+      },
+      "steps": "1.访问首页验证加载和导航；2.访问上传页面验证表单填写、年级/学科/风格选择；3.访问设置页面验证 LLM 配置组件；4.访问历史记录页面验证搜索筛选组件；5.检查所有页面无控制台错误；6.验证样式无 dark 背景黑色文字问题",
+      "test_data_summary": "完整页面流程走查，包含首页、上传页、设置页、历史页",
+      "expected_result": "所有页面正常加载，导航正常，表单组件可交互，无控制台错误，样式正常（浅色背景深色文字）",
+      "auto_generated": true,
+      "created_session": 17,
+      "last_result": "pass",
+      "last_run_session": 17
+    },
+    {
+      "id": "test-feat014-playwright-examples",
+      "feature_id": "feat-014",
+      "name": "Playwright 测试示例文件",
+      "type": "unit",
+      "priority": "normal",
+      "affected_paths": [
+        "frontend/tests/example.test.ts",
+        "frontend/playwright.config.ts"
+      ],
+      "preconditions": {
+        "services": [],
+        "real_api_key": false
+      },
+      "steps": "验证 frontend/tests/example.test.ts 文件存在，包含首页、上传页、设置页、历史页的测试示例；验证 playwright.config.ts 配置文件存在",
+      "test_data_summary": "测试示例文件验证",
+      "expected_result": "测试文件存在且包含完整的测试示例代码",
+      "auto_generated": true,
+      "created_session": 17,
+      "last_result": "pass",
+      "last_run_session": 17
     }
   ]
 }

@@ -20,6 +20,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 CONFIG_FILE="$SCRIPT_DIR/config.env"
 
+# ============ 共享环境引导 ============
+source "$SCRIPT_DIR/_env.sh"
+
 # ============ 颜色输出 ============
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'

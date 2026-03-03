@@ -55,6 +55,30 @@ async def list_history(
         raise HTTPException(status_code=500, detail=f"获取历史记录失败：{str(e)}")
 
 
+@router.get("/history/search")
+async def search_history_api(
+    session_id: str = Query(..., description="用户 session ID"),
+    keyword: Optional[str] = Query(None, description="搜索关键词"),
+    grade: Optional[str] = Query(None, description="年级筛选"),
+    subject: Optional[str] = Query(None, description="学科筛选"),
+    limit: int = Query(20, ge=1, le=100, description="每页数量"),
+    offset: int = Query(0, ge=0, description="偏移量"),
+    db = Depends(get_db),
+):
+    """搜索历史记录"""
+    try:
+        records = search_history(db, session_id, keyword, grade, subject, limit, offset)
+        total = len(records)
+        return {
+            "success": True,
+            "data": [record.to_dict() for record in records],
+            "total": total,
+        }
+    except Exception as e:
+        logger.error(f"搜索历史记录失败：{e}")
+        raise HTTPException(status_code=500, detail=f"搜索失败：{str(e)}")
+
+
 @router.get("/history/{record_id}")
 async def get_history_detail(
     record_id: int,
@@ -91,30 +115,6 @@ async def delete_history(
         "success": True,
         "message": "记录已删除",
     }
-
-
-@router.get("/history/search")
-async def search_history_api(
-    session_id: str = Query(..., description="用户 session ID"),
-    keyword: Optional[str] = Query(None, description="搜索关键词"),
-    grade: Optional[str] = Query(None, description="年级筛选"),
-    subject: Optional[str] = Query(None, description="学科筛选"),
-    limit: int = Query(20, ge=1, le=100, description="每页数量"),
-    offset: int = Query(0, ge=0, description="偏移量"),
-    db = Depends(get_db),
-):
-    """搜索历史记录"""
-    try:
-        records = search_history(db, session_id, keyword, grade, subject, limit, offset)
-        total = len(records)
-        return {
-            "success": True,
-            "data": [record.to_dict() for record in records],
-            "total": total,
-        }
-    except Exception as e:
-        logger.error(f"搜索历史记录失败：{e}")
-        raise HTTPException(status_code=500, detail=f"搜索失败：{str(e)}")
 
 
 @router.post("/history/{record_id}/regenerate")

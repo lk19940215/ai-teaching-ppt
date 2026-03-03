@@ -261,7 +261,7 @@
         "记录发现的 UI/UX 问题（如 dark 背景黑色文字等）",
         "生成测试报告和修复建议"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-002",
         "feat-007",

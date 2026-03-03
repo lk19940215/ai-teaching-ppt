@@ -24,26 +24,27 @@ else
     $PYTHON_CMD -m venv .venv
 fi
 
-# 激活虚拟环境（Windows 和 Unix 路径不同）
+# 确定 venv 内 python 路径（不使用 source activate，兼容 Claude Code 受限 bash，见 WINDOWS.md）
 if [ "$IS_WINDOWS" = true ]; then
-    if [ -f ".venv/Scripts/activate" ]; then
-        source .venv/Scripts/activate
+    if [ -f ".venv/Scripts/python.exe" ]; then
+        PYTHON_VENV=".venv/Scripts/python.exe"
     else
-        echo "警告: 未找到 .venv/Scripts/activate，尝试 Unix 路径"
-        source .venv/bin/activate
+        echo "警告: 未找到 .venv/Scripts/python.exe，尝试 Unix 路径"
+        PYTHON_VENV=".venv/bin/python"
     fi
 else
-    source .venv/bin/activate
+    PYTHON_VENV=".venv/bin/python"
 fi
-echo "Python 虚拟环境已激活"
+PIP_CMD="$PYTHON_VENV -m pip"
+echo "Python 虚拟环境就绪 (python=$PYTHON_VENV)"
 
 # ============ 安装 Python 依赖 ============
 if [ -f "backend/requirements.txt" ]; then
     echo "安装 Python 依赖..."
-    pip install -r backend/requirements.txt
+    $PIP_CMD install -r backend/requirements.txt
 elif [ -f "requirements.txt" ]; then
     echo "安装 Python 依赖..."
-    pip install -r requirements.txt
+    $PIP_CMD install -r requirements.txt
 else
     echo "未找到 requirements.txt，跳过 Python 依赖安装"
 fi
