@@ -58,3 +58,11 @@
 - 配置方案：前端使用 localStorage 存储用户配置，后端使用 .env 文件存储默认配置。Playwright MCP 测试时，用户可以先在设置页面配置 API Key，配置保存在 localStorage 中。
 - Git: 9223049 - feat: 配置管理系统 - API Key 配置和 LLM 测试
 - 下次注意：openai 2.x 版本的 APIError 导入方式变更，需要从 openai 直接导入而不是 openai.types。
+
+=== Session 9 | 2026-03-03 12:55 ===
+- 任务：feat-006 PPT 文件生成
+- 状态：done
+- 完成：实现 PPT 文件生成功能，使用 python-pptx 库。设计 6 种 PPT 页面类型（封面、目录、知识点、互动、练习、总结）。根据年级自适应字号和配色（1-9年级不同样式）。修复 PPT 生成器中的占位符问题（使用手动文本框添加内容）。升级 openai 库到 2.24.0 修复兼容性问题。测试通过：生成的 .pptx 文件为标准 Microsoft OOXML 格式，可在 WPS Office 中打开。
+- 问题：openai 2.x 版本移除了 proxies 参数，升级到 2.24.0 解决；python-pptx 的占位符在不同布局下不可靠，改为手动添加文本框。
+- Git: 1a4786e - feat(feat-006): PPT 文件生成 - python-pptx 集成和年级自适应样式
+- 下次注意：python-pptx 使用布局时，不同版本的占位符索引可能不同，建议使用手动添加文本框的方式更加可靠。

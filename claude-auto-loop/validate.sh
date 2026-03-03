@@ -231,6 +231,62 @@ run_custom_hooks() {
 }
 
 # ============================================================
+# 校验 5: 测试用例覆盖检查 (tests.json)
+# ============================================================
+check_test_coverage() {
+    local tests_file="$SCRIPT_DIR/tests.json"
+
+    if [ ! -f "$tests_file" ]; then
+        return
+    fi
+
+    if [ ! -f "$SESSION_RESULT" ]; then
+        return
+    fi
+
+    log_info "测试覆盖检查 ..."
+
+    local check_result
+    check_result=$(python3 -c "
+import json
+try:
+    with open('$SESSION_RESULT') as f:
+        sr = json.load(f)
+    with open('$tests_file') as f:
+        tests = json.load(f)
+
+    task_id = sr.get('task_id', '')
+    tests_passed = sr.get('tests_passed', False)
+    status_after = sr.get('status_after', '')
+    test_cases = tests.get('test_cases', [])
+
+    if status_after == 'done' and tests_passed:
+        task_tests = [t for t in test_cases if t.get('feature_id') == task_id]
+        if not task_tests and task_id:
+            print(f'WARNING:任务 {task_id} 标记为 done 但 tests.json 中无对应测试用例')
+        else:
+            failed = [t['id'] for t in task_tests if t.get('last_result') == 'fail']
+            if failed:
+                print(f'WARNING:tests.json 中有失败的测试用例: {failed}')
+            else:
+                print(f'OK:{len(task_tests)} 个测试用例覆盖任务 {task_id}')
+    else:
+        print('SKIP:任务未标记 done，跳过覆盖检查')
+except Exception as e:
+    print(f'SKIP:无法检查: {e}')
+" 2>/dev/null)
+
+    if [[ "$check_result" == OK:* ]]; then
+        log_ok "${check_result#OK:}"
+    elif [[ "$check_result" == WARNING:* ]]; then
+        log_warn "${check_result#WARNING:}"
+        HAS_WARNINGS=true
+    else
+        log_info "${check_result#SKIP:}"
+    fi
+}
+
+# ============================================================
 # 主流程
 # ============================================================
 main() {
@@ -241,6 +297,7 @@ main() {
     check_git_progress
     run_health_checks
     run_custom_hooks
+    check_test_coverage
 
     echo ""
     if [ "$FATAL_FAILURE" = true ]; then

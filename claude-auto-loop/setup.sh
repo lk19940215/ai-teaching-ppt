@@ -316,23 +316,26 @@ write_aliyun_config() {
     local base_url="$1"
     local api_key="$2"
 
-    write_config_header "阿里云 Coding Plan (百炼)" "主模型: glm-4.7 | Opus: glm-5 | Sonnet: qwen3.5-plus | Haiku: qwen3-coder-plus"
+    write_config_header "阿里云 Coding Plan (百炼)" "Opus: glm-5 | Sonnet/Haiku: qwen3-coder-plus | Fallback: qwen3.5-plus"
     {
         echo "MODEL_PROVIDER=aliyun-coding"
         echo "ANTHROPIC_BASE_URL=$base_url"
         echo "ANTHROPIC_API_KEY=$api_key"
         echo ""
         echo "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1"
-        echo "ANTHROPIC_MODEL=glm-4.7"
+        echo "# Planner (规划/推理) → glm-5"
         echo "ANTHROPIC_DEFAULT_OPUS_MODEL=glm-5"
-        echo "ANTHROPIC_DEFAULT_SONNET_MODEL=qwen3.5-plus"
+        echo "# Executor (写代码/编辑/工具调用) → qwen3-coder-plus"
+        echo "ANTHROPIC_DEFAULT_SONNET_MODEL=qwen3-coder-plus"
         echo "ANTHROPIC_DEFAULT_HAIKU_MODEL=qwen3-coder-plus"
         echo "ANTHROPIC_SMALL_FAST_MODEL=qwen3-coder-plus"
+        echo "# Fallback (通用) → qwen3.5-plus"
+        echo "ANTHROPIC_MODEL=qwen3.5-plus"
     } >> "$CONFIG_FILE"
     append_config_common 3000000
     log_ok "已配置为阿里云 Coding Plan (百炼)"
     log_info "BASE_URL: $base_url"
-    log_info "模型映射: Main=glm-4.7 / Opus=glm-5 / Sonnet=qwen3.5-plus / Haiku=qwen3-coder-plus"
+    log_info "模型映射: Opus=glm-5 / Sonnet+Haiku=qwen3-coder-plus / Fallback=qwen3.5-plus"
 }
 
 # --- 提供商: DeepSeek ---

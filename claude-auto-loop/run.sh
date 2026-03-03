@@ -391,10 +391,29 @@ run_coding_session() {
 注意：上次会话校验失败，原因：$fail_reason。请避免同样的问题。"
     fi
 
+    # 构建 tests.json 感知提示（选择性回归测试）
+    local test_hint=""
+    if [ -f "$SCRIPT_DIR/tests.json" ]; then
+        local test_count
+        test_count=$(python3 -c "
+import json
+try:
+    with open('$SCRIPT_DIR/tests.json') as f:
+        data = json.load(f)
+    print(len(data.get('test_cases', [])))
+except Exception:
+    print('0')
+" 2>/dev/null)
+        if [ "${test_count:-0}" -gt 0 ]; then
+            test_hint="tests.json 已有 ${test_count} 个测试用例，Step 5 时按测试协议执行选择性回归。"
+        fi
+    fi
+
     # CLAUDE.md 已通过 --append-system-prompt-file 注入 system prompt，inline prompt 只含 session 变量
     local coding_prompt="Session ${session_num}。执行 6 步流程。
 高效执行：批量读取、批量修改，已存在的文件跳过，减少碎片化工具调用。
 ${mcp_hint:+可用工具: $mcp_hint
+}${test_hint:+测试: $test_hint
 }完成后写入 session_result.json。${retry_context}"
 
     set +e
@@ -435,7 +454,13 @@ run_view_session() {
         system_prompt_content="$(cat "$CLAUDE_MD")"
         local mcp_hint=""
         mcp_hint=$(build_mcp_hint 2>/dev/null || true)
-        initial_prompt="执行 6 步流程，完成下一个任务。${mcp_hint:+ 可用工具: $mcp_hint}"
+        local view_test_hint=""
+        if [ -f "$SCRIPT_DIR/tests.json" ]; then
+            local tc
+            tc=$(python3 -c "import json; print(len(json.load(open('$SCRIPT_DIR/tests.json')).get('test_cases',[])))" 2>/dev/null || echo 0)
+            [ "${tc:-0}" -gt 0 ] && view_test_hint=" tests.json 已有 ${tc} 个测试用例。"
+        fi
+        initial_prompt="执行 6 步流程，完成下一个任务。${mcp_hint:+ 可用工具: $mcp_hint}${view_test_hint}"
     fi
 
     claude "${CLAUDE_MODEL_FLAGS[@]}" "${CLAUDE_EXTRA_FLAGS[@]}" \

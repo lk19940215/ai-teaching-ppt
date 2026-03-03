@@ -54,6 +54,7 @@
 | `progress.txt` | 跨会话记忆日志 | 只能在末尾追加 |
 | `session_result.json` | 本次会话的结构化输出 | 每次会话结束时覆盖写入 |
 | `sync_state.json` | 需求同步状态（`last_requirements_hash` 等） | 需求同步时由 Agent 创建/更新 |
+| `tests.json` | 测试用例注册表（选择性回归） | 可新增用例、可更新 `last_result`/`last_run_session`；不得删除 `auto_generated: false` 的用例 |
 | `validate.sh` | 校验脚本 | 只读，只能执行 |
 
 ### requirements.md 处理原则
@@ -119,6 +120,46 @@
   "last_synced_at": "2026-02-25T12:00:00"
 }
 ```
+
+## tests.json 格式（测试用例注册表）
+
+每个功能完成后，将测试用例持久化到此文件，供后续会话选择性回归：
+
+```json
+{
+  "version": 1,
+  "test_cases": [
+    {
+      "id": "test-feat006-ppt-generate",
+      "feature_id": "feat-006",
+      "name": "PPT 生成 API - 基础 JSON 输入",
+      "type": "api | browser | unit | smoke",
+      "priority": "critical | normal | optional",
+      "affected_paths": [
+        "backend/app/services/ppt_generator.py",
+        "backend/app/api/ppt.py"
+      ],
+      "preconditions": {
+        "services": ["backend"],
+        "real_api_key": false
+      },
+      "steps": "自然语言描述测试步骤，足以让 Agent 重新执行",
+      "test_data_summary": "测试数据的简要描述",
+      "expected_result": "具体的预期结果，不能只写「验证功能正常」",
+      "auto_generated": true,
+      "created_session": 9,
+      "last_result": "pass | fail | skip",
+      "last_run_session": 9
+    }
+  ]
+}
+```
+
+**字段说明**：
+- `affected_paths`：该测试依赖的源文件路径，用于选择性回归（当这些文件被修改时触发）
+- `priority`：`critical`（每次必跑）/ `normal`（选择性回归时执行）/ `optional`（仅全量回归）
+- `preconditions.real_api_key`：是否需要真实 API Key（`false` 的用例使用 mock 数据测试）
+- `auto_generated`：`true` 表示 LLM 自动生成，`false` 表示人工定义（LLM 不得删除人工用例）
 
 ---
 
@@ -197,11 +238,37 @@ pending ──→ in_progress ──→ testing ──→ done
 6. **实现前按需读相关文档**（文档读取的唯一时机）：在开始编码前，从 `project_profile.json` 的 `existing_docs` 中，按当前任务的 category 和 steps 读取**与任务相关**的文档（如涉及 API 则读 API 文档、涉及架构则读架构文档），了解编码规范、API 约定，避免实现偏离项目既有风格
 7. **按需维护文档**：**仅当功能对外行为发生变化时**才更新 README 或 docs，例如：新增用户可见功能、新增 API、配置方式变更、使用说明变化。以下情况**不强制**更新文档：内部重构、变量重命名、性能优化、仅修复既有功能的 Bug
 
-### 第五步：测试验证
+### 第五步：测试验证（含选择性回归）
 
 1. 将任务 `status` 改为 `testing`
-2. **测试范围**：优先验证**本次变更**所涉及的功能与文件，不必每次都做全量回归。若本次改动只影响某组件或某接口，聚焦该部分即可；仅当改动可能波及上下游时，再扩大测试范围。
-3. 根据功能类型选择验证方式：
+
+#### 5.1 加载已有测试
+
+读取 `claude-auto-loop/tests.json`（若不存在则创建空结构 `{"version":1,"test_cases":[]}`）。
+
+#### 5.2 确定测试范围
+
+列出本次会话中修改过的所有文件路径（可通过回忆本次编辑过的文件，或 `git diff --name-only HEAD~1` 获取），然后按以下规则分类：
+
+```
+必跑测试 = tests.json 中 feature_id == 当前任务 的用例
+         + tests.json 中 priority == "critical" 的用例
+回归测试 = tests.json 中 affected_paths 与变更文件有交集 的其他用例
+跳过测试 = 其余用例（本次不执行）
+```
+
+#### 5.3 为当前功能生成新测试用例
+
+为当前任务**新增**测试用例到 `tests.json`（`auto_generated: true`）：
+- 每个功能至少 1 个 `priority: "critical"` 的测试（验证核心行为）
+- 涉及外部依赖（API Key、第三方服务等）时，分为两类：`real_api_key: false` 的基础测试（用 mock 数据）+ `real_api_key: true` 的集成测试
+- `affected_paths` 必须列出该测试依赖的所有源文件路径
+- `expected_result` 必须包含具体的预期输出（如 HTTP 状态码、JSON 字段值），不能只写"验证功能正常"
+- `steps` 必须是可重新执行的自然语言描述（如 `POST /api/v1/ppt/generate 传入预设 JSON，验证返回 success=true`）
+
+#### 5.4 执行测试
+
+按照 `必跑 → 回归 → 跳过` 的优先级顺序执行。根据功能类型选择验证方式：
 
 **Web / 前端功能**（优先级从高到低）：
 - 如果有 Playwright MCP 可用（检查 `project_profile.json` 中 `mcp_tools.playwright` 为 `true`）→ 用 `browser_navigate`、`browser_snapshot`、`browser_click` 等工具做端到端浏览器验证
@@ -223,8 +290,13 @@ pending ──→ in_progress ──→ testing ──→ done
 - **禁止为了测试重启服务器**：除非构建报错，否则不要 pkill / restart 开发服务器
 - **优先使用 Playwright MCP**：如果可用，用 `browser_navigate` + `browser_snapshot` 一次性验证，避免多轮 curl 试错
 
-4. 如果测试通过：将 `status` 改为 `done`
-5. 如果测试失败：将 `status` 改为 `failed`，在 notes 中记录失败原因
+#### 5.5 更新测试结果
+
+将每个执行过的测试用例的 `last_result`（`pass` / `fail` / `skip`）和 `last_run_session` 更新到 `tests.json`。
+
+**判定结果**：
+- 如果所有必跑测试和回归测试通过：将 `status` 改为 `done`
+- 如果任何测试失败：将 `status` 改为 `failed`，在 notes 中记录失败原因
 
 ### 第六步：收尾（每次会话必须执行）
 

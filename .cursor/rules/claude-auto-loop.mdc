@@ -16,7 +16,7 @@ alwaysApply: true
    - 环境与健康检查（运行 init.sh）
    - 选择任务（优先 failed，其次 pending）
    - 增量实现（一次只做一个功能）
-   - 测试验证（按状态机更新 status）
+   - 测试验证（读取 tests.json 执行选择性回归，生成新测试用例，更新结果）
    - 收尾（git commit + progress.txt + session_result.json）
 
 核心铁律：
