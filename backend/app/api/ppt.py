@@ -45,7 +45,7 @@ async def generate_ppt(
 
         # 生成 PPT
         generator = get_ppt_generator()
-        generator.generate(content, output_path, grade, style)
+        generator.generate(content, output_path, grade, style, subject="general")
 
         return JSONResponse(content={
             "success": True,
@@ -142,7 +142,7 @@ async def generate_full_ppt(
         output_path = settings.UPLOAD_DIR / "generated" / file_name
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        ppt_generator.generate(ppt_content, output_path, grade, style)
+        ppt_generator.generate(ppt_content, output_path, grade, style, subject)
 
         return JSONResponse(content={
             "success": True,

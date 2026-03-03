@@ -109,6 +109,27 @@
       "created_session": 11,
       "last_result": "pass",
       "last_run_session": 11
+    },
+    {
+      "id": "test-feat009-grade-style",
+      "feature_id": "feat-009",
+      "name": "年级自适应 PPT 风格 - 样式配置验证",
+      "type": "unit",
+      "priority": "critical",
+      "affected_paths": [
+        "backend/app/services/ppt_generator.py"
+      ],
+      "preconditions": {
+        "services": ["backend"],
+        "real_api_key": false
+      },
+      "steps": "验证 PPTStyle 类中 1-9 年级样式配置正确，验证 get_grade_group() 方法返回正确的年级组，验证 need_pinyin() 方法对小学低年级语文返回 true",
+      "test_data_summary": "年级样式配置单元测试",
+      "expected_result": "1-3 年级属于 elementary_low 组，4-6 年级属于 elementary_high 组，7-9 年级属于 middle 组；小学 1-3 年级语文 need_pinyin 返回 true，其他返回 false",
+      "auto_generated": true,
+      "created_session": 12,
+      "last_result": "pass",
+      "last_run_session": 12
     }
   ]
 }

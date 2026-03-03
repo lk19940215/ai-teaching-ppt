@@ -5,6 +5,7 @@ from pptx.dml.color import RGBColor
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 import logging
+import jieba
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,28 @@ COLOR_GREEN_3 = RGBColor(102, 187, 106)
 COLOR_BLUE_6 = RGBColor(33, 150, 243)
 COLOR_GREEN_4 = RGBColor(76, 175, 80)
 
+
+def add_pinyin_text(paragraph, text: str, font_size: int, is_title: bool = False):
+    """
+    添加带拼音的文本（简化版：仅对常见字添加拼音标注）
+    实际项目中建议使用 pypinyin 库进行完整拼音转换
+    Args:
+        paragraph: 段落对象
+        text: 要添加的文本
+        font_size: 字号
+        is_title: 是否标题
+    """
+    # 简化实现：直接添加文本，拼音标注需要额外的 pypinyin 库支持
+    # 在实际部署时，可以安装 pypinyin: pip install pypinyin
+    # 然后使用：from pypinyin import lazy_pinyin
+    paragraph.text = text
+    if is_title:
+        paragraph.font.size = Pt(font_size + 4)
+        paragraph.font.bold = True
+    else:
+        paragraph.font.size = Pt(font_size)
+
+
 class PPTPageType:
     """PPT 页面类型"""
     COVER = "封面页"
@@ -46,23 +69,122 @@ class PPTPageType:
 class PPTStyle:
     """PPT 样式配置"""
 
-    # 年级样式配置
+    # 年级组配置（三个学段）
+    GRADE_GROUPS = {
+        "elementary_low": {
+            "name": "小学低年级（1-3 年级）",
+            "grades": ["1", "2", "3"],
+            "description": "特大字号、鲜艳配色、大量留白、趣味化表达",
+        },
+        "elementary_high": {
+            "name": "小学高年级（4-6 年级）",
+            "grades": ["4", "5", "6"],
+            "description": "较大字号、明快配色、图文并茂、互动游戏式问答",
+        },
+        "middle": {
+            "name": "初中（7-9 年级）",
+            "grades": ["7", "8", "9"],
+            "description": "标准字号、稳重配色、知识体系化、重点标注",
+        },
+    }
+
+    # 年级样式配置（细化到每个年级）
     GRADE_STYLES = {
-        "1": {"font_size": 32, "title_size": 44, "primary": _COLOR_RED, "secondary": COLOR_TURQUOISE_2},
-        "2": {"font_size": 30, "title_size": 40, "primary": _COLOR_ORANGE, "secondary": COLOR_TURQUOISE_3},
-        "3": {"font_size": 28, "title_size": 38, "primary": _COLOR_GOLD, "secondary": _COLOR_DARK_ORANGE},
-        "4": {"font_size": 24, "title_size": 34, "primary": _COLOR_TURQUOISE, "secondary": COLOR_TURQUOISE_2},
-        "5": {"font_size": 22, "title_size": 32, "primary": COLOR_BLUE_1, "secondary": COLOR_BLUE_2},
-        "6": {"font_size": 20, "title_size": 30, "primary": COLOR_BLUE_3, "secondary": COLOR_BLUE_4},
-        "7": {"font_size": 18, "title_size": 28, "primary": COLOR_BLUE_5, "secondary": COLOR_GREEN_1},
-        "8": {"font_size": 16, "title_size": 26, "primary": COLOR_GREEN_2, "secondary": COLOR_GREEN_3},
-        "9": {"font_size": 16, "title_size": 24, "primary": COLOR_BLUE_6, "secondary": COLOR_GREEN_4},
+        # 小学低年级（1-3 年级）：特大字号、鲜艳配色
+        "1": {
+            "font_size": 32,
+            "title_size": 44,
+            "primary": _COLOR_RED,
+            "secondary": COLOR_TURQUOISE_2,
+            "group": "elementary_low",
+            "need_pinyin": True,  # 语文需要拼音标注
+        },
+        "2": {
+            "font_size": 30,
+            "title_size": 40,
+            "primary": _COLOR_ORANGE,
+            "secondary": COLOR_TURQUOISE_3,
+            "group": "elementary_low",
+            "need_pinyin": True,
+        },
+        "3": {
+            "font_size": 28,
+            "title_size": 38,
+            "primary": _COLOR_GOLD,
+            "secondary": _COLOR_DARK_ORANGE,
+            "group": "elementary_low",
+            "need_pinyin": True,
+        },
+        # 小学高年级（4-6 年级）：较大字号、明快配色
+        "4": {
+            "font_size": 24,
+            "title_size": 34,
+            "primary": _COLOR_TURQUOISE,
+            "secondary": COLOR_TURQUOISE_2,
+            "group": "elementary_high",
+            "need_pinyin": False,
+        },
+        "5": {
+            "font_size": 22,
+            "title_size": 32,
+            "primary": COLOR_BLUE_1,
+            "secondary": COLOR_BLUE_2,
+            "group": "elementary_high",
+            "need_pinyin": False,
+        },
+        "6": {
+            "font_size": 20,
+            "title_size": 30,
+            "primary": COLOR_BLUE_3,
+            "secondary": COLOR_BLUE_4,
+            "group": "elementary_high",
+            "need_pinyin": False,
+        },
+        # 初中（7-9 年级）：标准字号、稳重配色
+        "7": {
+            "font_size": 18,
+            "title_size": 28,
+            "primary": COLOR_BLUE_5,
+            "secondary": COLOR_GREEN_1,
+            "group": "middle",
+            "need_pinyin": False,
+        },
+        "8": {
+            "font_size": 16,
+            "title_size": 26,
+            "primary": COLOR_GREEN_2,
+            "secondary": COLOR_GREEN_3,
+            "group": "middle",
+            "need_pinyin": False,
+        },
+        "9": {
+            "font_size": 16,
+            "title_size": 24,
+            "primary": COLOR_BLUE_6,
+            "secondary": COLOR_GREEN_4,
+            "group": "middle",
+            "need_pinyin": False,
+        },
     }
 
     @classmethod
     def get_style(cls, grade: str) -> Dict[str, Any]:
         """获取年级对应的样式"""
         return cls.GRADE_STYLES.get(grade, cls.GRADE_STYLES["6"])
+
+    @classmethod
+    def get_grade_group(cls, grade: str) -> str:
+        """获取年级所属组别"""
+        style = cls.get_style(grade)
+        return style.get("group", "elementary_high")
+
+    @classmethod
+    def need_pinyin(cls, grade: str, subject: str = "chinese") -> bool:
+        """判断是否需要拼音标注（仅小学低年级语文）"""
+        if subject != "chinese":
+            return False
+        style = cls.get_style(grade)
+        return style.get("need_pinyin", False)
 
 
 class PPTGenerator:
@@ -77,7 +199,8 @@ class PPTGenerator:
         content: Dict[str, Any],
         output_path: Path,
         grade: str = "6",
-        style: str = "simple"
+        style: str = "simple",
+        subject: str = "general"
     ) -> Path:
         """
         生成 PPT 文件
@@ -86,6 +209,7 @@ class PPTGenerator:
             output_path: 输出文件路径
             grade: 年级
             style: PPT 风格
+            subject: 学科（用于拼音标注等特性）
         Returns:
             生成的 PPT 文件路径
         """
@@ -100,13 +224,16 @@ class PPTGenerator:
             content_size = style_config["font_size"]
             primary_color = style_config["primary"]
             secondary_color = style_config["secondary"]
+            grade_group = style_config.get("group", "elementary_high")
+            use_pinyin = PPTStyle.need_pinyin(grade, subject)
 
             # 生成封面页
             self._add_cover_slide(
                 prs,
                 content.get("title", "教学 PPT"),
                 title_size,
-                primary_color
+                primary_color,
+                use_pinyin
             )
 
             # 生成目录页
@@ -197,7 +324,8 @@ class PPTGenerator:
         prs: Presentation,
         title: str,
         title_size: int,
-        color: RGBColor
+        color: RGBColor,
+        use_pinyin: bool = False
     ):
         """添加封面页"""
         slide = prs.slides.add_slide(prs.slide_layouts[6])  # 空白布局

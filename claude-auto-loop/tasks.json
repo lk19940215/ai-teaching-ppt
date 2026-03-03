@@ -160,7 +160,7 @@
         "集成拼音标注逻辑（语文科目）",
         "验证各年级生成效果符合设计要求"
       ],
-      "status": "pending",
+      "status": "in_progress",
       "depends_on": [
         "feat-006"
       ]
