@@ -268,6 +268,64 @@
         "feat-010",
         "feat-011"
       ]
+    },
+    {
+      "id": "feat-015",
+      "category": "frontend",
+      "priority": 15,
+      "description": "上传页面文件输入测试：为 http://localhost:3000/upload 页面增加文件上传测试功能",
+      "steps": [
+        "检查现有上传页面路由和组件",
+        "设计文件上传测试输入区域（支持拖拽和点击选择）",
+        "实现测试文件预览功能（显示文件名、大小、类型）",
+        "添加上传进度提示和状态反馈",
+        "集成到现有上传流程，支持测试模式",
+        "验证文件上传功能正常工作"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-004",
+        "feat-014"
+      ]
+    },
+    {
+      "id": "feat-016",
+      "category": "backend",
+      "priority": 16,
+      "description": "PPT 生成质量优化：优化 LLM 提示词工程和 PPT 模板设计，提升生成效果",
+      "steps": [
+        "分析现有生成文件（如 fractions_recognition_d2820f4e.pptx）的质量问题",
+        "优化 LLM 提示词：增强知识点结构化、教学逻辑、互动设计",
+        "优化 PPT 模板：改进字号、配色、留白、视觉层次",
+        "增加页面类型多样性（图示、表格、流程图等）",
+        "调整年级自适应规则的精细度",
+        "生成测试样本并对比优化前后效果"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-005",
+        "feat-006",
+        "feat-009"
+      ]
+    },
+    {
+      "id": "feat-017",
+      "category": "infra",
+      "priority": 17,
+      "description": "uploads 目录用途规范：明确 uploads 目录结构，清理测试文件存储策略",
+      "steps": [
+        "检查现有 uploads 目录结构和内容",
+        "设计 uploads 目录规范：generated/（生成结果）、inputs/（测试输入）、temp/（临时文件）",
+        "迁移或清理现有测试文件（如 test_sample.jpg、texts/*.txt）",
+        "更新后端文件存储路径配置",
+        "添加目录说明文档（README 或 .gitignore）",
+        "确认目录规范后删除或重构不必要的目录"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-001",
+        "feat-003"
+      ]
     }
   ]
 }
