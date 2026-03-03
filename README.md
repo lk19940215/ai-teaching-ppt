@@ -23,6 +23,11 @@
 
 本项目使用 [claude-auto-loop](https://github.com/lk19940215/claude-auto-loop) 辅助自动化开发。
 
+**拉取 claude-auto-loop 最新代码：**
+```bash
+bash claude-auto-loop/update.sh
+```
+
 ### Cursor IDE 模式
 
 在 Cursor 中新建对话，输入需求即可。Agent 会自动读取 `requirements.md` 和工作协议。
@@ -41,7 +46,7 @@ bash claude-auto-loop/run.sh
 ai-teaching-ppt/
 ├── backend/          # Python FastAPI 后端
 ├── frontend/         # Next.js 前端
-├── claude-auto-loop/ # 自动化开发工具（不纳入版本控制）
+├── claude-auto-loop/ # 自动化开发工具
 ├── requirements.md   # 项目需求文档
 └── README.md
 ```

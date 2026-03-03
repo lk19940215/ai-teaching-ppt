@@ -7,7 +7,7 @@
 # 模块结构:
 #   主流程 main()           - 交互选择 + 调用提供商写入
 #   配置写入 write_*        - write_config_header, append_config_common
-#   提供商 write_*_config   - Claude/GLM/DeepSeek/自定义
+#   提供商 write_*_config   - Claude/GLM/阿里云百炼/DeepSeek/自定义
 #   MCP configure_mcp_tools - Playwright + CLAUDE_DEBUG
 #
 # 配置保存到 config.env，run.sh 加载。含 API Key，已 gitignore。
@@ -62,23 +62,10 @@ main() {
     echo "请选择模型提供商:"
     echo ""
     echo "  1) Claude 官方"
-    echo "     需要 Anthropic API Key 或 Claude Pro/Max 订阅"
-    echo "     质量最高，成本较高"
-    echo ""
-    echo "  2) GLM via 智谱开放平台 (open.bigmodel.cn)"
-    echo "     国内直连，可选 GLM 4.7 / GLM 5"
-    echo -e "     获取 API Key: ${BLUE}https://open.bigmodel.cn/usercenter/apikeys${NC}"
-    echo ""
-    echo "  3) GLM via Z.AI 平台 (api.z.ai)"
-    echo "     海外节点，可选 GLM 4.7 / GLM 5"
-    echo -e "     获取 API Key: ${BLUE}https://z.ai/manage-apikey/apikey-list${NC}"
-    echo ""
-    echo "  4) DeepSeek (api.deepseek.com)"
-    echo -e "     ${GREEN}新用户有赠送余额${NC}，Anthropic 兼容，国内直连"
-    echo -e "     获取 API Key: ${BLUE}https://platform.deepseek.com/api_keys${NC}"
-    echo ""
-    echo "  5) 自定义"
-    echo "     手动填写 Anthropic 兼容的 BASE_URL 和 API Key"
+    echo -e "  2) GLM Coding Plan (智谱/Z.AI)      ${BLUE}https://open.bigmodel.cn${NC}"
+    echo -e "  3) 阿里云 Coding Plan (百炼)         ${BLUE}https://bailian.console.aliyun.com${NC}"
+    echo -e "  4) DeepSeek                          ${BLUE}https://platform.deepseek.com${NC}"
+    echo "  5) 自定义 (Anthropic 兼容)"
     echo ""
 
     local choice
@@ -94,33 +81,36 @@ main() {
 
     case $choice in
         1)
-            # Claude 官方
             write_claude_config
             ;;
         2)
-            # GLM via 智谱
+            # GLM Coding Plan: 子选择平台 → 选模型 → 输入 Key
+            local glm_platform glm_provider glm_base_url glm_api_url
+            glm_platform=$(read_glm_platform | tr -d '\n')
+            if [ "$glm_platform" = "bigmodel" ]; then
+                glm_provider="glm-bigmodel"
+                glm_base_url="https://open.bigmodel.cn/api/anthropic"
+                glm_api_url="https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys"
+            else
+                glm_provider="glm-zai"
+                glm_base_url="https://api.z.ai/api/anthropic"
+                glm_api_url="https://z.ai/manage-apikey/apikey-list"
+            fi
             local glm_model
             glm_model=$(read_glm_model | tr -d '\n')
             local api_key
-            api_key=$(read_api_key "智谱开放平台" "https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys" "$([ "${MODEL_PROVIDER:-}" = "glm-bigmodel" ] && echo "${ANTHROPIC_API_KEY:-}")" | tr -d '\n')
-            write_glm_config "glm-bigmodel" \
-                "https://open.bigmodel.cn/api/anthropic" \
-                "$api_key" \
-                "$glm_model"
+            api_key=$(read_api_key "$glm_provider" "$glm_api_url" "$([ "${MODEL_PROVIDER:-}" = "$glm_provider" ] && echo "${ANTHROPIC_API_KEY:-}")" | tr -d '\n')
+            write_glm_config "$glm_provider" "$glm_base_url" "$api_key" "$glm_model"
             ;;
         3)
-            # GLM via Z.AI
-            local glm_model
-            glm_model=$(read_glm_model | tr -d '\n')
+            # 阿里云 Coding Plan (百炼)
+            local aliyun_base_url
+            aliyun_base_url=$(read_aliyun_region | tr -d '\n')
             local api_key
-            api_key=$(read_api_key "Z.AI 平台" "https://z.ai/manage-apikey/apikey-list" "$([ "${MODEL_PROVIDER:-}" = "glm-zai" ] && echo "${ANTHROPIC_API_KEY:-}")" | tr -d '\n')
-            write_glm_config "glm-zai" \
-                "https://api.z.ai/api/anthropic" \
-                "$api_key" \
-                "$glm_model"
+            api_key=$(read_api_key "阿里云百炼" "https://bailian.console.aliyun.com/?tab=model#/api-key" "$([ "${MODEL_PROVIDER:-}" = "aliyun-coding" ] && echo "${ANTHROPIC_API_KEY:-}")" | tr -d '\n')
+            write_aliyun_config "$aliyun_base_url" "$api_key"
             ;;
         4)
-            # DeepSeek（按官方 Anthropic API 兼容文档配置）
             local api_key
             api_key=$(read_api_key "DeepSeek" "https://platform.deepseek.com/api_keys" "$([ "${MODEL_PROVIDER:-}" = "deepseek" ] && echo "${ANTHROPIC_API_KEY:-}")" | tr -d '\n')
             local ds_model
@@ -128,7 +118,6 @@ main() {
             write_deepseek_config "$api_key" "$ds_model"
             ;;
         5)
-            # 自定义
             local base_url api_key
             local default_url=""
             [ "${MODEL_PROVIDER:-}" = "custom" ] && [ -n "${ANTHROPIC_BASE_URL:-}" ] && default_url="$ANTHROPIC_BASE_URL"
@@ -228,6 +217,24 @@ write_claude_config() {
     log_ok "已配置为 Claude 官方模型"
 }
 
+read_glm_platform() {
+    echo "请选择 GLM 平台:" >&2
+    echo "" >&2
+    echo "  1) 智谱开放平台 (open.bigmodel.cn) - 国内直连" >&2
+    echo "  2) Z.AI (api.z.ai) - 海外节点" >&2
+    echo "" >&2
+    local plat_choice
+    while true; do
+        read -p "选择 [1-2，默认 1]: " plat_choice
+        plat_choice="${plat_choice:-1}"
+        case $plat_choice in
+            1) echo "bigmodel"; break ;;
+            2) echo "zai"; break ;;
+            *) echo "请输入 1 或 2" >&2 ;;
+        esac
+    done
+}
+
 read_glm_model() {
     echo "请选择 GLM 模型版本:" >&2
     echo "" >&2
@@ -241,6 +248,24 @@ read_glm_model() {
         case $model_choice in
             1) echo "glm-4.7"; break ;;
             2) echo "glm-5"; break ;;
+            *) echo "请输入 1 或 2" >&2 ;;
+        esac
+    done
+}
+
+read_aliyun_region() {
+    echo "请选择阿里云百炼区域:" >&2
+    echo "" >&2
+    echo "  1) 国内版 (coding.dashscope.aliyuncs.com)" >&2
+    echo "  2) 国际版 (coding-intl.dashscope.aliyuncs.com)" >&2
+    echo "" >&2
+    local region_choice
+    while true; do
+        read -p "选择 [1-2，默认 1]: " region_choice
+        region_choice="${region_choice:-1}"
+        case $region_choice in
+            1) echo "https://coding.dashscope.aliyuncs.com/apps/anthropic"; break ;;
+            2) echo "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic"; break ;;
             *) echo "请输入 1 或 2" >&2 ;;
         esac
     done
@@ -283,6 +308,31 @@ write_glm_config() {
     append_config_common 3000000
     log_ok "已配置为 GLM 模型 (${provider}, ${model})"
     log_info "BASE_URL: $base_url"
+}
+
+# --- 提供商: 阿里云百炼 Coding Plan ---
+# 参考: https://help.aliyun.com/zh/model-studio/coding-plan
+write_aliyun_config() {
+    local base_url="$1"
+    local api_key="$2"
+
+    write_config_header "阿里云 Coding Plan (百炼)" "主模型: glm-4.7 | Opus: glm-5 | Sonnet: qwen3.5-plus | Haiku: qwen3-coder-plus"
+    {
+        echo "MODEL_PROVIDER=aliyun-coding"
+        echo "ANTHROPIC_BASE_URL=$base_url"
+        echo "ANTHROPIC_API_KEY=$api_key"
+        echo ""
+        echo "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1"
+        echo "ANTHROPIC_MODEL=glm-4.7"
+        echo "ANTHROPIC_DEFAULT_OPUS_MODEL=glm-5"
+        echo "ANTHROPIC_DEFAULT_SONNET_MODEL=qwen3.5-plus"
+        echo "ANTHROPIC_DEFAULT_HAIKU_MODEL=qwen3-coder-plus"
+        echo "ANTHROPIC_SMALL_FAST_MODEL=qwen3-coder-plus"
+    } >> "$CONFIG_FILE"
+    append_config_common 3000000
+    log_ok "已配置为阿里云 Coding Plan (百炼)"
+    log_info "BASE_URL: $base_url"
+    log_info "模型映射: Main=glm-4.7 / Opus=glm-5 / Sonnet=qwen3.5-plus / Haiku=qwen3-coder-plus"
 }
 
 # --- 提供商: DeepSeek ---

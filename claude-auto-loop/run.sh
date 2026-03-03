@@ -535,10 +535,13 @@ main() {
             CLAUDE_EXTRA_FLAGS=()
         fi
         
-        # DeepSeek 时显式传 --model 覆盖 settings
-        # 注意：run.sh 前面可能已将 ANTHROPIC_MODEL 重写为 deepseek-chat-optimized 以禁用 thinking
-        if [ -n "${ANTHROPIC_BASE_URL:-}" ] && [[ "${ANTHROPIC_BASE_URL}" == *deepseek* ]] && [ -n "${ANTHROPIC_MODEL:-}" ]; then
-            CLAUDE_MODEL_FLAGS=(--model "$ANTHROPIC_MODEL")
+        # 第三方提供商显式传 --model 覆盖 settings
+        if [ -n "${ANTHROPIC_BASE_URL:-}" ] && [ -n "${ANTHROPIC_MODEL:-}" ]; then
+            if [[ "${ANTHROPIC_BASE_URL}" == *deepseek* ]] || [[ "${ANTHROPIC_BASE_URL}" == *dashscope* ]]; then
+                CLAUDE_MODEL_FLAGS=(--model "$ANTHROPIC_MODEL")
+            else
+                CLAUDE_MODEL_FLAGS=()
+            fi
         else
             CLAUDE_MODEL_FLAGS=()
         fi
