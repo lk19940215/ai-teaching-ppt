@@ -141,7 +141,7 @@
         "实现英语专属页面生成逻辑",
         "集成到主生成流程中（根据学科条件触发）"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-005",
         "feat-006"

@@ -64,6 +64,51 @@
       "created_session": 10,
       "last_result": "pass",
       "last_run_session": 10
+    },
+    {
+      "id": "test-feat008-english-subject",
+      "feature_id": "feat-008",
+      "name": "英语学科增强 - 学科选择和页面类型图标",
+      "type": "browser",
+      "priority": "critical",
+      "affected_paths": [
+        "frontend/src/app/upload/page.tsx",
+        "backend/app/services/ppt_generator.py",
+        "backend/app/services/content_generator.py"
+      ],
+      "preconditions": {
+        "services": ["frontend", "backend"],
+        "real_api_key": false
+      },
+      "steps": "访问 /upload 页面，选择学科为'英语'，填写英语教学内容，验证学科选项正常；验证代码中英语学科专属页面类型（单词学习页、语法讲解页、情景对话页、课文分析页）已定义",
+      "test_data_summary": "英语学科选项和页面类型验证",
+      "expected_result": "学科选择包含'英语'选项，前端支持英语专属页面类型图标（🔤单词、📝语法、💭对话、🔍分析），后端 PPT 生成器支持英语页面类型处理方法",
+      "auto_generated": true,
+      "created_session": 11,
+      "last_result": "pass",
+      "last_run_session": 11
+    },
+    {
+      "id": "test-feat008-english-content-generator",
+      "feature_id": "feat-008",
+      "name": "英语学科增强 - 内容生成器方法验证",
+      "type": "unit",
+      "priority": "normal",
+      "affected_paths": [
+        "backend/app/services/content_generator.py",
+        "backend/app/services/ppt_generator.py"
+      ],
+      "preconditions": {
+        "services": ["backend"],
+        "real_api_key": false
+      },
+      "steps": "验证 PPTContentGenerator.generate_for_english() 方法存在，验证 PPTGenerator 包含_add_vocabulary_slide、_add_grammar_slide、_add_dialogue_slide、_add_analysis_slide 方法",
+      "test_data_summary": "英语学科内容生成器和 PPT 生成器方法验证",
+      "expected_result": "generate_for_english 方法存在，4 个英语专属页面生成方法存在",
+      "auto_generated": true,
+      "created_session": 11,
+      "last_result": "pass",
+      "last_run_session": 11
     }
   ]
 }

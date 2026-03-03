@@ -152,6 +152,35 @@ class PPTGenerator:
                         content_size,
                         primary_color
                     )
+                # 英语学科专属页面类型
+                elif page_type == PPTPageType.VOCABULARY:
+                    self._add_vocabulary_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.GRAMMAR:
+                    self._add_grammar_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.DIALOGUE:
+                    self._add_dialogue_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.ANALYSIS:
+                    self._add_analysis_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        secondary_color
+                    )
 
             # 保存文件
             output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -357,6 +386,242 @@ class PPTGenerator:
             p = text_frame.add_paragraph()
             p.text = f"• {point}"
             p.font.size = Pt(font_size)
+
+    def _add_vocabulary_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加单词学习页（英语学科专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "单词学习")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        # 内容 - 手动添加文本框
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        # 显示单词列表
+        vocabulary = slide_data.get("vocabulary", [])
+        if vocabulary:
+            for vocab_item in vocabulary:
+                word = vocab_item.get("word", "")
+                phonetic = vocab_item.get("phonetic", "")
+                meaning = vocab_item.get("meaning", "")
+                example = vocab_item.get("example", "")
+
+                # 单词（大号字体）
+                p = text_frame.add_paragraph()
+                p.text = word
+                p.font.size = Pt(font_size + 4)
+                p.font.color.rgb = color
+                p.font.bold = True
+
+                # 音标
+                if phonetic:
+                    p = text_frame.add_paragraph()
+                    p.text = f"  [{phonetic}]"
+                    p.font.size = Pt(font_size)
+                    p.font.color.rgb = RGBColor(128, 128, 128)
+
+                # 释义
+                if meaning:
+                    p = text_frame.add_paragraph()
+                    p.text = f"  {meaning}"
+                    p.font.size = Pt(font_size)
+
+                # 例句
+                if example:
+                    p = text_frame.add_paragraph()
+                    p.text = f"  例：{example}"
+                    p.font.size = Pt(font_size - 2)
+                    p.font.color.rgb = RGBColor(0, 100, 200)
+
+                # 空行分隔
+                p = text_frame.add_paragraph()
+                p.text = ""
+        else:
+            # 没有词汇数据时，显示普通内容
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_grammar_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加语法讲解页（英语学科专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "语法讲解")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        # 内容 - 手动添加文本框
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
+        text_frame = content_box.text_frame
+
+        # 语法规则说明
+        grammar = slide_data.get("grammar", "")
+        if grammar:
+            p = text_frame.add_paragraph()
+            p.text = "语法规则："
+            p.font.size = Pt(font_size + 2)
+            p.font.color.rgb = color
+            p.font.bold = True
+
+            p = text_frame.add_paragraph()
+            p.text = grammar
+            p.font.size = Pt(font_size)
+
+            p = text_frame.add_paragraph()
+            p.text = ""
+        else:
+            # 显示普通内容
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+        # 例句
+        if slide_data.get("examples"):
+            p = text_frame.add_paragraph()
+            p.text = "\n例句："
+            p.font.size = Pt(font_size + 2)
+            p.font.color.rgb = RGBColor(0, 100, 200)
+            p.font.bold = True
+
+            for example in slide_data["examples"]:
+                p = text_frame.add_paragraph()
+                p.text = f"• {example}"
+                p.font.size = Pt(font_size)
+
+    def _add_dialogue_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加情景对话页（英语学科专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "情景对话")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        # 内容 - 手动添加文本框
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
+        text_frame = content_box.text_frame
+
+        # 对话内容
+        dialogue = slide_data.get("dialogue", [])
+        if dialogue:
+            for line in dialogue:
+                if isinstance(line, dict):
+                    speaker = line.get("speaker", "")
+                    text = line.get("text", "")
+                    p = text_frame.add_paragraph()
+                    p.text = f"{speaker}: {text}" if speaker else text
+                    p.font.size = Pt(font_size)
+                else:
+                    p = text_frame.add_paragraph()
+                    p.text = line
+                    p.font.size = Pt(font_size)
+        else:
+            # 显示普通内容
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_analysis_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加课文分析页（英语学科专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "课文分析")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        # 内容 - 手动添加文本框
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
+        text_frame = content_box.text_frame
+
+        # 段落大意
+        if slide_data.get("paragraph_summary"):
+            p = text_frame.add_paragraph()
+            p.text = "段落大意："
+            p.font.size = Pt(font_size + 2)
+            p.font.color.rgb = color
+            p.font.bold = True
+
+            p = text_frame.add_paragraph()
+            p.text = slide_data["paragraph_summary"]
+            p.font.size = Pt(font_size)
+
+            p = text_frame.add_paragraph()
+            p.text = ""
+
+        # 关键句型
+        if slide_data.get("key_sentences"):
+            p = text_frame.add_paragraph()
+            p.text = "关键句型："
+            p.font.size = Pt(font_size + 2)
+            p.font.color.rgb = RGBColor(0, 100, 200)
+            p.font.bold = True
+
+            for sentence in slide_data["key_sentences"]:
+                p = text_frame.add_paragraph()
+                p.text = f"• {sentence}"
+                p.font.size = Pt(font_size)
+
+            p = text_frame.add_paragraph()
+            p.text = ""
+
+        # 常用表达
+        if slide_data.get("expressions"):
+            p = text_frame.add_paragraph()
+            p.text = "常用表达："
+            p.font.size = Pt(font_size + 2)
+            p.font.color.rgb = RGBColor(128, 0, 128)
+            p.font.bold = True
+
+            for expr in slide_data["expressions"]:
+                p = text_frame.add_paragraph()
+                p.text = f"• {expr}"
+                p.font.size = Pt(font_size)
+        else:
+            # 显示普通内容
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
 
 
 # 全局 PPT 生成器实例
