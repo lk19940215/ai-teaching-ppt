@@ -1,5 +1,4 @@
-from openai import OpenAI, APITimeoutError as OpenAITimeoutError
-from openai.types import APIError as OpenAIAPIError
+from openai import OpenAI, APITimeoutError as OpenAITimeoutError, APIError as OpenAIAPIError
 from typing import List, Dict, Any, Optional
 import logging
 import json

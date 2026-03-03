@@ -50,6 +50,21 @@ interface TeachingConfig {
   chapter: string
 }
 
+// PPT 内容类型
+interface PPTContent {
+  title: string
+  slides: Array<{
+    page_type: string
+    title: string
+    content: string[]
+    interaction?: string
+    exercise?: string
+    mnemonic?: string
+  }>
+  summary: string
+  key_points: string[]
+}
+
 export default function UploadPage() {
   const [config, setConfig] = useState<TeachingConfig>({
     grade: "3",
@@ -65,6 +80,17 @@ export default function UploadPage() {
   const [pdfFile, setPdfFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [generatedContent, setGeneratedContent] = useState<PPTContent | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  // 从 localStorage 加载 LLM 配置
+  const getLLMConfig = () => {
+    const savedConfig = localStorage.getItem("llm_config")
+    if (savedConfig) {
+      return JSON.parse(savedConfig)
+    }
+    return null
+  }
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -102,13 +128,52 @@ export default function UploadPage() {
 
   const handleGenerate = async () => {
     setIsGenerating(true)
+    setError(null)
+    setGeneratedContent(null)
+
     try {
-      // TODO: 调用后端 API 生成 PPT
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      alert("PPT 生成功能正在开发中...")
+      // 获取 LLM 配置
+      const llmConfig = getLLMConfig()
+      if (!llmConfig || !llmConfig.apiKey) {
+        setError("请先在设置页面配置 LLM API Key")
+        return
+      }
+
+      // 调用后端 API 生成 PPT 内容
+      const response = await fetch("http://localhost:8000/api/v1/generate/ppt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: textContent,
+          grade: config.grade,
+          subject: config.subject,
+          slideCount: config.slideCount,
+          chapter: config.chapter || undefined,
+          provider: llmConfig.provider,
+          api_key: llmConfig.apiKey,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || "生成失败")
+      }
+
+      const result = await response.json()
+      setGeneratedContent(result.data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "生成失败，请稍后重试")
     } finally {
       setIsGenerating(false)
     }
+  }
+
+  const handleReset = () => {
+    setGeneratedContent(null)
+    setError(null)
+    setTextContent("")
+    setImageFiles([])
+    setPdfFile(null)
   }
 
   return (
@@ -116,6 +181,77 @@ export default function UploadPage() {
       <h1 className="text-3xl font-bold text-gray-900 mb-8">
         AI 教学 PPT 生成器
       </h1>
+
+      {/* 错误提示 */}
+      {error && (
+        <div className="bg-red-50 text-red-800 p-4 rounded-lg mb-6">
+          {error}
+        </div>
+      )}
+
+      {/* 生成结果展示 */}
+      {generatedContent && (
+        <div className="bg-white rounded-xl border p-6 shadow-sm mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">生成结果</h2>
+            <Button variant="outline" onClick={handleReset}>
+              重新生成
+            </Button>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-medium mb-2">{generatedContent.title}</h3>
+              <p className="text-gray-600">{generatedContent.summary}</p>
+            </div>
+
+            <div>
+              <h4 className="font-medium mb-2">重点：</h4>
+              <ul className="list-disc list-inside text-gray-600">
+                {generatedContent.key_points.map((point, index) => (
+                  <li key={index}>{point}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-medium mb-2">幻灯片内容：</h4>
+              <div className="space-y-4">
+                {generatedContent.slides.map((slide, index) => (
+                  <div key={index} className="border p-4 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-indigo-600 font-medium">
+                        第 {index + 1} 页 - {slide.page_type}
+                      </span>
+                    </div>
+                    <h5 className="font-medium">{slide.title}</h5>
+                    <ul className="list-disc list-inside text-sm text-gray-600 mt-2">
+                      {slide.content.map((item, i) => (
+                        <li key={i}>{item}</li>
+                      ))}
+                    </ul>
+                    {slide.interaction && (
+                      <div className="mt-2 text-sm text-green-600">
+                        互动：{slide.interaction}
+                      </div>
+                    )}
+                    {slide.exercise && (
+                      <div className="mt-2 text-sm text-blue-600">
+                        练习：{slide.exercise}
+                      </div>
+                    )}
+                    {slide.mnemonic && (
+                      <div className="mt-2 text-sm text-purple-600">
+                        口诀：{slide.mnemonic}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* 左侧：上传区域 */}

@@ -42,3 +42,11 @@
 - 问题：autoprefixer 10.0.0 版本存在 stack overflow 问题，暂时禁用；Button 组件依赖 class-variance-authority 但项目中未安装。
 - Git: f93294b - feat(feat-004): 教学配置面板 - 年级学科风格参数选择
 - 下次注意：前端开发时需要确保所有依赖都正确安装，注意 Tailwind CSS 相关版本兼容性。
+
+=== Session 7 | 2026-03-03 12:00 ===
+- 任务：feat-005 AI 内容生成
+- 状态：done
+- 完成：设计 LLM 统一调用接口（支持 DeepSeek/OpenAI/Claude/GLM），实现提示词工程：提炼知识点、重难点、互动环节，根据年级调整内容深度和表达方式（1-9年级不同描述），生成课堂练习题、记忆口诀、助记方法，实现内容结构化输出（JSON 格式），添加 LLM 调用超时和错误处理。创建英语学科专属内容生成器（单词卡片、语法、对话、分析）。添加 PPT 内容生成 API /generate/ppt，添加 LLM 连接测试 API /generate/test，添加服务商列表 API /generate/providers。升级 openai 库到 2.24.0 修复兼容性问题。
+- 问题：openai 1.12.0 版本存在兼容性问题，升级到 2.24.0 解决。
+- Git: 1378535 - feat(feat-005): AI 内容生成 - LLM 统一调用接口和提示词工程
+- 下次注意：LLM 服务调用需要有效的 API Key，测试时需要用户提供真实 API Key。
