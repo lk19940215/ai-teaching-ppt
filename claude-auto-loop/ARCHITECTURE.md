@@ -59,11 +59,19 @@ flowchart TB
     validate -->|"pass → 下一session<br/>fail → rollback"| coding
 ```
 
-## 执行流程（首次运行 vs 后续运行）
+## 执行流程
 
 ```mermaid
 flowchart LR
-    start([bash run.sh]) --> check{profile<br/>存在?}
+    start(["bash run.sh ..."]) --> mode{模式?}
+
+    mode -->|"--view"| view["run_view_session()<br/>交互式 session"]
+    view --> exit_view([exit 0])
+
+    mode -->|"--add 指令"| add["run_add_tasks()<br/>读上下文 + 追加 tasks.json"]
+    add --> exit_add([exit 0])
+
+    mode -->|默认| check{profile<br/>存在?}
 
     check -->|否| req["读取<br/>requirements.md"]
     req --> scan["run_scan()"]

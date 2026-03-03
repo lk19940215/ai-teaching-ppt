@@ -48,6 +48,7 @@ bash claude-auto-loop/run.sh
 | Argument | Description | Default |
 |----------|-------------|---------|
 | `--view` | Interactive observation mode, shows Agent decisions in real-time | Off |
+| `--add "instruction"` | Task append mode, generates new tasks in tasks.json (no coding) | — |
 | `--max N` | Maximum number of sessions before auto-stop | 50 |
 | `--pause N` | Pause every N sessions for user confirmation | 5 |
 
@@ -57,6 +58,7 @@ bash claude-auto-loop/run.sh --max 3                  # Stop after 3 sessions
 bash claude-auto-loop/run.sh --max 10 --pause 3       # Run 10, pause every 3
 bash claude-auto-loop/run.sh --view                   # Observation mode
 bash claude-auto-loop/run.sh --view "requirement"     # Observation mode + project init
+bash claude-auto-loop/run.sh --add "Add avatar upload" # Append new tasks
 ```
 
 ### Observation Mode (Debug / Watch Agent Behavior)
@@ -70,15 +72,28 @@ bash claude-auto-loop/run.sh --view "requirement"  # Watch project initializatio
 
 `--view` automatically inherits the model configuration from `config.env` (DeepSeek / GLM / Claude), injects the CLAUDE.md protocol, and uses the same hooks and settings. The only difference is running in interactive mode — exit manually when done (`Ctrl+C` or `/exit`).
 
+When all tasks are already `done`, `--view` automatically skips the 6-step workflow (no init.sh, no context recovery, etc.) and enters direct conversation mode.
+
 **Mode comparison**:
 
-| | Automated Mode | Observation Mode (`--view`) |
-|---|---|---|
-| Command | `bash run.sh "requirement"` | `bash run.sh --view` |
-| Visibility | Final text only + progress indicator | Live tool calls, file diffs, thinking |
-| Exit | Auto-exit and loop | Manual exit (`Ctrl+C` or `/exit`) |
-| Validation | Auto-runs `validate.sh` | Run manually: `bash claude-auto-loop/validate.sh` |
-| Best for | Unattended, batch execution | Debugging prompts, observing behavior, verifying a single task |
+| | Automated Mode | Observation Mode (`--view`) | Task Append (`--add`) |
+|---|---|---|---|
+| Command | `bash run.sh "requirement"` | `bash run.sh --view` | `bash run.sh --add "instruction"` |
+| Visibility | Final text only + progress indicator | Live tool calls, file diffs, thinking | Final text only |
+| Exit | Auto-exit and loop | Manual exit (`Ctrl+C` or `/exit`) | Auto-exit |
+| Execution | Full 6-step workflow | 6-step workflow (skipped when all done) | Only updates tasks.json |
+| Best for | Unattended, batch execution | Debugging prompts, observing behavior | Appending new requirements after all tasks are done |
+
+### Task Append Mode (Add Requirements After Completion)
+
+When all tasks are `done`, the coding loop exits immediately. To add new requirements, use `--add` mode to generate new `pending` tasks:
+
+```bash
+bash claude-auto-loop/run.sh --add "Add user avatar upload with cropping and compression"
+bash claude-auto-loop/run.sh      # Continue coding loop with the new tasks
+```
+
+`--add` is a lightweight session: no 6-step workflow, no init.sh, no coding. The Agent only reads `tasks.json` and `project_profile.json`, appends new tasks based on the instruction, then git commits.
 
 ---
 
@@ -383,13 +398,24 @@ Safeguards to prevent the Agent from running indefinitely or going out of contro
 
 ### Observability During Run
 
-run.sh provides two layers of observability:
+run.sh provides three layers of observability:
 
 **Real-time output (`--verbose` + `| tee`)**: Coding sessions enable `--verbose` by default, so Claude Code prints tool call names and results in the terminal. All output is also piped through `| tee` to a log file for later review.
 
 **Progress indicator (PreToolUse hook)**: Prints a progress status every 15 seconds. Via Claude Code's **PreToolUse** hook (`hooks/phase-signal.py`): when the model first calls a tool, the message switches from "Thinking..." to "Coding...".
 
+**Real-time activity log**: The hook writes to `.activity_log` on each tool call, recording the tool name and a summary (e.g. `Read backend/app/main.py`, `Bash npm install`). The progress indicator reads the latest entry and displays it as:
+- `Coding · Step 4: Implementation · Write backend/app/api.py`
+
 **6-step workflow display**: After the Agent enters the coding phase, the indicator shows the inferred step from [CLAUDE.md](CLAUDE.md), e.g. `Coding · Step 4: Implementation`, `Coding · Step 5: Testing`. Steps are inferred from tool call patterns (e.g. Read profile/progress/tasks → Step 1, Bash init.sh → Step 2); slight inaccuracies are possible.
+
+### Environment Check Optimization
+
+In the coding loop, the Agent's Step 2 is "Environment & Health Check" (running init.sh to install deps, start services). To avoid redundant execution:
+
+- **Skip on consecutive success**: When the previous session succeeded, run.sh injects a hint telling the Agent the environment is ready — skip init.sh, just curl to verify services are alive
+- **Full check on first run or after failure**: The first session or after a rollback, the Agent runs the full environment check
+- **Safety valve**: If the current task involves dependency changes (e.g. modified package.json), the Agent will still decide to run init.sh on its own
 
 ### Common Issues
 
@@ -434,11 +460,12 @@ run.sh uses `-p` (headless) so the Agent works autonomously. For interactive obs
 - During context restoration, the Agent **conditionally** syncs requirements: only when `requirements.md` has changed will it compare with `tasks.json`. If it finds new requirements not yet covered, it will break them down into new tasks, append them to `tasks.json`, then proceed as usual.
 - The protocol permits the Agent to add new tasks (it only forbids deleting or modifying existing task descriptions), so requirement changes are reflected in the task list automatically.
 
-**When you personally spot something to improve, you have three options:**
+**When you personally spot something to improve, you have four options:**
 
 | Option | Action | When to use |
 |--------|--------|-------------|
 | Update requirements | Add new requirements or improvements to `requirements.md`, then run `bash claude-auto-loop/run.sh` | Let the Agent decompose and implement; **recommended** |
+| `--add` append | `bash claude-auto-loop/run.sh --add "new feature description"` | All tasks done and you want to add new requirements; Agent auto-decomposes into tasks.json |
 | Add task manually | Add a new entry to `features` in `tasks.json` with `status: "pending"`, then run `run.sh` | Requirements are clear and you want precise control over the task description |
 | Edit code directly | Make changes in Cursor, `git commit`, then run `run.sh` | Small fixes you can do faster yourself |
 
@@ -541,11 +568,13 @@ This tool builds on Anthropic's [long-running agent harness](https://www.anthrop
 | Validation hooks | None | `validate.d/` hook directory, user-extensible |
 | Model selection | Claude only | GLM 4.7/5, DeepSeek, and other Anthropic-compatible models |
 | Requirements input | CLI one-liner argument | `requirements.md` document (specify tech stack, styles, editable anytime) |
-| Progress indicator | None | PreToolUse hook switches "Thinking..." → "Coding..." on first tool call |
+| Progress indicator | None | PreToolUse hook switches "Thinking..." → "Coding..." + real-time activity log |
 | Debug output | None | `--verbose` enabled by default + `CLAUDE_DEBUG` in config.env for mcp/api logs |
 | Agent protocol loading | Agent manually Reads CLAUDE.md (may skip) | `--append-system-prompt-file` guarantees 100% injection; coding sessions inject CLAUDE.md only, scan sessions concat SCAN_PROTOCOL.md; leverages API prefix caching to reduce token cost |
 | Tool constraints | Unrestricted | `--allowedTools` whitelist prevents tool misuse and hallucinated calls |
 | Failure retry | Blind retry | Injects previous validation failure reason, avoids repeating the same mistake |
+| Environment optimization | Full init every time | Skips init.sh on consecutive success, quick health check only |
+| Task append | None | `--add` mode: lightweight task creation after all tasks complete |
 
 ---
 
@@ -564,8 +593,10 @@ This tool builds on Anthropic's [long-running agent harness](https://www.anthrop
 | `setup.sh` | Interactive setup (model selection + MCP tool installation) |
 | `cursor.mdc` | Cursor rules file: copy to `.cursor/rules/` to use |
 | `requirements.example.md` | Requirements template: copy as `requirements.md` and fill in your detailed needs |
-| `hooks/phase-signal.py` | PreToolUse hook: writes `.phase` on first tool call for progress indicator |
+| `hooks/phase-signal.py` | PreToolUse hook: writes `.phase` (progress switch), `.phase_step` (step inference), `.activity_log` (real-time activity log) |
 | `hooks-settings.json` | Claude Code hooks config, loaded via `--settings` |
+| `update.sh` | Pulls latest code from upstream (exclude strategy: preserves project runtime data, syncs all core files) |
+| `ARCHITECTURE.md` | Architecture doc: system overview, Mermaid diagrams, file responsibilities (for AI Agents to quickly understand the tool design) |
 | `README.md` | Chinese documentation |
 | `README.en.md` | This file (English documentation) |
 
@@ -579,4 +610,7 @@ This tool builds on Anthropic's [long-running agent harness](https://www.anthrop
 | `tasks.json` | Task list + state machine tracking |
 | `progress.txt` | Cross-session memory log (append-only) |
 | `session_result.json` | Temporary file (deleted by harness after each session) |
-| `.phase` | Progress state (thinking/coding), written by PreToolUse hook, gitignored |
+| `sync_state.json` | Requirements sync state (`last_requirements_hash`, etc.; created on conditional trigger) |
+| `.phase` | Progress state (thinking/coding), written by hook, gitignored |
+| `.phase_step` | Inferred 6-step workflow step, written by hook, gitignored |
+| `.activity_log` | Real-time activity log (tool call summaries), written by hook, gitignored |

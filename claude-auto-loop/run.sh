@@ -7,11 +7,13 @@
 #   首次运行（快捷模式）: bash claude-auto-loop/run.sh "你的需求描述"
 #   继续运行:             bash claude-auto-loop/run.sh
 #   观测模式:             bash claude-auto-loop/run.sh --view
+#   追加任务:             bash claude-auto-loop/run.sh --add "修复暗色主题文字颜色"
 #   限制 session 数:      bash claude-auto-loop/run.sh --max 10
 #   控制暂停频率:         bash claude-auto-loop/run.sh --max 10 --pause 3
 #
 # 参数:
 #   --view           交互式观测模式，实时显示 Agent 决策过程
+#   --add "指令"     任务追加模式，根据指令生成新任务到 tasks.json（不执行 6 步流程）
 #   --max N          最大 session 数（默认 50）
 #   --pause N        每 N 个 session 暂停确认（默认 5）
 #
@@ -401,6 +403,12 @@ run_coding_session() {
 注意：上次会话校验失败，原因：$fail_reason。请避免同样的问题。"
     fi
 
+    # 环境就绪提示：连续成功时跳过 init.sh
+    local env_hint=""
+    if [ "$consecutive_failures" -eq 0 ] && [ "$session_num" -gt 1 ]; then
+        env_hint="环境提示：上次会话成功完成，环境已就绪。第二步可简化：跳过 init.sh，仅快速验证服务存活即可（curl 一次）。若本次任务涉及新依赖（修改了 package.json/requirements.txt 等），仍需运行 init.sh。"
+    fi
+
     # 构建 tests.json 感知提示（选择性回归测试）
     local test_hint=""
     if [ -f "$SCRIPT_DIR/tests.json" ]; then
@@ -424,6 +432,7 @@ except Exception:
 效率要求：先规划后编码，完成全部编码后再统一测试，禁止编码-测试反复跳转。后端任务用 curl 验证，不启动浏览器。小任务可合并执行。
 ${mcp_hint:+前端/全栈任务可用: $mcp_hint
 }${test_hint:+测试: $test_hint
+}${env_hint:+${env_hint}
 }完成后写入 session_result.json。${retry_context}"
 
     set +e
@@ -470,7 +479,11 @@ run_view_session() {
             tc=$(python3 -c "import json; print(len(json.load(open('$SCRIPT_DIR/tests.json')).get('test_cases',[])))" 2>/dev/null || echo 0)
             [ "${tc:-0}" -gt 0 ] && view_test_hint=" tests.json 已有 ${tc} 个测试用例。"
         fi
-        initial_prompt="执行 6 步流程，完成下一个任务。${mcp_hint:+ 可用工具: $mcp_hint}${view_test_hint}"
+        if [ "$(all_tasks_done)" = "true" ]; then
+            initial_prompt="所有任务已完成，无需执行 6 步流程。直接与用户对话，按需回答问题或执行临时请求。如需添加新任务，建议用户使用 --add 模式。${mcp_hint:+ 可用工具: $mcp_hint}${view_test_hint}"
+        else
+            initial_prompt="执行 6 步流程，完成下一个任务。${mcp_hint:+ 可用工具: $mcp_hint}${view_test_hint}"
+        fi
     fi
 
     claude "${CLAUDE_MODEL_FLAGS[@]}" "${CLAUDE_EXTRA_FLAGS[@]}" \
@@ -480,14 +493,57 @@ run_view_session() {
         "$initial_prompt"
 }
 
+# ============ 任务追加模式（轻量级，不走 6 步流程） ============
+run_add_tasks() {
+    local instruction="$1"
+
+    log_info "任务追加模式：根据指令生成新任务..."
+    echo "--------------------------------------------"
+    start_thinking_indicator
+
+    local add_prompt="重要：这是任务追加 session，不是常规编码 session。不执行 6 步流程。
+
+步骤：
+1. 读取 claude-auto-loop/tasks.json 了解已有任务和最大 id/priority
+2. 读取 claude-auto-loop/project_profile.json 了解项目技术栈
+3. 根据用户指令，在 tasks.json 的 features 数组中追加新任务（status: pending）
+4. 保持与已有任务相同的格式（id, category, priority, description, steps, status, depends_on）
+5. 新任务的 id 和 priority 从已有最大值递增
+6. 不修改已有任务，不运行 init.sh，不实现代码，不运行测试
+7. git add -A && git commit -m \"chore: add new tasks\"
+8. 写入 session_result.json
+
+用户指令：$instruction"
+
+    set +e
+    claude "${CLAUDE_MODEL_FLAGS[@]}" "${CLAUDE_EXTRA_FLAGS[@]}" \
+        --permission-mode bypassPermissions \
+        --settings "$SCRIPT_DIR/hooks-settings.json" \
+        --append-system-prompt-file "$CLAUDE_MD" \
+        --allowedTools "$ALLOWED_TOOLS" \
+        -p "$add_prompt" \
+        2>&1 | tee "$LOG_DIR/add_tasks_$(date +%s).log"
+    set -e
+    stop_thinking_indicator
+    echo "--------------------------------------------"
+
+    local stats
+    stats=$(get_task_stats)
+    log_ok "任务追加完成"
+    log_info "当前进度: $stats"
+    log_info "运行 bash claude-auto-loop/run.sh 开始执行新任务"
+}
+
 # ============ 主流程 ============
 main() {
     echo ""
     # ============ 解析 CLI 参数 ============
-    local view_mode=false
+    local view_mode=""
+    local add_instruction=""
     while [[ "${1:-}" == --* ]]; do
         case "$1" in
             --view)  view_mode=true; shift ;;
+            --add)   add_instruction="${2:?--add 需要指令参数}"; shift 2 ;;
             --max)   MAX_SESSIONS="${2:?--max 需要参数}"; shift 2 ;;
             --pause) PAUSE_EVERY="${2:?--pause 需要参数}"; shift 2 ;;
             *)       log_error "未知参数: $1"; exit 1 ;;
@@ -606,6 +662,16 @@ main() {
         log_info "退出：Ctrl+C 或输入 /exit"
         echo "--------------------------------------------"
         run_view_session "$requirement"
+        exit 0
+    fi
+
+    # ---------- 任务追加模式：轻量 session，只更新 tasks.json ----------
+    if [ -n "$add_instruction" ]; then
+        if [ ! -f "$PROFILE" ] || [ ! -f "$TASKS_FILE" ]; then
+            log_error "--add 需要先完成初始化（至少运行一次 bash run.sh）"
+            exit 1
+        fi
+        run_add_tasks "$add_instruction"
         exit 0
     fi
 
