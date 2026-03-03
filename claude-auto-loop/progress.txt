@@ -74,3 +74,19 @@
 - 问题：无
 - Git: 7b4a2e2 - feat(feat-007): PPT 预览与下载 - 缩略图轮播和下载功能
 - 下次注意：完整 PPT 生成测试需要有效的 LLM API Key。
+
+=== Session 11 | 2026-03-03 15:30 ===
+- 任务：feat-008 英语学科增强
+- 状态：done
+- 完成：实现英语学科专属 PPT 页面生成功能。新增 4 种英语学科专属页面类型（单词学习页、语法讲解页、情景对话页、课文分析页）。PPTGenerator 添加 4 个英语页面生成方法：_add_vocabulary_slide、_add_grammar_slide、_add_dialogue_slide、_add_analysis_slide。前端支持英语学科选项和专属页面类型图标显示。添加 2 个测试用例到 tests.json。Playwright 测试通过：学科选择正常、英语选项可切换、表单填写正常。
+- 问题：无
+- Git: 7282a22 - feat(feat-008): 英语学科增强 - 单词卡片、语法、对话、课文分析页面
+- 下次注意：开始 feat-009 年级自适应 PPT 风格，需要根据不同年级调整字号、配色、留白。
+
+=== Session 12 | 2026-03-03 16:00 ===
+- 任务：feat-009 年级自适应 PPT 风格
+- 状态：done
+- 完成：实现年级自适应 PPT 样式功能。新增 PPTStyle.GRADE_GROUPS 定义三个学段（小学低年级/高年级/初中），细化 1-9 年级样式配置（字号、配色、学段组别、拼音需求），新增 get_grade_group() 和 need_pinyin() 方法，更新 PPTGenerator.generate() 支持 subject 参数，更新 API 层传递学科参数，添加 add_pinyin_text() 辅助函数。单元测试通过：1-3 年级属于 elementary_low 组（特大字号 28-32pt、鲜艳配色），4-6 年级属于 elementary_high 组（较大字号 20-24pt、明快配色），7-9 年级属于 middle 组（标准字号 16-18pt、稳重配色）；小学 1-3 年级语文 need_pinyin 返回 true。Playwright 测试通过：年级/学科选择组件正常交互。
+- 问题：无
+- Git: 403cf75 - feat(feat-009): 年级自适应 PPT 风格 - 三个学段样式和拼音标注
+- 下次注意：开始 feat-010 生成历史记录，需要设计数据库模型和 CRUD API。

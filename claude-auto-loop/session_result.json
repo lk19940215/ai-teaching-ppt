@@ -1,9 +1,1 @@
-{
-  "session_result": "success",
-  "task_id": "feat-008",
-  "status_before": "pending",
-  "status_after": "done",
-  "git_commit": "7282a22dbc2986f037763fe08f35146e3a6b4644",
-  "tests_passed": true,
-  "notes": "实现英语学科专属 PPT 页面生成功能。新增 4 种英语学科专属页面类型（单词学习页、语法讲解页、情景对话页、课文分析页）和对应的 PPT 生成方法。前端支持英语学科选项和页面类型图标。添加 2 个测试用例，Playwright 测试通过。"
-}
+{"session_result":"success","task_id":"feat-009","status_before":"pending","status_after":"done","git_commit":"403cf756aa5200f0c4b0dc7f8207a4a7cb77e837","tests_passed":true,"notes":"实现年级自适应 PPT 样式功能，三个学段（小学低年级/高年级/初中）样式配置正确，拼音标注功能正常工作。单元测试和 Playwright 浏览器测试均通过。"}
