@@ -1,0 +1,9 @@
+{
+  "session_result": "success",
+  "task_id": "feat-012",
+  "status_before": "pending",
+  "status_after": "done",
+  "git_commit": "a060340 - feat(feat-012): Docker 部署支持 - 添加 .dockerignore 和健康检查",
+  "tests_passed": true,
+  "notes": "Docker 部署配置已完成：后端 Dockerfile 添加 curl 支持健康检查，docker-compose.yml 移除过时 version 属性并添加多 LLM 服务商环境变量，创建 .dockerignore 优化构建。Docker Compose 配置验证通过。"
+}

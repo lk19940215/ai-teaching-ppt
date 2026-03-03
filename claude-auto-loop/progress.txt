@@ -112,3 +112,17 @@
 - 修改文件：backend/app/main.py, backend/app/models/database.py, frontend/src/app/settings/page.tsx, frontend/src/app/upload/page.tsx
 - Git: 待提交
 - 下次注意：feat-012 Docker 部署支持是下一个优先级任务
+=== Session 15 | 2026-03-03 17:45 ===
+- 任务：feat-012 Docker 部署支持
+- 状态：done
+- 完成：
+  1. 发现 Docker 文件已存在（backend/Dockerfile、frontend/Dockerfile、docker-compose.yml）
+  2. 后端 Dockerfile 添加 curl 支持健康检查
+  3. docker-compose.yml 移除过时的 version 属性
+  4. 添加多 LLM 服务商环境变量支持（DEEPSEEK_API_KEY、CLAUDE_API_KEY、GLM_API_KEY）
+  5. 创建 backend/.dockerignore 和 frontend/.dockerignore 优化构建
+  6. Docker Compose 配置验证通过（docker compose config）
+- 新增文件：backend/.dockerignore, frontend/.dockerignore
+- 修改文件：backend/Dockerfile, docker-compose.yml
+- Git: a060340 - feat(feat-012): Docker 部署支持 - 添加 .dockerignore 和健康检查
+- 下次注意：feat-013 数据库设置是下一个优先级任务（但历史记录功能已实现数据库，需检查是否已完成）

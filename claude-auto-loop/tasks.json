@@ -218,7 +218,7 @@
         "测试 Docker 构建和运行",
         "更新 README 中的部署说明"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-001",
         "feat-002"
