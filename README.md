@@ -25,8 +25,26 @@
 
 **拉取 claude-auto-loop 最新代码：**
 ```bash
+# macOS / Linux
 bash claude-auto-loop/update.sh
+
+# Windows (PowerShell / CMD)
+claude-auto-loop\loop.bat update
 ```
+
+### Windows 用户
+
+Windows 用户通过 `loop.bat` 统一入口运行，无需手动配置 bash 环境：
+
+```powershell
+claude-auto-loop\loop.bat setup          # 首次配置模型
+claude-auto-loop\loop.bat run "你的需求"  # 运行编码循环
+claude-auto-loop\loop.bat update         # 更新工具
+claude-auto-loop\loop.bat validate       # 校验
+```
+
+`loop.bat` 会自动找到 Git Bash 并调用对应的 `.sh` 脚本，所有参数原样透传。
+
 
 ### Cursor IDE 模式
 
@@ -35,7 +53,11 @@ bash claude-auto-loop/update.sh
 ### CLI 模式
 
 ```bash
+# macOS / Linux
 bash claude-auto-loop/run.sh
+
+# Windows (PowerShell / CMD)
+claude-auto-loop\loop.bat run
 ```
 
 详细用法见 `claude-auto-loop/README.md`。
@@ -55,10 +77,15 @@ ai-teaching-ppt/
 
 ### 环境要求
 
-- Python 3.11+
-- Node.js 20+
-- pnpm
-- Docker (可选)
+| 依赖 | 版本 | 说明 |
+|---|---|---|
+| Python | 3.11+ | 后端服务 |
+| Node.js | 20+ | 前端服务 |
+| pnpm | latest | 前端包管理（init.sh 会自动安装） |
+| Git | 2.x+ | 版本控制 |
+| Docker | 可选 | 容器化部署 |
+
+**Windows 用户：** 安装 [Git for Windows](https://git-scm.com/download/win) 即可，使用 `loop.bat` 运行（自动调用 Git Bash）。详见上方 [Windows 用户](#windows-用户)。
 
 ### 开发环境启动
 
@@ -68,15 +95,16 @@ ai-teaching-ppt/
    cd ai-teaching-ppt
    ```
 
-2. **初始化环境**
-   ```bash
-   bash claude-auto-loop/init.sh
-   ```
+2. **初始化环境**（由 Agent 自动执行，通常无需手动运行）
 
 3. **启动后端服务**
    ```bash
    cd backend
+   # macOS / Linux
    source ../.venv/bin/activate
+   # Windows (PowerShell)
+   ..\.venv\Scripts\activate
+   
    uvicorn app.main:app --reload --port 8000
    ```
 

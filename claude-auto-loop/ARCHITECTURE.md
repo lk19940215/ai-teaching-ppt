@@ -244,4 +244,5 @@ Claude Code 的 hooks 是 **进程外设计**（不是 in-process callback）。
 2. **排除法优于包含法**：`update.sh` 和 `.gitignore` 定义"要保护什么"而非"要包含什么"
 3. **Agent 自治**：Agent 通过 CLAUDE.md 协议自主决策，harness 只负责调度和校验
 4. **幂等设计**：`init.sh`、`run.sh` 可重复执行，不产生副作用
-5. **最小依赖**：仅需 `claude` CLI + `python3` + `git`，无 Node/jq 等额外依赖
+5. **最小依赖**：仅需 `claude` CLI + Python 3 + `git`，无 Node/jq 等额外依赖
+6. **跨平台**：macOS/Linux 用 `.sh`，Windows 提供 `.bat` 包装脚本自动调用 Git Bash

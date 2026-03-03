@@ -26,12 +26,13 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 SESSION_RESULT="$SCRIPT_DIR/session_result.json"
 PROFILE="$SCRIPT_DIR/project_profile.json"
 
-# ============ 颜色输出 ============
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+# ============ 共享环境引导 ============
+source "$SCRIPT_DIR/_env.sh"
+
+if [ -z "$PYTHON_CMD" ]; then
+    echo -e "${RED}[FAIL]${NC} 需要 Python 3 来运行校验（未找到 python3 或 python）"
+    exit 1
+fi
 
 log_info()  { echo -e "${BLUE}[VALIDATE]${NC}  $1"; }
 log_ok()    { echo -e "${GREEN}[PASS]${NC}     $1"; }
@@ -58,7 +59,7 @@ validate_session_result() {
     fi
 
     local validation
-    validation=$(python3 -c "
+    validation=$($PYTHON_CMD -c "
 import json, sys
 try:
     with open('$SESSION_RESULT') as f:
@@ -151,7 +152,7 @@ run_health_checks() {
 
     # 从 profile 中提取 health_check URLs
     local urls
-    urls=$(python3 -c "
+    urls=$($PYTHON_CMD -c "
 import json
 try:
     with open('$PROFILE') as f:
@@ -247,7 +248,7 @@ check_test_coverage() {
     log_info "测试覆盖检查 ..."
 
     local check_result
-    check_result=$(python3 -c "
+    check_result=$($PYTHON_CMD -c "
 import json
 try:
     with open('$SESSION_RESULT') as f:

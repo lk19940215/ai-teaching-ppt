@@ -12,7 +12,16 @@ Based on [Anthropic: Effective harnesses for long-running agents](https://www.an
 
 ## Installation
 
-**Prerequisites**: [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) (`npm install -g @anthropic-ai/claude-code`) + Python 3 + Git
+**Prerequisites**: [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) (`npm install -g @anthropic-ai/claude-code`) + Python 3 + [Git](https://git-scm.com/download/win)
+
+> **Windows users**: Use `loop.bat` as the unified entry point. It automatically locates Git Bash and invokes the corresponding `.sh` script — no manual configuration needed.
+>
+> | macOS / Linux | Windows (PowerShell / CMD) |
+> |---|---|
+> | `bash claude-auto-loop/run.sh` | `claude-auto-loop\loop.bat run` |
+> | `bash claude-auto-loop/setup.sh` | `claude-auto-loop\loop.bat setup` |
+> | `bash claude-auto-loop/update.sh` | `claude-auto-loop\loop.bat update` |
+> | `bash claude-auto-loop/validate.sh` | `claude-auto-loop\loop.bat validate` |
 
 ```bash
 cd /path/to/your/project
@@ -250,7 +259,7 @@ bash claude-auto-loop/run.sh "your requirement"
 
 | Script | When | Description |
 |--------|------|-------------|
-| **check_prerequisites** | Auto on run.sh start | Checks claude CLI, python3, CLAUDE.md, SCAN_PROTOCOL.md, validate.sh; prompts to run setup.sh if no config.env |
+| **check_prerequisites** | Auto on run.sh start | Checks claude CLI, Python 3 (python3 or python), CLAUDE.md, SCAN_PROTOCOL.md, validate.sh; prompts to run setup.sh if no config.env |
 | **setup.sh** | Manual (optional) | Configure model (Claude / GLM / DeepSeek) and MCP tools. **To switch provider or fix quota**: run again and choose `y` to reconfigure |
 | **init.sh** | Per session by Agent | Auto-generated on first scan; starts environment (install deps, start services) |
 | **validate.sh** | Auto after each session | Validates Agent output, git commit, health checks |

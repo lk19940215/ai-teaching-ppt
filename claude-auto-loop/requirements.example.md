@@ -4,7 +4,11 @@
 > ```bash
 > cp claude-auto-loop/requirements.example.md requirements.md
 > vim requirements.md   # 编辑你的需求
+>
+> # macOS / Linux
 > bash claude-auto-loop/run.sh
+> # Windows (PowerShell / CMD)
+> claude-auto-loop\loop.bat run
 > ```
 > Agent 会在初始化和每个 session 中自动读取此文件。
 > **你可以随时修改 `requirements.md`**：新增的功能需求会在下次 session 中自动同步到 `tasks.json`；发现需要改进的地方，补充到下方功能需求或「其他要求」即可。

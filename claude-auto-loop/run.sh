@@ -19,7 +19,7 @@
 #
 # 执行顺序：
 #   1. 加载 config.env（若存在，由 setup.sh 生成）
-#   2. check_prerequisites：检查 claude/python3/CLAUDE.md/validate.sh，确保 git 仓库存在
+#   2. check_prerequisites：检查 claude/python/CLAUDE.md/validate.sh，确保 git 仓库存在
 #   3. 首次：run_scan（Agent 扫描 → 生成 profile/init.sh/tasks.json）
 #   4. 循环：run_coding_session → validate.sh（失败则 git 回滚 + 重试）
 #   5. 所有任务 done 时退出
@@ -63,12 +63,8 @@ PHASE_FILE="$SCRIPT_DIR/.phase"
 PHASE_STEP_FILE="$SCRIPT_DIR/.phase_step"
 ACTIVITY_LOG="$SCRIPT_DIR/.activity_log"
 
-# ============ 颜色输出 ============
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+# ============ 共享环境引导 ============
+source "$SCRIPT_DIR/_env.sh"
 
 log_info()  { echo -e "${BLUE}[INFO]${NC}  $1"; }
 log_ok()    { echo -e "${GREEN}[OK]${NC}    $1"; }
@@ -122,8 +118,8 @@ check_prerequisites() {
         exit 1
     fi
 
-    if ! command -v python3 &> /dev/null; then
-        log_error "需要 python3 来解析 JSON 文件"
+    if [ -z "$PYTHON_CMD" ]; then
+        log_error "需要 Python 3 来解析 JSON 文件（未找到 python3 或 python）"
         exit 1
     fi
 
@@ -194,7 +190,7 @@ get_requirements_hash() {
 }
 
 all_tasks_done() {
-    python3 -c "
+    $PYTHON_CMD -c "
 import json, sys
 try:
     with open('$TASKS_FILE') as f:
@@ -211,7 +207,7 @@ except Exception:
 }
 
 get_task_stats() {
-    python3 -c "
+    $PYTHON_CMD -c "
 import json
 try:
     with open('$TASKS_FILE') as f:
@@ -413,7 +409,7 @@ run_coding_session() {
     local test_hint=""
     if [ -f "$SCRIPT_DIR/tests.json" ]; then
         local test_count
-        test_count=$(python3 -c "
+        test_count=$($PYTHON_CMD -c "
 import json
 try:
     with open('$SCRIPT_DIR/tests.json') as f:
@@ -476,7 +472,7 @@ run_view_session() {
         local view_test_hint=""
         if [ -f "$SCRIPT_DIR/tests.json" ]; then
             local tc
-            tc=$(python3 -c "import json; print(len(json.load(open('$SCRIPT_DIR/tests.json')).get('test_cases',[])))" 2>/dev/null || echo 0)
+            tc=$($PYTHON_CMD -c "import json; print(len(json.load(open('$SCRIPT_DIR/tests.json')).get('test_cases',[])))" 2>/dev/null || echo 0)
             [ "${tc:-0}" -gt 0 ] && view_test_hint=" tests.json 已有 ${tc} 个测试用例。"
         fi
         if [ "$(all_tasks_done)" = "true" ]; then
@@ -810,7 +806,7 @@ main() {
                 log_error "连续失败 $MAX_RETRY 次，跳过当前任务"
 
                 # 标记当前 in_progress 任务为 failed
-                python3 -c "
+                $PYTHON_CMD -c "
 import json
 try:
     with open('$TASKS_FILE', 'r') as f:
