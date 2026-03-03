@@ -237,10 +237,11 @@
         "集成到后端服务中",
         "测试数据库操作功能"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-001"
-      ]
+      ],
+      "notes": "数据库设置已通过 feat-010（历史记录数据库）和 feat-011（LLM 配置数据库）完成"
     }
   ]
 }

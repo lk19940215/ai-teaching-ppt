@@ -59,6 +59,7 @@ SCAN_PROTOCOL_MD="$SCRIPT_DIR/SCAN_PROTOCOL.md"
 VALIDATE_SH="$SCRIPT_DIR/validate.sh"
 PHASE_FILE="$SCRIPT_DIR/.phase"
 PHASE_STEP_FILE="$SCRIPT_DIR/.phase_step"
+ACTIVITY_LOG="$SCRIPT_DIR/.activity_log"
 
 # ============ 颜色输出 ============
 RED='\033[0;31m'
@@ -77,15 +78,24 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 # .phase_step 为根据工具调用推断的 6 步流程当前步骤（如 "4-增量实现"）
 start_thinking_indicator() {
     echo "thinking" > "$PHASE_FILE" 2>/dev/null || true
-    rm -f "$PHASE_STEP_FILE" 2>/dev/null || true
+    rm -f "$PHASE_STEP_FILE" "$ACTIVITY_LOG" 2>/dev/null || true
     ( while true; do
         sleep 15
         phase="thinking"
         [ -f "$PHASE_FILE" ] && phase=$(cat "$PHASE_FILE" 2>/dev/null | head -1) || true
         step_label=""
         [ -f "$PHASE_STEP_FILE" ] && step_label=$(cat "$PHASE_STEP_FILE" 2>/dev/null | head -1) || true
+        activity=""
+        if [ -f "$ACTIVITY_LOG" ]; then
+            last_line=$(tail -1 "$ACTIVITY_LOG" 2>/dev/null)
+            if [ -n "$last_line" ]; then
+                activity=$(echo "$last_line" | cut -d'|' -f2,3 | tr '|' ' ')
+            fi
+        fi
         if [ "$phase" = "coding" ]; then
-          if [ -n "$step_label" ]; then
+          if [ -n "$step_label" ] && [ -n "$activity" ]; then
+            echo -e "${GREEN}[INFO]${NC}  AI 编码中 · 步骤${step_label} · ${activity} $(date '+%H:%M:%S')" >&2
+          elif [ -n "$step_label" ]; then
             echo -e "${GREEN}[INFO]${NC}  AI 编码中 · 步骤${step_label} $(date '+%H:%M:%S')" >&2
           else
             echo -e "${GREEN}[INFO]${NC}  AI 编码中... $(date '+%H:%M:%S')" >&2
@@ -99,8 +109,8 @@ start_thinking_indicator() {
 stop_thinking_indicator() {
     [ -n "$THINKING_PID" ] && kill $THINKING_PID 2>/dev/null && wait $THINKING_PID 2>/dev/null
     THINKING_PID=""
-    # 会话结束，清理 .phase_step 避免下次误读旧状态
-    rm -f "$PHASE_STEP_FILE" 2>/dev/null || true
+    # 会话结束，清理临时状态文件避免下次误读旧状态
+    rm -f "$PHASE_STEP_FILE" "$ACTIVITY_LOG" 2>/dev/null || true
 }
 
 # ============ 前置检查 ============

@@ -216,8 +216,8 @@
       "expected_result": "页面正常加载，所有表单组件正常渲染，服务商选项包含 DeepSeek、OpenAI、Claude、智谱 GLM",
       "auto_generated": true,
       "created_session": 14,
-      "last_result": null,
-      "last_run_session": null
+      "last_result": "pass",
+      "last_run_session": 16
     }
   ]
 }
