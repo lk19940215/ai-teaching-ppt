@@ -18,6 +18,8 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
     """初始化数据库，创建所有表"""
+    # 导入所有模型以确保表被创建
+    from . import history, llm_config
     Base.metadata.create_all(bind=engine)
 
 

@@ -98,3 +98,17 @@
 - 问题：无
 - Git: 待提交
 - 下次注意：开始 feat-011 LLM 服务商切换，需要实现 API Key 持久化存储和管理。
+=== Session 14 | 2026-03-03 17:30 ===
+- 任务：feat-011 LLM 服务商切换 - 支持多 AI 服务商配置
+- 状态：done
+- 完成：
+  1. 后端：创建 LLMConfig 模型（SQLite 存储），创建 CRUD 操作（llm_config_crud.py）
+  2. 后端：创建配置管理 API（config.py），包含 8 个端点（列表、获取、保存、删除、设置默认、验证、测试连接）
+  3. 后端：修复 database.py 确保表正确创建，修复路由顺序问题（default 路由放在{provider} 之前）
+  4. 前端：更新 settings/page.tsx 连接后端 API，显示已配置服务商列表，支持保存和测试连接
+  5. 前端：更新 upload/page.tsx 从后端加载默认配置（兼容 localStorage 旧版）
+  6. 测试：API 测试通过（保存配置、获取配置列表、获取默认配置），前端编译通过
+- 新增文件：backend/app/models/llm_config.py, backend/app/models/llm_config_crud.py, backend/app/api/config.py
+- 修改文件：backend/app/main.py, backend/app/models/database.py, frontend/src/app/settings/page.tsx, frontend/src/app/upload/page.tsx
+- Git: 待提交
+- 下次注意：feat-012 Docker 部署支持是下一个优先级任务

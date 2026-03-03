@@ -198,7 +198,7 @@
         "前端：实现配置表单和保存",
         "集成到 LLM 调用接口，支持 DeepSeek/OpenAI/Claude/GLM"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-001",
         "feat-002",

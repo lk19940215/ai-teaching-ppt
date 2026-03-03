@@ -174,6 +174,50 @@
       "created_session": 13,
       "last_result": "pass",
       "last_run_session": 13
+    },
+    {
+      "id": "test-feat011-config-api",
+      "feature_id": "feat-011",
+      "name": "LLM 服务商配置 - API 端点验证",
+      "type": "api",
+      "priority": "critical",
+      "affected_paths": [
+        "backend/app/api/config.py",
+        "backend/app/models/llm_config.py",
+        "backend/app/models/llm_config_crud.py"
+      ],
+      "preconditions": {
+        "services": ["backend"],
+        "real_api_key": false
+      },
+      "steps": "验证 GET /api/v1/config/providers 返回配置列表，验证 POST /api/v1/config/providers/{provider} 保存配置，验证 GET /api/v1/config/providers/default 获取默认配置",
+      "test_data_summary": "LLM 配置 API 端点验证",
+      "expected_result": "API 端点存在并返回正确的响应格式（包含 success、data 字段），配置能正确保存和读取",
+      "auto_generated": true,
+      "created_session": 14,
+      "last_result": "pass",
+      "last_run_session": 14
+    },
+    {
+      "id": "test-feat011-settings-page",
+      "feature_id": "feat-011",
+      "name": "LLM 服务商配置 - 设置页面 UI 验证",
+      "type": "browser",
+      "priority": "critical",
+      "affected_paths": [
+        "frontend/src/app/settings/page.tsx"
+      ],
+      "preconditions": {
+        "services": ["frontend", "backend"],
+        "real_api_key": false
+      },
+      "steps": "访问 /settings 页面，验证服务商选择下拉框、API Key 输入框、Base URL 输入框、模型名称输入框正常显示；验证保存配置和测试连接按钮可点击",
+      "test_data_summary": "设置页面 UI 测试",
+      "expected_result": "页面正常加载，所有表单组件正常渲染，服务商选项包含 DeepSeek、OpenAI、Claude、智谱 GLM",
+      "auto_generated": true,
+      "created_session": 14,
+      "last_result": null,
+      "last_run_session": null
     }
   ]
 }

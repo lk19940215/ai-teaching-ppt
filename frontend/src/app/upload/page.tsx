@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
@@ -85,14 +85,41 @@ export default function UploadPage() {
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
   const [currentPreviewSlide, setCurrentPreviewSlide] = useState(0)
+  const [llmConfig, setLlmConfig] = useState<any>(null)
 
-  // 从 localStorage 加载 LLM 配置
+  // 从后端加载 LLM 配置
+  useEffect(() => {
+    const loadLLMConfig = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/api/v1/config/providers/default")
+        const result = await response.json()
+        if (result.success && result.data) {
+          // 从 localStorage 获取完整的 API Key（兼容旧版）
+          const localConfig = localStorage.getItem("llm_config")
+          if (localConfig) {
+            const parsed = JSON.parse(localConfig)
+            if (parsed.provider === result.data.provider) {
+              setLlmConfig({ ...result.data, apiKey: parsed.apiKey })
+              return
+            }
+          }
+          // 否则提示用户去设置页面配置
+          setLlmConfig(result.data)
+        }
+      } catch (error) {
+        console.error("加载 LLM 配置失败:", error)
+      }
+    }
+    loadLLMConfig()
+  }, [])
+
+  // 从 localStorage 加载 LLM 配置（兼容旧版）
   const getLLMConfig = () => {
     const savedConfig = localStorage.getItem("llm_config")
     if (savedConfig) {
       return JSON.parse(savedConfig)
     }
-    return null
+    return llmConfig
   }
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -139,8 +166,12 @@ export default function UploadPage() {
     try {
       // 获取 LLM 配置
       const llmConfig = getLLMConfig()
-      if (!llmConfig || !llmConfig.apiKey) {
+      if (!llmConfig) {
         setError("请先在设置页面配置 LLM API Key")
+        return
+      }
+      if (!llmConfig.apiKey) {
+        setError("API Key 未配置，请前往设置页面配置")
         return
       }
 
