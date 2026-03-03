@@ -139,3 +139,17 @@
 - 问题：无
 - Git: b077a98 - feat(feat-013): 标记数据库设置为已完成（已通过 feat-010/011 实现）
 - 下次注意：所有 13 个任务（feat-001 到 feat-013）已全部完成
+=== Session 17 | 2026-03-03 23:30 ===
+- 任务：feat-014 Playwright MCP 端到端测试
+- 状态：done
+- 完成：
+  1. 环境修复：创建 backend/app/__init__.py，修复 Python 模块导入问题
+  2. Bug 修复：修复 backend/app/api/history.py 路由顺序问题（/history/search 放在/{record_id}之前）
+  3. 创建 frontend/playwright.config.ts Playwright 配置文件
+  4. 创建 frontend/tests/example.test.ts 包含完整测试示例（首页、上传页、设置页、历史页、API 端点、可访问性测试）
+  5. Playwright MCP 端到端测试验证：所有页面正常加载，导航正常，表单组件可交互
+  6. 样式验证：未发现"dark 背景黑色文字"问题，页面样式正常（浅色背景深色文字）
+  7. 更新 tests.json 添加 2 个 feat-014 测试用例
+- 问题：无
+- Git: 0d63c9c - feat(feat-014): Playwright MCP 端到端测试和测试示例文件
+- 下次注意：所有 14 个任务（feat-001 到 feat-014）已全部完成
