@@ -3,7 +3,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-echo "=== AI 教学 PPT 生成器环境初始化 ==="
+echo "=== Claude Auto Loop 环境初始化 ==="
 
 # ============ 共享环境引导 ============
 source "$SCRIPT_DIR/_env.sh"

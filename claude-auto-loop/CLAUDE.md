@@ -296,7 +296,7 @@ pending ──→ in_progress ──→ testing ──→ done
 - **先验证数据再验证 UI**：如果组件依赖数据，先确认数据源是否有输出，再检查页面渲染
 - **curl 测试最多 3 次**：同一 URL 的 curl 检查不超过 3 次。如果 3 次都找不到预期内容，换一个有数据的测试用例
 - **禁止创建独立测试文件**：不要创建 `test-*.js` 或 `test-*.html`。使用项目已有的测试框架或直接 curl / Playwright 验证
-- **禁止为了测试重启服务器**：除非构建报错，否则不要 pkill / restart 开发服务器
+- **禁止为了测试重启服务器**：除非构建报错，否则不要在测试阶段 pkill / restart 开发服务器。注意：这与第六步收尾时停止服务不矛盾——测试期间保持服务运行，session 结束时再统一清理
 
 #### 5.5 更新测试结果
 
@@ -308,12 +308,13 @@ pending ──→ in_progress ──→ testing ──→ done
 
 ### 第六步：收尾（每次会话必须执行）
 
-1. **按需更新项目文档**：仅当本次变更涉及**对外行为**（新增功能、API 变更、使用方式变化等）时，在 `README.md` 或 `docs/` 中补充/更新对应说明。内部重构、Bug 修复不强制更新文档
-2. **Git 提交**：
+1. **停止本次启动的后台服务**：如果本次 session 中通过 `nohup`/`&` 启动了开发服务器（如 `pnpm dev`、`uvicorn` 等），在 git commit 之前必须停止它们。根据 `project_profile.json` 中的端口，用 `lsof -ti :端口 | xargs kill` 或 Windows 的 `netstat -ano | findstr :端口` + `taskkill /F /PID` 清理。避免下次 session 端口冲突和文件锁问题（Windows 上 `.next` 等构建缓存会被进程锁定）
+2. **按需更新项目文档**：仅当本次变更涉及**对外行为**（新增功能、API 变更、使用方式变化等）时，在 `README.md` 或 `docs/` 中补充/更新对应说明。内部重构、Bug 修复不强制更新文档
+3. **Git 提交**：
    ```bash
    git add -A && git commit -m "feat(task-id): 功能描述"
    ```
-3. **更新 progress.txt**（在末尾追加）：
+4. **更新 progress.txt**（在末尾追加）：
    ```
    === Session N | YYYY-MM-DD HH:MM ===
    - 任务：task-id 任务描述
@@ -323,7 +324,7 @@ pending ──→ in_progress ──→ testing ──→ done
    - Git: commit-hash - commit message
    - 下次注意：给下一个会话的提醒（如有）
    ```
-4. **写入 session_result.json**（覆盖写入）：
+5. **写入 session_result.json**（覆盖写入）：
    ```json
    {
      "session_result": "success 或 failed",
@@ -335,4 +336,4 @@ pending ──→ in_progress ──→ testing ──→ done
      "notes": "简要说明"
    }
    ```
-5. **确保代码处于可工作状态**（下一个会话可以直接开始新功能）
+6. **确保代码处于可工作状态**（下一个会话可以直接开始新功能）

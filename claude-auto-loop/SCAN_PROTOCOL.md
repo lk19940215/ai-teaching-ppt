@@ -128,8 +128,9 @@
    - 如果 `env_setup.python_env` 是 `venv` → 生成 `source .venv/bin/activate`
    - 如果 `env_setup.node_version` 不是 `none` → 生成 nvm use 逻辑
 3. **服务启动**：对 `services` 数组中的每个服务：
-   - 先用 `lsof -i :端口` 检查是否已运行
+   - 先用 `lsof -i :端口`（macOS/Linux）或 `netstat -ano | findstr :端口`（Windows）检查是否已运行
    - 未运行则 `nohup 命令 > /tmp/日志文件 2>&1 &`
    - 等待健康检查通过（最多 10 秒）
 4. **幂等设计**：已运行的服务必须跳过，不能重复启动
-5. **末尾输出**：打印所有服务的 URL
+5. **服务生命周期**：init.sh 只负责启动服务。服务的停止由 Agent 在第六步收尾时执行（根据 CLAUDE.md 规范，session 结束前必须 kill 本次启动的后台进程，避免端口冲突和文件锁）
+6. **末尾输出**：打印所有服务的 URL
