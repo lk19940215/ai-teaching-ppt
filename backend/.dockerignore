@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.pyc
+
+# Git
+.git/
+.gitignore
+
+# Docs
+*.md
+README.md
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment
+.env
+.env.*
+
+# Uploads (will be mounted as volume)
+uploads/
+
+# Templates (will be mounted as volume)
+app/templates/

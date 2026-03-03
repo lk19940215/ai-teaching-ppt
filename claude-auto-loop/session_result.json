@@ -1,9 +1,0 @@
-{
-  "session_result": "success",
-  "task_id": "feat-011",
-  "status_before": "pending",
-  "status_after": "done",
-  "git_commit": "286396c",
-  "tests_passed": true,
-  "notes": "LLM 服务商切换功能完成。后端：创建 LLMConfig 模型和 CRUD 操作，8 个配置管理 API 端点；前端：设置页面连接后端 API，上传页面支持从后端加载配置。API 测试通过（保存/获取配置），前端编译通过。"
-}
