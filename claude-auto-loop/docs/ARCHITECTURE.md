@@ -160,7 +160,7 @@ stateDiagram-v2
 | 文件 | 用途 |
 |------|------|
 | `CLAUDE.md` | Agent 协议：铁律、6 步流程、状态机、文件权限（注入为 system prompt） |
-| `SCAN_PROTOCOL.md` | 首次扫描专用协议（与 CLAUDE.md 拼接后注入） |
+| `docs/SCAN_PROTOCOL.md` | 首次扫描专用协议（与 CLAUDE.md 拼接后注入） |
 | `ARCHITECTURE.md` | 本文件：工具架构概述 |
 | `run.sh` | Harness 主控：扫描、编码循环、进度指示、错误回滚 |
 | `setup.sh` | 交互式配置向导：模型选择、MCP、API Key |
@@ -169,8 +169,8 @@ stateDiagram-v2
 | `hooks-settings.json` | Claude Code hooks 配置（PreToolUse 事件注册） |
 | `hooks/phase-signal.py` | PreToolUse hook：步骤推断 + 活动日志写入 |
 | `cursor.mdc` | Cursor IDE 规则文件（复制到 `.cursor/rules/`） |
-| `requirements.example.md` | 需求文件模板 |
-| `README.md` / `README.en.md` | 用户文档 |
+| `docs/requirements.example.md` | 需求文件模板 |
+| `README.md` / `docs/README.en.md` | 用户文档 |
 | `.gitignore` | 排除运行时文件 |
 
 ### 项目运行时数据（由 Agent 生成，update.sh 不覆盖）

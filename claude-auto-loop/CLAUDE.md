@@ -2,7 +2,7 @@
   This file is the Agent Protocol for Claude Auto Loop.
   It is injected into the system prompt via --append-system-prompt-file at the start of each session.
   The instructions are written in Chinese, which Claude handles natively.
-  See README.en.md for the English user guide.
+  See docs/README.en.md for the English user guide.
 
   Content order is optimized for LLM attention (U-shaped curve):
   TOP = identity + hard constraints (primacy zone)

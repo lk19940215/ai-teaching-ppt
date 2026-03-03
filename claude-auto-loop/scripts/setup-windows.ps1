@@ -1,7 +1,7 @@
 # Claude Auto Loop - Windows Environment Setup
 # Configures both PowerShell Profile and CMD AutoRun to prefer Git Bash over WSL bash.
 #
-# Usage: powershell -ExecutionPolicy Bypass -File claude-auto-loop\setup-windows.ps1
+# Usage: powershell -ExecutionPolicy Bypass -File claude-auto-loop\scripts\setup-windows.ps1
 
 Write-Host "=== Claude Auto Loop - Windows Setup ===" -ForegroundColor Cyan
 

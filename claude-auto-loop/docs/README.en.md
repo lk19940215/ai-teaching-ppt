@@ -1,6 +1,6 @@
 # Claude Auto Loop
 
-[中文](README.md) | **English**
+[中文](../README.md) | **English**
 
 Let AI Agents autonomously complete complex, multi-step coding tasks.
 
@@ -42,7 +42,7 @@ rm -rf claude-auto-loop/.git    # Remove the tool's own git history to avoid nes
 bash claude-auto-loop/run.sh "Implement user login with email and OAuth support"
 
 # Detailed mode: write a requirements doc (recommended for specific tech/design preferences)
-cp claude-auto-loop/requirements.example.md requirements.md
+cp claude-auto-loop/docs/requirements.example.md requirements.md
 vim requirements.md                # Edit your requirements
 bash claude-auto-loop/run.sh     # Automatically reads requirements.md
 
@@ -217,7 +217,7 @@ bash claude-auto-loop/run.sh "your requirement"
         v
   ┌───────────────────────────────────────────────────┐
   │ 1. Project Scan (auto on first run)               │
-  │    Injects: CLAUDE.md + SCAN_PROTOCOL.md (concat) │
+  │    Injects: CLAUDE.md + docs/SCAN_PROTOCOL.md (concat) │
   │    Agent scans project files → generates:          │
   │    - project_profile.json (project metadata)       │
   │    - init.sh (environment init script)             │
@@ -596,16 +596,16 @@ This tool builds on Anthropic's [long-running agent harness](https://www.anthrop
 | File | Description |
 |---|---|
 | `CLAUDE.md` | Agent protocol: hard rules + reference formats + state machine + 6-step workflow (attention-optimized: constraints at top, action instructions at bottom) |
-| `SCAN_PROTOCOL.md` | Scan-only protocol: project scan steps + `project_profile.json` format + `init.sh` generation rules (injected only during first scan) |
+| `docs/SCAN_PROTOCOL.md` | Scan-only protocol: project scan steps + `project_profile.json` format + `init.sh` generation rules (injected only during first scan) |
 | `run.sh` | CLI mode entry: outer loop + system prompt injection + tool whitelist + validation + rollback + retry |
 | `validate.sh` | Standalone validation script: auto-called by CLI / manually run for Cursor |
 | `setup.sh` | Interactive setup (model selection + MCP tool installation) |
 | `cursor.mdc` | Cursor rules file: copy to `.cursor/rules/` to use |
-| `requirements.example.md` | Requirements template: copy as `requirements.md` and fill in your detailed needs |
+| `docs/requirements.example.md` | Requirements template: copy as `requirements.md` and fill in your detailed needs |
 | `hooks/phase-signal.py` | PreToolUse hook: writes `.phase` (progress switch), `.phase_step` (step inference), `.activity_log` (real-time activity log) |
 | `hooks-settings.json` | Claude Code hooks config, loaded via `--settings` |
 | `update.sh` | Pulls latest code from upstream (exclude strategy: preserves project runtime data, syncs all core files) |
-| `ARCHITECTURE.md` | Architecture doc: system overview, Mermaid diagrams, file responsibilities (for AI Agents to quickly understand the tool design) |
+| `docs/ARCHITECTURE.md` | Architecture doc: system overview, Mermaid diagrams, file responsibilities (for AI Agents to quickly understand the tool design) |
 | `README.md` | Chinese documentation |
 | `README.en.md` | This file (English documentation) |
 

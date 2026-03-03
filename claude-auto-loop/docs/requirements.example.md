@@ -2,7 +2,7 @@
 
 > 复制本文件为 `requirements.md`，填写你的需求后启动：
 > ```bash
-> cp claude-auto-loop/requirements.example.md requirements.md
+> cp claude-auto-loop/docs/requirements.example.md requirements.md
 > vim requirements.md   # 编辑你的需求
 >
 > # macOS / Linux

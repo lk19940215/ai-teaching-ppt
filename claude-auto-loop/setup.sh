@@ -150,7 +150,7 @@ main() {
     echo ""
     echo "  配置文件: $CONFIG_FILE"
     echo "  使用方式: bash claude-auto-loop/run.sh \"你的需求\""
-    echo "  详细需求: cp claude-auto-loop/requirements.example.md requirements.md && vim requirements.md"
+    echo "  详细需求: cp claude-auto-loop/docs/requirements.example.md requirements.md && vim requirements.md"
     echo "  重新配置: bash claude-auto-loop/setup.sh"
     echo ""
 }

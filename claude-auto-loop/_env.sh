@@ -14,7 +14,7 @@
 
 # ============ 操作系统检测 ============
 # 第一层 bash (Git Bash) 有 OSTYPE=msys；第二层 (Claude Code 内部 bash) 可能没有，
-# 所以用 WINDIR/COMSPEC 环境变量作为后备检测（见 WINDOWS.md 两层模型）
+# 所以用 WINDIR/COMSPEC 环境变量作为后备检测（见 docs/WINDOWS.md 两层模型）
 IS_WINDOWS=false
 if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "mingw"* ]] || [[ "$OSTYPE" == "cygwin" ]]; then
     IS_WINDOWS=true
@@ -37,7 +37,7 @@ fi
 if [ "$IS_WINDOWS" = true ] && [ -z "${CLAUDE_CODE_GIT_BASH_PATH:-}" ]; then
     if [ -n "${EXEPATH:-}" ] && [ -f "$EXEPATH/bash.exe" ]; then
         # EXEPATH 是 Git Bash 特有变量（仅第一层可用）
-        # cygpath 仅在完整 MSYS 环境中可用，需先检测（见 WINDOWS.md）
+        # cygpath 仅在完整 MSYS 环境中可用，需先检测（见 docs/WINDOWS.md）
         if command -v cygpath &> /dev/null; then
             export CLAUDE_CODE_GIT_BASH_PATH="$(cygpath -w "$EXEPATH/bash.exe")"
         else
