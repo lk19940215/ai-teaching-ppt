@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "test_cases": [
+    {
+      "id": "test-feat004-config-panel",
+      "feature_id": "feat-004",
+      "name": "教学配置面板 - 年级学科选择",
+      "type": "browser",
+      "priority": "critical",
+      "affected_paths": [
+        "frontend/src/app/upload/page.tsx",
+        "frontend/src/components/ui/select.tsx"
+      ],
+      "preconditions": {
+        "services": ["frontend"],
+        "real_api_key": false
+      },
+      "steps": "访问 /upload 页面，验证年级选择、学科选择、PPT 风格选择、幻灯片数量滑块正常显示和交互",
+      "test_data_summary": "UI 组件交互测试",
+      "expected_result": "所有配置组件正常渲染，用户可以切换选项",
+      "auto_generated": true,
+      "created_session": 6,
+      "last_result": "pass",
+      "last_run_session": 6
+    },
+    {
+      "id": "test-feat007-preview-ui",
+      "feature_id": "feat-007",
+      "name": "PPT 预览与下载 - UI 组件验证",
+      "type": "browser",
+      "priority": "critical",
+      "affected_paths": [
+        "frontend/src/app/upload/page.tsx"
+      ],
+      "preconditions": {
+        "services": ["frontend", "backend"],
+        "real_api_key": false
+      },
+      "steps": "访问 /upload 页面，填写文本内容，点击生成按钮（不需要有效 API Key），验证错误提示正常显示；验证年级/学科/风格选择、幻灯片数量滑块正常交互",
+      "test_data_summary": "UI 组件和错误处理测试",
+      "expected_result": "页面正常加载，表单填写正常，错误提示正常显示，所有配置组件可交互",
+      "auto_generated": true,
+      "created_session": 10,
+      "last_result": "pass",
+      "last_run_session": 10
+    },
+    {
+      "id": "test-feat007-download-endpoint",
+      "feature_id": "feat-007",
+      "name": "PPT 下载 API - 端点验证",
+      "type": "api",
+      "priority": "critical",
+      "affected_paths": [
+        "backend/app/api/ppt.py"
+      ],
+      "preconditions": {
+        "services": ["backend"],
+        "real_api_key": false
+      },
+      "steps": "检查后端 API 路由 /api/v1/ppt/download/{file_name} 是否存在，/api/v1/ppt/generate-full 端点是否返回正确的响应结构",
+      "test_data_summary": "API 端点存在性验证",
+      "expected_result": "API 端点存在并返回正确的响应格式（包含 download_url 和 file_name 字段）",
+      "auto_generated": true,
+      "created_session": 10,
+      "last_result": "pass",
+      "last_run_session": 10
+    }
+  ]
+}

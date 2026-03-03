@@ -84,6 +84,7 @@ export default function UploadPage() {
   const [error, setError] = useState<string | null>(null)
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
+  const [currentPreviewSlide, setCurrentPreviewSlide] = useState(0)
 
   // 从 localStorage 加载 LLM 配置
   const getLLMConfig = () => {
@@ -187,6 +188,40 @@ export default function UploadPage() {
     setTextContent("")
     setImageFiles([])
     setPdfFile(null)
+    setCurrentPreviewSlide(0)
+  }
+
+  // 获取页面类型的图标
+  const getPageTypeIcon = (pageType: string) => {
+    const icons: Record<string, string> = {
+      "封面页": "📖",
+      "目录页": "📑",
+      "知识点讲解页": "📚",
+      "互动问答页": "💬",
+      "课堂练习页": "✍️",
+      "总结回顾页": "✅",
+      "单词学习页": "🔤",
+      "语法讲解页": "📝",
+      "情景对话页": "💭",
+      "课文分析页": "🔍",
+    }
+    return icons[pageType] || "📄"
+  }
+
+  // 获取页面类型的背景色
+  const getPageTypeBg = (pageType: string, index: number) => {
+    const colors = [
+      "bg-gradient-to-br from-indigo-500 to-purple-600",
+      "bg-gradient-to-br from-emerald-500 to-teal-600",
+      "bg-gradient-to-br from-amber-500 to-orange-600",
+      "bg-gradient-to-br from-blue-500 to-cyan-600",
+      "bg-gradient-to-br from-rose-500 to-pink-600",
+      "bg-gradient-to-br from-violet-500 to-purple-600",
+    ]
+    if (pageType === "封面页") return colors[0]
+    if (pageType === "目录页") return colors[1]
+    if (pageType === "总结回顾页") return colors[5]
+    return colors[index % colors.length]
   }
 
   return (
@@ -219,54 +254,139 @@ export default function UploadPage() {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-medium mb-2">{generatedContent.title}</h3>
-              <p className="text-gray-600">{generatedContent.summary}</p>
+          {/* PPT 缩略图轮播预览 */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-4">PPT 预览（共 {generatedContent.slides.length + 2} 页）</h3>
+
+            {/* 缩略图导航 */}
+            <div className="flex gap-2 overflow-x-auto pb-4 mb-4">
+              {/* 封面页缩略图 */}
+              <button
+                onClick={() => setCurrentPreviewSlide(0)}
+                className={`flex-shrink-0 w-32 h-20 rounded-lg overflow-hidden border-2 transition ${
+                  currentPreviewSlide === 0 ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-gray-200'
+                }`}
+              >
+                <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs p-1 text-center">
+                  封面
+                </div>
+              </button>
+
+              {/* 内容页缩略图 */}
+              {generatedContent.slides.map((slide, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentPreviewSlide(index + 1)}
+                  className={`flex-shrink-0 w-32 h-20 rounded-lg overflow-hidden border-2 transition ${
+                    currentPreviewSlide === index + 1 ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-gray-200'
+                  }`}
+                >
+                  <div className={`w-full h-full ${getPageTypeBg(slide.page_type, index)} flex flex-col items-center justify-center text-white text-xs p-1`}>
+                    <span className="text-lg">{getPageTypeIcon(slide.page_type)}</span>
+                    <span className="truncate w-full text-center px-1">{slide.title.substring(0, 8)}...</span>
+                  </div>
+                </button>
+              ))}
+
+              {/* 总结页缩略图 */}
+              <button
+                onClick={() => setCurrentPreviewSlide(generatedContent.slides.length + 1)}
+                className={`flex-shrink-0 w-32 h-20 rounded-lg overflow-hidden border-2 transition ${
+                  currentPreviewSlide === generatedContent.slides.length + 1 ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-gray-200'
+                }`}
+              >
+                <div className="w-full h-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs p-1 text-center">
+                  总结
+                </div>
+              </button>
             </div>
 
-            <div>
-              <h4 className="font-medium mb-2">重点：</h4>
-              <ul className="list-disc list-inside text-gray-600">
-                {generatedContent.key_points.map((point, index) => (
-                  <li key={index}>{point}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-medium mb-2">幻灯片内容：</h4>
-              <div className="space-y-4">
-                {generatedContent.slides.map((slide, index) => (
-                  <div key={index} className="border p-4 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-indigo-600 font-medium">
-                        第 {index + 1} 页 - {slide.page_type}
-                      </span>
-                    </div>
-                    <h5 className="font-medium">{slide.title}</h5>
-                    <ul className="list-disc list-inside text-sm text-gray-600 mt-2">
-                      {slide.content.map((item, i) => (
-                        <li key={i}>{item}</li>
+            {/* 当前页预览 */}
+            <div className="border rounded-xl p-6 bg-gray-50">
+              {currentPreviewSlide === 0 ? (
+                <div className="text-center py-12">
+                  <h1 className="text-3xl font-bold text-indigo-600 mb-4">{generatedContent.title}</h1>
+                  <p className="text-gray-500">AI 教学 PPT 生成器</p>
+                  {config.chapter && <p className="text-gray-400 mt-2">{config.chapter}</p>}
+                </div>
+              ) : currentPreviewSlide === generatedContent.slides.length + 1 ? (
+                <div>
+                  <h3 className="text-xl font-bold text-purple-600 mb-4">总结回顾</h3>
+                  <p className="text-gray-700 mb-4">{generatedContent.summary}</p>
+                  <div>
+                    <h4 className="font-medium mb-2">重点：</h4>
+                    <ul className="list-disc list-inside text-gray-600">
+                      {generatedContent.key_points.map((point, index) => (
+                        <li key={index}>{point}</li>
                       ))}
                     </ul>
-                    {slide.interaction && (
-                      <div className="mt-2 text-sm text-green-600">
-                        互动：{slide.interaction}
-                      </div>
-                    )}
-                    {slide.exercise && (
-                      <div className="mt-2 text-sm text-blue-600">
-                        练习：{slide.exercise}
-                      </div>
-                    )}
-                    {slide.mnemonic && (
-                      <div className="mt-2 text-sm text-purple-600">
-                        口诀：{slide.mnemonic}
-                      </div>
-                    )}
                   </div>
-                ))}
+                </div>
+              ) : (
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-2xl">{getPageTypeIcon(generatedContent.slides[currentPreviewSlide - 1].page_type)}</span>
+                    <span className="text-sm text-indigo-600 font-medium">
+                      第 {currentPreviewSlide} 页 - {generatedContent.slides[currentPreviewSlide - 1].page_type}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-4">{generatedContent.slides[currentPreviewSlide - 1].title}</h3>
+                  <ul className="list-disc list-inside text-gray-700 space-y-2 mb-4">
+                    {generatedContent.slides[currentPreviewSlide - 1].content.map((item, index) => (
+                      <li key={index}>{item}</li>
+                    ))}
+                  </ul>
+                  {generatedContent.slides[currentPreviewSlide - 1].interaction && (
+                    <div className="bg-green-50 text-green-700 p-3 rounded-lg">
+                      💡 <strong>互动环节：</strong>{generatedContent.slides[currentPreviewSlide - 1].interaction}
+                    </div>
+                  )}
+                  {generatedContent.slides[currentPreviewSlide - 1].exercise && (
+                    <div className="bg-blue-50 text-blue-700 p-3 rounded-lg">
+                      ✍️ <strong>课堂练习：</strong>{generatedContent.slides[currentPreviewSlide - 1].exercise}
+                    </div>
+                  )}
+                  {generatedContent.slides[currentPreviewSlide - 1].mnemonic && (
+                    <div className="bg-purple-50 text-purple-700 p-3 rounded-lg">
+                      📝 <strong>记忆口诀：</strong>{generatedContent.slides[currentPreviewSlide - 1].mnemonic}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* 翻页按钮 */}
+            <div className="flex items-center justify-between mt-4">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPreviewSlide(prev => Math.max(0, prev - 1))}
+                disabled={currentPreviewSlide === 0}
+              >
+                ← 上一页
+              </Button>
+              <span className="text-gray-500">
+                {currentPreviewSlide + 1} / {generatedContent.slides.length + 2}
+              </span>
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPreviewSlide(prev => Math.min(generatedContent.slides.length + 1, prev + 1))}
+                disabled={currentPreviewSlide === generatedContent.slides.length + 1}
+              >
+                下一页 →
+              </Button>
+            </div>
+          </div>
+
+          {/* 基本信息 */}
+          <div className="border-t pt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-sm font-medium text-gray-500 mb-1">主题</h4>
+                <p className="text-gray-900">{generatedContent.title}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-500 mb-1">重点内容</h4>
+                <p className="text-gray-900">{generatedContent.key_points.length} 个知识点</p>
               </div>
             </div>
           </div>
