@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { Header } from '@/components/header'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,14 +18,9 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className={inter.className}>
-        <div className="min-h-screen bg-background">
-          <header className="border-b">
-            <div className="container mx-auto px-4 py-4">
-              <h1 className="text-2xl font-bold text-primary">AI 教学 PPT 生成器</h1>
-              <p className="text-gray-600">上传教材内容，一键生成精美教学 PPT</p>
-            </div>
-          </header>
-          <main className="container mx-auto px-4 py-8">
+        <div className="min-h-screen bg-gray-50">
+          <Header />
+          <main className="container mx-auto py-8">
             {children}
           </main>
           <footer className="border-t mt-8 py-6 text-center text-gray-500 text-sm">

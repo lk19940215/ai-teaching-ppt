@@ -63,7 +63,7 @@
         "集成表单验证和状态管理",
         "与后端 API 连接传递配置参数"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": ["feat-002"]
     },
     {

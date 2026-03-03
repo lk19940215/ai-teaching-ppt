@@ -26,3 +26,11 @@
 - 问题：PaddleOCR 初始化参数问题（show_log、use_gpu 参数未知），需要调整版本或参数。文本上传 API 期望查询参数而非 JSON body，需修复。
 - Git: f5366f4 - feat(feat-003): 教材内容输入基础实现（OCR初始化需调试）
 - 下次注意：修复 PaddleOCR 初始化参数，调整上传 API 接口，测试三种输入方式。
+
+=== Session 5 | 2026-03-03 11:00 ===
+- 任务：feat-003 教材内容输入（修复）
+- 状态：done
+- 完成：修复 PaddleOCR 3.4.0 API 兼容性问题（移除废弃参数 show_log、use_gpu），修复文本上传 API（添加 Body 声明），安装 PaddlePaddle 依赖，添加统一内容提取接口 /process/extract。测试通过：图片 OCR、PDF 解析、文本上传三种输入方式，文件类型验证和大小限制正常工作。
+- 问题：PaddleOCR 3.4.0 API 有重大变更，返回格式为字典而非列表；需要安装 PaddlePaddle 依赖。
+- Git: 36663cf - feat(feat-003): 修复教材内容输入功能（OCR和PDF解析）
+- 下次注意：PaddleOCR 3.4.0 使用新 API，ocr() 方法返回字典格式，包含 rec_texts、rec_scores、rec_polys 字段。
