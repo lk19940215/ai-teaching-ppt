@@ -1,11 +1,13 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Body
 from fastapi.responses import JSONResponse
 import aiofiles
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 import uuid
 from ..config import settings
+from ..services.ocr import get_ocr_service
+from ..services.pdf_parser import get_pdf_parser
 
 router = APIRouter(prefix=settings.API_V1_STR, tags=["upload"])
 
@@ -91,7 +93,7 @@ async def upload_pdf(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"PDF 上传失败: {str(e)}")
 
 @router.post("/upload/text")
-async def upload_text(text: str):
+async def upload_text(text: str = Body(..., embed=True)):
     """上传文本内容（直接粘贴）"""
     if not text or len(text.strip()) == 0:
         raise HTTPException(status_code=400, detail="文本内容不能为空")
@@ -114,3 +116,102 @@ async def upload_text(text: str):
         "text_length": len(cleaned_text),
         "preview": cleaned_text[:200] + ("..." if len(cleaned_text) > 200 else "")
     })
+
+@router.post("/process/ocr")
+async def process_ocr(file_path: str = Body(..., embed=True)):
+    """对已上传的图片进行 OCR 识别"""
+    try:
+        # 构建完整路径
+        full_path = settings.UPLOAD_DIR / file_path
+        if not full_path.exists():
+            raise HTTPException(status_code=404, detail="文件不存在")
+
+        # 调用 OCR 服务
+        ocr_service = get_ocr_service()
+        text = ocr_service.extract_text(full_path)
+
+        return JSONResponse(content={
+            "message": "OCR 识别成功",
+            "text": text,
+            "char_count": len(text)
+        })
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"OCR 识别失败: {str(e)}")
+
+@router.post("/process/pdf")
+async def process_pdf(file_path: str = Body(..., embed=True)):
+    """对已上传的 PDF 进行文本提取"""
+    try:
+        # 构建完整路径
+        full_path = settings.UPLOAD_DIR / file_path
+        if not full_path.exists():
+            raise HTTPException(status_code=404, detail="文件不存在")
+
+        # 调用 PDF 解析服务
+        pdf_parser = get_pdf_parser()
+        full_text, pages_text = pdf_parser.extract_text(full_path)
+        page_count = pdf_parser.get_page_count(full_path)
+
+        return JSONResponse(content={
+            "message": "PDF 解析成功",
+            "full_text": full_text,
+            "page_count": page_count,
+            "char_count": len(full_text),
+            "pages": [{"page": p, "text": t} for p, t in pages_text]
+        })
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"PDF 解析失败: {str(e)}")
+
+@router.post("/process/extract")
+async def extract_content(
+    file_path: str = Body(..., embed=True),
+    file_type: Optional[str] = Body(None, embed=True)
+):
+    """统一内容提取接口（自动判断文件类型）"""
+    try:
+        # 支持相对路径和绝对路径
+        if os.path.isabs(file_path):
+            full_path = Path(file_path)
+        else:
+            full_path = settings.UPLOAD_DIR / file_path
+
+        if not full_path.exists():
+            raise HTTPException(status_code=404, detail=f"文件不存在: {full_path}")
+
+        # 根据文件扩展名判断类型
+        ext = full_path.suffix.lower()
+        if ext == ".pdf":
+            pdf_parser = get_pdf_parser()
+            full_text, pages_text = pdf_parser.extract_text(full_path)
+            return JSONResponse(content={
+                "message": "PDF 内容提取成功",
+                "file_type": "pdf",
+                "text": full_text,
+                "page_count": len(pages_text)
+            })
+        elif ext in [".jpg", ".jpeg", ".png"]:
+            ocr_service = get_ocr_service()
+            text = ocr_service.extract_text(full_path)
+            return JSONResponse(content={
+                "message": "图片 OCR 识别成功",
+                "file_type": "image",
+                "text": text
+            })
+        elif ext == ".txt":
+            async with aiofiles.open(full_path, "r", encoding="utf-8") as f:
+                text = await f.read()
+            return JSONResponse(content={
+                "message": "文本读取成功",
+                "file_type": "text",
+                "text": text
+            })
+        else:
+            raise HTTPException(status_code=400, detail=f"不支持的文件类型: {ext}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"内容提取失败: {str(e)}")

@@ -25,14 +25,9 @@ class OCRService:
         """初始化 PaddleOCR 引擎（懒加载）"""
         if self.ocr is None:
             try:
-                # 使用 GPU 如果可用
-                use_gpu = os.environ.get("USE_GPU", "False").lower() == "true"
-                self.ocr = PaddleOCR(
-                    use_angle_cls=True,
-                    lang=self.lang,
-                    use_gpu=use_gpu
-                )
-                logger.info(f"PaddleOCR 初始化完成，语言: {self.lang}, GPU: {use_gpu}")
+                # PaddleOCR 3.4.0 新 API - 使用最小参数集
+                self.ocr = PaddleOCR(lang=self.lang, ocr_version="PP-OCRv4", use_angle_cls=True)
+                logger.info(f"PaddleOCR 初始化完成，语言: {self.lang}")
             except Exception as e:
                 logger.error(f"PaddleOCR 初始化失败: {e}")
                 raise RuntimeError(f"OCR 引擎初始化失败: {e}")
@@ -49,21 +44,31 @@ class OCRService:
             if not image_path.exists():
                 raise FileNotFoundError(f"图片文件不存在: {image_path}")
 
-            # 执行 OCR 识别
-            result = self.ocr.ocr(str(image_path), cls=True)
+            # 执行 OCR 识别 - PaddleOCR 3.4.0 新 API
+            result = self.ocr.ocr(str(image_path))
 
-            # 解析结果
-            if result is None or len(result) == 0:
-                return []
-
-            # PaddleOCR 返回格式: [[[bbox], (text, confidence)], ...]
+            # 解析结果 - PaddleOCR 3.4.0 返回字典列表
             ocr_results = []
-            for line in result[0]:
-                if line and len(line) >= 2:
-                    bbox = line[0]  # [[x1,y1], [x2,y2], [x3,y3], [x4,y4]]
-                    text = line[1][0] if isinstance(line[1], tuple) else line[1]
-                    confidence = line[1][1] if isinstance(line[1], tuple) else 1.0
-                    ocr_results.append((bbox, text, confidence))
+            if result and len(result) > 0:
+                page_result = result[0]
+                # 检查是否是字典格式（新 API）
+                if isinstance(page_result, dict):
+                    rec_texts = page_result.get('rec_texts', [])
+                    rec_scores = page_result.get('rec_scores', [])
+                    rec_polys = page_result.get('rec_polys', [])
+
+                    for i, text in enumerate(rec_texts):
+                        bbox = rec_polys[i].tolist() if i < len(rec_polys) else [[0,0], [0,0], [0,0], [0,0]]
+                        confidence = rec_scores[i] if i < len(rec_scores) else 1.0
+                        ocr_results.append((bbox, text, confidence))
+                # 兼容旧格式
+                elif hasattr(page_result, '__iter__') and not isinstance(page_result, str):
+                    for line in page_result:
+                        if line and len(line) >= 2:
+                            bbox = line[0]
+                            text = line[1][0] if isinstance(line[1], (tuple, list)) else str(line[1])
+                            confidence = line[1][1] if isinstance(line[1], (tuple, list)) else 1.0
+                            ocr_results.append((bbox, text, confidence))
 
             logger.info(f"OCR 识别完成: {image_path.name}, 识别到 {len(ocr_results)} 个文本区域")
             return ocr_results
