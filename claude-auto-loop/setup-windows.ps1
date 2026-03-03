@@ -1,7 +1,7 @@
 # Claude Auto Loop - Windows Environment Setup
-# Configures PowerShell Profile to prefer Git Bash over WSL/System32 bash.
+# Configures both PowerShell Profile and CMD AutoRun to prefer Git Bash over WSL bash.
 #
-# Usage: .\claude-auto-loop\setup-windows.ps1
+# Usage: powershell -ExecutionPolicy Bypass -File claude-auto-loop\setup-windows.ps1
 
 Write-Host "=== Claude Auto Loop - Windows Setup ===" -ForegroundColor Cyan
 
@@ -13,13 +13,11 @@ if (-not $gitPath) {
     exit 1
 }
 
-# Deduce bin directory (from .../cmd/git.exe to .../bin/bash.exe)
 $gitRoot = (Get-Item $gitPath).Directory.Parent.FullName
 $bashPath = Join-Path $gitRoot "bin\bash.exe"
 $binDir = Join-Path $gitRoot "bin"
 
 if (-not (Test-Path $bashPath)) {
-    # Try default paths
     $defaultPaths = @(
         "C:\Program Files\Git\bin\bash.exe",
         "C:\Program Files (x86)\Git\bin\bash.exe",
@@ -46,7 +44,7 @@ $currentBash = Get-Command bash -ErrorAction SilentlyContinue | Select-Object -E
 $needFix = $true
 
 if ($currentBash -and $currentBash.ToLower() -eq $bashPath.ToLower()) {
-    Write-Host "Current bash is already pointing to Git Bash." -ForegroundColor Green
+    Write-Host "Current bash already points to Git Bash." -ForegroundColor Green
     $needFix = $false
 } elseif ($currentBash) {
     Write-Host "Current bash points to: $currentBash (likely WSL)" -ForegroundColor Yellow
@@ -54,47 +52,67 @@ if ($currentBash -and $currentBash.ToLower() -eq $bashPath.ToLower()) {
     Write-Host "No bash command found currently." -ForegroundColor Yellow
 }
 
-# 3. Configure PowerShell Profile
-if ($needFix) {
-    $profilePath = $PROFILE
-    # Check if Profile exists
-    if (-not (Test-Path $profilePath)) {
-        # Ensure directory exists
-        $profileDir = Split-Path $profilePath
-        if (-not (Test-Path $profileDir)) {
-            New-Item -Path $profileDir -ItemType Directory -Force | Out-Null
-        }
-        Write-Host "Creating PowerShell Profile: $profilePath"
-        New-Item -Path $profilePath -ItemType File -Force | Out-Null
+# 3a. Configure PowerShell Profile
+Write-Host "`n--- PowerShell ---"
+$profilePath = $PROFILE
+if (-not (Test-Path $profilePath)) {
+    $profileDir = Split-Path $profilePath
+    if (-not (Test-Path $profileDir)) {
+        New-Item -Path $profileDir -ItemType Directory -Force | Out-Null
     }
+    Write-Host "Creating PowerShell Profile: $profilePath"
+    New-Item -Path $profilePath -ItemType File -Force | Out-Null
+}
 
-    $profileContent = Get-Content $profilePath -Raw
-    $pathConfig = '$env:PATH = "' + $binDir + ';" + $env:PATH'
-    
-    # Check if already configured
-    if ($profileContent -match [regex]::Escape($binDir)) {
-        Write-Host "Profile already contains Git Bash path configuration." -ForegroundColor Yellow
+$profileContent = Get-Content $profilePath -Raw -ErrorAction SilentlyContinue
+$pathConfig = '$env:PATH = "' + $binDir + ';" + $env:PATH'
+
+if ($profileContent -and $profileContent.Contains($binDir)) {
+    Write-Host "PowerShell Profile: already configured." -ForegroundColor Green
+} else {
+    Write-Host "Adding Git Bash path to PowerShell Profile..."
+    Add-Content -Path $profilePath -Value "`n# Claude Auto Loop: Prefer Git Bash"
+    Add-Content -Path $profilePath -Value $pathConfig
+    Write-Host "PowerShell Profile: done." -ForegroundColor Green
+}
+
+# 3b. Configure CMD AutoRun (registry key)
+Write-Host "`n--- CMD ---"
+$regPath = "HKCU:\SOFTWARE\Microsoft\Command Processor"
+$autoRunCmd = "set ""PATH=$binDir;%PATH%"""
+
+$currentAutoRun = Get-ItemProperty -Path $regPath -Name AutoRun -ErrorAction SilentlyContinue | Select-Object -ExpandProperty AutoRun -ErrorAction SilentlyContinue
+
+if ($currentAutoRun -and $currentAutoRun.Contains($binDir)) {
+    Write-Host "CMD AutoRun: already configured." -ForegroundColor Green
+} else {
+    if ($currentAutoRun) {
+        $newAutoRun = "$autoRunCmd && $currentAutoRun"
     } else {
-        Write-Host "Adding Git Bash path to Profile..."
-        Add-Content -Path $profilePath -Value "`n# Claude Auto Loop: Prefer Git Bash"
-        Add-Content -Path $profilePath -Value $pathConfig
-        Write-Host "Configuration written." -ForegroundColor Green
-        
-        # Apply to current session immediately
-        $env:PATH = "$binDir;" + $env:PATH
-        Write-Host "Current session PATH updated." -ForegroundColor Green
+        $newAutoRun = $autoRunCmd
     }
+    Set-ItemProperty -Path $regPath -Name AutoRun -Value $newAutoRun
+    Write-Host "CMD AutoRun: done." -ForegroundColor Green
+    Write-Host "  Registry: $regPath\AutoRun" -ForegroundColor DarkGray
+}
+
+# Apply to current session immediately
+if ($needFix) {
+    $env:PATH = "$binDir;" + $env:PATH
+    Write-Host "`nCurrent session PATH updated." -ForegroundColor Green
 }
 
 # 4. Verification
 $finalBash = Get-Command bash -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+Write-Host ""
 if ($finalBash -and $finalBash.ToLower() -eq $bashPath.ToLower()) {
-    Write-Host "`nEnvironment setup successful!" -ForegroundColor Green
-    Write-Host "You can now run .sh scripts directly, e.g.:"
+    Write-Host "Setup successful!" -ForegroundColor Green
+    Write-Host "After restarting terminals, bash will point to Git Bash in both PowerShell and CMD."
+    Write-Host ""
+    Write-Host "You can then run:"
     Write-Host "  bash claude-auto-loop/run.sh"
     Write-Host "  bash claude-auto-loop/setup.sh"
 } else {
-    Write-Host "`nWarning: Configuration might not be fully effective. Please restart PowerShell." -ForegroundColor Yellow
+    Write-Host "Setup written. Please restart your terminal for changes to take effect." -ForegroundColor Yellow
     Write-Host "Expected bash: $bashPath"
-    Write-Host "Actual bash: $finalBash"
 }
