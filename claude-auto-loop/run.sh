@@ -411,8 +411,8 @@ except Exception:
 
     # CLAUDE.md 已通过 --append-system-prompt-file 注入 system prompt，inline prompt 只含 session 变量
     local coding_prompt="Session ${session_num}。执行 6 步流程。
-高效执行：批量读取、批量修改，已存在的文件跳过，减少碎片化工具调用。
-${mcp_hint:+可用工具: $mcp_hint
+效率要求：先规划后编码，完成全部编码后再统一测试，禁止编码-测试反复跳转。后端任务用 curl 验证，不启动浏览器。小任务可合并执行。
+${mcp_hint:+前端/全栈任务可用: $mcp_hint
 }${test_hint:+测试: $test_hint
 }完成后写入 session_result.json。${retry_context}"
 

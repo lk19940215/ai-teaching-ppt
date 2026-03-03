@@ -89,7 +89,8 @@ async def generate_full_ppt(
     chapter: Optional[str] = Body(None, embed=True),
     provider: str = Body("deepseek", embed=True),
     api_key: str = Body(..., embed=True),
-    style: str = Body("simple", embed=True)
+    style: str = Body("simple", embed=True),
+    session_id: Optional[str] = Body(None, embed=True),
 ):
     """
     完整生成 PPT（内容生成 + 文件生成）
@@ -144,13 +145,42 @@ async def generate_full_ppt(
 
         ppt_generator.generate(ppt_content, output_path, grade, style, subject)
 
-        return JSONResponse(content={
+        # 保存历史记录（如果提供了 session_id）
+        history_record = None
+        if session_id:
+            from ..models.database import get_db_session
+            from ..models.history_crud import add_generation_record
+
+            db = get_db_session()
+            try:
+                history_record = add_generation_record(
+                    db=db,
+                    session_id=session_id,
+                    title=ppt_content.get('title', '教学 PPT'),
+                    grade=grade,
+                    subject=subject,
+                    style=style,
+                    file_name=file_name,
+                    file_path=str(output_path),
+                    content_text={"text": text_content},
+                    slide_count=slide_count,
+                    chapter=chapter,
+                    ppt_content=ppt_content,
+                )
+            finally:
+                db.close()
+
+        response_data = {
             "success": True,
             "message": "PPT 生成成功",
             "content": ppt_content,
             "download_url": f"/uploads/generated/{file_name}",
             "file_name": file_name
-        })
+        }
+        if history_record:
+            response_data["history_id"] = history_record.id
+
+        return JSONResponse(content=response_data)
 
     except ValueError as e:
         logger.error(f"参数错误: {e}")

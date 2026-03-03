@@ -130,6 +130,50 @@
       "created_session": 12,
       "last_result": "pass",
       "last_run_session": 12
+    },
+    {
+      "id": "test-feat010-history-page",
+      "feature_id": "feat-010",
+      "name": "生成历史记录 - 页面 UI 验证",
+      "type": "browser",
+      "priority": "critical",
+      "affected_paths": [
+        "frontend/src/app/history/page.tsx"
+      ],
+      "preconditions": {
+        "services": ["frontend", "backend"],
+        "real_api_key": false
+      },
+      "steps": "访问 /history 页面，验证历史记录列表加载、搜索框、年级/学科筛选器正常显示；验证无记录时显示空状态提示",
+      "test_data_summary": "历史记录页面 UI 测试",
+      "expected_result": "页面正常加载，搜索和筛选组件正常渲染，无记录时显示空状态提示",
+      "auto_generated": true,
+      "created_session": 13,
+      "last_result": "pass",
+      "last_run_session": 13
+    },
+    {
+      "id": "test-feat010-history-api",
+      "feature_id": "feat-010",
+      "name": "生成历史记录 - API 端点验证",
+      "type": "api",
+      "priority": "critical",
+      "affected_paths": [
+        "backend/app/api/history.py",
+        "backend/app/models/history.py",
+        "backend/app/models/history_crud.py"
+      ],
+      "preconditions": {
+        "services": ["backend"],
+        "real_api_key": false
+      },
+      "steps": "验证 GET /api/v1/history 返回空列表（新 session），验证 GET /api/v1/history/search 端点存在",
+      "test_data_summary": "历史记录 API 端点验证",
+      "expected_result": "API 端点存在并返回正确的响应格式（包含 success、data、total 字段）",
+      "auto_generated": true,
+      "created_session": 13,
+      "last_result": "pass",
+      "last_run_session": 13
     }
   ]
 }

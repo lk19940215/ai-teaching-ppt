@@ -160,7 +160,7 @@
         "集成拼音标注逻辑（语文科目）",
         "验证各年级生成效果符合设计要求"
       ],
-      "status": "in_progress",
+      "status": "done",
       "depends_on": [
         "feat-006"
       ]
@@ -178,7 +178,7 @@
         "实现重新下载和基于历史重新生成功能",
         "添加历史记录分页和搜索"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-001",
         "feat-002",

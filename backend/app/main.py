@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 from pathlib import Path
 from .config import settings
-from .api import upload, process, generate, ppt
+from .api import upload, process, generate, ppt, history
 
 app = FastAPI(
     title="AI 教学 PPT 生成器 API",
@@ -26,6 +26,7 @@ app.include_router(upload.router)
 app.include_router(process.router)
 app.include_router(generate.router)
 app.include_router(ppt.router)
+app.include_router(history.router)
 
 # 静态文件服务
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")

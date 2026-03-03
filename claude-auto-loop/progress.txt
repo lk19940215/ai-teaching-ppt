@@ -90,3 +90,11 @@
 - 问题：无
 - Git: 403cf75 - feat(feat-009): 年级自适应 PPT 风格 - 三个学段样式和拼音标注
 - 下次注意：开始 feat-010 生成历史记录，需要设计数据库模型和 CRUD API。
+
+=== Session 13 | 2026-03-03 17:00 ===
+- 任务：feat-010 生成历史记录
+- 状态：done
+- 完成：实现生成历史记录功能。后端：创建数据库模型 GenerationHistory（history.py），实现数据库连接（database.py），实现 CRUD 操作（history_crud.py），创建历史记录 API 路由（history.py），更新 ppt.py 在生成成功后自动保存历史记录。前端：创建历史记录页面 /history，实现历史记录列表展示、关键词搜索、年级/学科筛选、分页功能、下载 PPT、删除记录、基于历史重新生成功能。测试：后端 API 测试通过（GET /api/v1/history 返回正确格式），前端编译成功（/history 页面生成）。添加 2 个测试用例到 tests.json。
+- 问题：无
+- Git: 待提交
+- 下次注意：开始 feat-011 LLM 服务商切换，需要实现 API Key 持久化存储和管理。
