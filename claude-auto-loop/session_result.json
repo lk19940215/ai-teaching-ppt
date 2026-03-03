@@ -1,9 +1,9 @@
 {
   "session_result": "success",
-  "task_id": "feat-003",
-  "status_before": "failed",
+  "task_id": "feat-004",
+  "status_before": "pending",
   "status_after": "done",
-  "git_commit": "36663cf",
+  "git_commit": "f93294b",
   "tests_passed": true,
-  "notes": "修复 PaddleOCR 3.4.0 API 兼容性问题，文本上传 API，安装 PaddlePaddle 依赖。测试通过：图片 OCR、PDF 解析、文本上传三种输入方式。"
+  "notes": "教学配置面板完成，实现年级、学科、风格选择，Playwright 测试通过。"
 }

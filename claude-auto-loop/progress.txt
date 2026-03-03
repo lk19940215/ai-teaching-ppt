@@ -34,3 +34,11 @@
 - 问题：PaddleOCR 3.4.0 API 有重大变更，返回格式为字典而非列表；需要安装 PaddlePaddle 依赖。
 - Git: 36663cf - feat(feat-003): 修复教材内容输入功能（OCR和PDF解析）
 - 下次注意：PaddleOCR 3.4.0 使用新 API，ocr() 方法返回字典格式，包含 rec_texts、rec_scores、rec_polys 字段。
+
+=== Session 6 | 2026-03-03 11:30 ===
+- 任务：feat-004 教学配置面板
+- 状态：done
+- 完成：创建上传页面布局，实现年级选择（小学1-6、初中7-9）、学科选择（11个学科）、PPT风格选择（3种）、幻灯片数量滑块（8-30页）、章节名称输入。创建 Header 导航组件，创建 Select、Label、Input 基础 UI 组件。修复 Button 组件兼容性问题（移除 class-variance-authority），修复 postcss 配置（暂时禁用 autoprefixer）。Playwright 测试通过：页面加载、组件交互、表单填写、上传方式切换。
+- 问题：autoprefixer 10.0.0 版本存在 stack overflow 问题，暂时禁用；Button 组件依赖 class-variance-authority 但项目中未安装。
+- Git: f93294b - feat(feat-004): 教学配置面板 - 年级学科风格参数选择
+- 下次注意：前端开发时需要确保所有依赖都正确安装，注意 Tailwind CSS 相关版本兼容性。

@@ -79,7 +79,7 @@
         "实现内容结构化输出（JSON 格式）",
         "添加 LLM 调用超时和错误处理"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": ["feat-001", "feat-003"]
     },
     {
