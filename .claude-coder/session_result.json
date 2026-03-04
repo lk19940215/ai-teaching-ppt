@@ -1,12 +1,12 @@
 {
   "current": {
     "session_result": "success",
-    "task_id": "feat-016",
-    "status_before": "in_progress",
+    "task_id": "feat-017",
+    "status_before": "pending",
     "status_after": "done",
-    "git_commit": "98c8dfd",
+    "git_commit": "bc3994b",
     "tests_passed": true,
-    "notes": "本次会话完成了 feat-016 PPT 动画效果注入功能：\n\n**已完成工作：**\n1. 创建 pptx_animator.py 模块，实现 PPT 动画注入功能\n2. 实现 PPTXAnimator 类，支持：\n   - 8 种页面切换效果（淡入/推进/擦除/分割/切出/显现/随机线条/百叶窗）\n   - 6 种元素进入动画（飞入/浮入/出现/缩放/弹跳/淡入）\n   - 通过 OOXML 直接操作幻灯片 XML 添加动画\n3. 实现 AnimationPreset 动画预设：\n   - 小学风格：push 切换 (0.6s) + bounce 弹跳动画 (0.4s)\n   - 初中风格：fade 切换 (0.4s) + fadeIn 淡入动画 (0.3s)\n4. 集成到 ppt_generator.py：PPT 生成完成后自动根据年级注入动画\n5. 补全 project_profile.json 的 services 数组\n\n**技术实现：**\n- 解压 PPTX（ZIP 格式）→ 修改幻灯片 XML → 注入 <p:transition> 和 <p:timing> → 重新打包\n- 动画模块可选导入（ANIMATION_AVAILABLE 标志），失败不影响 PPT 生成\n\n**验证结果：**\n- ✅ 模块导入测试通过\n- ✅ PPT 生成测试通过（test_animation.pptx 31KB）\n- ✅ XML 结构验证：包含 <p:transition> 和 <p:timing> 元素\n- ✅ 不同年级动画预设测试通过\n\n**下一步建议：**\n- feat-017：PPT 课堂互动功能增强（下一个 pending 任务）"
+    "notes": "本次会话完成 feat-017 PPT 课堂互动功能增强：\n\n**已完成工作：**\n1. 创建 pptx_interactive.py 模块，实现互动 PPT 生成器\n2. 在 PPTPageType 新增 5 种互动页面类型：QUIZ、CLICK_TO_REVEAL、MATCHING、QUIZ_GAME、FILL_BLANK\n3. 在 PPTGenerator 实现 5 个互动页面生成方法：\n   - _add_quiz_slide: 互动选择题页（带 ABCD 选项按钮）\n   - _add_click_to_reveal_slide: 点击显示答案页\n   - _add_matching_slide: 拖拽匹配游戏页\n   - _add_quiz_game_slide: 随堂测验页\n   - _add_fill_blank_slide: 填空题页\n4. 修复 pptx_animator.py 中的导入路径问题\n5. 生成测试 PPT 文件验证所有功能正常（38KB，6 种页面类型）\n\n**测试验证：**\n- ✅ 模块导入测试通过\n- ✅ PPT 生成功能测试通过\n- ✅ 后端服务正常运行\n\n**文件变更：**\n- 新增：backend/app/services/pptx_interactive.py\n- 修改：backend/app/services/ppt_generator.py\n- 修改：backend/app/services/pptx_animator.py\n- 修改：.claude-coder/tasks.json\n- 修改：.claude-coder/tests.json\n\n**下一步建议：**\n- feat-018：Playwright MCP 页面走查（最后一个 pending 任务）"
   },
   "history": [
     {
@@ -18,7 +18,7 @@
       "status_after": "done",
       "git_commit": "98c8dfd",
       "tests_passed": true,
-      "notes": "本次会话完成了 feat-016 PPT 动画效果注入功能：\n\n**已完成工作：**\n1. 创建 pptx_animator.py 模块，实现 PPT 动画注入功能\n2. 实现 PPTXAnimator 类，支持：\n   - 8 种页面切换效果（淡入/推进/擦除/分割/切出/显现/随机线条/百叶窗）\n   - 6 种元素进入动画（飞入/浮入/出现/缩放/弹跳/淡入）\n   - 通过 OOXML 直接操作幻灯片 XML 添加动画\n3. 实现 AnimationPreset 动画预设：\n   - 小学风格：push 切换 (0.6s) + bounce 弹跳动画 (0.4s)\n   - 初中风格：fade 切换 (0.4s) + fadeIn 淡入动画 (0.3s)\n4. 集成到 ppt_generator.py：PPT 生成完成后自动根据年级注入动画\n5. 补全 project_profile.json 的 services 数组\n\n**技术实现：**\n- 解压 PPTX（ZIP 格式）→ 修改幻灯片 XML → 注入 <p:transition> 和 <p:timing> → 重新打包\n- 动画模块可选导入（ANIMATION_AVAILABLE 标志），失败不影响 PPT 生成\n\n**验证结果：**\n- ✅ 模块导入测试通过\n- ✅ PPT 生成测试通过（test_animation.pptx 31KB）\n- ✅ XML 结构验证：包含 <p:transition> 和 <p:timing> 元素\n- ✅ 不同年级动画预设测试通过\n\n**下一步建议：**\n- feat-017：PPT 课堂互动功能增强（下一个 pending 任务）"
+      "notes": "本次会话完成了 feat-016 PPT 动画效果注入功能"
     }
   ]
 }
