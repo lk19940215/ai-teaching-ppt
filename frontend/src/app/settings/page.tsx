@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
+import { apiBaseUrl } from '@/lib/api'
 
 // 配置类型
 interface LLMConfig {
@@ -67,7 +68,7 @@ export default function SettingsPage() {
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  const API_BASE = "http://localhost:8000/api/v1"
+  const API_BASE = `${apiBaseUrl}/api/v1`
 
   // 加载已保存的配置
   useEffect(() => {

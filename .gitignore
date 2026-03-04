@@ -1,7 +1,8 @@
 node_modules
 .DS_Store
 .env
-.env.*
+.env.production
+.env.test
 dist
 build
 
@@ -26,6 +27,8 @@ eggs/
 .eggs/
 lib/
 lib64/
+# But not frontend/src/lib
+!frontend/src/lib/
 parts/
 sdist/
 var/

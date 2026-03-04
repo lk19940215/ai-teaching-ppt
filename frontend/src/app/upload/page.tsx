@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { apiBaseUrl, createApiUrl } from '@/lib/api'
 
 // 年级选项
 const GRADE_OPTIONS = [
@@ -94,7 +95,7 @@ export default function UploadPage() {
   useEffect(() => {
     const loadLLMConfig = async () => {
       try {
-        const response = await fetch("http://localhost:8000/api/v1/config/providers/default")
+        const response = await fetch(`${apiBaseUrl}/api/v1/config/providers/default`)
         const result = await response.json()
         if (result.success && result.data) {
           // 从 localStorage 获取完整的 API Key（兼容旧版）
@@ -165,7 +166,7 @@ export default function UploadPage() {
     files.forEach(file => formData.append('files', file))
 
     // 1. 上传图片
-    const uploadResponse = await fetch("http://localhost:8000/api/v1/upload/image", {
+    const uploadResponse = await fetch(`${apiBaseUrl}/api/v1/upload/image`, {
       method: "POST",
       body: formData,
     })
@@ -183,7 +184,7 @@ export default function UploadPage() {
     // 2. 对每张图片进行 OCR 识别
     const extractedTexts: string[] = []
     for (const file of uploadResult.saved_files) {
-      const ocrResponse = await fetch("http://localhost:8000/api/v1/process/ocr", {
+      const ocrResponse = await fetch(`${apiBaseUrl}/api/v1/process/ocr`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -213,7 +214,7 @@ export default function UploadPage() {
     formData.append('file', file)
 
     // 1. 上传 PDF
-    const uploadResponse = await fetch("http://localhost:8000/api/v1/upload/pdf", {
+    const uploadResponse = await fetch(`${apiBaseUrl}/api/v1/upload/pdf`, {
       method: "POST",
       body: formData,
     })
@@ -229,7 +230,7 @@ export default function UploadPage() {
     }
 
     // 2. 解析 PDF
-    const pdfResponse = await fetch("http://localhost:8000/api/v1/process/pdf", {
+    const pdfResponse = await fetch(`${apiBaseUrl}/api/v1/process/pdf`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -312,7 +313,7 @@ export default function UploadPage() {
 
       // 调用后端 API 完整生成 PPT（内容 + 文件）
       setProgressStatus("正在调用 AI 生成 PPT 内容...")
-      const response = await fetch("http://localhost:8000/api/v1/ppt/generate-full", {
+      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/generate-full`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -334,7 +335,7 @@ export default function UploadPage() {
 
       const result = await response.json()
       setGeneratedContent(result.content)
-      setDownloadUrl(`http://localhost:8000${result.download_url}`)
+      setDownloadUrl(`${apiBaseUrl}${result.download_url}`)
       setFileName(result.file_name)
       setProgressStatus("PPT 生成完成！")
       setProgress(100)

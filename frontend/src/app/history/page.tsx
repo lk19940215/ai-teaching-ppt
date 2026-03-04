@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
+import { apiBaseUrl } from '@/lib/api'
 
 // 历史记录数据类型
 interface HistoryRecord {
@@ -108,7 +109,7 @@ export default function HistoryPage() {
       if (selectedGrade) params.append("grade", selectedGrade)
       if (selectedSubject) params.append("subject", selectedSubject)
 
-      const response = await fetch(`http://localhost:8000/api/v1/history/search?${params}`)
+      const response = await fetch(`${apiBaseUrl}/api/v1/history/search?${params}`)
 
       if (!response.ok) {
         throw new Error("加载历史记录失败")
@@ -130,7 +131,7 @@ export default function HistoryPage() {
 
   // 处理下载
   const handleDownload = (record: HistoryRecord) => {
-    const downloadUrl = `http://localhost:8000/api/v1/ppt/download/${record.file_name}`
+    const downloadUrl = `${apiBaseUrl}/api/v1/ppt/download/${record.file_name}`
     window.open(downloadUrl, "_blank")
   }
 
@@ -141,7 +142,7 @@ export default function HistoryPage() {
     const sessionId = getSessionId()
 
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/history/${recordId}?session_id=${sessionId}`, {
+      const response = await fetch(`${apiBaseUrl}/api/v1/history/${recordId}?session_id=${sessionId}`, {
         method: "DELETE",
       })
 
@@ -176,7 +177,7 @@ export default function HistoryPage() {
     setRegeneratingId(record.id)
 
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/history/${record.id}/regenerate?session_id=${sessionId}`, {
+      const response = await fetch(`${apiBaseUrl}/api/v1/history/${record.id}/regenerate?session_id=${sessionId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
