@@ -11,14 +11,7 @@
       "Bash(taskkill:*)",
       "mcp__playwright__browser_click",
       "mcp__playwright__browser_close",
-      "Bash(python:*)",
-      "Bash(Handle64.exe .next:*)",
-      "Bash(tasklist:*)",
-      "Bash(Get-Process:*)",
-      "Bash(taskkill.exe:*)",
-      "Bash(powershell.exe Stop-Process -Id 25924 -Force:*)",
-      "Bash(powershell.exe:*)",
-      "Bash(npx kill-port:*)"
+      "Bash(python:*)"
     ]
   }
 }

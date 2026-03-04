@@ -61,38 +61,38 @@ class LLMService:
         调用 LLM 对话接口
         Args:
             messages: 消息列表
-            **kwargs: 额外参数
+            **kwargs: 额外参数，支持 temperature, max_tokens, response_format 等
         Returns:
             LLM 返回的文本
         """
         if not self.client:
             raise ValueError("LLM 客户端未初始化，请先配置 API Key")
 
+        # 构建基础参数
+        chat_kwargs = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": kwargs.get("temperature", 0.7),
+            "max_tokens": kwargs.get("max_tokens", 4000),
+            "timeout": kwargs.get("timeout", 60)
+        }
+
+        # OpenAI 支持 response_format 参数用于 JSON 输出
+        if self.provider == LLMProvider.OPENAI and kwargs.get("response_format"):
+            chat_kwargs["response_format"] = kwargs["response_format"]
+
         try:
-            # 构建基础参数
-            create_kwargs = {
-                "model": self.model,
-                "messages": messages,
-                "temperature": kwargs.get("temperature", 0.7),
-                "max_tokens": kwargs.get("max_tokens", 2000),
-                "timeout": kwargs.get("timeout", 60)
-            }
-
-            # OpenAI 特定：设置 response_format 为 JSON 以强制 JSON 输出
-            if self.provider == LLMProvider.OPENAI:
-                create_kwargs["response_format"] = {"type": "json_object"}
-
-            response = self.client.chat.completions.create(**create_kwargs)
+            response = self.client.chat.completions.create(**chat_kwargs)
             return response.choices[0].message.content
         except OpenAITimeoutError as e:
-            logger.error(f"LLM 调用超时: {e}")
+            logger.error(f"LLM 调用超时：{e}")
             raise TimeoutError("LLM 调用超时") from e
         except OpenAIAPIError as e:
-            logger.error(f"LLM API 错误: {e}")
-            raise RuntimeError(f"LLM API 错误: {e}") from e
+            logger.error(f"LLM API 错误：{e}")
+            raise RuntimeError(f"LLM API 错误：{e}") from e
         except Exception as e:
-            logger.error(f"LLM 调用失败: {e}")
-            raise RuntimeError(f"LLM 调用失败: {e}") from e
+            logger.error(f"LLM 调用失败：{e}")
+            raise RuntimeError(f"LLM 调用失败：{e}") from e
 
     def generate_structured_content(
         self,
@@ -127,13 +127,17 @@ class LLMService:
             }
         ]
 
+        # OpenAI 使用 response_format 确保 JSON 输出
+        if self.provider == LLMProvider.OPENAI:
+            kwargs["response_format"] = {"type": "json_object"}
+
         response = self.chat(messages, **kwargs)
 
         # 解析 JSON
         try:
             return json.loads(response)
         except json.JSONDecodeError as e:
-            logger.error(f"JSON 解析失败: {e}, 原始响应: {response}")
+            logger.error(f"JSON 解析失败：{e}, 原始响应：{response}")
             raise ValueError("LLM 返回的内容无法解析为 JSON") from e
 
 

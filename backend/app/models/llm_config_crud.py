@@ -36,9 +36,9 @@ def create_config(
     base_url: Optional[str] = None,
     model: Optional[str] = None,
     is_default: bool = False,
-    temperature: float = 0.7,
-    max_input_tokens: int = 4096,
-    max_output_tokens: int = 2000
+    temperature: Optional[float] = None,
+    max_input_tokens: Optional[int] = None,
+    max_output_tokens: Optional[int] = None
 ) -> LLMConfig:
     """创建新配置"""
     # 如果设为默认，先取消其他默认
@@ -52,9 +52,9 @@ def create_config(
         model=model,
         is_default=is_default,
         is_active=True,
-        temperature=temperature,
-        max_input_tokens=max_input_tokens,
-        max_output_tokens=max_output_tokens
+        temperature=int(temperature * 100) if temperature is not None else 70,
+        max_input_tokens=max_input_tokens or 8000,
+        max_output_tokens=max_output_tokens or 4000
     )
     db.add(config)
     db.commit()
@@ -95,7 +95,7 @@ def update_config(
     if is_active is not None:
         config.is_active = is_active
     if temperature is not None:
-        config.temperature = temperature
+        config.temperature = int(temperature * 100)
     if max_input_tokens is not None:
         config.max_input_tokens = max_input_tokens
     if max_output_tokens is not None:

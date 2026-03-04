@@ -1,7 +1,7 @@
 """
 LLM 服务商配置模型
 """
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Float
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import declarative_base
 from datetime import datetime
 
@@ -23,9 +23,9 @@ class LLMConfig(Base):
     model = Column(String(128), nullable=True, comment="模型名称")
 
     # LLM 参数配置
-    temperature = Column(Float, default=0.7, nullable=False, comment="温度参数（0-2）")
-    max_input_tokens = Column(Integer, default=4096, nullable=False, comment="最大输入 token 数")
-    max_output_tokens = Column(Integer, default=2000, nullable=False, comment="最大输出 token 数")
+    temperature = Column(Integer, default=70, nullable=False, comment="温度参数（0-100，默认 70 代表 0.7）")
+    max_input_tokens = Column(Integer, default=8000, nullable=False, comment="最大输入 token 数（默认 8000）")
+    max_output_tokens = Column(Integer, default=4000, nullable=False, comment="最大输出 token 数（默认 4000）")
 
     # 配置状态
     is_default = Column(Boolean, default=False, nullable=False, comment="是否为默认服务商")
@@ -43,7 +43,7 @@ class LLMConfig(Base):
             "api_key_masked": f"{self.api_key[:4]}...{self.api_key[-4:]}" if len(self.api_key) > 8 else "***",
             "base_url": self.base_url,
             "model": self.model,
-            "temperature": self.temperature,
+            "temperature": self.temperature / 100 if self.temperature else 0.7,
             "max_input_tokens": self.max_input_tokens,
             "max_output_tokens": self.max_output_tokens,
             "is_default": self.is_default,
@@ -60,7 +60,7 @@ class LLMConfig(Base):
             "api_key": self.api_key,
             "base_url": self.base_url,
             "model": self.model,
-            "temperature": self.temperature,
+            "temperature": self.temperature / 100 if self.temperature else 0.7,
             "max_input_tokens": self.max_input_tokens,
             "max_output_tokens": self.max_output_tokens,
             "is_default": self.is_default,

@@ -12,9 +12,9 @@ interface LLMConfig {
   apiKey: string
   baseUrl: string
   model: string
-  temperature: number
-  maxInputTokens: number
-  maxOutputTokens: number
+  temperature?: number
+  maxInputTokens?: number
+  maxOutputTokens?: number
   isDefault?: boolean
   isActive?: boolean
 }
@@ -54,8 +54,8 @@ const DEFAULT_CONFIG: LLMConfig = {
   baseUrl: "",
   model: "",
   temperature: 0.7,
-  maxInputTokens: 4096,
-  maxOutputTokens: 2000,
+  maxInputTokens: 8000,
+  maxOutputTokens: 4000,
 }
 
 export default function SettingsPage() {
@@ -90,8 +90,8 @@ export default function SettingsPage() {
             baseUrl: defaultConfig.base_url || "",
             model: defaultConfig.model || "",
             temperature: defaultConfig.temperature ?? 0.7,
-            maxInputTokens: defaultConfig.max_input_tokens ?? 4096,
-            maxOutputTokens: defaultConfig.max_output_tokens ?? 2000,
+            maxInputTokens: defaultConfig.max_input_tokens ?? 8000,
+            maxOutputTokens: defaultConfig.max_output_tokens ?? 4000,
           })
         }
       }
@@ -196,12 +196,12 @@ export default function SettingsPage() {
     if (providerConfig) {
       setConfig({
         provider,
-        apiKey: "",
+        apiKey: "", // 不自动填充 API Key
         baseUrl: savedConfig?.base_url || providerConfig.baseUrl,
         model: savedConfig?.model || providerConfig.model,
         temperature: savedConfig?.temperature ?? 0.7,
-        maxInputTokens: savedConfig?.max_input_tokens ?? 4096,
-        maxOutputTokens: savedConfig?.max_output_tokens ?? 2000,
+        maxInputTokens: savedConfig?.max_input_tokens ?? 8000,
+        maxOutputTokens: savedConfig?.max_output_tokens ?? 4000,
       })
     }
   }
@@ -310,57 +310,62 @@ export default function SettingsPage() {
                 />
               </div>
 
-              {/* 温度参数 */}
-              <div>
-                <Label htmlFor="temperature">温度（Temperature）: {config.temperature.toFixed(1)}</Label>
-                <input
-                  id="temperature"
-                  type="range"
-                  min="0"
-                  max="2"
-                  step="0.1"
-                  value={config.temperature}
-                  onChange={(e) => setConfig({ ...config, temperature: parseFloat(e.target.value) })}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>0（确定）</span>
-                  <span>1（平衡）</span>
-                  <span>2（随机）</span>
+              {/* 高级 LLM 参数配置 */}
+              <div className="pt-4 border-t">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">高级 LLM 参数配置</h3>
+
+                {/* 温度滑块 */}
+                <div className="mb-4">
+                  <Label htmlFor="temperature">温度（Temperature）: {config.temperature?.toFixed(1)}</Label>
+                  <input
+                    id="temperature"
+                    type="range"
+                    min="0"
+                    max="2"
+                    step="0.1"
+                    value={config.temperature || 0.7}
+                    onChange={(e) => setConfig({ ...config, temperature: parseFloat(e.target.value) })}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>0（确定）</span>
+                    <span>1（平衡）</span>
+                    <span>2（随机）</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">温度越低输出越确定，越高越有创造力。建议值：0.5-0.8</p>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  控制输出的随机性：较低值使输出更确定，较高值使输出更富创造性。
-                </p>
-              </div>
 
-              {/* 最大输入 Token */}
-              <div>
-                <Label htmlFor="maxInputTokens">最大输入 Token 数</Label>
-                <Input
-                  id="maxInputTokens"
-                  type="number"
-                  value={config.maxInputTokens}
-                  onChange={(e) => setConfig({ ...config, maxInputTokens: parseInt(e.target.value) || 4096 })}
-                  placeholder="4096"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  限制发送给 LLM 的最大输入 token 数量（包含提示词和上下文）。
-                </p>
-              </div>
+                {/* 最大输入 Token */}
+                <div className="mb-4">
+                  <Label htmlFor="maxInputTokens">最大输入 Token 数</Label>
+                  <Input
+                    id="maxInputTokens"
+                    type="number"
+                    min="1000"
+                    max="128000"
+                    step="1000"
+                    value={config.maxInputTokens || 8000}
+                    onChange={(e) => setConfig({ ...config, maxInputTokens: parseInt(e.target.value) || 8000 })}
+                    placeholder="8000"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">限制发送给 LLM 的最大输入 token 数（提示词 + 历史消息）</p>
+                </div>
 
-              {/* 最大输出 Token */}
-              <div>
-                <Label htmlFor="maxOutputTokens">最大输出 Token 数</Label>
-                <Input
-                  id="maxOutputTokens"
-                  type="number"
-                  value={config.maxOutputTokens}
-                  onChange={(e) => setConfig({ ...config, maxOutputTokens: parseInt(e.target.value) || 2000 })}
-                  placeholder="2000"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  限制 LLM 返回的最大输出 token 数量。
-                </p>
+                {/* 最大输出 Token */}
+                <div className="mb-4">
+                  <Label htmlFor="maxOutputTokens">最大输出 Token 数</Label>
+                  <Input
+                    id="maxOutputTokens"
+                    type="number"
+                    min="100"
+                    max="32000"
+                    step="100"
+                    value={config.maxOutputTokens || 4000}
+                    onChange={(e) => setConfig({ ...config, maxOutputTokens: parseInt(e.target.value) || 4000 })}
+                    placeholder="4000"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">限制 LLM 返回的最大 token 数，较大的值可能生成更长的响应</p>
+                </div>
               </div>
 
               {/* 按钮组 */}

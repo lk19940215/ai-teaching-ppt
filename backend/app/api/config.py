@@ -95,9 +95,9 @@ async def save_provider_config(
     base_url: Optional[str] = Body(None, embed=True),
     model: Optional[str] = Body(None, embed=True),
     is_default: Optional[bool] = Body(False, embed=True),
-    temperature: Optional[float] = Body(0.7, embed=True),
-    max_input_tokens: Optional[int] = Body(4096, embed=True),
-    max_output_tokens: Optional[int] = Body(2000, embed=True),
+    temperature: Optional[float] = Body(None, embed=True),
+    max_input_tokens: Optional[int] = Body(None, embed=True),
+    max_output_tokens: Optional[int] = Body(None, embed=True),
     db: Session = Depends(get_db)
 ):
     """保存服务商配置"""
