@@ -1,0 +1,64 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e5]:
+      - link "AI 教学 PPT 生成器" [ref=e6] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e7]:
+        - link "首页" [ref=e8] [cursor=pointer]:
+          - /url: /
+          - button "首页" [ref=e9]
+        - link "生成 PPT" [ref=e10] [cursor=pointer]:
+          - /url: /upload
+          - button "生成 PPT" [ref=e11]
+        - link "历史记录" [ref=e12] [cursor=pointer]:
+          - /url: /history
+          - button "历史记录" [ref=e13]
+        - link "设置" [ref=e14] [cursor=pointer]:
+          - /url: /settings
+          - button "设置" [ref=e15]
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - heading "生成历史记录" [level=1] [ref=e18]
+      - generic [ref=e19]:
+        - heading "搜索与筛选" [level=2] [ref=e20]
+        - generic [ref=e21]:
+          - generic [ref=e22]:
+            - text: 搜索关键词
+            - textbox "搜索关键词" [ref=e23]:
+              - /placeholder: 搜索 PPT 标题或章节名称...
+          - generic [ref=e24]:
+            - text: 年级筛选
+            - combobox "年级筛选" [ref=e25]:
+              - option "全部年级" [selected]
+              - option "小学一年级"
+              - option "小学二年级"
+              - option "小学三年级"
+              - option "小学四年级"
+              - option "小学五年级"
+              - option "小学六年级"
+              - option "初中一年级"
+              - option "初中二年级"
+              - option "初中三年级"
+          - generic [ref=e26]:
+            - text: 学科筛选
+            - combobox "学科筛选" [ref=e27]:
+              - option "全部学科" [selected]
+              - option "语文"
+              - option "数学"
+              - option "英语"
+              - option "科学"
+              - option "物理"
+              - option "化学"
+              - option "生物"
+              - option "历史"
+              - option "政治"
+              - option "地理"
+              - option "通用"
+        - generic [ref=e29]: 共 0 条记录
+      - generic [ref=e30]: 加载中...
+  - contentinfo [ref=e31]:
+    - paragraph [ref=e32]: © 2026 AI 教学 PPT 生成器 - 助力教师高效备课
+```

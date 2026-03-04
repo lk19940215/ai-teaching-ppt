@@ -59,6 +59,11 @@ class PPTPageType:
     EXERCISE = "课堂练习页"
     SUMMARY = "总结回顾页"
 
+    # 新增页面类型（优化版：增加页面类型多样性）
+    DIAGRAM = "图示页"  # 流程图、结构图、概念图
+    TABLE = "表格页"  # 对比表、分类表、数据表
+    COMPARISON = "对比分析页"  # 对比两种或多种概念
+
     # 英语学科特殊页面类型
     VOCABULARY = "单词学习页"
     GRAMMAR = "语法讲解页"
@@ -67,7 +72,7 @@ class PPTPageType:
 
 
 class PPTStyle:
-    """PPT 样式配置"""
+    """PPT 样式配置（优化版：细化年级自适应规则）"""
 
     # 年级组配置（三个学段）
     GRADE_GROUPS = {
@@ -75,16 +80,22 @@ class PPTStyle:
             "name": "小学低年级（1-3 年级）",
             "grades": ["1", "2", "3"],
             "description": "特大字号、鲜艳配色、大量留白、趣味化表达",
+            "teaching_strategy": "直观形象教学为主，多采用图片、动画、游戏等形式， attention span 短，每页内容少而精",
+            "interaction_style": "简单问答、跟读、指认、小游戏",
         },
         "elementary_high": {
             "name": "小学高年级（4-6 年级）",
             "grades": ["4", "5", "6"],
             "description": "较大字号、明快配色、图文并茂、互动游戏式问答",
+            "teaching_strategy": "逐步过渡到抽象思维，增加逻辑推理内容，培养自主学习能力",
+            "interaction_style": "小组讨论、角色扮演、竞赛游戏、思维导图",
         },
         "middle": {
             "name": "初中（7-9 年级）",
             "grades": ["7", "8", "9"],
             "description": "标准字号、稳重配色、知识体系化、重点标注",
+            "teaching_strategy": "系统化知识讲解，注重知识间的联系，培养批判性思维和综合运用能力",
+            "interaction_style": "探究性问题、辩论、案例分析、项目式学习",
         },
     }
 
@@ -92,78 +103,105 @@ class PPTStyle:
     GRADE_STYLES = {
         # 小学低年级（1-3 年级）：特大字号、鲜艳配色
         "1": {
-            "font_size": 32,
-            "title_size": 44,
+            "font_size": 36,  # 增大字号
+            "title_size": 48,
             "primary": _COLOR_RED,
             "secondary": COLOR_TURQUOISE_2,
             "group": "elementary_low",
             "need_pinyin": True,  # 语文需要拼音标注
+            "max_content_lines": 3,  # 每页最多内容行数
+            "use_icons": True,  # 使用图标辅助理解
+            "animation_suggestion": "使用活泼的进入动画",
         },
         "2": {
-            "font_size": 30,
-            "title_size": 40,
+            "font_size": 34,
+            "title_size": 44,
             "primary": _COLOR_ORANGE,
             "secondary": COLOR_TURQUOISE_3,
             "group": "elementary_low",
             "need_pinyin": True,
+            "max_content_lines": 4,
+            "use_icons": True,
+            "animation_suggestion": "使用活泼的进入动画",
         },
         "3": {
-            "font_size": 28,
-            "title_size": 38,
+            "font_size": 30,
+            "title_size": 40,
             "primary": _COLOR_GOLD,
             "secondary": _COLOR_DARK_ORANGE,
             "group": "elementary_low",
             "need_pinyin": True,
+            "max_content_lines": 4,
+            "use_icons": True,
+            "animation_suggestion": "使用适中的进入动画",
         },
         # 小学高年级（4-6 年级）：较大字号、明快配色
         "4": {
-            "font_size": 24,
-            "title_size": 34,
+            "font_size": 26,
+            "title_size": 36,
             "primary": _COLOR_TURQUOISE,
             "secondary": COLOR_TURQUOISE_2,
             "group": "elementary_high",
             "need_pinyin": False,
+            "max_content_lines": 5,
+            "use_icons": True,
+            "animation_suggestion": "使用简洁的进入动画",
         },
         "5": {
-            "font_size": 22,
-            "title_size": 32,
+            "font_size": 24,
+            "title_size": 34,
             "primary": COLOR_BLUE_1,
             "secondary": COLOR_BLUE_2,
             "group": "elementary_high",
             "need_pinyin": False,
+            "max_content_lines": 6,
+            "use_icons": False,
+            "animation_suggestion": "使用简洁的进入动画",
         },
         "6": {
-            "font_size": 20,
-            "title_size": 30,
+            "font_size": 22,
+            "title_size": 32,
             "primary": COLOR_BLUE_3,
             "secondary": COLOR_BLUE_4,
             "group": "elementary_high",
             "need_pinyin": False,
+            "max_content_lines": 6,
+            "use_icons": False,
+            "animation_suggestion": "使用淡入动画",
         },
         # 初中（7-9 年级）：标准字号、稳重配色
         "7": {
-            "font_size": 18,
-            "title_size": 28,
+            "font_size": 20,
+            "title_size": 30,
             "primary": COLOR_BLUE_5,
             "secondary": COLOR_GREEN_1,
             "group": "middle",
             "need_pinyin": False,
+            "max_content_lines": 7,
+            "use_icons": False,
+            "animation_suggestion": "使用淡入或擦除动画",
         },
         "8": {
-            "font_size": 16,
-            "title_size": 26,
+            "font_size": 18,
+            "title_size": 28,
             "primary": COLOR_GREEN_2,
             "secondary": COLOR_GREEN_3,
             "group": "middle",
             "need_pinyin": False,
+            "max_content_lines": 8,
+            "use_icons": False,
+            "animation_suggestion": "使用简洁的切换动画",
         },
         "9": {
-            "font_size": 16,
-            "title_size": 24,
+            "font_size": 18,
+            "title_size": 26,
             "primary": COLOR_BLUE_6,
             "secondary": COLOR_GREEN_4,
             "group": "middle",
             "need_pinyin": False,
+            "max_content_lines": 8,
+            "use_icons": False,
+            "animation_suggestion": "使用无动画或简单切换",
         },
     }
 
@@ -279,6 +317,29 @@ class PPTGenerator:
                         content_size,
                         primary_color
                     )
+                # 新增页面类型支持
+                elif page_type == PPTPageType.DIAGRAM:
+                    self._add_diagram_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.TABLE:
+                    self._add_table_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.COMPARISON:
+                    self._add_comparison_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
                 # 英语学科专属页面类型
                 elif page_type == PPTPageType.VOCABULARY:
                     self._add_vocabulary_slide(
@@ -390,7 +451,7 @@ class PPTGenerator:
         font_size: int,
         color: RGBColor
     ):
-        """添加内容页"""
+        """添加内容页（优化版：增加图示、表格、流程图支持）"""
         slide = prs.slides.add_slide(prs.slide_layouts[1])  # 标题和内容布局
 
         # 标题
@@ -425,6 +486,118 @@ class PPTGenerator:
             p.font.size = Pt(font_size - 2)
             p.font.color.rgb = RGBColor(128, 0, 128)
             p.level = 0
+
+    def _add_diagram_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加图示页（优化版：支持流程图、结构图、概念图）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[6])  # 空白布局
+
+        # 标题
+        title_text = slide_data.get("title", "知识图示")
+        title_box = slide.shapes.add_textbox(Inches(1), Inches(0.3), Inches(8), Inches(1))
+        title_frame = title_box.text_frame
+        title_frame.text = title_text
+        title_para = title_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.alignment = PP_ALIGN.CENTER
+
+        # 创建图示容器（用文本框模拟）
+        diagram_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.5), Inches(8.4), Inches(5))
+        diagram_frame = diagram_box.text_frame
+        diagram_frame.word_wrap = True
+
+        # 渲染图示内容
+        diagram_type = slide_data.get("diagram_type", "flowchart")
+        diagram_data = slide_data.get("diagram_content", [])
+
+        if diagram_type == "flowchart":
+            # 流程图样式
+            for i, item in enumerate(diagram_data):
+                p = diagram_frame.add_paragraph()
+                p.text = f"┌{'─' * 50}┐" if i == 0 else f"│ {item}"
+                p.font.size = Pt(font_size)
+                p.alignment = PP_ALIGN.CENTER
+        elif diagram_type == "structure":
+            # 结构图样式
+            for item in diagram_data:
+                p = diagram_frame.add_paragraph()
+                p.text = f"  ● {item}"
+                p.font.size = Pt(font_size)
+        else:
+            # 默认列表样式
+            for item in diagram_data:
+                p = diagram_frame.add_paragraph()
+                p.text = f"• {item}"
+                p.font.size = Pt(font_size)
+
+    def _add_table_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加表格页（优化版：支持对比表、分类表、数据表）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[6])  # 空白布局
+
+        # 标题
+        title_text = slide_data.get("title", "数据表格")
+        title_box = slide.shapes.add_textbox(Inches(1), Inches(0.3), Inches(8), Inches(1))
+        title_frame = title_box.text_frame
+        title_frame.text = title_text
+        title_para = title_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.alignment = PP_ALIGN.CENTER
+
+        # 获取表格数据
+        table_data = slide_data.get("table_data", [])
+        if not table_data:
+            return
+
+        rows = len(table_data) + 1  # +1 for header
+        cols = len(table_data[0]) if table_data else 4
+
+        # 创建表格
+        table_x, table_y = Inches(0.8), Inches(1.5)
+        table_width, table_height = Inches(8.4), Inches(5)
+        table = slide.shapes.add_table(rows, cols, table_x, table_y, table_width, table_height).table
+
+        # 设置列宽
+        for i in range(cols):
+            table.columns[i].width = table_width / cols
+
+        # 填充表头
+        headers = slide_data.get("table_headers", [f"列{i+1}" for i in range(cols)])
+        for i, header in enumerate(headers):
+            cell = table.cell(0, i)
+            cell.text = header
+            cell.fill.solid()
+            cell.fill.fore_color.rgb = color
+            for paragraph in cell.text_frame.paragraphs:
+                paragraph.font.size = Pt(font_size)
+                paragraph.font.color.rgb = RGBColor(255, 255, 255)
+                paragraph.font.bold = True
+                paragraph.alignment = PP_ALIGN.CENTER
+
+        # 填充数据行
+        for row_idx, row_data in enumerate(table_data):
+            for col_idx, cell_text in enumerate(row_data):
+                cell = table.cell(row_idx + 1, col_idx)
+                cell.text = str(cell_text)
+                for paragraph in cell.text_frame.paragraphs:
+                    paragraph.font.size = Pt(font_size - 2)
+                    paragraph.alignment = PP_ALIGN.CENTER
+                    # 交替行颜色
+                    if row_idx % 2 == 0:
+                        cell.fill.solid()
+                        cell.fill.fore_color.rgb = RGBColor(245, 245, 245)
 
     def _add_interaction_slide(
         self,
@@ -748,6 +921,77 @@ class PPTGenerator:
             # 显示普通内容
             for item in slide_data.get("content", []):
                 p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_comparison_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加对比分析页（优化版：支持两种或多种概念对比）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[6])  # 空白布局
+
+        # 标题
+        title_text = slide_data.get("title", "对比分析")
+        title_box = slide.shapes.add_textbox(Inches(1), Inches(0.3), Inches(8), Inches(1))
+        title_frame = title_box.text_frame
+        title_frame.text = title_text
+        title_para = title_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.alignment = PP_ALIGN.CENTER
+
+        # 获取对比数据
+        comparison_data = slide_data.get("comparison_items", [])
+        if len(comparison_data) >= 2:
+            # 左右分栏布局
+            left_x, left_y = Inches(0.5), Inches(1.5)
+            right_x, right_y = Inches(5.5), Inches(1.5)
+            col_width, col_height = Inches(4), Inches(5)
+
+            # 左侧内容
+            left_item = comparison_data[0]
+            left_box = slide.shapes.add_textbox(left_x, left_y, col_width, Inches(0.8))
+            left_title = left_box.text_frame
+            left_title.text = left_item.get("title", "概念 A")
+            left_title.paragraphs[0].font.size = Pt(font_size + 2)
+            left_title.paragraphs[0].font.color.rgb = color
+            left_title.paragraphs[0].font.bold = True
+            left_title.paragraphs[0].alignment = PP_ALIGN.CENTER
+
+            left_content = slide.shapes.add_textbox(left_x, left_y + Inches(0.8), col_width, col_height)
+            left_frame = left_content.text_frame
+            for point in left_item.get("points", []):
+                p = left_frame.add_paragraph()
+                p.text = f"• {point}"
+                p.font.size = Pt(font_size)
+
+            # 右侧内容
+            right_item = comparison_data[1] if len(comparison_data) > 1 else comparison_data[0]
+            right_box = slide.shapes.add_textbox(right_x, right_y, col_width, Inches(0.8))
+            right_title = right_box.text_frame
+            right_title.text = right_item.get("title", "概念 B")
+            right_title.paragraphs[0].font.size = Pt(font_size + 2)
+            right_title.paragraphs[0].font.color.rgb = secondary_color
+            right_title.paragraphs[0].font.bold = True
+            right_title.paragraphs[0].alignment = PP_ALIGN.CENTER
+
+            right_content = slide.shapes.add_textbox(right_x, right_y + Inches(0.8), col_width, col_height)
+            right_frame = right_content.text_frame
+            for point in right_item.get("points", []):
+                p = right_frame.add_paragraph()
+                p.text = f"• {point}"
+                p.font.size = Pt(font_size)
+        else:
+            # 没有对比数据时，显示普通内容
+            content_box = slide.shapes.add_textbox(Inches(1), Inches(1.5), Inches(8), Inches(5))
+            content_frame = content_box.text_frame
+            for item in slide_data.get("content", []):
+                p = content_frame.add_paragraph()
                 p.text = item
                 p.font.size = Pt(font_size)
 

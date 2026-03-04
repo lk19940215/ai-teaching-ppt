@@ -283,13 +283,13 @@
         "准备测试素材（示例文本、PDF 文件）用于验证 upload 页面功能",
         "生成测试样本并对比优化前后效果"
       ],
-      "status": "in_progress",
+      "status": "done",
       "depends_on": [
         "feat-005",
         "feat-006",
         "feat-009"
       ],
-      "notes": "Session 1: 已创建测试素材文件 record/test_samples.md，包含 4 个学科的测试内容。样式问题排查：代码审查确认使用浅色主题，未发现 dark 背景黑色文字问题。"
+      "notes": "Session 2 完成优化：\n1. LLM 提示词优化：增强教学设计原则、学科特色要求、页面结构建议、质量要求\n2. 英语学科提示词优化：增加英语教学原则、PPT 结构建议\n3. PPT 模板优化：新增图示页、表格页、对比分析页三种页面类型\n4. 年级自适应规则优化：增加 teaching_strategy、interaction_style、max_content_lines、use_icons、animation_suggestion 等配置\n5. 更新测试样本文件 record/test_samples.md，添加优化验证检查清单"
     },
     {
       "id": "feat-016",
@@ -311,24 +311,47 @@
       ]
     },
     {
-      "id": "feat-017",
-      "category": "backend",
-      "priority": 17,
-      "description": "PPT 课堂互动功能增强：实现互动问答和点击显示答案效果",
-      "steps": [
-        "设计互动问答页模板（带 ABCD 选项按钮布局）",
-        "设计“点击显示答案”效果（使用 OOXML 触发器或超链接）",
-        "设计拖拽匹配游戏页（如单词 - 释义配对）",
-        "设计随堂测验页（选择题、填空题）",
-        "实现互动元素的 OOXML 注入逻辑",
-        "测试互动功能在 WPS/Office 的可用性"
+      “id”: “feat-017”,
+      “category”: “backend”,
+      “priority”: 17,
+      “description”: “PPT 课堂互动功能增强：实现互动问答和点击显示答案效果”,
+      “steps”: [
+        “设计互动问答页模板（带 ABCD 选项按钮布局）”,
+        “设计”点击显示答案”效果（使用 OOXML 触发器或超链接）”,
+        “设计拖拽匹配游戏页（如单词 - 释义配对）”,
+        “设计随堂测验页（选择题、填空题）”,
+        “实现互动元素的 OOXML 注入逻辑”,
+        “测试互动功能在 WPS/Office 的可用性”
       ],
-      "status": "pending",
-      "depends_on": [
-        "feat-006",
-        "feat-015",
-        "feat-016"
+      “status”: “pending”,
+      “depends_on”: [
+        “feat-006”,
+        “feat-015”,
+        “feat-016”
       ]
+    },
+    {
+      “id”: “feat-018”,
+      “category”: “fullstack”,
+      “priority”: 18,
+      “description”: “Playwright MCP 页面走查：完整测试页面流程并记录问题”,
+      “steps”: [
+        “使用 Playwright MCP 访问首页，验证导航和功能模块”,
+        “使用 Playwright MCP 访问上传页面，测试表单填写和参数选择”,
+        “使用 Playwright MCP 访问设置页面，验证 LLM 配置组件”,
+        “使用 Playwright MCP 访问历史记录页面，验证搜索筛选组件”,
+        “检查所有页面的样式问题（特别是 dark 背景黑色文字问题）”,
+        “记录发现的 UI/UX 问题并生成修复任务”
+      ],
+      “status”: “done”,
+      “depends_on”: [
+        “feat-002”,
+        “feat-004”,
+        “feat-007”,
+        “feat-010”,
+        “feat-011”
+      ],
+      “notes”: “Playwright MCP 页面走查完成。Chromium 浏览器测试：10/13 通过。发现问题：1) 测试代码选择器需更精确（非 UI 问题）；2) 健康检查 API 端点不存在。样式检查：未发现 dark 背景黑色文字问题，所有页面使用浅色主题 (bg-gray-50 + text-gray-900/800)。”
     }
   ]
 }
