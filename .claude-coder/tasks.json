@@ -479,7 +479,7 @@
         "替换 history/page.tsx 中所有硬编码 API 地址",
         "验证：修改 .env.local 中的地址后前端请求指向新地址"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-002"
       ]
