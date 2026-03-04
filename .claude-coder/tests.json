@@ -286,6 +286,32 @@
       "created_session": 18,
       "last_result": "pass",
       "last_run_session": 18
+    },
+    {
+      "id": "test-feat018-page-walkthrough",
+      "feature_id": "feat-018",
+      "name": "Playwright MCP 页面走查 - 代码审查验证",
+      "type": "browser",
+      "priority": "critical",
+      "affected_paths": [
+        "frontend/src/app/page.tsx",
+        "frontend/src/app/upload/page.tsx",
+        "frontend/src/app/settings/page.tsx",
+        "frontend/src/app/history/page.tsx",
+        "frontend/src/components/header.tsx",
+        "frontend/src/components/ui/button.tsx"
+      ],
+      "preconditions": {
+        "services": ["frontend", "backend"],
+        "real_api_key": false
+      },
+      "steps": "代码审查验证：1.首页包含欢迎语和功能说明；2.上传页面支持三种上传方式和教学参数配置；3.设置页面支持 4 个 LLM 服务商配置；4.历史页面支持搜索筛选和分页；5.检查 dark mode 样式一致性",
+      "test_data_summary": "页面代码审查，包含首页、上传页、设置页、历史页的完整代码走查",
+      "expected_result": "所有页面结构完整、功能正常；发现 dark mode 支持不一致问题（已创建 feat-019 修复任务）",
+      "auto_generated": true,
+      "created_session": 19,
+      "last_result": "pass",
+      "last_run_session": 19
     }
   ]
 }

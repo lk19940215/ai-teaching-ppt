@@ -342,6 +342,34 @@
         "使用 Playwright MCP 访问历史记录页面，验证搜索筛选组件",
         "检查所有页面的样式问题（特别是 dark 背景黑色文字问题）",
         "记录发现的 UI/UX 问题并生成修复任务"
+      ],
+      "status": "done",
+      "depends_on": [
+        "feat-002",
+        "feat-007",
+        "feat-010",
+        "feat-011",
+        "feat-014"
+      ],
+      "notes": "页面走查完成，发现一个问题：Dark Mode 支持不完整（组件有 dark:样式但页面强制浅色背景）"
+    },
+    {
+      "id": "feat-019",
+      "category": "frontend",
+      "priority": 19,
+      "description": "修复 Dark Mode 样式不一致问题",
+      "steps": [
+        "分析现有 dark mode 样式问题（组件有 dark:样式但布局强制浅色背景）",
+        "方案 A（推荐）：移除所有 dark:样式类，统一浅色主题",
+        "方案 B：完整实现 dark mode，添加主题切换器和完整 dark 样式",
+        "更新 button.tsx、select.tsx 等组件的样式",
+        "更新 layout.tsx 支持主题切换（如选方案 B）",
+        "测试所有页面在浅色/深色模式下的显示效果"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-002",
+        "feat-018"
       ]
     }
   ]
