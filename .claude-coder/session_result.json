@@ -2,11 +2,11 @@
   "current": {
     "session_result": "success",
     "task_id": "feat-015",
-    "status_before": "pending",
-    "status_after": "in_progress",
-    "git_commit": null,
+    "status_before": "in_progress",
+    "status_after": "done",
+    "git_commit": "78f992f",
     "tests_passed": true,
-    "notes": "本次会话完成了以下工作：\n\n1. **Playwright MCP 页面走查**：通过代码审查确认所有页面（首页、上传页、设置页、历史页）均使用浅色主题（bg-gray-50、text-gray-900），未发现 dark 背景黑色文字的样式问题。代码中 layout.tsx 明确设置了浅色背景和深色文字。\n\n2. **创建测试素材文件**：在 record/test_samples.md 中创建了 4 个完整的测试示例：\n   - 小学数学：分数的认识（三年级）\n   - 初中语文：静夜思鉴赏（初一）\n   - 小学英语：颜色单词学习（三年级）\n   - 初中物理：牛顿第一定律（初二）\n   每个示例包含年级、学科、风格建议和完整教材内容。\n\n3. **已有测试文件确认**：frontend/tests/example.test.ts 已存在，包含完整的 Playwright 端到端测试示例。\n\n**下一步建议**：\n- feat-015 任务继续执行 PPT 生成质量优化（LLM 提示词优化、PPT 模板改进）\n- 用户可使用 test_samples.md 中的素材测试 upload 页面功能\n- 如发现具体样式问题，请提供截图或具体页面路径以便定位修复"
+    "notes": "本次会话完成了 PPT 生成质量优化（feat-015），具体工作如下：\n\n1. **LLM 提示词工程优化**（content_generator.py）\n   - 增加教学设计原则：知识结构化层次化、由浅入深循序渐进、多元互动设计、多感官参与、形成性评价\n   - 增加学科特色要求：语文、数学、英语、科学/理化生、历史/政治/地理\n   - 增加 PPT 页面结构建议：封面、目录、情境导入、新知讲解、互动问答、课堂练习、总结回顾\n   - 增加质量要求：每页内容精炼、语言通俗易懂、互动有趣味性、练习题有梯度、记忆口诀朗朗上口\n   - 英语学科提示词增加：英语教学原则（情境创设、听说领先、词不离句、循环复现、文化渗透）\n\n2. **PPT 模板设计优化**（ppt_generator.py）\n   - 新增页面类型：图示页（DIAGRAM）、表格页（TABLE）、对比分析页（COMPARISON）\n   - 新增 _add_diagram_slide 方法：支持流程图、结构图、概念图\n   - 新增 _add_table_slide 方法：支持对比表、分类表、数据表，带表头样式和交替行颜色\n   - 新增 _add_comparison_slide 方法：支持左右分栏对比两种概念\n\n3. **年级自适应规则优化**（PPTStyle 类）\n   - 增加 teaching_strategy（教学策略）配置\n   - 增加 interaction_style（互动风格）配置\n   - 增加 max_content_lines（每页最多内容行数）配置\n   - 增加 use_icons（是否使用图标）配置\n   - 增加 animation_suggestion（动画建议）配置\n   - 调整各年级字号：小学低年级 36-44pt，小学高年级 24-36pt，初中 18-30pt\n\n4. **测试样本文件更新**（record/test_samples.md）\n   - 添加优化验证检查清单\n\n**验证结果**：\n- Python 导入测试通过\n- 新增页面类型常量存在（DIAGRAM、TABLE、COMPARISON）\n- 新增方法存在（_add_diagram_slide、_add_table_slide、_add_comparison_slide）\n- 年级自适应配置正确（Grade 1 font_size=36, max_content_lines=3）\n\n**下一步建议**：\n- 用户使用 test_samples.md 中的素材测试生成功能，验证优化效果\n- 如需 PPT 动画效果，可执行 feat-016（PPT 动画效果注入）"
   },
   "history": [
     {
@@ -18,7 +18,18 @@
       "status_after": "in_progress",
       "git_commit": null,
       "tests_passed": true,
-      "notes": "本次会话完成了以下工作：\n\n1. **Playwright MCP 页面走查**：通过代码审查确认所有页面（首页、上传页、设置页、历史页）均使用浅色主题（bg-gray-50、text-gray-900），未发现 dark 背景黑色文字的样式问题。代码中 layout.tsx 明确设置了浅色背景和深色文字。\n\n2. **创建测试素材文件**：在 record/test_samples.md 中创建了 4 个完整的测试示例：\n   - 小学数学：分数的认识（三年级）\n   - 初中语文：静夜思鉴赏（初一）\n   - 小学英语：颜色单词学习（三年级）\n   - 初中物理：牛顿第一定律（初二）\n   每个示例包含年级、学科、风格建议和完整教材内容。\n\n3. **已有测试文件确认**：frontend/tests/example.test.ts 已存在，包含完整的 Playwright 端到端测试示例。\n\n**下一步建议**：\n- feat-015 任务继续执行 PPT 生成质量优化（LLM 提示词优化、PPT 模板改进）\n- 用户可使用 test_samples.md 中的素材测试 upload 页面功能\n- 如发现具体样式问题，请提供截图或具体页面路径以便定位修复"
+      "notes": "Session 1: Playwright MCP 页面走查，创建测试素材文件 test_samples.md"
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-04T16:00:00.000Z",
+      "session_result": "success",
+      "task_id": "feat-015",
+      "status_before": "in_progress",
+      "status_after": "done",
+      "git_commit": "78f992f",
+      "tests_passed": true,
+      "notes": "Session 2: PPT 生成质量优化完成（LLM 提示词、PPT 模板、年级自适应规则）"
     }
   ]
 }
