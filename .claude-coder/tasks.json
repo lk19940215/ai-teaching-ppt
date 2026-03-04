@@ -537,7 +537,7 @@
         "创建 prompts/cognitive.py：定义 CognitiveLoadMixin 占位（Phase 3 填充）",
         "验证：重构后现有功能不受影响，英语/通用学科生成结果一致"
       ],
-      "status": "in_progress",
+      "status": "done",
       "depends_on": [
         "feat-005",
         "feat-015"

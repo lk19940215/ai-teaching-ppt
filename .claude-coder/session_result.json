@@ -1,35 +1,12 @@
 {
   "current": {
     "session_result": "success",
-    "task_id": "feat-027",
+    "task_id": "feat-028",
     "status_before": "pending",
     "status_after": "done",
-    "git_commit": "de38e5e",
+    "git_commit": "144e234",
     "tests_passed": true,
-    "notes": "完成 feat-027 K-12 年级扩展 - 增加高中阶段（高一到高三）支持：\n\n前端修改 (2 个文件):\n- upload/page.tsx: GRADE_OPTIONS 新增高一 (10)、高二 (11)、高三 (12)\n- history/page.tsx: 同步新增高中学段选项\n\n后端修改 (3 个文件):\n1. content_generator.py - GRADE_DESCRIPTIONS 新增高中描述:\n   - 10: 系统化语言，注重知识深度和广度，培养抽象思维\n   - 11: 学术化语言，强调知识迁移和综合运用，高考导向\n   - 12: 精炼专业语言，强化考点突破和应试技巧，冲刺高考\n\n2. ppt_generator.py:\n   - GRADE_GROUPS 新增 high_school 组 (10-12 年级)\n     描述：学术风格、严谨配色、高信息密度、高考导向\n     教学策略：深度知识讲解，强调学科核心素养\n     互动风格：学术研讨、高考真题分析、变式训练\n   - GRADE_STYLES 新增 10/11/12 年级样式:\n     * 高一：font=18pt, title=26pt, max_lines=8\n     * 高二：font=16pt, title=24pt, max_lines=9\n     * 高三：font=16pt, title=24pt, max_lines=10 (信息密度最高)\n\n3. pptx_animator.py:\n   - AnimationPreset 新增 high_school() 预设\n     transition: cut (0.2s), entry: appear (0.15s)\n     特点：克制、专业、无多余装饰，专注内容呈现\n   - add_animation_to_ppt() 更新支持 high_school 组\n\n验证通过:\n- Python 模块导入测试：所有配置正确加载\n- GRADE_GROUPS 包含 4 个组 (含 high_school)\n- GRADE_STYLES 包含 12 个年级 (1-12)\n- GRADE_DESCRIPTIONS 包含 12 个年级描述\n- AnimationPreset.high_school() 返回正确配置\n\n服务保持运行状态，下个 session 可继续使用。"
+    "notes": "完成 feat-028 提示词引擎架构重构 - 创建可插拔的学科提示词策略系统：\n\n新增文件 (5 个):\n1. backend/app/services/prompts/__init__.py:\n   - PromptEngine 工厂类：根据学科自动选择策略\n   - register_strategy() 支持注册新学科策略\n   - get_available_subjects() 获取可用学科列表\n\n2. backend/app/services/prompts/base.py:\n   - SubjectPromptStrategy 抽象基类：定义 build_prompt, build_schema, get_page_types 接口\n   - CognitiveLoadMixin 混入类：认知负荷优化占位（Phase 3 填充）\n   - 共享配置：GRADE_DESCRIPTIONS, SUBJECT_DESCRIPTIONS, MAX_POINTS_PER_SLIDE\n\n3. backend/app/services/prompts/general.py:\n   - GeneralPromptStrategy: 通用学科提示词策略\n   - 迁移原有通用提示词逻辑，适用于语文、数学、科学等大多数学科\n\n4. backend/app/services/prompts/english.py:\n   - EnglishPromptStrategy: 英语学科提示词策略\n   - 迁移原有 generate_for_english 逻辑，支持单词/语法/对话/分析页面类型\n\n5. backend/app/services/prompts/cognitive.py:\n   - CognitivePromptStrategy: 认知负荷优化策略（占位实现）\n   - 为 Phase 3 的认知负荷约束奠基\n\n重构文件 (1 个):\n- backend/app/services/content_generator.py:\n  - 使用 PromptEngine 替代硬编码的 if-else 分支\n  - generate() 方法统一入口，根据 subject 参数自动选择策略\n  - 保留 generate_for_english() 方法确保向后兼容\n  - 所有 API 调用处无需修改\n\n验证通过:\n- 所有模块导入成功（PromptEngine, SubjectPromptStrategy, GeneralPromptStrategy, EnglishPromptStrategy）\n- 提示词构建功能正常（通用学科 1453 字符，英语学科 1477 字符）\n- Schema 构建成功，page_types 获取正确\n- 向后兼容性保持（generate_for_english 方法、GRADE_DESCRIPTIONS、SUBJECT_DESCRIPTIONS）\n- API 文件引用检查通过（ppt.py, history.py, generate.py 使用 generate_for_english 无需修改）\n\n服务保持运行状态，下个 session 可继续使用。\n\n为后续学科深度优化奠基：\n- feat-029: 语文学科（chinese.py）\n- feat-030: 数学学科（math.py）\n- feat-031: 理科学科（science.py）\n- feat-032: 文科学科（humanities.py）\n- feat-033: 英语学科深度增强\n- feat-034~038: 认知负荷、注意力节奏、布鲁姆分类法等"
   },
-  "history": [
-    {
-      "session": 2,
-      "timestamp": "2026-03-04T17:52:54.854Z",
-      "session_result": "success",
-      "task_id": "feat-026",
-      "status_before": "pending",
-      "status_after": "done",
-      "git_commit": "5de2916",
-      "tests_passed": true,
-      "notes": "完成 feat-026 Style 参数落地：\n\n1. 在 PPTStyle 类中新增 STYLE_CONFIG，定义 3 种风格配置：\n   - fun (活泼趣味): 鲜艳暖色配色，圆体字，宽松布局，高装饰性\n   - simple (简约清晰): 灰蓝冷色配色，黑体字，紧凑布局，低装饰性\n   - theme (学科主题): 动态配色，根据学科自动选择主题色\n\n2. 新增 SUBJECT_COLORS 学科主题色映射：\n   - 数学=蓝、英语=绿、语文=红、物理=橙、化学=蓝、生物=绿\n   - 历史=紫、政治=紫、地理=深绿、通用=蓝\n\n3. 新增方法：get_style_config()、get_subject_color()\n\n4. 修改 generate() 方法：根据 style 参数应用不同配色方案\n   - theme 模式：按学科自动选色\n   - fun/simple 模式：调整配色倾向\n\n5. 修改 API 端点 /api/v1/ppt/generate：新增 subject 参数支持\n\n6. tests.json 新增 2 条验证记录：\n   - test-feat026-style-config (风格配置映射单元测试)\n   - test-feat026-api-params (API 参数传递验证)\n\n验证通过：Python 导入测试、风格配置映射逻辑、API 参数定义均验证通过。\n\n服务保持运行状态，下个 session 可继续使用。"
-    },
-    {
-      "session": 3,
-      "timestamp": "2026-03-04T18:10:32.421Z",
-      "session_result": "success",
-      "task_id": "feat-027",
-      "status_before": "pending",
-      "status_after": "done",
-      "git_commit": "de38e5e",
-      "tests_passed": true,
-      "notes": "完成 feat-027 K-12 年级扩展 - 增加高中阶段（高一到高三）支持：\n\n前端修改 (2 个文件):\n- upload/page.tsx: GRADE_OPTIONS 新增高一 (10)、高二 (11)、高三 (12)\n- history/page.tsx: 同步新增高中学段选项\n\n后端修改 (3 个文件):\n1. content_generator.py - GRADE_DESCRIPTIONS 新增高中描述:\n   - 10: 系统化语言，注重知识深度和广度，培养抽象思维\n   - 11: 学术化语言，强调知识迁移和综合运用，高考导向\n   - 12: 精炼专业语言，强化考点突破和应试技巧，冲刺高考\n\n2. ppt_generator.py:\n   - GRADE_GROUPS 新增 high_school 组 (10-12 年级)\n     描述：学术风格、严谨配色、高信息密度、高考导向\n     教学策略：深度知识讲解，强调学科核心素养\n     互动风格：学术研讨、高考真题分析、变式训练\n   - GRADE_STYLES 新增 10/11/12 年级样式:\n     * 高一：font=18pt, title=26pt, max_lines=8\n     * 高二：font=16pt, title=24pt, max_lines=9\n     * 高三：font=16pt, title=24pt, max_lines=10 (信息密度最高)\n\n3. pptx_animator.py:\n   - AnimationPreset 新增 high_school() 预设\n     transition: cut (0.2s), entry: appear (0.15s)\n     特点：克制、专业、无多余装饰，专注内容呈现\n   - add_animation_to_ppt() 更新支持 high_school 组\n\n验证通过:\n- Python 模块导入测试：所有配置正确加载\n- GRADE_GROUPS 包含 4 个组 (含 high_school)\n- GRADE_STYLES 包含 12 个年级 (1-12)\n- GRADE_DESCRIPTIONS 包含 12 个年级描述\n- AnimationPreset.high_school() 返回正确配置\n\n服务保持运行状态，下个 session 可继续使用。"
-    }
-  ]
+  "history": []
 }
