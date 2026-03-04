@@ -7,6 +7,13 @@ from typing import Dict, Any, List, Optional
 import logging
 import jieba
 
+# 动画效果注入模块（条件导入）
+try:
+    from .pptx_animator import PPTXAnimator
+    ANIMATION_AVAILABLE = True
+except ImportError:
+    ANIMATION_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 # 预定义颜色，供类属性使用
@@ -374,6 +381,16 @@ class PPTGenerator:
             output_path.parent.mkdir(parents=True, exist_ok=True)
             prs.save(str(output_path))
             logger.info(f"PPT 文件已生成: {output_path}")
+
+            # 添加动画效果（如果动画模块可用）
+            if ANIMATION_AVAILABLE:
+                try:
+                    from .pptx_animator import add_animation_to_ppt
+                    logger.info(f"正在为 PPT 添加动画效果（年级：{grade}）...")
+                    add_animation_to_ppt(str(output_path), str(output_path), grade, subject)
+                    logger.info(f"动画效果已添加：{output_path}")
+                except Exception as e:
+                    logger.warning(f"动画添加失败：{e}，PPT 文件仍可正常使用")
             return output_path
 
         except Exception as e:

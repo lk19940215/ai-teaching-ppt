@@ -1,5 +1,7 @@
 # AI 教学 PPT 生成器
 
+> **Built with [Claude Coder](https://github.com/lk19940215/claude-coder)** — 18 个功能，3 天，由 AI Agent 自主完成 15 个。
+
 教师上传教材内容（拍照 / PDF / 文字），AI 自动生成互动性强、美观的教学 PPT（.pptx），支持 WPS 二次编辑。
 
 ## 功能特点
@@ -10,68 +12,48 @@
 - **英语学科增强**：单词卡、语法图解、情景对话等专属页面类型
 - **标准格式输出**：生成 .pptx 文件，WPS / PowerPoint 均可打开编辑
 - **多 AI 模型**：支持 DeepSeek / OpenAI / Claude / 智谱 GLM 切换
+- **Docker 部署**：前后端容器化，一键启动
 
 ## 技术栈
 
-- **前端**：Next.js 14 + TypeScript + Tailwind CSS + shadcn/ui
-- **后端**：Python FastAPI
-- **OCR**：PaddleOCR
-- **PPT 生成**：python-pptx
-- **数据库**：SQLite
+| 层 | 技术 |
+|---|---|
+| 前端 | Next.js 14 + TypeScript + Tailwind CSS + shadcn/ui |
+| 后端 | Python FastAPI + SQLite |
+| OCR | PaddleOCR |
+| PPT 生成 | python-pptx + OOXML |
+| 测试 | Playwright E2E |
+| 部署 | Docker + docker-compose |
 
-## 开发
+## 开发方式：Claude Coder 自动编码
 
-本项目使用 [claude-auto-loop](https://github.com/lk19940215/claude-auto-loop) 辅助自动化开发。
-
-**拉取 claude-auto-loop 最新代码：**
-```bash
-# macOS / Linux
-bash claude-auto-loop/update.sh
-
-# Windows (PowerShell / CMD)
-claude-auto-loop\loop.bat update
-```
-
-### Windows 用户
-
-Windows 用户通过 `loop.bat` 统一入口运行，无需手动配置 bash 环境：
-
-```powershell
-claude-auto-loop\loop.bat setup          # 首次配置模型
-claude-auto-loop\loop.bat run "你的需求"  # 运行编码循环
-claude-auto-loop\loop.bat update         # 更新工具
-claude-auto-loop\loop.bat validate       # 校验
-```
-
-`loop.bat` 会自动找到 Git Bash 并调用对应的 `.sh` 脚本，所有参数原样透传。
-
-
-### Cursor IDE 模式
-
-在 Cursor 中新建对话，输入需求即可。Agent 会自动读取 `requirements.md` 和工作协议。
-
-### CLI 模式
+本项目使用 [Claude Coder](https://github.com/lk19940215/claude-coder)（`npm install -g claude-coder`）进行自主编码开发。
 
 ```bash
-# macOS / Linux
-bash claude-auto-loop/run.sh
+# 安装
+npm install -g @anthropic-ai/claude-agent-sdk
+npm install -g claude-coder
 
-# Windows (PowerShell / CMD)
-claude-auto-loop\loop.bat run
+# 配置模型
+claude-coder setup
+
+# 自动编码（从 requirements.md 驱动）
+claude-coder run
+
+# 查看进度
+claude-coder status
 ```
 
-详细用法见 `claude-auto-loop/README.md`。
+**开发数据**：
 
-## 项目结构
-
-```
-ai-teaching-ppt/
-├── backend/          # Python FastAPI 后端
-├── frontend/         # Next.js 前端
-├── claude-auto-loop/ # 自动化开发工具
-├── requirements.md   # 项目需求文档
-└── README.md
-```
+| 指标 | 数值 |
+|---|---|
+| 开发时间 | 3 天（2026.03.02 ~ 03.04） |
+| 总功能数 | 18 |
+| AI 完成 | 15（83%） |
+| 源代码 | 5,729 行（Python 3,700 + TypeScript 2,029） |
+| Git commits | 47 |
+| E2E 测试 | Playwright 13 用例，10 通过 |
 
 ## 快速开始
 
@@ -81,63 +63,51 @@ ai-teaching-ppt/
 |---|---|---|
 | Python | 3.11+ | 后端服务 |
 | Node.js | 20+ | 前端服务 |
-| pnpm | latest | 前端包管理（init.sh 会自动安装） |
+| pnpm | latest | 前端包管理 |
 | Git | 2.x+ | 版本控制 |
 | Docker | 可选 | 容器化部署 |
 
-**Windows 用户：** 安装 [Git for Windows](https://git-scm.com/download/win) 即可，使用 `loop.bat` 运行（自动调用 Git Bash）。详见上方 [Windows 用户](#windows-用户)。
-
 ### 开发环境启动
 
-1. **克隆项目**
-   ```bash
-   git clone <仓库地址>
-   cd ai-teaching-ppt
-   ```
+```bash
+git clone https://github.com/lk19940215/ai-teaching-ppt.git
+cd ai-teaching-ppt
 
-2. **初始化环境**（由 Agent 自动执行，通常无需手动运行）
+# 后端
+cd backend && python -m venv ../.venv && source ../.venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
 
-3. **启动后端服务**
-   ```bash
-   cd backend
-   # macOS / Linux
-   source ../.venv/bin/activate
-   # Windows (PowerShell)
-   ..\.venv\Scripts\activate
-   
-   uvicorn app.main:app --reload --port 8000
-   ```
+# 前端
+cd ../frontend && pnpm install && pnpm dev
+```
 
-4. **启动前端服务**
-   ```bash
-   cd frontend
-   pnpm dev
-   ```
-
-5. **访问应用**
-   - 前端：http://localhost:3000
-   - 后端 API 文档：http://localhost:8000/docs
+- 前端：http://localhost:3000
+- 后端 API 文档：http://localhost:8000/docs
 
 ### Docker 部署
 
 ```bash
-# 使用 docker-compose 启动完整服务
 docker-compose up -d
-
-# 查看服务状态
-docker-compose ps
-
-# 停止服务
-docker-compose down
 ```
 
-### 项目开发
+## 项目结构
 
-本项目使用 [claude-auto-loop](https://github.com/lk19940215/claude-auto-loop) 进行自动化开发。任务已分解到 `claude-auto-loop/tasks.json` 中，Agent 将按优先级逐步实现功能。
+```
+ai-teaching-ppt/
+├── backend/           # Python FastAPI 后端
+│   ├── app/
+│   │   ├── api/       # API 路由
+│   │   ├── services/  # 业务逻辑（OCR、PPT生成、LLM）
+│   │   └── models/    # 数据模型
+├── frontend/          # Next.js 14 前端
+│   ├── app/           # 页面路由
+│   └── components/    # UI 组件
+├── tests/             # Playwright E2E 测试
+├── .claude-coder/     # Claude Coder 运行时数据
+└── requirements.md    # 需求文档
+```
 
-### 技术栈详情
+## License
 
-- **后端**：FastAPI + SQLite + python-pptx + PaddleOCR + PyMuPDF
-- **前端**：Next.js 14 + TypeScript + Tailwind CSS + shadcn/ui
-- **AI 集成**：支持 DeepSeek / OpenAI / Claude / 智谱 GLM
-- **部署**：Docker 容器化，支持独立部署
+MIT

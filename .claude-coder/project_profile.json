@@ -17,7 +17,20 @@
     "database": "sqlite",
     "package_managers": ["pip", "pnpm"]
   },
-  "services": [],
+  "services": [
+    {
+      "name": "backend",
+      "command": "cd backend && source ../.venv/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port 8000",
+      "port": 8000,
+      "health_check": "http://localhost:8000/docs"
+    },
+    {
+      "name": "frontend",
+      "command": "cd frontend && pnpm dev",
+      "port": 3000,
+      "health_check": "http://localhost:3000"
+    }
+  ],
   "env_setup": {
     "python_env": "venv",
     "node_version": "20"
