@@ -427,6 +427,406 @@
         "feat-002",
         "feat-004"
       ]
+    },
+    {
+      "id": "feat-023",
+      "category": "backend",
+      "priority": 23,
+      "description": "修复 LLM JSON 解析失败问题：增强 JSON 输出解析的鲁棒性，处理 LLM 返回非标准 JSON 的情况",
+      "steps": [
+        "分析 content_generator.py 中 JSON 解析逻辑，定位解析失败原因",
+        "实现 JSON 提取：从 LLM 响应中提取 ```json ... ``` 代码块内容",
+        "添加 JSON 修复：处理缺失引号、尾部逗号等常见格式问题",
+        "增加重试机制：解析失败时自动请求 LLM 重新生成",
+        "添加降级处理：重试失败时返回结构化的错误信息而非空内容",
+        "验证：curl -s http://localhost:8000/docs 检查 API 正常，日志中无 JSON 解析错误"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-005",
+        "feat-021"
+      ]
+    },
+    {
+      "id": "feat-024",
+      "category": "frontend",
+      "priority": 24,
+      "description": "图片/PDF上传流程修复：前端在图片/PDF模式下先调用OCR/PDF解析API，再用提取文本生成PPT",
+      "steps": [
+        "分析 handleGenerate() 当前逻辑：image/pdf 模式下直接发送空 textContent",
+        "图片模式：先调用 /api/v1/upload/image 上传，再调用 /api/v1/process/ocr 提取文字",
+        "PDF 模式：先调用 /api/v1/upload/pdf 上传，再调用 /api/v1/process/pdf 提取文字",
+        "将提取的文字填入 textContent 状态，再调用 generate-full",
+        "添加上传和解析阶段的进度提示（正在上传... 正在识别文字...）",
+        "测试：上传图片/PDF 后能正确提取文字并生成 PPT"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-003",
+        "feat-007"
+      ]
+    },
+    {
+      "id": "feat-025",
+      "category": "frontend",
+      "priority": 25,
+      "description": "前端API地址环境变量化：消除硬编码的 localhost:8000，支持灵活部署",
+      "steps": [
+        "创建 frontend/.env.local 配置 NEXT_PUBLIC_API_URL=http://localhost:8000",
+        "创建 frontend/src/lib/api.ts 统一管理 API 基础地址和请求方法",
+        "替换 upload/page.tsx 中所有 http://localhost:8000 为环境变量引用",
+        "替换 settings/page.tsx 中所有硬编码 API 地址",
+        "替换 history/page.tsx 中所有硬编码 API 地址",
+        "验证：修改 .env.local 中的地址后前端请求指向新地址"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-002"
+      ]
+    },
+    {
+      "id": "feat-026",
+      "category": "backend",
+      "priority": 26,
+      "description": "Style参数落地：将PPT风格选项（活泼/简约/学科主题）映射到实际配色、字体和布局",
+      "steps": [
+        "在 PPTStyle 中定义 3 种风格的独立配色方案（fun=鲜艳暖色、simple=灰蓝冷色、theme=学科色）",
+        "theme 模式按学科自动选色：数学=蓝、英语=绿、语文=红、理科=橙、文科=紫",
+        "每种风格定义字体选择、布局密度、装饰元素密度",
+        "修改 ppt_generator.py 的 generate() 方法，接收 style 参数并应用对应配置",
+        "修改后端 API 确保 style 参数正确传递到生成器",
+        "测试：同一内容用 3 种风格生成，验证视觉差异明显"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-006",
+        "feat-009"
+      ]
+    },
+    {
+      "id": "feat-027",
+      "category": "fullstack",
+      "priority": 27,
+      "description": "K-12年级扩展：增加高中阶段（高一到高三）的支持",
+      "steps": [
+        "前端 GRADE_OPTIONS 增加高一(10)、高二(11)、高三(12) 选项",
+        "后端 GRADE_DESCRIPTIONS 增加高中年级描述（需要专业学术语言、系统化思维、考试导向）",
+        "PPTStyle.GRADE_STYLES 增加高中样式：学术风格、严谨配色、更高信息密度",
+        "PPTStyle.GRADE_GROUPS 增加 high_school 组，配置教学策略和互动风格",
+        "AnimationPreset 增加高中动画预设（克制、专业）",
+        "验证：选择高中年级后生成的 PPT 风格符合学术规范"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-004",
+        "feat-009"
+      ]
+    },
+    {
+      "id": "feat-028",
+      "category": "backend",
+      "priority": 28,
+      "description": "提示词引擎架构重构：创建可插拔的学科提示词策略系统，为后续学科深度优化奠基",
+      "steps": [
+        "创建 backend/app/services/prompts/ 目录结构",
+        "创建 prompts/base.py：定义 SubjectPromptStrategy 基类（build_prompt, build_schema, get_page_types 抽象方法）",
+        "创建 prompts/__init__.py：实现 PromptEngine 工厂，根据 subject 自动选择策略",
+        "创建 prompts/general.py：将现有通用 prompt 迁移为默认策略",
+        "创建 prompts/english.py：将 generate_for_english 迁移为英语策略",
+        "重构 content_generator.py：使用 PromptEngine 替代硬编码的 if-else 分支",
+        "创建 prompts/cognitive.py：定义 CognitiveLoadMixin 占位（Phase 3 填充）",
+        "验证：重构后现有功能不受影响，英语/通用学科生成结果一致"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-005",
+        "feat-015"
+      ]
+    },
+    {
+      "id": "feat-029",
+      "category": "backend",
+      "priority": 29,
+      "description": "语文学科深度提示词与专属页面：古诗鉴赏、字词教学、阅读理解、作文指导",
+      "steps": [
+        "创建 prompts/chinese.py 实现 ChinesePromptStrategy",
+        "设计语文专属提示词：古诗教学（朗读节奏、意象分析、背景知识）、现代文（段落分析、修辞、主题）",
+        "设计字词教学提示词：字形演变、组词造句、近反义词、书写要点",
+        "设计作文指导提示词：审题立意、结构框架、好词好句",
+        "定义语文专属 schema：生字学习页（字/拼音/组词/造句）、古诗鉴赏页（原文/注释/赏析）",
+        "在 ppt_generator.py 增加语文专属页面渲染方法",
+        "集成 pypinyin 库实现低年级拼音标注功能",
+        "验证：语文内容生成包含学科特色页面"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-027",
+        "feat-028"
+      ]
+    },
+    {
+      "id": "feat-030",
+      "category": "backend",
+      "priority": 30,
+      "description": "数学学科深度提示词与专属页面：概念推导、例题精讲、变式训练、易错警示",
+      "steps": [
+        "创建 prompts/math.py 实现 MathPromptStrategy",
+        "设计数学专属提示词：概念引入（直观→抽象）、公式推导（逐步标注）、例题精讲（审题→分析→解题→反思四步法）",
+        "设计变式训练提示词：同一方法不同情境，由浅入深",
+        "设计易错点警示提示词：常见错误类型 + 正确方法对比",
+        "定义数学专属 schema：公式推导页（steps数组）、例题讲解页（四步法结构）、变式训练页（梯度练习）",
+        "在 ppt_generator.py 增加数学专属页面渲染方法（公式推导逐步展开布局）",
+        "验证：数学内容生成包含推导步骤和变式训练"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-027",
+        "feat-028"
+      ]
+    },
+    {
+      "id": "feat-031",
+      "category": "backend",
+      "priority": 31,
+      "description": "理科学科深度提示词（物理/化学/生物）：实验探究、现象分析、数据归纳",
+      "steps": [
+        "创建 prompts/science.py 实现 PhysicsPromptStrategy、ChemistryPromptStrategy、BiologyPromptStrategy",
+        "物理提示词：实验设计→观察现象→分析数据→归纳规律；力学图示、电路图分解",
+        "化学提示词：实验步骤→反应现象→方程式→微观解释；元素周期律、反应类型",
+        "生物提示词：结构观察→功能分析→过程描述→系统思维；细胞结构、生理过程",
+        "定义共用页面类型 schema：实验步骤页（分步图示）、现象观察页（对比表格）、数据分析页",
+        "在 ppt_generator.py 增加理科实验页面渲染方法",
+        "验证：物理/化学/生物内容生成包含实验探究页面"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-028"
+      ]
+    },
+    {
+      "id": "feat-032",
+      "category": "backend",
+      "priority": 32,
+      "description": "文科学科深度提示词（历史/政治/地理）：时间轴、因果分析、材料解读、区域比较",
+      "steps": [
+        "创建 prompts/humanities.py 实现 HistoryPromptStrategy、PoliticsPromptStrategy、GeographyPromptStrategy",
+        "历史提示词：时间轴展示、因果链分析、史料引用、多视角评价",
+        "政治提示词：概念界定→原理阐述→案例分析→联系实际",
+        "地理提示词：位置定位→自然环境→人文特征→区域比较；地图标注建议",
+        "定义文科页面类型 schema：时间线页（水平/垂直时间轴）、材料分析页（引文+问题）、因果关系页",
+        "在 ppt_generator.py 增加文科专属页面渲染方法（时间线布局、材料引文布局）",
+        "验证：历史/政治/地理内容生成包含学科特色页面"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-028"
+      ]
+    },
+    {
+      "id": "feat-033",
+      "category": "backend",
+      "priority": 33,
+      "description": "英语学科提示词深度增强：词根词缀分解、固定搭配网络、语法树、时态时间轴",
+      "steps": [
+        "增强 prompts/english.py：词根词缀分解策略，要求 LLM 输出 word_parts（前缀/词根/后缀）",
+        "增加固定搭配网络：输出 collocations 字段（如 take: [up, off, on, away]）",
+        "增加语法树形结构：输出 sentence_structure 字段，标注主谓宾定状补",
+        "增加时态对比：输出 tense_comparison 字段，对比不同时态用法",
+        "新增页面类型：词根分析页（颜色高亮分解）、搭配网络页（放射状布局）、语法结构页（层级结构）、时态对比页（时间轴）",
+        "在 ppt_generator.py 增加英语增强页面渲染方法",
+        "验证：英语 PPT 包含词根分解、搭配网络等深度内容"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-028",
+        "feat-008"
+      ]
+    },
+    {
+      "id": "feat-034",
+      "category": "backend",
+      "priority": 34,
+      "description": "认知负荷优化提示词系统：基于 Mayer 多媒体学习理论控制每页信息量和呈现方式",
+      "steps": [
+        "在 prompts/cognitive.py 创建 CognitiveLoadMixin 类",
+        "实现聚焦要义原则：根据年级设定每页最大要点数（低年级2-3、初中3-4、高中5-6）",
+        "实现空间邻近原则：提示词要求图示与文字说明必须在同一页",
+        "实现切块呈现原则：复杂概念自动分 2-3 页逐步展开",
+        "实现冗余控制原则：提示词要求避免文字重复图示已表达的信息",
+        "将 CognitiveLoadMixin 混入所有学科策略，增强提示词约束",
+        "验证：生成的 PPT 每页信息量符合年级认知负荷标准"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-028"
+      ]
+    },
+    {
+      "id": "feat-035",
+      "category": "backend",
+      "priority": 35,
+      "description": "注意力节奏引擎：设计注意捕捉→保持→转移的内容编排，防止学生注意力涣散",
+      "steps": [
+        "创建 backend/app/services/attention_optimizer.py",
+        "定义注意力周期模型：低年级 2-3 页/周期、初中 3-4 页/周期、高中 4-5 页/周期",
+        "实现页面类型节奏规则：禁止连续 3 页以上同类型，确保讲解-互动-练习交替",
+        "实现 Engagement Hooks：在注意力低点插入趣味事实/你知道吗/挑战时刻",
+        "在 content_generator.py 的生成后处理中集成 AttentionRhythmOptimizer",
+        "提示词增加节奏编排指令：要求 LLM 按注意力周期组织页面",
+        "验证：生成的 PPT 页面序列符合注意力节奏规则"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-034"
+      ]
+    },
+    {
+      "id": "feat-036",
+      "category": "backend",
+      "priority": 36,
+      "description": "布鲁姆目标分类法集成：为问题和练习标注认知层级，确保思维训练的递进性",
+      "steps": [
+        "在 prompts/cognitive.py 定义 Bloom 六层级常量和年级适配规则",
+        "低年级侧重记忆/理解/应用，初中覆盖到分析，高中覆盖全部 6 级",
+        "提示词要求 LLM 为每道题标注 bloom_level 字段",
+        "提示词约束：每份 PPT 至少覆盖 3 个不同 Bloom 层级",
+        "在 ppt_generator.py 的互动/练习页角标显示 Bloom 层级标识",
+        "验证：生成的练习题 bloom_level 分布合理且符合年级要求"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-034"
+      ]
+    },
+    {
+      "id": "feat-037",
+      "category": "backend",
+      "priority": 37,
+      "description": "先行组织者与脚手架策略：新概念前自动生成桥接材料，渐进式撤除学习支架",
+      "steps": [
+        "在 prompts/cognitive.py 增加先行组织者生成规则",
+        "提示词要求：每个新概念前用 1 页连接学生已有知识（类比/回顾/生活经验）",
+        "设计脚手架渐撤策略：完整示范 → 部分提示 → 独立完成 的递进结构",
+        "定义概念桥接页 page_type：你已经知道X → 今天学习Y → X和Y的关系是...",
+        "在 ppt_generator.py 增加概念桥接页渲染方法（双色对比布局）",
+        "验证：新概念前出现桥接页，练习难度呈递进趋势"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-034"
+      ]
+    },
+    {
+      "id": "feat-038",
+      "category": "backend",
+      "priority": 38,
+      "description": "问题链与元认知提示系统：生成递进式问题序列，嵌入自我反思触发点",
+      "steps": [
+        "提示词设计问题链模板：是什么 → 为什么 → 怎么用 → 如果...会怎样 → 还有其他方法吗",
+        "提示词要求在关键学习节点嵌入元认知提问：想一想/试着解释/和之前学的有什么关系",
+        "定义元认知提示的 JSON 字段：meta_prompt（类型/内容/位置）",
+        "在 ppt_generator.py 增加思考气泡形状渲染（云朵形状 + 特殊配色）",
+        "元认知提示与正常内容视觉区分：使用不同背景色和图标",
+        "验证：PPT 中在适当位置出现思考气泡和递进式问题链"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-037"
+      ]
+    },
+    {
+      "id": "feat-039",
+      "category": "backend",
+      "priority": 39,
+      "description": "情境创设自动生成：根据知识点自动生成贴近学生生活的情境导入",
+      "steps": [
+        "在各学科 prompt 中增加情境创设指令：要求 LLM 输出 scenario 字段",
+        "学科差异化情境模板：数学=购物/运动/建筑、英语=旅行/校园、物理=游乐场/交通",
+        "年级差异化：低年级用童话/动画人物、初中用校园/社会、高中用科研/职业",
+        "定义情境导入页 schema：scenario_description + guiding_question + visual_suggestion",
+        "在 ppt_generator.py 增加情境导入页渲染：全幅背景色 + 大字引导问题",
+        "验证：每份 PPT 开头包含贴合学科和年级的情境导入"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-030",
+        "feat-033"
+      ]
+    },
+    {
+      "id": "feat-040",
+      "category": "fullstack",
+      "priority": 40,
+      "description": "差异化教学支持：同一知识点生成基础版/提高版/拓展版三套练习内容",
+      "steps": [
+        "前端配置面板增加教学层次选项：统一/基础/提高/拓展",
+        "后端 API 接收 difficulty_level 参数",
+        "提示词要求 LLM 为每道练习题标注 difficulty: basic/intermediate/advanced",
+        "统一模式：生成包含三个难度的混合练习；分层模式：只生成指定难度",
+        "PPT 中练习题旁标注难度星级（基础1星、提高2星、拓展3星）",
+        "验证：选择不同教学层次后生成的练习难度分布符合预期"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-030"
+      ]
+    },
+    {
+      "id": "feat-041",
+      "category": "backend",
+      "priority": 41,
+      "description": "智能错题分析页：生成常见错误 vs 正确方法的对比分析，帮助教师预防学生易错点",
+      "steps": [
+        "提示词要求 LLM 输出 common_mistakes 字段：错误示例、错误原因、正确解法",
+        "数学错题模板：计算错误、概念混淆、步骤遗漏、单位遗忘",
+        "英语错题模板：拼写错误、时态混用、搭配错误、语序颠倒",
+        "理科错题模板：单位换算、公式套用、实验操作、受力分析遗漏",
+        "定义错题分析页 schema：mistake_example + why_wrong + correct_method",
+        "在 ppt_generator.py 增加错题分析页渲染：左右分栏（红色错误 vs 绿色正确）",
+        "验证：生成的 PPT 包含学科特色的错题分析对比页"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-030"
+      ]
+    },
+    {
+      "id": "feat-042",
+      "category": "fullstack",
+      "priority": 42,
+      "description": "SSE流式生成反馈：替换假进度条，实现真实的分阶段进度推送",
+      "steps": [
+        "后端：将 generate-full 端点改为 SSE (Server-Sent Events) 流式响应",
+        "定义阶段事件：analyzing_content → generating_outline → building_slides → adding_animations → complete",
+        "每个阶段推送进度百分比和当前状态描述",
+        "生成完成后推送最终结果（download_url、content）",
+        "前端：使用 EventSource API 接收 SSE 事件",
+        "前端：实时更新进度条和阶段描述，移除 setInterval 假进度",
+        "验证：生成过程中前端实时显示真实进度阶段"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-024"
+      ]
+    },
+    {
+      "id": "feat-043",
+      "category": "backend",
+      "priority": 43,
+      "description": "点击显示答案OOXML真实实现：使用OOXML触发器实现PPT中真正的点击交互效果",
+      "steps": [
+        "研究 OOXML <p:timing> + <p:seq> + <p:cTn> 触发器规范",
+        "完善 pptx_interactive.py 的 _add_trigger_to_timing() 实现",
+        "答案框初始设置透明度 0%，点击显示答案形状后触发 appear 动画",
+        "选择题正确选项点击后变绿、错误选项点击后变红（使用超链接+隐藏幻灯片方案）",
+        "测试兼容性：PowerPoint 2016+ 和 WPS Office 2019+",
+        "将 inject_click_trigger 集成到主生成流程的互动页面中"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-016",
+        "feat-017"
+      ]
     }
   ]
 }
