@@ -86,6 +86,8 @@ export default function UploadPage() {
   const [fileName, setFileName] = useState<string | null>(null)
   const [currentPreviewSlide, setCurrentPreviewSlide] = useState(0)
   const [llmConfig, setLlmConfig] = useState<any>(null)
+  const [progress, setProgress] = useState(0) // 生成进度 0-100
+  const [showResult, setShowResult] = useState(false) // 控制结果展示的渐入动画
 
   // 从后端加载 LLM 配置
   useEffect(() => {
@@ -162,6 +164,16 @@ export default function UploadPage() {
     setGeneratedContent(null)
     setDownloadUrl(null)
     setFileName(null)
+    setProgress(0)
+    setShowResult(false)
+
+    // 模拟进度动画（因为后端是同步返回）
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 90) return prev
+        return prev + Math.random() * 15
+      })
+    }, 300)
 
     try {
       // 获取 LLM 配置
@@ -200,9 +212,19 @@ export default function UploadPage() {
       setGeneratedContent(result.content)
       setDownloadUrl(`http://localhost:8000${result.download_url}`)
       setFileName(result.file_name)
+      setProgress(100)
+
+      // 延迟显示结果，让进度条走完
+      setTimeout(() => {
+        clearInterval(progressInterval)
+        setIsGenerating(false)
+        setShowResult(true)
+      }, 500)
+      return
     } catch (err) {
       setError(err instanceof Error ? err.message : "生成失败，请稍后重试")
     } finally {
+      clearInterval(progressInterval)
       setIsGenerating(false)
     }
   }
@@ -263,14 +285,52 @@ export default function UploadPage() {
 
       {/* 错误提示 */}
       {error && (
-        <div className="bg-red-50 text-red-800 p-4 rounded-lg mb-6">
+        <div className="bg-red-50 text-red-800 p-4 rounded-lg mb-6 animate-fade-in-down">
           {error}
         </div>
       )}
 
+      {/* Loading 状态 - 骨架屏 */}
+      {isGenerating && (
+        <div className="bg-white rounded-xl border p-6 shadow-sm mb-6 animate-fade-in-up">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+            <h2 className="text-xl font-semibold text-gray-700 animate-pulse-slow">AI 正在生成 PPT...</h2>
+          </div>
+
+          {/* 进度条 */}
+          <div className="mb-6">
+            <div className="flex justify-between text-sm text-gray-600 mb-2">
+              <span>正在处理教材内容...</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 transition-all duration-300 ease-out relative overflow-hidden"
+                style={{ width: `${progress}%` }}
+              >
+                <div className="progress-indeterminate"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* 骨架屏内容 */}
+          <div className="space-y-4">
+            <div className="skeleton skeleton-title"></div>
+            <div className="skeleton skeleton-text"></div>
+            <div className="skeleton skeleton-text"></div>
+            <div className="skeleton skeleton-text"></div>
+            <div className="flex gap-4 mt-6">
+              <div className="skeleton skeleton-card flex-1"></div>
+              <div className="skeleton skeleton-card flex-1"></div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 生成结果展示 */}
-      {generatedContent && (
-        <div className="bg-white rounded-xl border p-6 shadow-sm mb-6">
+      {generatedContent && showResult && (
+        <div className="bg-white rounded-xl border p-6 shadow-sm mb-6 animate-scale-in">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">生成结果</h2>
             <div className="flex gap-2">
@@ -440,7 +500,7 @@ export default function UploadPage() {
                 <button
                   key={option.value}
                   onClick={() => setUploadType(option.value)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition btn-click-animate ${
                     uploadType === option.value
                       ? "bg-indigo-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -674,9 +734,16 @@ export default function UploadPage() {
             <Button
               onClick={handleGenerate}
               disabled={isGenerating || !textContent && imageFiles.length === 0 && !pdfFile}
-              className="w-full mt-6"
+              className="w-full mt-6 btn-click-animate"
             >
-              {isGenerating ? "AI 正在备课中..." : "生成教学 PPT"}
+              {isGenerating ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                  AI 正在备课中...
+                </span>
+              ) : (
+                "生成教学 PPT"
+              )}
             </Button>
           </div>
         </div>

@@ -1,24 +1,24 @@
 {
   "current": {
     "session_result": "success",
-    "task_id": "feat-020",
+    "task_id": "feat-021",
     "status_before": "pending",
     "status_after": "done",
-    "git_commit": "b080fac",
+    "git_commit": "346267b",
     "tests_passed": true,
-    "notes": "完成 feat-020 LLM 模型配置增强功能：\n1. 后端数据模型新增 temperature、max_input_tokens、max_output_tokens 字段\n2. 后端 CRUD 和 API 更新支持新字段\n3. LLM 服务更新支持 OpenAI response_format JSON 输出\n4. 前端设置页面添加温度滑块（0-2）和 token 输入框\n5. API 验证通过：/api/v1/config/providers 返回新字段\n\n服务状态：后端 8000、前端 3000 均运行正常\n已更新 tasks.json（feat-020 → done）和 tests.json（添加 test-feat020）"
+    "notes": "完成 feat-021 LLM 调用参数格式排查修复：\n\n**问题分析**：\n1. LLMService 没有 temperature 和 max_tokens 参数存储\n2. get_llm_service() 不传递配置参数\n3. API 调用处没有从前端接收参数\n\n**修复内容**：\n1. LLMService.__init__() 新增 temperature(默认 0.7) 和 max_tokens(默认 4000) 参数\n2. LLMService.chat() 优先使用实例默认参数，支持 kwargs 覆盖\n3. get_llm_service() 新增 temperature 和 max_tokens 参数\n4. 更新所有 API 端点接收并传递参数：\n   - ppt.py: generate_full_ppt() 接收 temperature, max_output_tokens\n   - generate.py: generate_ppt() 接收 temperature, max_output_tokens\n   - history.py: regenerate_from_history_api() 接收 temperature, max_output_tokens\n   - config.py: test_connection() 接收 temperature, max_tokens\n\n**参数映射统一**：\n- 前端：temperature (0-2), max_output_tokens\n- 后端存储：temperature (0-100 整数), max_output_tokens  \n- LLM 调用：temperature, max_tokens\n\n**验证**：\n- 所有文件语法检查通过\n- grep 验证 max_tokens 参数存在于 llm.py\n- tasks.json 更新为 done\n- tests.json 添加 test-feat021-llm-params 记录\n\n服务状态：后端 8000、前端 3000 保持运行（连续模式）"
   },
   "history": [
     {
-      "session": 1,
-      "timestamp": "2026-03-04T15:55:30.468Z",
+      "session": 2,
+      "timestamp": "2026-03-04T16:08:22.936Z",
       "session_result": "success",
-      "task_id": "feat-020",
+      "task_id": "feat-021",
       "status_before": "pending",
       "status_after": "done",
-      "git_commit": "b080fac",
+      "git_commit": "346267b",
       "tests_passed": true,
-      "notes": "完成 feat-020 LLM 模型配置增强功能：\n1. 后端数据模型新增 temperature、max_input_tokens、max_output_tokens 字段\n2. 后端 CRUD 和 API 更新支持新字段\n3. LLM 服务更新支持 OpenAI response_format JSON 输出\n4. 前端设置页面添加温度滑块（0-2）和 token 输入框\n5. API 验证通过：/api/v1/config/providers 返回新字段\n\n服务状态：后端 8000、前端 3000 均运行正常\n已更新 tasks.json（feat-020 → done）和 tests.json（添加 test-feat020）"
+      "notes": "完成 feat-021 LLM 调用参数格式排查修复：\n\n**问题分析**：\n1. LLMService 没有 temperature 和 max_tokens 参数存储\n2. get_llm_service() 不传递配置参数\n3. API 调用处没有从前端接收参数\n\n**修复内容**：\n1. LLMService.__init__() 新增 temperature(默认 0.7) 和 max_tokens(默认 4000) 参数\n2. LLMService.chat() 优先使用实例默认参数，支持 kwargs 覆盖\n3. get_llm_service() 新增 temperature 和 max_tokens 参数\n4. 更新所有 API 端点接收并传递参数：\n   - ppt.py: generate_full_ppt() 接收 temperature, max_output_tokens\n   - generate.py: generate_ppt() 接收 temperature, max_output_tokens\n   - history.py: regenerate_from_history_api() 接收 temperature, max_output_tokens\n   - config.py: test_connection() 接收 temperature, max_tokens\n\n**参数映射统一**：\n- 前端：temperature (0-2), max_output_tokens\n- 后端存储：temperature (0-100 整数), max_output_tokens  \n- LLM 调用：temperature, max_tokens\n\n**验证**：\n- 所有文件语法检查通过\n- grep 验证 max_tokens 参数存在于 llm.py\n- tasks.json 更新为 done\n- tests.json 添加 test-feat021-llm-params 记录\n\n服务状态：后端 8000、前端 3000 保持运行（连续模式）"
     }
   ]
 }

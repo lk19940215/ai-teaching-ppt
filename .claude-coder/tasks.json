@@ -422,7 +422,7 @@
         "添加生成进度的实时动画反馈",
         "验证：curl -s http://localhost:3000 | grep -q \"animation\" && echo \"pass\""
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-002",
         "feat-004"
