@@ -418,6 +418,52 @@
       "created_session": 22,
       "last_result": "pass",
       "last_run_session": 22
+    },
+    {
+      "id": "test-feat024-upload-flow",
+      "feature_id": "feat-024",
+      "name": "图片/PDF 上传流程修复 - API 端点验证",
+      "type": "api",
+      "priority": "critical",
+      "affected_paths": [
+        "backend/app/api/upload.py",
+        "backend/app/api/process.py",
+        "frontend/src/app/upload/page.tsx"
+      ],
+      "preconditions": {
+        "services": [
+          "backend"
+        ],
+        "real_api_key": false
+      },
+      "steps": "验证 GET /api/v1/upload/image 端点存在，验证 POST /api/v1/process/ocr 端点存在，验证 POST /api/v1/upload/pdf 端点存在，验证 POST /api/v1/process/pdf 端点存在",
+      "test_data_summary": "上传和 OCR/PDF 处理 API 端点验证",
+      "expected_result": "所有上传和处理端点存在并返回正确的响应格式",
+      "auto_generated": true,
+      "created_session": 24,
+      "last_result": "pass",
+      "last_run_session": 24
+    },
+    {
+      "id": "test-feat024-frontend-flow",
+      "feature_id": "feat-024",
+      "name": "图片/PDF 上传流程修复 - 前端集成验证",
+      "type": "unit",
+      "priority": "critical",
+      "affected_paths": [
+        "frontend/src/app/upload/page.tsx"
+      ],
+      "preconditions": {
+        "services": [],
+        "real_api_key": false
+      },
+      "steps": "验证 uploadAndProcessImage() 方法存在，验证 uploadAndProcessPdf() 方法存在，验证 handleGenerate() 中根据 uploadType 调用不同处理流程",
+      "test_data_summary": "前端上传流程集成代码验证",
+      "expected_result": "前端包含 uploadAndProcessImage 和 uploadAndProcessPdf 方法，handleGenerate 根据上传类型调用不同 API",
+      "auto_generated": true,
+      "created_session": 24,
+      "last_result": "pass",
+      "last_run_session": 24
     }
   ]
 }

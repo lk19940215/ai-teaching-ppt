@@ -88,6 +88,7 @@ export default function UploadPage() {
   const [llmConfig, setLlmConfig] = useState<any>(null)
   const [progress, setProgress] = useState(0) // 生成进度 0-100
   const [showResult, setShowResult] = useState(false) // 控制结果展示的渐入动画
+  const [progressStatus, setProgressStatus] = useState("") // 当前进度状态描述
 
   // 从后端加载 LLM 配置
   useEffect(() => {
@@ -158,6 +159,94 @@ export default function UploadPage() {
     }
   }
 
+  // 上传并处理图片，返回提取的文本
+  const uploadAndProcessImage = async (files: File[]): Promise<string> => {
+    const formData = new FormData()
+    files.forEach(file => formData.append('files', file))
+
+    // 1. 上传图片
+    const uploadResponse = await fetch("http://localhost:8000/api/v1/upload/image", {
+      method: "POST",
+      body: formData,
+    })
+
+    if (!uploadResponse.ok) {
+      const errorData = await uploadResponse.json()
+      throw new Error(`图片上传失败：${errorData.detail || '未知错误'}`)
+    }
+
+    const uploadResult = await uploadResponse.json()
+    if (!uploadResult.saved_files || uploadResult.saved_files.length === 0) {
+      throw new Error('图片上传失败：未返回保存的文件信息')
+    }
+
+    // 2. 对每张图片进行 OCR 识别
+    const extractedTexts: string[] = []
+    for (const file of uploadResult.saved_files) {
+      const ocrResponse = await fetch("http://localhost:8000/api/v1/process/ocr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          file_path: file.saved_path,
+          language: "ch",
+        }),
+      })
+
+      if (!ocrResponse.ok) {
+        const errorData = await ocrResponse.json()
+        throw new Error(`OCR 识别失败：${errorData.detail || '未知错误'}`)
+      }
+
+      const ocrResult = await ocrResponse.json()
+      if (ocrResult.cleaned_text) {
+        extractedTexts.push(ocrResult.cleaned_text)
+      }
+    }
+
+    // 合并所有提取的文本
+    return extractedTexts.join('\n\n')
+  }
+
+  // 上传并处理 PDF，返回提取的文本
+  const uploadAndProcessPdf = async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    // 1. 上传 PDF
+    const uploadResponse = await fetch("http://localhost:8000/api/v1/upload/pdf", {
+      method: "POST",
+      body: formData,
+    })
+
+    if (!uploadResponse.ok) {
+      const errorData = await uploadResponse.json()
+      throw new Error(`PDF 上传失败：${errorData.detail || '未知错误'}`)
+    }
+
+    const uploadResult = await uploadResponse.json()
+    if (!uploadResult.saved_path) {
+      throw new Error('PDF 上传失败：未返回保存的文件路径')
+    }
+
+    // 2. 解析 PDF
+    const pdfResponse = await fetch("http://localhost:8000/api/v1/process/pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        file_path: uploadResult.saved_path,
+        language: "ch",
+      }),
+    })
+
+    if (!pdfResponse.ok) {
+      const errorData = await pdfResponse.json()
+      throw new Error(`PDF 解析失败：${errorData.detail || '未知错误'}`)
+    }
+
+    const pdfResult = await pdfResponse.json()
+    return pdfResult.full_text || ''
+  }
+
   const handleGenerate = async () => {
     setIsGenerating(true)
     setError(null)
@@ -166,33 +255,68 @@ export default function UploadPage() {
     setFileName(null)
     setProgress(0)
     setShowResult(false)
-
-    // 模拟进度动画（因为后端是同步返回）
-    const progressInterval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 90) return prev
-        return prev + Math.random() * 15
-      })
-    }, 300)
+    setProgressStatus("")
 
     try {
       // 获取 LLM 配置
       const llmConfig = getLLMConfig()
       if (!llmConfig) {
         setError("请先在设置页面配置 LLM API Key")
+        setIsGenerating(false)
         return
       }
       if (!llmConfig.apiKey) {
         setError("API Key 未配置，请前往设置页面配置")
+        setIsGenerating(false)
+        return
+      }
+
+      // 根据上传类型处理内容提取
+      let finalTextContent = textContent
+
+      if (uploadType === "image" && imageFiles.length > 0) {
+        setProgressStatus(`正在上传 ${imageFiles.length} 张图片...`)
+        setProgress(10)
+        // 图片模式：先上传再 OCR
+        finalTextContent = await uploadAndProcessImage(imageFiles)
+        if (!finalTextContent) {
+          setError("图片 OCR 识别失败：未提取到有效文本")
+          setIsGenerating(false)
+          return
+        }
+        setProgressStatus("图片文字识别完成，正在生成 PPT...")
+        setProgress(40)
+      } else if (uploadType === "pdf" && pdfFile) {
+        setProgressStatus(`正在上传 PDF 文件...`)
+        setProgress(10)
+        // PDF 模式：先上传再解析
+        finalTextContent = await uploadAndProcessPdf(pdfFile)
+        if (!finalTextContent) {
+          setError("PDF 解析失败：未提取到有效文本")
+          setIsGenerating(false)
+          return
+        }
+        setProgressStatus("PDF 内容提取完成，正在生成 PPT...")
+        setProgress(40)
+      } else if (uploadType === "text") {
+        setProgressStatus("正在分析文本内容...")
+        setProgress(20)
+      }
+
+      // 验证文本内容
+      if (!finalTextContent || finalTextContent.trim().length === 0) {
+        setError("未检测到有效内容：请确保图片/PDF 包含可识别的文字")
+        setIsGenerating(false)
         return
       }
 
       // 调用后端 API 完整生成 PPT（内容 + 文件）
+      setProgressStatus("正在调用 AI 生成 PPT 内容...")
       const response = await fetch("http://localhost:8000/api/v1/ppt/generate-full", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          text_content: textContent,
+          text_content: finalTextContent,
           grade: config.grade,
           subject: config.subject,
           slideCount: config.slideCount,
@@ -212,20 +336,19 @@ export default function UploadPage() {
       setGeneratedContent(result.content)
       setDownloadUrl(`http://localhost:8000${result.download_url}`)
       setFileName(result.file_name)
+      setProgressStatus("PPT 生成完成！")
       setProgress(100)
 
       // 延迟显示结果，让进度条走完
       setTimeout(() => {
-        clearInterval(progressInterval)
         setIsGenerating(false)
         setShowResult(true)
+        setProgressStatus("")
       }, 500)
-      return
     } catch (err) {
       setError(err instanceof Error ? err.message : "生成失败，请稍后重试")
-    } finally {
-      clearInterval(progressInterval)
       setIsGenerating(false)
+      setProgressStatus("")
     }
   }
 
@@ -301,7 +424,7 @@ export default function UploadPage() {
           {/* 进度条 */}
           <div className="mb-6">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>正在处理教材内容...</span>
+              <span>{progressStatus || "正在处理教材内容..."}</span>
               <span>{Math.round(progress)}%</span>
             </div>
             <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">

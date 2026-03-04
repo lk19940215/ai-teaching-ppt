@@ -100,10 +100,69 @@ class LLMService:
             logger.error(f"LLM 调用失败：{e}")
             raise RuntimeError(f"LLM 调用失败：{e}") from e
 
+    def _extract_json_from_response(self, response: str) -> str:
+        """
+        从 LLM 响应中提取 JSON 内容
+        处理 ```json ... ``` 或 ``` ... ``` 代码块包裹的情况
+        """
+        # 尝试提取 ```json 或 ``` 代码块
+        import re
+
+        # 匹配 ```json ... ```
+        json_match = re.search(r'```json\s*([\s\S]*?)\s*```', response)
+        if json_match:
+            return json_match.group(1)
+
+        # 匹配 ``` ... ```
+        code_match = re.search(r'```\s*([\s\S]*?)\s*```', response)
+        if code_match:
+            return code_match.group(1)
+
+        # 没有代码块，返回原始内容
+        return response.strip()
+
+    def _fix_json(self, json_str: str) -> str:
+        """
+        修复常见的 JSON 格式问题
+        处理：尾部逗号、缺失引号、单引号等问题
+        """
+        import re
+
+        # 去除首尾空白
+        json_str = json_str.strip()
+
+        # 替换单引号为双引号（键名和值都处理）
+        # 先处理键名的单引号：'key':
+        json_str = re.sub(r"'([^']*)'(?=\s*:)", r'"\1"', json_str)
+
+        # 处理值的单引号：将字符串值两边的单引号换成双引号
+        # 匹配：': 'value' 或 ': 'value', 或 ': 'value'}
+        def replace_value_quotes(match):
+            prefix = match.group(1)  # ': ' 部分
+            value = match.group(2)   # 值内容
+            suffix = match.group(3)  # 后面的逗号、} 或]
+            return f'{prefix}"{value}"{suffix}'
+
+        # 匹配单引号包裹的字符串值
+        json_str = re.sub(r"(:\s*)'([^']*)'(\s*[,}\]])", replace_value_quotes, json_str)
+
+        # 移除尾部的逗号（} 或] 之前的逗号）
+        json_str = re.sub(r',\s*([}\]])', r'\1', json_str)
+
+        # 移除属性值末尾的逗号（在}或]之前）
+        json_str = re.sub(r'(["\d\w}\]])\s*,\s*([}\]])', r'\1\2', json_str)
+
+        # 处理可能存在的未转义引号（简单的 key: value 形式）
+        # 匹配 key 没有引号的情况：{key: 或 , key:
+        json_str = re.sub(r'([{,]\s*)(\w+)(\s*:)', r'\1"\2"\3', json_str)
+
+        return json_str
+
     def generate_structured_content(
         self,
         prompt: str,
         output_schema: Dict[str, Any],
+        max_retries: int = 3,
         **kwargs
     ) -> Dict[str, Any]:
         """
@@ -111,9 +170,13 @@ class LLMService:
         Args:
             prompt: 提示词
             output_schema: 输出结构定义
+            max_retries: 最大重试次数（默认 3 次）
             **kwargs: 额外参数
         Returns:
             结构化的输出结果
+
+        Raises:
+            ValueError: 当无法解析 JSON 且重试次数用尽时抛出
         """
         schema_description = json.dumps(output_schema, ensure_ascii=False, indent=2)
 
@@ -125,7 +188,10 @@ class LLMService:
 请严格按照以下 JSON 格式输出：
 {schema_description}
 
-只返回 JSON，不要包含其他文字。"""
+**重要要求**：
+1. 只返回 JSON 对象本身，不要包含 ```json 或 ``` 等代码块标记
+2. 不要添加任何解释性文字
+3. 确保 JSON 格式正确：键名用双引号、没有尾部逗号、括号匹配"""
             },
             {
                 "role": "user",
@@ -137,14 +203,64 @@ class LLMService:
         if self.provider == LLMProvider.OPENAI:
             kwargs["response_format"] = {"type": "json_object"}
 
-        response = self.chat(messages, **kwargs)
+        last_error = None
+        last_response = None
 
-        # 解析 JSON
-        try:
-            return json.loads(response)
-        except json.JSONDecodeError as e:
-            logger.error(f"JSON 解析失败：{e}, 原始响应：{response}")
-            raise ValueError("LLM 返回的内容无法解析为 JSON") from e
+        for attempt in range(max_retries):
+            try:
+                response = self.chat(messages, **kwargs)
+                last_response = response
+
+                # 第 1 步：提取 JSON 代码块
+                json_str = self._extract_json_from_response(response)
+
+                # 第 2 步：尝试直接解析
+                try:
+                    result = json.loads(json_str)
+                    logger.info(f"JSON 解析成功 (尝试 {attempt + 1}/{max_retries})")
+                    return result
+                except json.JSONDecodeError as parse_error:
+                    logger.warning(f"JSON 直接解析失败 (尝试 {attempt + 1}/{max_retries}): {parse_error}")
+
+                    # 第 3 步：尝试修复后解析
+                    fixed_json = self._fix_json(json_str)
+                    logger.debug(f"修复后的 JSON: {fixed_json[:200]}...")
+
+                    try:
+                        result = json.loads(fixed_json)
+                        logger.info(f"JSON 修复后解析成功 (尝试 {attempt + 1}/{max_retries})")
+                        return result
+                    except json.JSONDecodeError as fix_error:
+                        logger.warning(f"JSON 修复后仍解析失败 (尝试 {attempt + 1}/{max_retries}): {fix_error}")
+                        last_error = fix_error
+
+                        # 如果是最后一次尝试，不再重试
+                        if attempt >= max_retries - 1:
+                            break
+
+                        # 添加重试提示，要求 LLM 重新生成
+                        messages = messages + [
+                            {
+                                "role": "assistant",
+                                "content": f"JSON 格式有误，无法解析。错误信息：{fix_error}"
+                            },
+                            {
+                                "role": "user",
+                                "content": "请重新生成格式正确的 JSON，不要包含代码块标记或其他文字，确保：\n1. 所有键名用双引号包裹\n2. 没有尾部逗号\n3. 括号完全匹配\n4. 字符串值中的引号已正确转义"
+                            }
+                        ]
+
+            except Exception as e:
+                logger.error(f"LLM 调用失败 (尝试 {attempt + 1}/{max_retries}): {e}")
+                last_error = e
+                if attempt >= max_retries - 1:
+                    break
+
+        # 所有重试都失败，抛出异常
+        logger.error(f"JSON 解析最终失败，原始响应：{last_response}")
+        raise ValueError(
+            f"LLM 返回的内容无法解析为 JSON（已重试{max_retries}次）: {last_error}"
+        ) from last_error
 
 
 # 全局 LLM 服务实例

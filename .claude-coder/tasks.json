@@ -441,7 +441,7 @@
         "添加降级处理：重试失败时返回结构化的错误信息而非空内容",
         "验证：curl -s http://localhost:8000/docs 检查 API 正常，日志中无 JSON 解析错误"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-005",
         "feat-021"
@@ -460,7 +460,7 @@
         "添加上传和解析阶段的进度提示（正在上传... 正在识别文字...）",
         "测试：上传图片/PDF 后能正确提取文字并生成 PPT"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-003",
         "feat-007"

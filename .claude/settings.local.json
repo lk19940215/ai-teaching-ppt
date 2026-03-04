@@ -13,7 +13,9 @@
       "mcp__playwright__browser_close",
       "Bash(python:*)",
       "Bash(ls:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(tasklist:*)",
+      "Bash(powershell:*)"
     ]
   }
 }

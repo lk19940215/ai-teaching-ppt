@@ -1,12 +1,12 @@
 {
   "current": {
     "session_result": "success",
-    "task_id": "feat-021",
-    "status_before": "pending",
-    "status_after": "done",
-    "git_commit": "346267b",
-    "tests_passed": true,
-    "notes": "完成 feat-021 LLM 调用参数格式排查修复：\n\n**问题分析**：\n1. LLMService 没有 temperature 和 max_tokens 参数存储\n2. get_llm_service() 不传递配置参数\n3. API 调用处没有从前端接收参数\n\n**修复内容**：\n1. LLMService.__init__() 新增 temperature(默认 0.7) 和 max_tokens(默认 4000) 参数\n2. LLMService.chat() 优先使用实例默认参数，支持 kwargs 覆盖\n3. get_llm_service() 新增 temperature 和 max_tokens 参数\n4. 更新所有 API 端点接收并传递参数：\n   - ppt.py: generate_full_ppt() 接收 temperature, max_output_tokens\n   - generate.py: generate_ppt() 接收 temperature, max_output_tokens\n   - history.py: regenerate_from_history_api() 接收 temperature, max_output_tokens\n   - config.py: test_connection() 接收 temperature, max_tokens\n\n**参数映射统一**：\n- 前端：temperature (0-2), max_output_tokens\n- 后端存储：temperature (0-100 整数), max_output_tokens  \n- LLM 调用：temperature, max_tokens\n\n**验证**：\n- 所有文件语法检查通过\n- grep 验证 max_tokens 参数存在于 llm.py\n- tasks.json 更新为 done\n- tests.json 添加 test-feat021-llm-params 记录\n\n服务状态：后端 8000、前端 3000 保持运行（连续模式）"
+    "task_id": "chore-task-addition",
+    "status_before": null,
+    "status_after": null,
+    "git_commit": "dd256c1",
+    "tests_passed": null,
+    "notes": "任务追加 session：在 feat-023 位置插入新任务'修复 LLM JSON 解析失败问题'，原 feat-023 及之后所有任务依次后移（id 和 priority 均 +1）。任务总数从 42 个增加到 43 个。新任务描述：增强 JSON 输出解析的鲁棒性，处理 LLM 返回非标准 JSON 的情况（提取代码块、JSON 修复、重试机制、降级处理）。"
   },
   "history": [
     {
@@ -18,7 +18,18 @@
       "status_after": "done",
       "git_commit": "346267b",
       "tests_passed": true,
-      "notes": "完成 feat-021 LLM 调用参数格式排查修复：\n\n**问题分析**：\n1. LLMService 没有 temperature 和 max_tokens 参数存储\n2. get_llm_service() 不传递配置参数\n3. API 调用处没有从前端接收参数\n\n**修复内容**：\n1. LLMService.__init__() 新增 temperature(默认 0.7) 和 max_tokens(默认 4000) 参数\n2. LLMService.chat() 优先使用实例默认参数，支持 kwargs 覆盖\n3. get_llm_service() 新增 temperature 和 max_tokens 参数\n4. 更新所有 API 端点接收并传递参数：\n   - ppt.py: generate_full_ppt() 接收 temperature, max_output_tokens\n   - generate.py: generate_ppt() 接收 temperature, max_output_tokens\n   - history.py: regenerate_from_history_api() 接收 temperature, max_output_tokens\n   - config.py: test_connection() 接收 temperature, max_tokens\n\n**参数映射统一**：\n- 前端：temperature (0-2), max_output_tokens\n- 后端存储：temperature (0-100 整数), max_output_tokens  \n- LLM 调用：temperature, max_tokens\n\n**验证**：\n- 所有文件语法检查通过\n- grep 验证 max_tokens 参数存在于 llm.py\n- tasks.json 更新为 done\n- tests.json 添加 test-feat021-llm-params 记录\n\n服务状态：后端 8000、前端 3000 保持运行（连续模式）"
+      "notes": "完成 feat-021 LLM 调用参数格式排查修复：\n\n**问题分析**：\n1. LLMService 没有 temperature 和 max_tokens 参数存储\n2. get_llm_ser。"
+    },
+    {
+      "session": 3,
+      "timestamp": "2026-03-04T16:16:01.786Z",
+      "session_result": "success",
+      "task_id": "feat-022",
+      "status_before": "pending",
+      "status_after": "done",
+      "git_commit": "b50f4b2",
+      "tests_passed": true,
+      "notes": "完成 feat-022 AI 备课交互动画优化：\n\n**新增动画样式（globals.css）**：\n1. 按钮点击动画：btn-click-animate（缩放 0.95 + 阴影）\n2. 骨架屏动画：skeleton/skeleton-title/skeleton-text/skeleton-card（渐变流动效果）\n3. 渐入动画：animate-fade-in/fade-in-up/fade-in-down\n4. 滑动动画：animate-slide-in-left/slide-in-right\n5. 脉冲动画：animate-pulse-slow（用于 loading 文本）\n6. 旋转动画：animate-spin\n7. 进度条动画：progress-indeterminate（渐变色流动）\n8. 缩放动画：animate-scale-in（结果展示）\n9. 缩略图聚焦：thumbnail-focus（放大 + 外环光晕）\n10. 交错动画：stagger-item（内容项依次显示）\n\n**组件优化**：\n1. Button 组件：新增 animate 参数，默认启用点击动画\n2. upload/page.tsx：\n   - 新增 progress 状态（0-100% 进度）\n   - 新增 showResult 状态（控制结果渐入）\n   - handleGenerate 增加进度模拟动画\n   - Loading 状态：骨架屏 + 进度条 + 旋转图标\n   - 结果展示：animate-scale-in 渐入\n   - 错误提示：animate-fade-in-down 滑入\n   - 缩略图：thumbnail-focus 聚焦动画\n   - 上传方式按钮：btn-click-animate 点击效果\n\n**验证**：\n- TypeScript 语法检查通过\n- CSS 动画样式 10+ 个 keyframes 和类\n- upload 页面使用动画类 13 处\n- 前后端服务运行正常\n\n服务状态：后端 8000、前端 3000 保持运行（连续模式）"
     }
   ]
 }
