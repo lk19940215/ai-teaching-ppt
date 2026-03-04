@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 async def generate_ppt(
     content: dict = Body(..., embed=True),
     grade: str = Body("6", embed=True),
+    subject: str = Body("general", embed=True),
     style: str = Body("simple", embed=True),
     file_name: Optional[str] = Body(None, embed=True)
 ):
@@ -25,6 +26,7 @@ async def generate_ppt(
     Args:
         content: PPT 内容数据
         grade: 年级
+        subject: 学科
         style: PPT 风格
         file_name: 文件名（可选）
     Returns:
@@ -45,7 +47,7 @@ async def generate_ppt(
 
         # 生成 PPT
         generator = get_ppt_generator()
-        generator.generate(content, output_path, grade, style, subject="general")
+        generator.generate(content, output_path, grade, style, subject)
 
         return JSONResponse(content={
             "success": True,

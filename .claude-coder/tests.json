@@ -464,6 +464,50 @@
       "created_session": 24,
       "last_result": "pass",
       "last_run_session": 24
+    },
+    {
+      "id": "test-feat026-style-config",
+      "feature_id": "feat-026",
+      "name": "Style 参数落地 - 风格配置映射验证",
+      "type": "unit",
+      "priority": "critical",
+      "affected_paths": [
+        "backend/app/services/ppt_generator.py",
+        "backend/app/api/ppt.py"
+      ],
+      "preconditions": {
+        "services": [],
+        "real_api_key": false
+      },
+      "steps": "验证 PPTStyle 类包含 STYLE_CONFIG (fun/simple/theme)，验证 SUBJECT_COLORS 包含学科主题色映射，验证 get_style_config() 和 get_subject_color() 方法正常工作，验证 generate() 方法根据 style 参数应用不同配色",
+      "test_data_summary": "风格配置和学科颜色映射单元测试",
+      "expected_result": "3 种风格配置已定义（活泼=暖色/简约=冷色/学科=动态），学科主题色映射正确（数学=蓝/英语=绿/语文=红等），generate() 方法能根据 style 参数选择对应配色方案",
+      "auto_generated": true,
+      "created_session": 26,
+      "last_result": "pass",
+      "last_run_session": 26
+    },
+    {
+      "id": "test-feat026-api-params",
+      "feature_id": "feat-026",
+      "name": "Style 参数落地 - API 参数传递验证",
+      "type": "api",
+      "priority": "critical",
+      "affected_paths": [
+        "backend/app/api/ppt.py",
+        "frontend/src/app/upload/page.tsx"
+      ],
+      "preconditions": {
+        "services": [],
+        "real_api_key": false
+      },
+      "steps": "验证 /api/v1/ppt/generate 端点接收 style 和 subject 参数，验证 /api/v1/ppt/generate-full 端点接收并传递 style 和 subject 参数到生成器",
+      "test_data_summary": "API 参数传递验证",
+      "expected_result": "两个 API 端点都正确接收 style 和 subject 参数，并传递到 PPTGenerator.generate() 方法",
+      "auto_generated": true,
+      "created_session": 26,
+      "last_result": "pass",
+      "last_run_session": 26
     }
   ]
 }

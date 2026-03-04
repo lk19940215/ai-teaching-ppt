@@ -41,6 +41,17 @@
       "git_commit": "6fbd17c",
       "tests_passed": true,
       "notes": "完成图片/PDF 上传流程修复：\n1. 新增 uploadAndProcessImage() 方法：上传图片后循环调用 OCR API 提取文字，合并多张图片的识别结果\n2. 新增 uploadAndProcessPdf() 方法：上传 PDF 后调用 PDF 解析 API 提取文字\n3. 修改 handleGenerate()：根据 uploadType 判断，图片/PDF 模式下先调用对应处理 API 获取文本，再调用 generate-full API\n4. 新增 progressStatus 状态变量：显示实时进度提示（'正在上传 2 张图片...' → '图片文字识别完成，正在生成 PPT...' → '正在调用 AI 生成 PPT 内容...' → 'PPT 生成完成！'）\n5. 移除了假进度定时器，改用真实进度百分比（上传 10% → OCR/PDF 处理 40% → AI 生成 100%）\n6. tests.json 新增 2 条验证记录：test-feat024-upload-flow（API 端点验证）和 test-feat024-frontend-flow（前端集成验证）\n7. TypeScript 编译通过，后端 API 端点验证通过\n\n注意：后端 OCR 和 PDF 解析 API 已在 feat-003 中实现，本次仅修复前端调用流程。服务保持运行状态，下个 session 可继续使用。"
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-04T17:43:36.141Z",
+      "session_result": "success",
+      "task_id": "feat-025",
+      "status_before": "pending",
+      "status_after": "done",
+      "git_commit": "280da97",
+      "tests_passed": true,
+      "notes": "完成前端 API 地址环境变量化：\n1. 创建 frontend/.env.local 配置 NEXT_PUBLIC_API_URL=http://localhost:8000\n2. 创建 frontend/src/lib/api.ts 提供 apiBaseUrl 和 createApiUrl 工具函数\n3. 替换 upload/page.tsx (8 处)、settings/page.tsx (1 处)、history/page.tsx (4 处) 中所有硬编码的 localhost:8000\n4. 修改 .gitignore 允许 .env.local 和 frontend/src/lib 目录\n5. TypeScript 编译检查通过，服务运行正常\n\n下一步任务：feat-026 Style 参数落地"
     }
   ]
 }

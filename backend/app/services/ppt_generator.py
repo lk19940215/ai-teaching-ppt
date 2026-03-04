@@ -35,6 +35,20 @@ COLOR_GREEN_3 = RGBColor(102, 187, 106)
 COLOR_BLUE_6 = RGBColor(33, 150, 243)
 COLOR_GREEN_4 = RGBColor(76, 175, 80)
 
+# 学科主题色映射
+SUBJECT_COLORS = {
+    "math": {"primary": COLOR_BLUE_5, "secondary": COLOR_BLUE_1, "name": "数学蓝"},
+    "english": {"primary": COLOR_GREEN_2, "secondary": COLOR_GREEN_3, "name": "英语绿"},
+    "chinese": {"primary": _COLOR_RED, "secondary": _COLOR_GOLD, "name": "语文红"},
+    "physics": {"primary": _COLOR_ORANGE, "secondary": COLOR_BLUE_5, "name": "物理橙"},
+    "chemistry": {"primary": COLOR_BLUE_3, "secondary": COLOR_GREEN_1, "name": "化学蓝"},
+    "biology": {"primary": COLOR_GREEN_1, "secondary": COLOR_TURQUOISE_2, "name": "生物绿"},
+    "history": RGBColor(128, 0, 128),
+    "politics": RGBColor(186, 85, 211),
+    "geography": RGBColor(34, 139, 34),
+    "general": {"primary": COLOR_BLUE_6, "secondary": COLOR_TURQUOISE_2, "name": "通用蓝"},
+}
+
 
 def add_pinyin_text(paragraph, text: str, font_size: int, is_title: bool = False):
     """
@@ -87,6 +101,43 @@ class PPTPageType:
 
 class PPTStyle:
     """PPT 样式配置（优化版：细化年级自适应规则）"""
+
+    # 风格配置（三种 PPT 风格）
+    STYLE_CONFIG = {
+        "fun": {
+            "name": "活泼趣味",
+            "description": "鲜艳暖色配色，活泼生动，适合低年级",
+            "color_scheme": "warm",  # 暖色系
+            "font_family": "rounded",  # 圆体
+            "layout_density": "spacious",  # 宽松布局，大量留白
+            "decoration_level": "high",  # 高装饰性
+            "border_radius": 12,  # 大圆角
+            "use_gradients": True,  # 使用渐变
+            "animation_style": "bouncy",  # 活泼动画
+        },
+        "simple": {
+            "name": "简约清晰",
+            "description": "灰蓝冷色配色，简洁专业，适合高年级",
+            "color_scheme": "cool",  # 冷色系
+            "font_family": "sans-serif",  # 黑体
+            "layout_density": "compact",  # 紧凑布局
+            "decoration_level": "low",  # 低装饰性
+            "border_radius": 4,  # 小圆角
+            "use_gradients": False,  # 不使用渐变
+            "animation_style": "fade",  # 淡入动画
+        },
+        "theme": {
+            "name": "学科主题",
+            "description": "根据学科自动选择主题色",
+            "color_scheme": "dynamic",  # 动态配色
+            "font_family": "sans-serif",  # 黑体
+            "layout_density": "balanced",  # 平衡布局
+            "decoration_level": "medium",  # 中等装饰性
+            "border_radius": 8,  # 中圆角
+            "use_gradients": False,
+            "animation_style": "slide",  # 滑动动画
+        },
+    }
 
     # 年级组配置（三个学段）
     GRADE_GROUPS = {
@@ -225,6 +276,20 @@ class PPTStyle:
         return cls.GRADE_STYLES.get(grade, cls.GRADE_STYLES["6"])
 
     @classmethod
+    def get_style_config(cls, style: str = "simple") -> Dict[str, Any]:
+        """获取 PPT 风格配置"""
+        return cls.STYLE_CONFIG.get(style, cls.STYLE_CONFIG["simple"])
+
+    @classmethod
+    def get_subject_color(cls, subject: str) -> Dict[str, Any]:
+        """获取学科主题色"""
+        color_info = SUBJECT_COLORS.get(subject, SUBJECT_COLORS["general"])
+        # 处理某些学科直接定义了颜色值的情况
+        if isinstance(color_info, RGBColor):
+            return {"primary": color_info, "secondary": SUBJECT_COLORS["general"]["secondary"], "name": subject}
+        return color_info
+
+    @classmethod
     def get_grade_group(cls, grade: str) -> str:
         """获取年级所属组别"""
         style = cls.get_style(grade)
@@ -270,14 +335,35 @@ class PPTGenerator:
             prs.slide_width = Inches(10)
             prs.slide_height = Inches(7.5)
 
-            # 获取样式配置
-            style_config = PPTStyle.get_style(grade)
-            title_size = style_config["title_size"]
-            content_size = style_config["font_size"]
-            primary_color = style_config["primary"]
-            secondary_color = style_config["secondary"]
-            grade_group = style_config.get("group", "elementary_high")
+            # 获取年级样式配置
+            grade_style = PPTStyle.get_style(grade)
+            title_size = grade_style["title_size"]
+            content_size = grade_style["font_size"]
+            grade_group = grade_style.get("group", "elementary_high")
             use_pinyin = PPTStyle.need_pinyin(grade, subject)
+
+            # 获取 PPT 风格配置
+            ppt_style_config = PPTStyle.get_style_config(style)
+
+            # 确定主色和辅助色：根据风格决定
+            if style == "theme" and subject in SUBJECT_COLORS:
+                # 学科主题模式：使用学科颜色
+                subject_color = PPTStyle.get_subject_color(subject)
+                primary_color = subject_color["primary"]
+                secondary_color = subject_color["secondary"]
+            else:
+                # 其他模式：使用年级默认颜色
+                primary_color = grade_style["primary"]
+                secondary_color = grade_style["secondary"]
+
+                # 活泼风格：调整为更鲜艳的暖色
+                if style == "fun":
+                    primary_color = _COLOR_RED if grade_group == "elementary_low" else _COLOR_ORANGE
+                    secondary_color = COLOR_TURQUOISE_2 if grade_group == "elementary_low" else COLOR_TURQUOISE_3
+                # 简约风格：使用冷色调
+                elif style == "simple":
+                    primary_color = COLOR_BLUE_5 if grade_group == "middle" else COLOR_BLUE_1
+                    secondary_color = COLOR_GREEN_1 if grade_group == "middle" else COLOR_BLUE_2
 
             # 生成封面页
             self._add_cover_slide(

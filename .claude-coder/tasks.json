@@ -497,7 +497,7 @@
         "修改后端 API 确保 style 参数正确传递到生成器",
         "测试：同一内容用 3 种风格生成，验证视觉差异明显"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-006",
         "feat-009"
