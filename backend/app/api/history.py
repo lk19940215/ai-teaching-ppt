@@ -123,6 +123,8 @@ async def regenerate_from_history_api(
     session_id: str = Query(..., description="用户 session ID"),
     api_key: str = Body(..., embed=True, description="LLM API Key"),
     provider: str = Body("deepseek", embed=True, description="LLM 服务商"),
+    temperature: Optional[float] = Body(None, embed=True, description="温度参数"),
+    max_output_tokens: Optional[int] = Body(None, embed=True, description="最大输出 token 数"),
     db = Depends(get_db),
 ):
     """基于历史记录重新生成 PPT"""
@@ -143,11 +145,16 @@ async def regenerate_from_history_api(
         content_text = record.content_text.get("text", "") if isinstance(record.content_text, dict) else str(record.content_text)
 
         # 调用 LLM 重新生成内容
+        llm_temperature = temperature if temperature is not None else 0.7
+        llm_max_tokens = max_output_tokens if max_output_tokens is not None else 4000
+
         llm_service = get_llm_service(
             provider=provider,
             api_key=api_key,
             base_url=settings.OPENAI_API_BASE,
-            model=settings.OPENAI_MODEL
+            model=settings.OPENAI_MODEL,
+            temperature=llm_temperature,
+            max_tokens=llm_max_tokens
         )
 
         content_generator = get_content_generator(llm_service)

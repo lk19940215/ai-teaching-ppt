@@ -393,6 +393,31 @@
       "created_session": 21,
       "last_result": "pass",
       "last_run_session": 21
+    },
+    {
+      "id": "test-feat021-llm-params",
+      "feature_id": "feat-021",
+      "name": "LLM 调用参数格式排查 - 代码审查验证",
+      "type": "unit",
+      "priority": "critical",
+      "affected_paths": [
+        "backend/app/services/llm.py",
+        "backend/app/api/ppt.py",
+        "backend/app/api/generate.py",
+        "backend/app/api/config.py",
+        "backend/app/api/history.py"
+      ],
+      "preconditions": {
+        "services": [],
+        "real_api_key": false
+      },
+      "steps": "代码审查验证：1. LLMService 构造函数增加 temperature、max_tokens 参数；2. chat() 方法使用实例默认参数；3. get_llm_service() 支持传递 temperature、max_tokens；4. API 端点接收并传递前端参数",
+      "test_data_summary": "LLM 参数格式代码审查验证",
+      "expected_result": "LLMService 支持 temperature(0-2) 和 max_tokens(默认 4000) 参数，所有 API 调用处正确传递参数",
+      "auto_generated": true,
+      "created_session": 22,
+      "last_result": "pass",
+      "last_run_session": 22
     }
   ]
 }

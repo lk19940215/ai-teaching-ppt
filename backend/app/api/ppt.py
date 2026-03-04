@@ -33,7 +33,7 @@ async def generate_ppt(
     try:
         # 生成文件名
         if not file_name:
-            file_name = f"{content.get('title', '教学PPT')}_{uuid.uuid4().hex[:8]}.pptx"
+            file_name = f"{content.get('title', '教学 PPT')}_{uuid.uuid4().hex[:8]}.pptx"
 
         # 确保 .pptx 扩展名
         if not file_name.endswith(".pptx"):
@@ -55,8 +55,8 @@ async def generate_ppt(
         })
 
     except Exception as e:
-        logger.error(f"PPT 生成失败: {e}")
-        raise HTTPException(status_code=500, detail=f"PPT 生成失败: {str(e)}")
+        logger.error(f"PPT 生成失败：{e}")
+        raise HTTPException(status_code=500, detail=f"PPT 生成失败：{str(e)}")
 
 
 @router.get("/ppt/download/{file_name}")
@@ -91,6 +91,8 @@ async def generate_full_ppt(
     api_key: str = Body(..., embed=True),
     style: str = Body("simple", embed=True),
     session_id: Optional[str] = Body(None, embed=True),
+    temperature: Optional[float] = Body(None, embed=True),
+    max_output_tokens: Optional[int] = Body(None, embed=True),
 ):
     """
     完整生成 PPT（内容生成 + 文件生成）
@@ -103,19 +105,27 @@ async def generate_full_ppt(
         provider: LLM 服务商
         api_key: API Key
         style: PPT 风格
+        temperature: 温度参数（可选，从前端传递）
+        max_output_tokens: 最大输出 token 数（可选，从前端传递）
     Returns:
         生成结果和下载链接
     """
     try:
-        # 步骤1: 调用 LLM 生成内容
+        # 步骤 1: 调用 LLM 生成内容
         from ..services.llm import get_llm_service
         from ..services.content_generator import get_content_generator
+
+        # 使用前端传递的参数，或使用默认值
+        llm_temperature = temperature if temperature is not None else 0.7
+        llm_max_tokens = max_output_tokens if max_output_tokens is not None else 4000
 
         llm_service = get_llm_service(
             provider=provider,
             api_key=api_key,
             base_url=settings.OPENAI_API_BASE,
-            model=settings.OPENAI_MODEL
+            model=settings.OPENAI_MODEL,
+            temperature=llm_temperature,
+            max_tokens=llm_max_tokens
         )
 
         generator = get_content_generator(llm_service)
@@ -137,9 +147,9 @@ async def generate_full_ppt(
                 chapter=chapter
             )
 
-        # 步骤2: 生成 PPT 文件
+        # 步骤 2: 生成 PPT 文件
         ppt_generator = get_ppt_generator()
-        file_name = f"{ppt_content.get('title', '教学PPT')}_{uuid.uuid4().hex[:8]}.pptx"
+        file_name = f"{ppt_content.get('title', '教学 PPT')}_{uuid.uuid4().hex[:8]}.pptx"
         output_path = settings.UPLOAD_DIR / "generated" / file_name
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -183,11 +193,11 @@ async def generate_full_ppt(
         return JSONResponse(content=response_data)
 
     except ValueError as e:
-        logger.error(f"参数错误: {e}")
+        logger.error(f"参数错误：{e}")
         raise HTTPException(status_code=400, detail=str(e))
     except TimeoutError as e:
-        logger.error(f"生成超时: {e}")
+        logger.error(f"生成超时：{e}")
         raise HTTPException(status_code=408, detail="生成超时，请稍后重试")
     except Exception as e:
-        logger.error(f"完整 PPT 生成失败: {e}")
-        raise HTTPException(status_code=500, detail=f"PPT 生成失败: {str(e)}")
+        logger.error(f"完整 PPT 生成失败：{e}")
+        raise HTTPException(status_code=500, detail=f"PPT 生成失败：{str(e)}")

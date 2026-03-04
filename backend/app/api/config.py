@@ -225,15 +225,23 @@ async def test_connection(
     provider: str = Body(..., embed=True),
     api_key: str = Body(..., embed=True),
     base_url: Optional[str] = Body(None, embed=True),
-    model: Optional[str] = Body(None, embed=True)
+    model: Optional[str] = Body(None, embed=True),
+    temperature: Optional[float] = Body(None, embed=True),
+    max_tokens: Optional[int] = Body(None, embed=True)
 ):
     """测试 LLM 连接"""
     try:
+        # 使用前端传递的参数，或使用默认值
+        llm_temperature = temperature if temperature is not None else 0.7
+        llm_max_tokens = max_tokens if max_tokens is not None else 4000
+
         llm_service = LLMService(
             provider=provider,
             api_key=api_key,
             base_url=base_url,
-            model=model
+            model=model,
+            temperature=llm_temperature,
+            max_tokens=llm_max_tokens
         )
 
         # 发送测试请求

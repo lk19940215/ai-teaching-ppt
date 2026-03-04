@@ -19,7 +19,9 @@ async def generate_ppt(
     slide_count: int = Body(15, embed=True),
     chapter: Optional[str] = Body(None, embed=True),
     provider: Optional[str] = Body(None, embed=True),
-    api_key: Optional[str] = Body(None, embed=True)
+    api_key: Optional[str] = Body(None, embed=True),
+    temperature: Optional[float] = Body(None, embed=True),
+    max_output_tokens: Optional[int] = Body(None, embed=True)
 ):
     """
     生成 PPT 内容
@@ -31,6 +33,8 @@ async def generate_ppt(
         chapter: 章节名称（可选）
         provider: LLM 服务商（可选）
         api_key: API Key（可选）
+        temperature: 温度参数（可选）
+        max_output_tokens: 最大输出 token 数（可选）
     Returns:
         生成的 PPT 内容
     """
@@ -54,11 +58,17 @@ async def generate_ppt(
                 detail="请提供 API Key 或在设置中配置默认的 API Key"
             )
 
+        # 使用前端传递的参数，或使用默认值
+        llm_temperature = temperature if temperature is not None else 0.7
+        llm_max_tokens = max_output_tokens if max_output_tokens is not None else 4000
+
         llm_service = get_llm_service(
             provider=llm_provider,
             api_key=llm_api_key,
             base_url=settings.OPENAI_API_BASE,
-            model=settings.OPENAI_MODEL
+            model=settings.OPENAI_MODEL,
+            temperature=llm_temperature,
+            max_tokens=llm_max_tokens
         )
 
         # 获取内容生成器

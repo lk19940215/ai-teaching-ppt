@@ -20,7 +20,9 @@ class LLMService:
         provider: str = LLMProvider.DEEPSEEK,
         api_key: str = "",
         base_url: str = "",
-        model: str = ""
+        model: str = "",
+        temperature: float = 0.7,
+        max_tokens: int = 4000
     ):
         """
         初始化 LLM 服务
@@ -29,11 +31,15 @@ class LLMService:
             api_key: API Key
             base_url: API 基础 URL
             model: 模型名称
+            temperature: 温度参数（0-2，默认 0.7）
+            max_tokens: 最大输出 token 数（默认 4000）
         """
         self.provider = provider
         self.api_key = api_key
         self.base_url = base_url
         self.model = model
+        self.temperature = temperature
+        self.max_tokens = max_tokens
 
         # 设置默认值
         if provider == LLMProvider.DEEPSEEK:
@@ -68,12 +74,12 @@ class LLMService:
         if not self.client:
             raise ValueError("LLM 客户端未初始化，请先配置 API Key")
 
-        # 构建基础参数
+        # 构建基础参数，优先使用 kwargs，其次使用实例默认值
         chat_kwargs = {
             "model": self.model,
             "messages": messages,
-            "temperature": kwargs.get("temperature", 0.7),
-            "max_tokens": kwargs.get("max_tokens", 4000),
+            "temperature": kwargs.get("temperature", self.temperature),
+            "max_tokens": kwargs.get("max_tokens", self.max_tokens),
             "timeout": kwargs.get("timeout", 60)
         }
 
@@ -148,12 +154,16 @@ def get_llm_service(
     provider: str = LLMProvider.DEEPSEEK,
     api_key: str = "",
     base_url: str = "",
-    model: str = ""
+    model: str = "",
+    temperature: float = 0.7,
+    max_tokens: int = 4000
 ) -> LLMService:
     """获取 LLM 服务单例"""
     global _llm_service_instance
     if _llm_service_instance is None or \
        _llm_service_instance.api_key != api_key or \
-       _llm_service_instance.provider != provider:
-        _llm_service_instance = LLMService(provider, api_key, base_url, model)
+       _llm_service_instance.provider != provider or \
+       _llm_service_instance.temperature != temperature or \
+       _llm_service_instance.max_tokens != max_tokens:
+        _llm_service_instance = LLMService(provider, api_key, base_url, model, temperature, max_tokens)
     return _llm_service_instance

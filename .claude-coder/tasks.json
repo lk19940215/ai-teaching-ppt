@@ -403,7 +403,7 @@
         "统一参数验证和错误处理逻辑",
         "验证：grep -q \"max_tokens\" backend/app/services/llm_service.py && echo \"pass\""
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-005",
         "feat-011"
