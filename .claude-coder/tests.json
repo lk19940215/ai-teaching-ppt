@@ -312,6 +312,29 @@
       "created_session": 19,
       "last_result": "pass",
       "last_run_session": 19
+    },
+    {
+      "id": "test-feat019-dark-mode-fix",
+      "feature_id": "feat-019",
+      "name": "修复 Dark Mode 样式不一致 - 代码审查验证",
+      "type": "unit",
+      "priority": "critical",
+      "affected_paths": [
+        "frontend/src/components/ui/button.tsx",
+        "frontend/src/components/ui/input.tsx",
+        "frontend/src/components/ui/select.tsx"
+      ],
+      "preconditions": {
+        "services": [],
+        "real_api_key": false
+      },
+      "steps": "验证 button.tsx、input.tsx、select.tsx 中所有 dark: 样式类已移除，样式统一为浅色主题",
+      "test_data_summary": "代码审查验证 dark: 样式已全部移除",
+      "expected_result": "所有 UI 组件无 dark: 样式残留，统一使用浅色主题（白色背景、slate 色文字）",
+      "auto_generated": true,
+      "created_session": 20,
+      "last_result": "pass",
+      "last_run_session": 20
     }
   ]
 }
