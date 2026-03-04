@@ -77,6 +77,13 @@ class PPTPageType:
     DIALOGUE = "情景对话页"
     ANALYSIS = "课文分析页"
 
+    # 互动课堂页面类型（feat-017）
+    QUIZ = "互动选择题页"  # ABCD 选项选择题
+    CLICK_TO_REVEAL = "点击显示答案页"  # 点击显示隐藏内容
+    MATCHING = "拖拽匹配游戏页"  # 单词 - 释义配对
+    QUIZ_GAME = "随堂测验页"  # 多题测验
+    FILL_BLANK = "填空题页"  # 填空练习
+
 
 class PPTStyle:
     """PPT 样式配置（优化版：细化年级自适应规则）"""
@@ -374,6 +381,45 @@ class PPTGenerator:
                         prs,
                         slide_data,
                         content_size,
+                        secondary_color
+                    )
+                # 互动课堂页面类型（feat-017）
+                elif page_type == PPTPageType.QUIZ:
+                    self._add_quiz_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.CLICK_TO_REVEAL:
+                    self._add_click_to_reveal_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.MATCHING:
+                    self._add_matching_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.QUIZ_GAME:
+                    self._add_quiz_game_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.FILL_BLANK:
+                    self._add_fill_blank_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
                         secondary_color
                     )
 
@@ -1011,6 +1057,364 @@ class PPTGenerator:
                 p = content_frame.add_paragraph()
                 p.text = item
                 p.font.size = Pt(font_size)
+
+    def _add_quiz_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加互动选择题页（带 ABCD 选项按钮）"""
+        from pptx.enum.shapes import MSO_SHAPE
+
+        slide = prs.slides.add_slide(prs.slide_layouts[6])  # 空白布局
+
+        # 1. 添加标题
+        title_text = slide_data.get("title", "互动问答")
+        title_box = slide.shapes.add_textbox(Inches(1), Inches(0.3), Inches(8), Inches(1))
+        title_frame = title_box.text_frame
+        title_frame.text = title_text
+        title_para = title_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+        title_para.alignment = PP_ALIGN.CENTER
+
+        # 2. 添加问题文本
+        question = slide_data.get("question", "请选择正确答案")
+        question_box = slide.shapes.add_textbox(Inches(1), Inches(1.2), Inches(8), Inches(1.2))
+        question_frame = question_box.text_frame
+        question_frame.word_wrap = True
+        question_frame.text = question
+        for para in question_frame.paragraphs:
+            para.font.size = Pt(font_size)
+            para.alignment = PP_ALIGN.CENTER
+
+        # 3. 添加选项按钮
+        options = slide_data.get("options", ["A. 选项一", "B. 选项二", "C. 选项三", "D. 选项四"])
+        correct_index = slide_data.get("correct_index", 0)
+        option_labels = ['A', 'B', 'C', 'D']
+
+        button_width = Inches(3.5)
+        button_height = Inches(0.8)
+        button_spacing = Inches(0.3)
+        start_y = Inches(2.6)
+
+        for i, option in enumerate(options[:4]):
+            col = i % 2
+            row = i // 2
+            left = Inches(1) + col * (button_width + button_spacing)
+            top = start_y + row * (button_height + button_spacing)
+
+            # 创建按钮形状
+            button = slide.shapes.add_shape(
+                MSO_SHAPE.ROUNDED_RECTANGLE,
+                left, top, button_width, button_height
+            )
+            button.fill.solid()
+            button.fill.fore_color.rgb = secondary_color
+            button.line.fill.background()
+
+            # 添加选项文本
+            tf = button.text_frame
+            label = option_labels[i] if i < 4 else chr(ord('A') + i)
+            tf.text = f"{label}. {option}"
+            tf.paragraphs[0].alignment = PP_ALIGN.CENTER
+            tf.paragraphs[0].font.size = Pt(font_size)
+            tf.paragraphs[0].font.color.rgb = RGBColor(255, 255, 255)
+            tf.paragraphs[0].font.bold = True
+
+        # 4. 添加答案提示
+        answer_text = f"正确答案：{option_labels[correct_index]}" if correct_index < 4 else "查看答案"
+        answer_box = slide.shapes.add_textbox(Inches(2.5), Inches(5.5), Inches(5), Inches(0.8))
+        answer_frame = answer_box.text_frame
+        answer_frame.text = answer_text
+        answer_para = answer_frame.paragraphs[0]
+        answer_para.font.size = Pt(font_size)
+        answer_para.font.color.rgb = RGBColor(76, 175, 80)  # 绿色
+        answer_para.font.bold = True
+        answer_para.alignment = PP_ALIGN.CENTER
+
+    def _add_click_to_reveal_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加点击显示答案页"""
+        from pptx.enum.shapes import MSO_SHAPE
+
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+
+        # 1. 添加标题
+        title_text = slide_data.get("title", "点击显示答案")
+        title_box = slide.shapes.add_textbox(Inches(1), Inches(0.3), Inches(8), Inches(1))
+        title_frame = title_box.text_frame
+        title_frame.text = title_text
+        title_para = title_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+        title_para.alignment = PP_ALIGN.CENTER
+
+        # 2. 添加问题文本
+        question = slide_data.get("question", "问题是什么？")
+        question_box = slide.shapes.add_textbox(Inches(1), Inches(1.2), Inches(8), Inches(2))
+        question_frame = question_box.text_frame
+        question_frame.word_wrap = True
+        question_frame.text = question
+        for para in question_frame.paragraphs:
+            para.font.size = Pt(font_size)
+            para.alignment = PP_ALIGN.CENTER
+
+        # 3. 添加"点击显示"按钮区域
+        reveal_btn = slide.shapes.add_shape(
+            MSO_SHAPE.ROUNDED_RECTANGLE,
+            Inches(3), Inches(3.5), Inches(4), Inches(1)
+        )
+        reveal_btn.fill.solid()
+        reveal_btn.fill.fore_color.rgb = RGBColor(156, 39, 176)  # 紫色
+        reveal_btn.line.fill.background()
+
+        btn_tf = reveal_btn.text_frame
+        btn_tf.text = "点击查看答案"
+        btn_tf.paragraphs[0].alignment = PP_ALIGN.CENTER
+        btn_tf.paragraphs[0].font.size = Pt(font_size)
+        btn_tf.paragraphs[0].font.color.rgb = RGBColor(255, 255, 255)
+        btn_tf.paragraphs[0].font.bold = True
+
+        # 4. 添加答案框
+        hidden_content = slide_data.get("answer", "这是隐藏的答案内容")
+        answer_box = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE,
+            Inches(1), Inches(4.8), Inches(8), Inches(2)
+        )
+        answer_box.fill.solid()
+        answer_box.fill.fore_color.rgb = RGBColor(245, 245, 245)
+        answer_box.line.color.rgb = RGBColor(76, 175, 80)
+        answer_box.line.width = Pt(2)
+
+        ans_tf = answer_box.text_frame
+        ans_tf.word_wrap = True
+        ans_tf.text = hidden_content
+        for para in ans_tf.paragraphs:
+            para.font.size = Pt(font_size)
+            para.alignment = PP_ALIGN.CENTER
+
+    def _add_matching_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加拖拽匹配游戏页"""
+        from pptx.enum.shapes import MSO_SHAPE
+
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+
+        # 1. 添加标题
+        title_text = slide_data.get("title", "拖拽匹配游戏")
+        title_box = slide.shapes.add_textbox(Inches(1), Inches(0.3), Inches(8), Inches(1))
+        title_frame = title_box.text_frame
+        title_frame.text = title_text
+        title_para = title_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+        title_para.alignment = PP_ALIGN.CENTER
+
+        # 2. 添加左右列标题
+        left_title = slide_data.get("left_title", "单词")
+        right_title = slide_data.get("right_title", "释义")
+
+        left_title_box = slide.shapes.add_textbox(Inches(1), Inches(1.3), Inches(3.5), Inches(0.5))
+        lt_frame = left_title_box.text_frame
+        lt_frame.text = left_title
+        lt_frame.paragraphs[0].font.size = Pt(font_size + 2)
+        lt_frame.paragraphs[0].font.color.rgb = color
+        lt_frame.paragraphs[0].font.bold = True
+        lt_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
+
+        right_title_box = slide.shapes.add_textbox(Inches(5.5), Inches(1.3), Inches(3.5), Inches(0.5))
+        rt_frame = right_title_box.text_frame
+        rt_frame.text = right_title
+        rt_frame.paragraphs[0].font.size = Pt(font_size + 2)
+        rt_frame.paragraphs[0].font.color.rgb = secondary_color
+        rt_frame.paragraphs[0].font.bold = True
+        rt_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
+
+        # 3. 添加匹配项
+        pairs = slide_data.get("pairs", [])  # [(左，右), ...]
+        left_y = Inches(2)
+        item_height = Inches(0.7)
+        spacing = Inches(0.2)
+
+        for i, pair in enumerate(pairs[:6]):
+            if isinstance(pair, (list, tuple)) and len(pair) >= 2:
+                left_item, right_item = pair[0], pair[1]
+            else:
+                continue
+
+            # 左侧项目
+            left_box = slide.shapes.add_shape(
+                MSO_SHAPE.ROUNDED_RECTANGLE,
+                Inches(1), left_y + i * (item_height + spacing),
+                Inches(3.5), item_height
+            )
+            left_box.fill.solid()
+            left_box.fill.fore_color.rgb = color
+            left_box.line.fill.background()
+
+            left_tf = left_box.text_frame
+            left_tf.text = str(left_item)
+            left_tf.paragraphs[0].alignment = PP_ALIGN.CENTER
+            left_tf.paragraphs[0].font.size = Pt(font_size)
+            left_tf.paragraphs[0].font.color.rgb = RGBColor(255, 255, 255)
+
+            # 右侧项目
+            right_box = slide.shapes.add_shape(
+                MSO_SHAPE.ROUNDED_RECTANGLE,
+                Inches(5.5), left_y + i * (item_height + spacing),
+                Inches(3.5), item_height
+            )
+            right_box.fill.solid()
+            right_box.fill.fore_color.rgb = RGBColor(200, 200, 200)
+            right_box.line.fill.background()
+
+            right_tf = right_box.text_frame
+            right_tf.text = str(right_item)
+            right_tf.paragraphs[0].alignment = PP_ALIGN.CENTER
+            right_tf.paragraphs[0].font.size = Pt(font_size)
+            right_tf.paragraphs[0].font.color.rgb = RGBColor(33, 33, 33)
+
+    def _add_quiz_game_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加随堂测验页（多题展示）"""
+        from pptx.enum.shapes import MSO_SHAPE
+
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+        option_labels = ['A', 'B', 'C', 'D']
+
+        # 1. 添加标题
+        title_text = slide_data.get("title", "随堂测验")
+        title_box = slide.shapes.add_textbox(Inches(1), Inches(0.3), Inches(8), Inches(0.8))
+        title_frame = title_box.text_frame
+        title_frame.text = title_text
+        title_para = title_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+        title_para.alignment = PP_ALIGN.CENTER
+
+        # 2. 添加说明
+        hint_box = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(8), Inches(0.5))
+        hint_frame = hint_box.text_frame
+        hint_frame.text = "请选择正确答案"
+        hint_frame.paragraphs[0].font.size = Pt(font_size - 2)
+        hint_frame.paragraphs[0].font.color.rgb = RGBColor(128, 128, 128)
+        hint_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
+
+        # 3. 添加问题
+        questions = slide_data.get("questions", [])
+        q_start_y = Inches(1.6)
+
+        for i, q in enumerate(questions[:3]):  # 最多 3 题
+            q_y = q_start_y + i * Inches(2.8)
+
+            # 问题编号和文本
+            q_text = q.get("question", f"问题 {i + 1}")
+            q_box = slide.shapes.add_textbox(Inches(0.8), q_y, Inches(8.4), Inches(0.6))
+            q_frame = q_box.text_frame
+            q_frame.word_wrap = True
+            q_frame.text = f"{i + 1}. {q_text}"
+            q_frame.paragraphs[0].font.size = Pt(font_size)
+            q_frame.paragraphs[0].font.bold = True
+
+            # 选项
+            options = q.get("options", [])
+            for j, opt in enumerate(options[:4]):
+                opt_x = Inches(1) + (j % 2) * Inches(4.2)
+                opt_y = q_y + Inches(0.6) + (j // 2) * Inches(0.8)
+
+                opt_btn = slide.shapes.add_shape(
+                    MSO_SHAPE.ROUNDED_RECTANGLE,
+                    opt_x, opt_y, Inches(4), Inches(0.7)
+                )
+                opt_btn.fill.solid()
+                opt_btn.fill.fore_color.rgb = color
+                opt_btn.line.fill.background()
+
+                opt_tf = opt_btn.text_frame
+                label = option_labels[j] if j < 4 else chr(ord('A') + j)
+                opt_tf.text = f"{label}. {opt}"
+                opt_tf.paragraphs[0].alignment = PP_ALIGN.CENTER
+                opt_tf.paragraphs[0].font.size = Pt(font_size - 2)
+                opt_tf.paragraphs[0].font.color.rgb = RGBColor(255, 255, 255)
+
+    def _add_fill_blank_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加填空题页"""
+        from pptx.enum.shapes import MSO_SHAPE
+
+        slide = prs.slides.add_slide(prs.slide_layouts[6])
+
+        # 1. 添加标题
+        title_text = slide_data.get("title", "填空题")
+        title_box = slide.shapes.add_textbox(Inches(1), Inches(0.3), Inches(8), Inches(0.8))
+        title_frame = title_box.text_frame
+        title_frame.text = title_text
+        title_para = title_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+        title_para.alignment = PP_ALIGN.CENTER
+
+        # 2. 添加句子（用___表示空白）
+        sentences = slide_data.get("sentences", [])
+        y_pos = Inches(1.5)
+
+        for i, sentence in enumerate(sentences[:6]):
+            sent_box = slide.shapes.add_textbox(Inches(1), y_pos + i * Inches(1), Inches(8), Inches(0.8))
+            sent_frame = sent_box.text_frame
+            sent_frame.word_wrap = True
+            sent_frame.text = sentence
+            sent_frame.paragraphs[0].font.size = Pt(font_size)
+
+        # 3. 添加答案框
+        answers = slide_data.get("answers", [])
+        ans_text = "答案：" + " | ".join(str(a) for a in answers) if answers else "答案：见教师用书"
+
+        ans_box = slide.shapes.add_shape(
+            MSO_SHAPE.RECTANGLE,
+            Inches(1), Inches(6), Inches(8), Inches(1.2)
+        )
+        ans_box.fill.solid()
+        ans_box.fill.fore_color.rgb = RGBColor(245, 245, 245)
+        ans_box.line.color.rgb = secondary_color
+        ans_box.line.width = Pt(2)
+
+        ans_tf = ans_box.text_frame
+        ans_tf.text = ans_text
+        ans_tf.paragraphs[0].font.size = Pt(font_size)
+        ans_tf.paragraphs[0].font.color.rgb = secondary_color
+        ans_tf.paragraphs[0].font.bold = True
+        ans_tf.paragraphs[0].alignment = PP_ALIGN.CENTER
 
 
 # 全局 PPT 生成器实例

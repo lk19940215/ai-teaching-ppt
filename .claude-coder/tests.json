@@ -264,6 +264,28 @@
       "created_session": 17,
       "last_result": "pass",
       "last_run_session": 17
+    },
+    {
+      "id": "test-feat017-interactive-ppt",
+      "feature_id": "feat-017",
+      "name": "PPT 课堂互动功能增强 - 页面类型验证",
+      "type": "unit",
+      "priority": "critical",
+      "affected_paths": [
+        "backend/app/services/ppt_generator.py",
+        "backend/app/services/pptx_interactive.py"
+      ],
+      "preconditions": {
+        "services": ["backend"],
+        "real_api_key": false
+      },
+      "steps": "验证 PPTPageType 新增 QUIZ、CLICK_TO_REVEAL、MATCHING、QUIZ_GAME、FILL_BLANK 页面类型；验证 PPTGenerator 包含对应的方法 _add_quiz_slide、_add_click_to_reveal_slide、_add_matching_slide、_add_quiz_game_slide、_add_fill_blank_slide",
+      "test_data_summary": "互动页面类型和方法验证",
+      "expected_result": "5 个互动页面类型已定义，对应的 5 个页面生成方法存在",
+      "auto_generated": true,
+      "created_session": 18,
+      "last_result": "pass",
+      "last_run_session": 18
     }
   ]
 }

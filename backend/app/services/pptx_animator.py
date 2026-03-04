@@ -478,7 +478,7 @@ def add_animation_to_ppt(
     Returns:
         输出文件路径
     """
-    from backend.app.services.ppt_generator import PPTStyle
+    from .ppt_generator import PPTStyle
 
     # 根据年级获取动画建议
     style = PPTStyle.get_style(grade)
