@@ -283,12 +283,13 @@
         "准备测试素材（示例文本、PDF 文件）用于验证 upload 页面功能",
         "生成测试样本并对比优化前后效果"
       ],
-      "status": "pending",
+      "status": "in_progress",
       "depends_on": [
         "feat-005",
         "feat-006",
         "feat-009"
-      ]
+      ],
+      "notes": "Session 1: 已创建测试素材文件 record/test_samples.md，包含 4 个学科的测试内容。样式问题排查：代码审查确认使用浅色主题，未发现 dark 背景黑色文字问题。"
     },
     {
       "id": "feat-016",
