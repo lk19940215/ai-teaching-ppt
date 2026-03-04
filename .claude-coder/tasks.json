@@ -371,6 +371,62 @@
         "feat-002",
         "feat-018"
       ]
+    },
+    {
+      "id": "feat-020",
+      "category": "fullstack",
+      "priority": 20,
+      "description": "LLM 模型配置增强：支持温度、最大输入输出 token 设置",
+      "steps": [
+        "后端：更新 LLM 配置数据模型，新增 temperature、max_input_tokens、max_output_tokens 字段",
+        "后端：更新 LLM 调用接口，正确传递 temperature、max_tokens 参数",
+        "后端：检查 OpenAI 调用是否设置 response_format 为 JSON",
+        "前端：在设置页面添加温度滑块（0-2，步长 0.1）",
+        "前端：添加最大输入/输出 token 输入框",
+        "验证：curl -s http://localhost:8000/api/llm/config 返回包含新配置字段"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-011"
+      ]
+    },
+    {
+      "id": "feat-021",
+      "category": "backend",
+      "priority": 21,
+      "description": "LLM 调用参数格式排查：确保传递的参数符合各服务商规范",
+      "steps": [
+        "检查 DeepSeek 调用的参数格式（temperature、max_tokens 等）",
+        "检查 OpenAI 调用的参数格式（temperature、max_tokens、response_format）",
+        "检查 Claude 调用的参数格式（temperature、max_tokens）",
+        "检查 GLM 调用的参数格式",
+        "统一参数验证和错误处理逻辑",
+        "验证：grep -q \"max_tokens\" backend/app/services/llm_service.py && echo \"pass\""
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-005",
+        "feat-011"
+      ]
+    },
+    {
+      "id": "feat-022",
+      "category": "frontend",
+      "priority": 22,
+      "description": "AI 备课交互动画优化：增强动画视觉效果",
+      "steps": [
+        "分析现有交互动画问题（不够醒目）",
+        "优化 loading 动画（添加骨架屏、进度动画）",
+        "优化按钮点击反馈（缩放、波纹效果）",
+        "优化页面切换动画（流畅过渡效果）",
+        "添加生成进度的实时动画反馈",
+        "验证：curl -s http://localhost:3000 | grep -q \"animation\" && echo \"pass\""
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-002",
+        "feat-004"
+      ]
     }
   ]
 }
