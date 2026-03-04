@@ -385,7 +385,7 @@
         "前端：添加最大输入/输出 token 输入框",
         "验证：curl -s http://localhost:8000/api/llm/config 返回包含新配置字段"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-011"
       ]

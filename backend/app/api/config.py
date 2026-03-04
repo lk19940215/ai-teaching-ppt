@@ -95,6 +95,9 @@ async def save_provider_config(
     base_url: Optional[str] = Body(None, embed=True),
     model: Optional[str] = Body(None, embed=True),
     is_default: Optional[bool] = Body(False, embed=True),
+    temperature: Optional[float] = Body(0.7, embed=True),
+    max_input_tokens: Optional[int] = Body(4096, embed=True),
+    max_output_tokens: Optional[int] = Body(2000, embed=True),
     db: Session = Depends(get_db)
 ):
     """保存服务商配置"""
@@ -116,7 +119,10 @@ async def save_provider_config(
                 api_key=api_key,
                 base_url=base_url,
                 model=model,
-                is_default=is_default
+                is_default=is_default,
+                temperature=temperature,
+                max_input_tokens=max_input_tokens,
+                max_output_tokens=max_output_tokens
             )
         else:
             # 创建配置
@@ -125,7 +131,10 @@ async def save_provider_config(
                 api_key=api_key,
                 base_url=base_url,
                 model=model,
-                is_default=is_default
+                is_default=is_default,
+                temperature=temperature,
+                max_input_tokens=max_input_tokens,
+                max_output_tokens=max_output_tokens
             )
 
         return JSONResponse(content={

@@ -12,6 +12,9 @@ interface LLMConfig {
   apiKey: string
   baseUrl: string
   model: string
+  temperature: number
+  maxInputTokens: number
+  maxOutputTokens: number
   isDefault?: boolean
   isActive?: boolean
 }
@@ -23,6 +26,9 @@ interface ServerProviderConfig {
   api_key_masked?: string
   base_url?: string
   model?: string
+  temperature?: number
+  max_input_tokens?: number
+  max_output_tokens?: number
   is_default?: boolean
   is_active?: boolean
 }
@@ -47,6 +53,9 @@ const DEFAULT_CONFIG: LLMConfig = {
   apiKey: "",
   baseUrl: "",
   model: "",
+  temperature: 0.7,
+  maxInputTokens: 4096,
+  maxOutputTokens: 2000,
 }
 
 export default function SettingsPage() {
@@ -80,6 +89,9 @@ export default function SettingsPage() {
             apiKey: "", // 不加载完整 API Key
             baseUrl: defaultConfig.base_url || "",
             model: defaultConfig.model || "",
+            temperature: defaultConfig.temperature ?? 0.7,
+            maxInputTokens: defaultConfig.max_input_tokens ?? 4096,
+            maxOutputTokens: defaultConfig.max_output_tokens ?? 2000,
           })
         }
       }
@@ -108,6 +120,9 @@ export default function SettingsPage() {
           base_url: config.baseUrl || undefined,
           model: config.model || undefined,
           is_default: true, // 保存时设为默认
+          temperature: config.temperature,
+          max_input_tokens: config.maxInputTokens,
+          max_output_tokens: config.maxOutputTokens,
         }),
       })
 
@@ -181,9 +196,12 @@ export default function SettingsPage() {
     if (providerConfig) {
       setConfig({
         provider,
-        apiKey: "", // 不自动填充 API Key
+        apiKey: "",
         baseUrl: savedConfig?.base_url || providerConfig.baseUrl,
         model: savedConfig?.model || providerConfig.model,
+        temperature: savedConfig?.temperature ?? 0.7,
+        maxInputTokens: savedConfig?.max_input_tokens ?? 4096,
+        maxOutputTokens: savedConfig?.max_output_tokens ?? 2000,
       })
     }
   }
@@ -290,6 +308,59 @@ export default function SettingsPage() {
                   onChange={(e) => setConfig({ ...config, model: e.target.value })}
                   placeholder={PROVIDER_OPTIONS.find(p => p.provider === config.provider)?.model}
                 />
+              </div>
+
+              {/* 温度参数 */}
+              <div>
+                <Label htmlFor="temperature">温度（Temperature）: {config.temperature.toFixed(1)}</Label>
+                <input
+                  id="temperature"
+                  type="range"
+                  min="0"
+                  max="2"
+                  step="0.1"
+                  value={config.temperature}
+                  onChange={(e) => setConfig({ ...config, temperature: parseFloat(e.target.value) })}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>0（确定）</span>
+                  <span>1（平衡）</span>
+                  <span>2（随机）</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  控制输出的随机性：较低值使输出更确定，较高值使输出更富创造性。
+                </p>
+              </div>
+
+              {/* 最大输入 Token */}
+              <div>
+                <Label htmlFor="maxInputTokens">最大输入 Token 数</Label>
+                <Input
+                  id="maxInputTokens"
+                  type="number"
+                  value={config.maxInputTokens}
+                  onChange={(e) => setConfig({ ...config, maxInputTokens: parseInt(e.target.value) || 4096 })}
+                  placeholder="4096"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  限制发送给 LLM 的最大输入 token 数量（包含提示词和上下文）。
+                </p>
+              </div>
+
+              {/* 最大输出 Token */}
+              <div>
+                <Label htmlFor="maxOutputTokens">最大输出 Token 数</Label>
+                <Input
+                  id="maxOutputTokens"
+                  type="number"
+                  value={config.maxOutputTokens}
+                  onChange={(e) => setConfig({ ...config, maxOutputTokens: parseInt(e.target.value) || 2000 })}
+                  placeholder="2000"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  限制 LLM 返回的最大输出 token 数量。
+                </p>
               </div>
 
               {/* 按钮组 */}

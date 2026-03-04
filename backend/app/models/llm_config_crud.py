@@ -35,7 +35,10 @@ def create_config(
     api_key: str,
     base_url: Optional[str] = None,
     model: Optional[str] = None,
-    is_default: bool = False
+    is_default: bool = False,
+    temperature: float = 0.7,
+    max_input_tokens: int = 4096,
+    max_output_tokens: int = 2000
 ) -> LLMConfig:
     """创建新配置"""
     # 如果设为默认，先取消其他默认
@@ -48,7 +51,10 @@ def create_config(
         base_url=base_url,
         model=model,
         is_default=is_default,
-        is_active=True
+        is_active=True,
+        temperature=temperature,
+        max_input_tokens=max_input_tokens,
+        max_output_tokens=max_output_tokens
     )
     db.add(config)
     db.commit()
@@ -63,7 +69,10 @@ def update_config(
     base_url: Optional[str] = None,
     model: Optional[str] = None,
     is_default: Optional[bool] = None,
-    is_active: Optional[bool] = None
+    is_active: Optional[bool] = None,
+    temperature: Optional[float] = None,
+    max_input_tokens: Optional[int] = None,
+    max_output_tokens: Optional[int] = None
 ) -> Optional[LLMConfig]:
     """更新配置"""
     config = get_config_by_provider(db, provider)
@@ -85,6 +94,12 @@ def update_config(
         config.is_default = is_default
     if is_active is not None:
         config.is_active = is_active
+    if temperature is not None:
+        config.temperature = temperature
+    if max_input_tokens is not None:
+        config.max_input_tokens = max_input_tokens
+    if max_output_tokens is not None:
+        config.max_output_tokens = max_output_tokens
 
     db.commit()
     db.refresh(config)

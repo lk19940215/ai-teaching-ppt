@@ -335,6 +335,28 @@
       "created_session": 20,
       "last_result": "pass",
       "last_run_session": 20
+    },
+    {
+      "id": "test-feat020-llm-config",
+      "feature_id": "feat-020",
+      "name": "LLM 模型配置增强 - API 端点验证",
+      "type": "api",
+      "priority": "critical",
+      "affected_paths": [
+        "backend/app/models/llm_config.py",
+        "backend/app/models/llm_config_crud.py",
+        "backend/app/api/config.py"
+      ],
+      "preconditions": {
+        "services": ["backend"],
+        "real_api_key": false
+      },
+      "steps": "验证 GET /api/v1/config/providers 返回包含 temperature、max_input_tokens、max_output_tokens 字段",
+      "test_data_summary": "LLM 配置 API 端点验证新字段",
+      "expected_result": "API 返回的配置数据包含 temperature(0.7)、max_input_tokens(4096)、max_output_tokens(2000) 字段",
+      "verify": "curl -s http://localhost:8000/api/v1/config/providers | python -m json.tool",
+      "last_result": "pass",
+      "last_run_session": 21
     }
   ]
 }

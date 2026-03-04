@@ -69,13 +69,20 @@ class LLMService:
             raise ValueError("LLM 客户端未初始化，请先配置 API Key")
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                temperature=kwargs.get("temperature", 0.7),
-                max_tokens=kwargs.get("max_tokens", 2000),
-                timeout=kwargs.get("timeout", 60)
-            )
+            # 构建基础参数
+            create_kwargs = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": kwargs.get("temperature", 0.7),
+                "max_tokens": kwargs.get("max_tokens", 2000),
+                "timeout": kwargs.get("timeout", 60)
+            }
+
+            # OpenAI 特定：设置 response_format 为 JSON 以强制 JSON 输出
+            if self.provider == LLMProvider.OPENAI:
+                create_kwargs["response_format"] = {"type": "json_object"}
+
+            response = self.client.chat.completions.create(**create_kwargs)
             return response.choices[0].message.content
         except OpenAITimeoutError as e:
             logger.error(f"LLM 调用超时: {e}")
