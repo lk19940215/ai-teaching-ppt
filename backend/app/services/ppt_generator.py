@@ -162,6 +162,13 @@ class PPTStyle:
             "teaching_strategy": "系统化知识讲解，注重知识间的联系，培养批判性思维和综合运用能力",
             "interaction_style": "探究性问题、辩论、案例分析、项目式学习",
         },
+        "high_school": {
+            "name": "高中（10-12 年级）",
+            "grades": ["10", "11", "12"],
+            "description": "学术风格、严谨配色、高信息密度、高考导向",
+            "teaching_strategy": "深度知识讲解，强调学科核心素养，注重知识迁移和综合运用，强化应试能力",
+            "interaction_style": "学术研讨、高考真题分析、变式训练、专题探究",
+        },
     }
 
     # 年级样式配置（细化到每个年级）
@@ -267,6 +274,40 @@ class PPTStyle:
             "max_content_lines": 8,
             "use_icons": False,
             "animation_suggestion": "使用无动画或简单切换",
+        },
+        # 高中（10-12 年级）：学术风格、严谨配色
+        "10": {
+            "font_size": 18,
+            "title_size": 26,
+            "primary": COLOR_BLUE_3,
+            "secondary": COLOR_BLUE_5,
+            "group": "high_school",
+            "need_pinyin": False,
+            "max_content_lines": 8,
+            "use_icons": False,
+            "animation_suggestion": "使用专业克制的切换动画",
+        },
+        "11": {
+            "font_size": 16,
+            "title_size": 24,
+            "primary": COLOR_GREEN_2,
+            "secondary": COLOR_BLUE_3,
+            "group": "high_school",
+            "need_pinyin": False,
+            "max_content_lines": 9,
+            "use_icons": False,
+            "animation_suggestion": "使用简洁动画或无动画",
+        },
+        "12": {
+            "font_size": 16,
+            "title_size": 24,
+            "primary": COLOR_BLUE_6,
+            "secondary": COLOR_GREEN_1,
+            "group": "high_school",
+            "need_pinyin": False,
+            "max_content_lines": 10,
+            "use_icons": False,
+            "animation_suggestion": "使用无动画，专注内容呈现",
         },
     }
 

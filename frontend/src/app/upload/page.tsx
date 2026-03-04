@@ -19,6 +19,9 @@ const GRADE_OPTIONS = [
   { value: "7", label: "初中一年级" },
   { value: "8", label: "初中二年级" },
   { value: "9", label: "初中三年级" },
+  { value: "10", label: "高中一年级" },
+  { value: "11", label: "高中二年级" },
+  { value: "12", label: "高中三年级" },
 ]
 
 // 学科选项

@@ -450,6 +450,16 @@ class AnimationPreset:
         }
 
     @staticmethod
+    def high_school() -> Dict[str, Any]:
+        """高中风格动画（克制、专业、无多余装饰）"""
+        return {
+            'transition': 'cut',
+            'transition_duration': 0.2,
+            'entry_effect': 'appear',
+            'entry_duration': 0.15,
+        }
+
+    @staticmethod
     def none() -> Dict[str, Any]:
         """无动画"""
         return {
@@ -491,6 +501,8 @@ def add_animation_to_ppt(
         preset = AnimationPreset.elementary_school()
     elif grade_group == 'middle':
         preset = AnimationPreset.middle_school()
+    elif grade_group == 'high_school':
+        preset = AnimationPreset.high_school()
     else:
         preset = AnimationPreset.elementary_school()
 

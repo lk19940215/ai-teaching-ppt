@@ -516,7 +516,7 @@
         "AnimationPreset 增加高中动画预设（克制、专业）",
         "验证：选择高中年级后生成的 PPT 风格符合学术规范"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-004",
         "feat-009"
