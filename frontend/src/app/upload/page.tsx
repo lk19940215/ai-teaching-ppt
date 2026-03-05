@@ -324,6 +324,14 @@ export default function UploadPage() {
         return
       }
 
+      // 超长内容检查（feat-049）
+      const MAX_CONTENT_LENGTH = 10000 // 约 8000 token 的字数上限
+      if (finalTextContent.length > MAX_CONTENT_LENGTH) {
+        setError(`内容过长（${finalTextContent.length}字），请控制在${MAX_CONTENT_LENGTH}字以内`)
+        setIsGenerating(false)
+        return
+      }
+
       // 使用 SSE 流式生成 PPT
       setProgressStatus('正在连接生成服务...')
 

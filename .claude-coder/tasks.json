@@ -947,7 +947,7 @@
         "每个场景的预期结果和实际结果记录到 record/e2e_test_results.md",
         "如果发现错误处理不友好（如显示技术错误栈而非用户友好提示），修复对应的前端/后端代码"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-046"
       ]

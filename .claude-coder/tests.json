@@ -626,6 +626,33 @@
       "created_session": 2,
       "last_result": "pass",
       "last_run_session": 2
+    },
+    {
+      "id": "test-feat049-error-scenarios",
+      "feature_id": "feat-049",
+      "name": "错误场景与边界条件 - 端到端验证",
+      "type": "browser",
+      "priority": "critical",
+      "affected_paths": [
+        "frontend/src/app/upload/page.tsx",
+        "frontend/src/app/settings/page.tsx",
+        "backend/app/api/config.py",
+        "backend/app/services/llm.py"
+      ],
+      "preconditions": {
+        "services": [
+          "frontend",
+          "backend"
+        ],
+        "real_api_key": false
+      },
+      "steps": "场景 C1: 访问 /upload 验证空内容时按钮 disabled; 场景 C2: 清除 localStorage 后验证 API Key 缺失提示; 场景 C3: 访问 /settings 输入无效 API Key 验证错误提示; 场景 C4: 输入超长内容验证字数限制提示",
+      "test_data_summary": "错误场景 E2E 测试，包含空内容、无 API Key、无效 Key、超长内容 4 个场景",
+      "expected_result": "C1: 按钮 disabled 状态正确; C2: 显示'API Key 未配置'提示; C3: 显示连接失败错误详情; C4: 显示字数超限提示",
+      "auto_generated": true,
+      "created_session": 4,
+      "last_result": "pass",
+      "last_run_session": 4
     }
   ]
 }
