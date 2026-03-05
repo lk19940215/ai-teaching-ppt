@@ -827,6 +827,40 @@
         "feat-016",
         "feat-017"
       ]
+    },
+    {
+      "id": "feat-044",
+      "category": "fullstack",
+      "priority": 44,
+      "description": "Playwright MCP 全面测试：执行端到端测试并记录问题",
+      "steps": [
+        "启动前后端服务，使用 Playwright MCP 访问首页验证页面加载正常",
+        "测试完整 PPT 生成流程：上传文本内容 -> 配置参数 -> 点击生成 -> 等待 SSE 推送 -> 预览缩略图 -> 下载文件",
+        "测试历史记录页面（列表展示、重新下载）和设置页面（LLM 配置保存）",
+        "将发现的 UI/UX 问题、功能缺陷、性能问题记录到 record/playwright_test_v1.md",
+        "验证：grep -q '问题描述' record/playwright_test_v1.md && echo 'pass'"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-043"
+      ]
+    },
+    {
+      "id": "feat-045",
+      "category": "fullstack",
+      "priority": 45,
+      "description": "测试问题修复：修复 Playwright 测试发现的问题",
+      "steps": [
+        "读取 record/playwright_test_v1.md 问题清单，分类问题（UI/UX/功能/性能）",
+        "修复前端问题（样式、交互、状态管理）",
+        "修复后端问题（API、业务逻辑、错误处理）",
+        "使用 Playwright MCP 复测修复后的功能，确认问题已解决",
+        "验证：grep -q '状态: 已修复' record/playwright_test_v1.md && echo 'pass'"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-044"
+      ]
     }
   ]
 }
