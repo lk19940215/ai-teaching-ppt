@@ -87,7 +87,60 @@ class CognitivePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTa
 6. **课堂练习页**：基础题、提升题、拓展题
 7. **总结回顾页**：知识框架 + 重点回顾
 
-请生成符合认知负荷优化原则的教学 PPT 内容，确保学生能够有效吸收和理解知识。"""
+【先行组织者策略 - 基于 Ausubel 有意义学习理论】
+
+在每个**新概念**首次出现前，必须用 1 页"概念桥接页"连接学生已有知识：
+
+1. **桥接结构**：你已经知道 X → 今天学习 Y → X 和 Y 的关系是...
+2. **桥接方式**（三选一）：
+   - **类比桥接**：用学生熟悉的生活实例类比新概念（如：水流类比电流）
+   - **回顾桥接**：回顾已学过的相关旧知识（如：复习分数再学小数）
+   - **经验桥接**：连接学生的生活经验（如：购物经历引入负数）
+3. **输出格式**：在桥接页的 JSON 中包含 `bridge_config` 字段：
+   ```json
+   {
+     "page_type": "概念桥接页",
+     "title": "从 X 到 Y",
+     "known_concept": "学生已知的概念 X",
+     "new_concept": "今天要学的概念 Y",
+     "bridge_type": "类比/回顾/经验",
+     "bridge_content": "桥接内容的具体描述",
+     "connection": "X 和 Y 的关系说明"
+   }
+   ```
+
+【脚手架渐撤策略 - 基于 Vygotsky 最近发展区理论】
+
+练习设计必须体现"支架渐撤"的递进结构，帮助学生从依赖走向独立：
+
+1. **三阶段递进**：
+   - **阶段 1（完整示范）**：提供完整解题步骤和详细提示，学生模仿学习
+   - **阶段 2（部分提示）**：只给关键提示，学生补全中间步骤
+   - **阶段 3（独立完成）**：只给问题，学生独立完成
+
+2. **输出格式**：在"课堂练习页"的 JSON 中包含 `scaffold_stage` 字段：
+   ```json
+   {
+     "page_type": "课堂练习页",
+     "scaffold_stage": 1,  // 1=完整示范，2=部分提示，3=独立完成
+     "exercises": [
+       {
+         "question": "题目",
+         "hint": "阶段 1/2 时提供提示，阶段 3 为空",
+         "steps": "阶段 1 时提供完整步骤，阶段 2/3 为空",
+         "bloom_level": "认知层级"
+       }
+     ]
+   }
+   ```
+
+3. **年级适配规则**：
+   - 小学低年级（1-3）：以阶段 1 为主（70%），少量阶段 2（30%）
+   - 小学高年级（4-6）：阶段 1（40%）、阶段 2（40%）、阶段 3（20%）
+   - 初中（7-9）：阶段 1（20%）、阶段 2（50%）、阶段 3（30%）
+   - 高中（10-12）：阶段 2（40%）、阶段 3（60%）
+
+请生成符合认知负荷优化原则、包含先行组织者和脚手架策略的教学 PPT 内容，确保学生能够有效吸收和理解知识。"""
 
         # 应用认知负荷约束
         prompt = self.apply_cognitive_load_constraints(prompt, grade)
@@ -108,6 +161,8 @@ class CognitivePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTa
         - cognitive_load_level: 认知负荷等级（low/medium/high）
         - layout_suggestion: 布局建议
         - chunk_info: 分块信息（如属于某个复杂概念的第几步）
+        - bridge_config: 先行组织者桥接配置（概念桥接页专用）
+        - scaffold_stage: 脚手架阶段（练习页专用）
         """
         return {
             "title": "PPT 标题",
@@ -129,6 +184,14 @@ class CognitivePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTa
                         "total_parts": "总共几步（如适用）",
                         "concept_name": "所属复杂概念名称（如适用）"
                     },
+                    "bridge_config": {
+                        "known_concept": "学生已知的概念 X（概念桥接页专用）",
+                        "new_concept": "今天要学的概念 Y（概念桥接页专用）",
+                        "bridge_type": "类比/回顾/经验（概念桥接页专用）",
+                        "bridge_content": "桥接内容的具体描述（概念桥接页专用）",
+                        "connection": "X 和 Y 的关系说明（概念桥接页专用）"
+                    },
+                    "scaffold_stage": "脚手架阶段：1=完整示范，2=部分提示，3=独立完成（练习页专用）",
                     "interaction": "互动设计（如适用）"
                 }
                 for _ in range(slide_count)
@@ -150,6 +213,7 @@ class CognitivePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTa
             "课堂练习页",
             "总结回顾页",
             "概念引入页",        # 认知负荷优化：直观→抽象
+            "概念桥接页",        # 先行组织者：连接新旧知识
             "公式推导页",        # 认知负荷优化：分步展示
             "对比分析页",        # 认知负荷优化：对照布局
             "实验步骤页",        # 认知负荷优化：分块呈现

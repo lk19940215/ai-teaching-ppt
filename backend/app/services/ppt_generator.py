@@ -113,6 +113,9 @@ class PPTPageType:
     VARIATION_PRACTICE = "变式训练页"  # 梯度练习
     COMMON_MISTAKES = "易错警示页"  # 错误 vs 正确对比
 
+    # 先行组织者与脚手架策略（feat-037）
+    BRIDGE = "概念桥接页"  # 连接新旧知识：已知 X→新知 Y→关系说明
+
     # 互动课堂页面类型（feat-017）
     QUIZ = "互动选择题页"  # ABCD 选项选择题
     CLICK_TO_REVEAL = "点击显示答案页"  # 点击显示隐藏内容
@@ -708,6 +711,16 @@ class PPTGenerator:
                         content_size,
                         _COLOR_RED,  # 红色表示错误
                         COLOR_GREEN_1  # 绿色表示正确
+                    )
+                # 先行组织者与脚手架策略（feat-037）
+                elif page_type == PPTPageType.BRIDGE:
+                    # 概念桥接页：连接新旧知识的双色对比布局
+                    self._add_bridge_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
                     )
                 # 互动课堂页面类型（feat-017）
                 elif page_type == PPTPageType.QUIZ:
@@ -1509,6 +1522,103 @@ class PPTGenerator:
                 p = text_frame.add_paragraph()
                 p.text = item
                 p.font.size = Pt(font_size)
+
+    def _add_bridge_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加概念桥接页（先行组织者策略）：连接新旧知识的双色对比布局"""
+        slide = prs.slides.add_slide(prs.slide_layouts[6])  # 空白布局
+
+        # 标题
+        title_text = slide_data.get('title', '概念桥接')
+        title_box = slide.shapes.add_textbox(Inches(1), Inches(0.3), Inches(8), Inches(1))
+        title_frame = title_box.text_frame
+        title_frame.text = title_text
+        title_para = title_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.alignment = PP_ALIGN.CENTER
+
+        # 获取桥接配置
+        bridge_config = slide_data.get('bridge_config', {})
+        known_concept = bridge_config.get('known_concept', '已知知识')
+        new_concept = bridge_config.get('new_concept', '新知识')
+        bridge_type = bridge_config.get('bridge_type', '类比')
+        bridge_content = bridge_config.get('bridge_content', '')
+        connection = bridge_config.get('connection', '')
+
+        # 三色区域布局：左侧已知（主色），中间箭头，右侧新知（辅助色）
+        left_x, left_y = Inches(0.3), Inches(1.3)
+        right_x, right_y = Inches(5.7), Inches(1.3)
+        box_width, box_height = Inches(4), Inches(2.5)
+
+        # 左侧：已知概念（主色背景感）
+        left_box = slide.shapes.add_textbox(left_x, left_y, box_width, Inches(0.6))
+        left_title = left_box.text_frame
+        left_title.text = f'📚 你已经知道'
+        left_title.paragraphs[0].font.size = Pt(font_size + 1)
+        left_title.paragraphs[0].font.color.rgb = color
+        left_title.paragraphs[0].font.bold = True
+        left_title.paragraphs[0].alignment = PP_ALIGN.CENTER
+
+        left_content = slide.shapes.add_textbox(left_x, left_y + Inches(0.6), box_width, box_height)
+        left_frame = left_content.text_frame
+        left_frame.text = known_concept
+        for p in left_frame.paragraphs:
+            p.font.size = Pt(font_size)
+            p.alignment = PP_ALIGN.CENTER
+
+        # 中间：箭头和关系说明
+        arrow_x, arrow_y = Inches(4.3), Inches(2.3)
+        arrow_box = slide.shapes.add_textbox(arrow_x, arrow_y, Inches(1.4), Inches(1.5))
+        arrow_frame = arrow_box.text_frame
+        arrow_frame.text = '→'
+        arrow_para = arrow_frame.paragraphs[0]
+        arrow_para.font.size = Pt(48)
+        arrow_para.font.color.rgb = RGBColor(128, 128, 128)
+        arrow_para.alignment = PP_ALIGN.CENTER
+
+        # 关系说明在箭头下方
+        if connection:
+            conn_box = slide.shapes.add_textbox(Inches(1.5), Inches(4.2), Inches(7), Inches(1))
+            conn_frame = conn_box.text_frame
+            conn_frame.text = f'💡 关系：{connection}'
+            conn_para = conn_frame.paragraphs[0]
+            conn_para.font.size = Pt(font_size - 1)
+            conn_para.font.color.rgb = RGBColor(100, 100, 100)
+            conn_para.font.italic = True
+            conn_para.alignment = PP_ALIGN.CENTER
+
+        # 右侧：新概念（辅助色）
+        right_box = slide.shapes.add_textbox(right_x, right_y, box_width, Inches(0.6))
+        right_title = right_box.text_frame
+        right_title.text = f'🎯 今天学习'
+        right_title.paragraphs[0].font.size = Pt(font_size + 1)
+        right_title.paragraphs[0].font.color.rgb = secondary_color
+        right_title.paragraphs[0].font.bold = True
+        right_title.paragraphs[0].alignment = PP_ALIGN.CENTER
+
+        right_content = slide.shapes.add_textbox(right_x, right_y + Inches(0.6), box_width, box_height)
+        right_frame = right_content.text_frame
+        right_frame.text = new_concept
+        for p in right_frame.paragraphs:
+            p.font.size = Pt(font_size)
+            p.alignment = PP_ALIGN.CENTER
+
+        # 桥接说明（底部）
+        if bridge_content:
+            bridge_box = slide.shapes.add_textbox(Inches(0.5), Inches(5.3), Inches(9), Inches(1.5))
+            bridge_frame = bridge_box.text_frame
+            bridge_frame.word_wrap = True
+            bridge_frame.text = f'{bridge_type}桥接：{bridge_content}'
+            bridge_para = bridge_frame.paragraphs[0]
+            bridge_para.font.size = Pt(font_size - 1)
+            bridge_para.font.color.rgb = RGBColor(80, 80, 80)
 
     def _add_comparison_slide(
         self,

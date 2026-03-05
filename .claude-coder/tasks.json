@@ -711,7 +711,7 @@
         "在 ppt_generator.py 增加概念桥接页渲染方法（双色对比布局）",
         "验证：新概念前出现桥接页，练习难度呈递进趋势"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-034"
       ]
