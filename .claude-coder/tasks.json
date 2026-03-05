@@ -840,7 +840,7 @@
         "将发现的 UI/UX 问题、功能缺陷、性能问题记录到 record/playwright_test_v1.md",
         "验证：grep -q '问题描述' record/playwright_test_v1.md && echo 'pass'"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-043"
       ]
