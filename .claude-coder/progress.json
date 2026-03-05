@@ -273,6 +273,15 @@
       "taskId": "feat-046",
       "statusAfter": "done",
       "notes": "✅ feat-046 Playwright 测试基础设施升级完成\n\n执行内容:\n1. 创建 test.env 文件 - 包含 LLM 配置凭证和 API 端点，用于 Playwright CLI 脚本测试\n2. 更新 .gitignore - 添加 .claude-coder/test.env 防止凭证泄露\n3. Playwright MCP 端到端测试验证 - 所有页面正常加载\n\n测试结果:\n- 首页 (http://localhost:3000) ✅ 正常加载，导航正常\n- 上传页 (http://localhost:3000/upload) ✅ 正常加载，年级/学科/风格配置正常\n- 设置页 (http://localhost:3000/settings) ✅ 正常加载，LLM 配置表单正常\n- 历史页 (http://localhost:3000/history) ✅ 正常加载，搜索筛选组件正常\n\n凭证链路状态:\n- playwright-auth.json (MCP 模式) ✅ 已配置，包含 API Key\n- test.env (CLI 脚本模式) ✅ 新建，包含 LLM_CONFIG 和 API 端点\n- .gitignore ✅ 已更新，test.env 不会被提交\n\n测试规范文档状态:\n- testing-rules.md ✅ 已存在，AI Agent 行为规范\n- playwright-testing-guide.md ✅ 已存在，工具使用指南\n- test-seed.md ✅ 已存在，测试场景模板\n- efficient-testing-strategy.md ✅ 已存在，效率优化策略\n- ai-testing-overview.md ✅ 已存在，知识总览文档\n\n下一步：下一个 session 可继续使用已配置的凭证进行测试"
+    },
+    {
+      "session": 2,
+      "timestamp": "2026-03-05T15:24:18.628Z",
+      "result": "success",
+      "cost": 4.834626749999999,
+      "taskId": "feat-047",
+      "statusAfter": "done",
+      "notes": "feat-047 E2E 测试完成。\n\n执行内容:\n1. 使用 Playwright MCP 访问上传页面\n2. 填写数学测试内容（三角形面积，258 字）\n3. 选择年级=小学五年级、学科=数学、风格=活泼趣味\n4. 点击生成按钮\n5. SSE 推送进度：10% 分析内容 → 20% 连接服务（卡住）\n6. 后端服务中途崩溃，重启后继续测试\n7. 最终生成 PPT 文件：uploads/generated/三角形的面积公式_a951e88f.pptx\n\n发现的问题:\n1. Playwright MCP storageState 注入失效 - 需要手动注入 localStorage\n2. 后端 uvicorn 服务意外退出 - 已重启恢复\n3. SSE 进度在 20% 卡住较长时间 - LLM 调用耗时长\n\n测试结果:\n- 前端表单填写、参数选择、生成按钮正常 ✅\n- SSE 连接建立并推送初始进度 ✅\n- 后端 LLM 调用成功（尽管耗时较长）✅\n- PPT 文件成功生成 ✅\n\n凭证链路:\n- playwright-auth.json 包含有效 llm_config\n- .mcp.json 配置了 --storage-state 参数\n- 但浏览器未自动注入 localStorage（可能是 MCP 版本问题）\n- 临时解决：使用 browser_run_code 手动注入\n\n下一个会话建议:\n1. 验证生成的 PPT 文件内容质量\n2. 继续执行 feat-048（图片上传 OCR 流程测试）\n3. 如需修复 storageState 注入问题，检查 Playwright MCP 配置路径"
     }
   ]
 }

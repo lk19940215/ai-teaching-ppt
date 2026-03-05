@@ -927,10 +927,11 @@
         "如果 OCR 失败：记录错误信息，检查后端 PaddleOCR 是否正常安装",
         "将测试结果记录到 record/e2e_test_results.md"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-046"
-      ]
+      ],
+      "notes": "Session 3 完成：1) 图片上传 API 测试通过；2) OCR API 失败（环境问题：No module named 'paddle'，需安装 PaddlePaddle/PaddleOCR）；3) 文字输入完整流程测试通过（生成 16 页 PPT）；4) PPT 预览和下载功能正常。详见 record/e2e_test_results.md 和 record/ocr_env_issue.md"
     },
     {
       "id": "feat-049",

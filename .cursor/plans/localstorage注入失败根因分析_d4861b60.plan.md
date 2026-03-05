@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: verify
     content: 启动 Playwright MCP 验证 localStorage 是否正确注入
-    status: in_progress
+    status: completed
 isProject: false
 ---
 
