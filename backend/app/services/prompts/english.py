@@ -444,7 +444,7 @@ n### 五、错题分析页（feat-041 智能错题分析）
                         }
                     },
                     "dialogue": "对话内容（如适用）",
-                    "exercise": "练习题描述（如适用）"
+                    "exercise": "练习题描述（如适用）",
                     # 错题分析字段 (feat-041)
                     "common_mistakes": [
                         {

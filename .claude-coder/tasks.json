@@ -558,7 +558,7 @@
         "集成 pypinyin 库实现低年级拼音标注功能",
         "验证：语文内容生成包含学科特色页面"
       ],
-      "status": "in_progress",
+      "status": "done",
       "depends_on": [
         "feat-027",
         "feat-028"
@@ -729,7 +729,7 @@
         "元认知提示与正常内容视觉区分：使用不同背景色和图标",
         "验证：PPT 中在适当位置出现思考气泡和递进式问题链"
       ],
-      "status": "in_progress",
+      "status": "done",
       "depends_on": [
         "feat-037"
       ]
@@ -804,7 +804,7 @@
         "前端：实时更新进度条和阶段描述，移除 setInterval 假进度",
         "验证：生成过程中前端实时显示真实进度阶段"
       ],
-      "status": "testing",
+      "status": "done",
       "depends_on": [
         "feat-024"
       ]

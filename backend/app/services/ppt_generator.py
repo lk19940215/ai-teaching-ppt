@@ -121,6 +121,14 @@ class PPTPageType:
     COMMON_MISTAKES = "易错警示页"  # 错误 vs 正确对比
     MISTAKE_ANALYSIS = "错题分析页"  # feat-041: 常见错误 vs 正确方法对比分析
 
+    # 语文教学习页面类型（feat-029）
+    CHARACTER_LEARNING = "生字学习页"  # 语文专属：字 + 拼音 + 组词 + 造句
+    POEM_APPRECIATION = "古诗鉴赏页"  # 语文专属：原文 + 注释 + 赏析
+    READING_COMPREHENSION = "阅读理解页"  # 语文专属：段落分析 + 主题提炼
+    WRITING_GUIDANCE = "作文指导页"  # 语文专属：审题 + 结构 + 素材
+    PARAGRAPH_ANALYSIS = "段落分析页"  # 语文专属：层次划分 + 关键句
+    RHETORIC_DEVICE = "修辞手法页"  # 语文专属：比喻/拟人/排比等
+
     # 先行组织者与脚手架策略（feat-037）
     BRIDGE = "概念桥接页"  # 连接新旧知识：已知 X→新知 Y→关系说明
 
@@ -686,6 +694,58 @@ class PPTGenerator:
                         primary_color,
                         secondary_color
                     )
+                # 语文学科专属页面类型（feat-029）
+                elif page_type == PPTPageType.CHARACTER_LEARNING:
+                    # 生字学习页：字 + 拼音 + 组词 + 造句
+                    self._add_character_learning_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.POEM_APPRECIATION:
+                    # 古诗鉴赏页：原文 + 注释 + 赏析
+                    self._add_poem_appreciation_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.READING_COMPREHENSION:
+                    # 阅读理解页：段落分析 + 主题提炼
+                    self._add_reading_comprehension_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.WRITING_GUIDANCE:
+                    # 作文指导页：审题 + 结构 + 素材
+                    self._add_writing_guidance_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.PARAGRAPH_ANALYSIS:
+                    # 段落分析页：层次划分 + 关键句
+                    self._add_paragraph_analysis_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.RHETORIC_DEVICE:
+                    # 修辞手法页：比喻/拟人/排比等
+                    self._add_rhetoric_device_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
                 # 数学学科专属页面类型
                 elif page_type == PPTPageType.CONCEPT:
                     # 概念引入页：复用内容页逻辑，增加概念字段处理
@@ -1153,6 +1213,371 @@ class PPTGenerator:
             p.font.size = Pt(font_size - 2)
             p.font.color.rgb = RGBColor(128, 0, 128)
             p.level = 0
+
+    def _add_character_learning_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加生字学习页（语文专属：字 + 拼音 + 组词 + 造句）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "生字学习")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.5), Inches(8), Inches(5.5))
+        text_frame = content_box.text_frame
+
+        char = slide_data.get("character", {})
+        if char:
+            # 生字（大字显示）
+            p = text_frame.add_paragraph()
+            p.text = f"\n【{char.get('word', '')}】"
+            p.font.size = Pt(font_size + 10)
+            p.font.color.rgb = color
+            p.alignment = PP_ALIGN.CENTER
+
+            # 拼音
+            if char.get("pinyin"):
+                p = text_frame.add_paragraph()
+                p.text = f"拼音：{char['pinyin']}"
+                p.font.size = Pt(font_size)
+                p.level = 0
+
+            # 部首和笔画
+            if char.get("radical") or char.get("strokes"):
+                info = []
+                if char.get("radical"):
+                    info.append(f"部首：{char['radical']}")
+                if char.get("strokes"):
+                    info.append(f"笔画：{char['strokes']}")
+                p = text_frame.add_paragraph()
+                p.text = "  ".join(info)
+                p.font.size = Pt(font_size - 2)
+                p.level = 0
+
+            # 组词
+            if char.get("groups"):
+                p = text_frame.add_paragraph()
+                p.text = f"\n组词：{', '.join(char['groups'])}"
+                p.font.size = Pt(font_size)
+                p.level = 0
+
+            # 造句
+            if char.get("sentences"):
+                p = text_frame.add_paragraph()
+                p.text = "\n造句："
+                p.font.size = Pt(font_size)
+                p.level = 0
+                for sentence in char.get("sentences", [])[:2]:
+                    p = text_frame.add_paragraph()
+                    p.text = f"  • {sentence}"
+                    p.font.size = Pt(font_size - 2)
+                    p.level = 1
+
+            # 近反义词
+            if char.get("synonyms") or char.get("antonyms"):
+                if char.get("synonyms"):
+                    p = text_frame.add_paragraph()
+                    p.text = f"\n近义词：{', '.join(char['synonyms'])}"
+                    p.font.size = Pt(font_size - 2)
+                    p.level = 0
+                if char.get("antonyms"):
+                    p = text_frame.add_paragraph()
+                    p.text = f"反义词：{', '.join(char['antonyms'])}"
+                    p.font.size = Pt(font_size - 2)
+                    p.level = 0
+
+    def _add_poem_appreciation_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加古诗鉴赏页（语文专属：原文 + 注释 + 赏析）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "古诗鉴赏")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.5), Inches(8.4), Inches(5.5))
+        text_frame = content_box.text_frame
+
+        poem = slide_data.get("poem", {})
+        if poem:
+            # 诗名和作者
+            p = text_frame.add_paragraph()
+            p.text = f"{poem.get('title', '')}  【{poem.get('dynasty', '')}】{poem.get('author', '')}"
+            p.font.size = Pt(font_size + 2)
+            p.font.color.rgb = secondary_color
+            p.alignment = PP_ALIGN.CENTER
+
+            # 诗句（居中显示）
+            if poem.get("lines"):
+                p = text_frame.add_paragraph()
+                p.text = ""
+                for line in poem.get("lines", []):
+                    p.text += f"{line}\n"
+                p.font.size = Pt(font_size + 4)
+                p.alignment = PP_ALIGN.CENTER
+
+            # 朗读节奏
+            if poem.get("rhythm"):
+                p = text_frame.add_paragraph()
+                p.text = f"\n朗读节奏：{poem['rhythm']}"
+                p.font.size = Pt(font_size - 2)
+                p.font.color.rgb = RGBColor(128, 128, 128)
+                p.level = 0
+
+            # 赏析
+            if poem.get("appreciation"):
+                p = text_frame.add_paragraph()
+                p.text = f"\n【赏析】{poem['appreciation']}"
+                p.font.size = Pt(font_size)
+                p.level = 0
+
+            # 主旨
+            if poem.get("theme"):
+                p = text_frame.add_paragraph()
+                p.text = f"\n【主旨】{poem['theme']}"
+                p.font.size = Pt(font_size)
+                p.level = 0
+
+    def _add_reading_comprehension_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加阅读理解页（语文专属：段落分析 + 主题提炼）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "阅读理解")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.5), Inches(8), Inches(5.5))
+        text_frame = content_box.text_frame
+
+        reading = slide_data.get("reading", {})
+        if reading:
+            # 段落内容
+            if reading.get("paragraph"):
+                p = text_frame.add_paragraph()
+                p.text = f"【段落】{reading['paragraph'][:200]}{'...' if len(reading.get('paragraph', '')) > 200 else ''}"
+                p.font.size = Pt(font_size - 2)
+                p.level = 0
+
+            # 层次划分
+            if reading.get("structure"):
+                p = text_frame.add_paragraph()
+                p.text = f"\n【层次】{reading['structure']}"
+                p.font.size = Pt(font_size)
+                p.level = 0
+
+            # 关键句
+            if reading.get("key_sentence"):
+                p = text_frame.add_paragraph()
+                p.text = f"\n【关键句】{reading['key_sentence']}"
+                p.font.size = Pt(font_size)
+                p.font.color.rgb = color
+                p.level = 0
+
+            # 修辞手法
+            if reading.get("rhetoric"):
+                p = text_frame.add_paragraph()
+                p.text = f"\n【修辞】{reading['rhetoric']}"
+                p.font.size = Pt(font_size - 2)
+                p.level = 0
+
+            # 主题思想
+            if reading.get("theme"):
+                p = text_frame.add_paragraph()
+                p.text = f"\n【主题】{reading['theme']}"
+                p.font.size = Pt(font_size)
+                p.font.color.rgb = RGBColor(128, 0, 128)
+                p.level = 0
+
+    def _add_writing_guidance_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加作文指导页（语文专属：审题 + 结构 + 素材）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "作文指导")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.5), Inches(8), Inches(5.5))
+        text_frame = content_box.text_frame
+
+        writing = slide_data.get("writing", {})
+        if writing:
+            # 作文题目
+            if writing.get("topic"):
+                p = text_frame.add_paragraph()
+                p.text = f"【题目】{writing['topic']}"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = secondary_color
+                p.level = 0
+
+            # 审题立意
+            if writing.get("keywords"):
+                p = text_frame.add_paragraph()
+                p.text = f"\n【关键词】{', '.join(writing['keywords'])}"
+                p.font.size = Pt(font_size)
+                p.level = 0
+
+            # 结构框架
+            if writing.get("structure"):
+                p = text_frame.add_paragraph()
+                p.text = "\n【结构框架】"
+                p.font.size = Pt(font_size)
+                p.level = 0
+                for i, part in enumerate(writing.get("structure", [])):
+                    p = text_frame.add_paragraph()
+                    p.text = f"  {i + 1}. {part}"
+                    p.font.size = Pt(font_size - 2)
+                    p.level = 1
+
+            # 好词好句
+            if writing.get("good_words") or writing.get("good_sentences"):
+                if writing.get("good_words"):
+                    p = text_frame.add_paragraph()
+                    p.text = f"\n【好词】{', '.join(writing['good_words'][:6])}"
+                    p.font.size = Pt(font_size - 2)
+                    p.level = 0
+                if writing.get("good_sentences"):
+                    p = text_frame.add_paragraph()
+                    p.text = f"\n【好句】{writing['good_sentences'][0] if writing['good_sentences'] else ''}"
+                    p.font.size = Pt(font_size - 2)
+                    p.level = 0
+
+            # 写作提示
+            if writing.get("tips"):
+                p = text_frame.add_paragraph()
+                p.text = f"\n【提示】{writing['tips']}"
+                p.font.size = Pt(font_size - 2)
+                p.font.color.rgb = RGBColor(255, 100, 100)
+                p.level = 0
+
+    def _add_paragraph_analysis_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加段落分析页（语文专属：层次划分 + 关键句）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "段落分析")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.5), Inches(8), Inches(5.5))
+        text_frame = content_box.text_frame
+
+        reading = slide_data.get("reading", {})
+        if reading:
+            # 段落内容
+            if reading.get("paragraph"):
+                p = text_frame.add_paragraph()
+                p.text = f"{reading['paragraph'][:150]}{'...' if len(reading.get('paragraph', '')) > 150 else ''}"
+                p.font.size = Pt(font_size - 2)
+                p.level = 0
+
+            # 层次划分
+            if reading.get("structure"):
+                p = text_frame.add_paragraph()
+                p.text = f"\n【层次划分】{reading['structure']}"
+                p.font.size = Pt(font_size)
+                p.level = 0
+
+            # 关键句赏析
+            if reading.get("key_sentence") and reading.get("analysis"):
+                p = text_frame.add_paragraph()
+                p.text = f"\n【关键句】{reading['key_sentence']}"
+                p.font.size = Pt(font_size)
+                p.font.color.rgb = color
+                p.level = 0
+                p = text_frame.add_paragraph()
+                p.text = f"【赏析】{reading['analysis']}"
+                p.font.size = Pt(font_size - 2)
+                p.level = 0
+
+    def _add_rhetoric_device_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加修辞手法页（语文专属：比喻/拟人/排比等）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "修辞手法")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.5), Inches(8), Inches(5.5))
+        text_frame = content_box.text_frame
+
+        for item in slide_data.get("content", []):
+            p = text_frame.add_paragraph()
+            p.text = item
+            p.font.size = Pt(font_size)
+            p.level = 0
+
+        # 添加修辞示例
+        if slide_data.get("rhetoric_examples"):
+            p = text_frame.add_paragraph()
+            p.text = "\n【示例】"
+            p.font.size = Pt(font_size)
+            p.font.color.rgb = secondary_color
+            p.level = 0
+            for example in slide_data.get("rhetoric_examples", [])[:3]:
+                p = text_frame.add_paragraph()
+                p.text = f"  • {example}"
+                p.font.size = Pt(font_size - 2)
+                p.level = 1
 
     def _add_diagram_slide(
         self,
