@@ -1,9 +1,9 @@
 {
   "session_result": "success",
-  "task_id": "feat-030",
+  "task_id": "feat-032",
   "status_before": "pending",
   "status_after": "done",
-  "git_commit": "7daa1e6",
+  "git_commit": "d967241",
   "tests_passed": true,
-  "notes": "完成 feat-030 数学学科深度提示词与专属页面实现：\n\n【新增文件】\n1. backend/app/services/prompts/math.py - MathPromptStrategy 类\n   - 概念引入页：从生活实例/直观模型引入，逐步过渡到抽象符号\n   - 公式推导页：逐步标注推导过程，注明每步依据\n   - 例题讲解页：审题→分析→解题→反思四步法\n   - 变式训练页：基础变式、情境变式、逆向变式、综合变式\n   - 易错警示页：常见错误类型 + 正确方法对比\n   - 集成 CognitiveLoadMixin 认知负荷约束\n\n【修改文件】\n1. backend/app/services/prompts/__init__.py - 注册 MathPromptStrategy 到 STRATEGY_REGISTRY\n2. backend/app/services/ppt_generator.py - 新增数学专属页面类型 (CONCEPT, FORMULA_DERIVATION, EXAMPLE_PROBLEM, VARIATION_PRACTICE, COMMON_MISTAKES) 和处理逻辑\n3. backend/app/services/prompts/chinese.py - 修复 f-string 语法错误（第 109 行）\n\n【验证结果】14 项单元测试全部通过\n- MathPromptStrategy 正确注册到 STRATEGY_REGISTRY\n- 5 个数学专属页面类型可用\n- Schema 包含 formulas、mathematical_thinking 等字段\n- 提示词包含数学教学原则\n\n【tests.json 新增记录】test-feat030-math-prompt-engine\n\n【下一步建议】feat-031 理科学科、feat-032 文科学科、feat-039/040/041 依赖 feat-030 的功能"
+  "notes": "完成 feat-032 文科学科深度提示词实现：\n\n【新增文件】\n1. backend/app/services/prompts/humanities.py - 包含 HistoryPromptStrategy、PoliticsPromptStrategy、GeographyPromptStrategy 三个策略类\n\n【修改文件】\n1. backend/app/services/prompts/__init__.py - 注册文科策略到 STRATEGY_REGISTRY\n2. backend/app/services/ppt_generator.py - 新增 14 种文科页面类型 + 10 个渲染方法\n\n【验证结果】\n- 历史/政治/地理学科提示词引擎正常注册 ✓\n- 各学科专属页面类型正确返回 ✓\n- Schema 结构包含学科专属字段 ✓\n- PPT 生成器方法绑定正确 ✓\n\n【历史学科特色】\n- 时间轴页、因果分析页、史料解读页、影响评价页、多视角评价页、历史启示页\n\n【政治学科特色】\n- 概念界定页、原理阐述页、案例分析页、政策解读页、价值引领页、辩证分析页\n\n【地理学科特色】\n- 位置定位页、自然环境页、人文特征页、区域比较页、人地关系页、地图分析页\n\n下一个 session 可继续 feat-033 英语学科深度增强"
 }

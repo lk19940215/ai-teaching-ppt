@@ -531,6 +531,28 @@
       "created_session": 1,
       "last_result": "pass",
       "last_run_session": 1
+    },
+    {
+      "id": "test-feat033-english-prompt-enhancement",
+      "feature_id": "feat-033",
+      "name": "英语学科提示词深度增强 - 单元测试验证",
+      "type": "unit",
+      "priority": "critical",
+      "affected_paths": [
+        "backend/app/services/prompts/english.py",
+        "backend/app/services/prompts/__init__.py"
+      ],
+      "preconditions": {
+        "services": [],
+        "real_api_key": false
+      },
+      "steps": "验证 EnglishPromptStrategy 已注册，验证 get_page_types 返回英语专属页面类型（词根词缀页、固定搭配页、语法树页、时态时间轴页等 21 种），验证 build_schema 包含 word_analysis、collocations、syntax_tree、tense_timeline 字段，验证 build_prompt 包含词根词缀分解、固定搭配网络、语法树、时态时间轴教学要求",
+      "test_data_summary": "英语提示词深度增强单元测试，所有验证通过",
+      "expected_result": "EnglishPromptStrategy 正确注册并继承 CognitiveLoadMixin，21 个英语专属页面类型可用（新增词根词缀页、构词法图解页、词源故事页、固定搭配页、词汇网络页、搭配矩阵页、语法树页、句法结构页、从句分析页、特殊句型页、时态时间轴页、时态概览页、时态对比页），schema 包含 word_analysis（词根/前缀/后缀/词源/词族）、collocations（短语/同义词/反义词/搭配矩阵）、syntax_tree（句子成分/树状图/从句分析）、tense_timeline（时态/时间轴/参照点/动作点）、word_network、tense_overview 字段，提示词包含四大深度增强模块",
+      "auto_generated": true,
+      "created_session": 5,
+      "last_result": "pass",
+      "last_run_session": 5
     }
   ]
 }
