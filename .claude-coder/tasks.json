@@ -693,7 +693,7 @@
         "在 ppt_generator.py 的互动/练习页角标显示 Bloom 层级标识",
         "验证：生成的练习题 bloom_level 分布合理且符合年级要求"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-034"
       ]
