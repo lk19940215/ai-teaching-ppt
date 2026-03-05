@@ -6,10 +6,10 @@
 """
 
 from typing import Dict, Any, List, Optional
-from .base import CognitiveLoadMixin, SubjectPromptStrategy
+from .base import CognitiveLoadMixin, SubjectPromptStrategy, BloomTaxonomyMixin
 
 
-class CognitivePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
+class CognitivePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonomyMixin):
     """
     认知负荷优化提示词策略
 
@@ -94,6 +94,9 @@ class CognitivePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
 
         # 应用注意力节奏约束
         prompt += self.get_attention_rhythm_constraints(grade)
+
+        # 应用布鲁姆分类法约束
+        prompt += self.get_bloom_prompt_section(grade, subject)
 
         return prompt
 

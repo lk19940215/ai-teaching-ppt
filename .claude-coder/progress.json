@@ -167,6 +167,15 @@
       "taskId": "feat-034",
       "statusAfter": "done",
       "notes": "Session 1 完成 feat-034 认知负荷优化提示词系统实现：\n\n【实现内容】\n1. 增强 CognitiveLoadMixin（base.py）：\n   - 聚焦要义原则：1-12 年级每页最大要点数（2/2/3/3/4/4/4/5/5/5/6/6）\n   - 切块呈现原则：复杂概念分块大小（低年级 3 页、其他 2 页）\n   - 空间邻近原则：图示与文字同页呈现\n   - 冗余控制原则：避免文字重复图示信息\n   - 时间邻近原则：讲解与画面同步\n   - 新增 needs_chunking() 方法判断概念是否需要分块\n   - 新增 get_suggested_layout() 方法提供 6 种布局建议\n\n2. GeneralPromptStrategy 继承 CognitiveLoadMixin，build_prompt() 中应用认知负荷约束\n\n3. CognitivePromptStrategy 完整实现：\n   - build_prompt() 包含 5 大认知负荷原则和布局建议\n   - build_schema() 新增 cognitive_load_config 和 chunk_info 字段\n   - get_page_types() 新增 5 个认知优化页面类型\n\n4. 所有学科策略统一继承 CognitiveLoadMixin：\n   - English、Math、Chinese（已继承）\n   - Physics、Chemistry、Biology（已继承）\n   - History、Politics、Geography（已继承）\n   - General（本次新增继承）\n\n【验证结果】\n- Python 导入测试通过\n- CognitiveLoadMixin 方法测试通过\n- 所有学科策略继承关系验证通过\n- 提示词包含认知负荷约束验证通过\n\n【下一个 session 提示】\n- feat-035 注意力节奏引擎依赖本任务，可直接使用 apply_cognitive_load_constraints() 方法\n- cognitive_load_config 配置已集成到所有学科策略的 build_prompt() 中"
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-05T07:39:17.273Z",
+      "result": "success",
+      "cost": 1.77272325,
+      "taskId": "feat-035",
+      "statusAfter": "done",
+      "notes": "Session 1 完成 feat-035 注意力节奏引擎实现：\n\n【实现内容】\n1. 创建 attention_optimizer.py 核心模块（368 行）：\n   - AttentionRhythmOptimizer 类：注意力周期模型、页面类型节奏规则\n   - 年级适配：低年级 (1-4)2-3 页/周期、初中 (5-8)3-4 页/周期、高中 (9-12)4-5 页/周期\n   - 页面类型分类：6 种（LECTURE/INTERACTIVE/PRACTICE/VISUAL/SUMMARY/HOOK）\n   - Engagement Hooks：趣味事实、你知道吗、挑战时刻、生活应用、思考问题\n   - analyze_rhythm()：节奏分析（检测连续同类型、互动频率、吸引点间隔）\n   - optimize_sequence()：自动优化页面顺序\n   - suggest_hooks()：在指定位置建议吸引点\n\n2. 集成到 content_generator.py：\n   - generate() 方法调用注意力优化器\n   - _apply_attention_optimization() 后处理优化\n   - 返回 attention_rhythm_analysis 分析报告\n\n3. 增强提示词节奏编排指令（base.py）：\n   - CognitiveLoadMixin.get_attention_rhythm_constraints()\n   - 年级差异化策略：低年级频繁切换、高年级深入但保持变化\n   - 推荐页面序列模式：情境导入→新知→巩固→结尾\n\n4. 更新 cognitive.py：\n   - build_prompt() 同时应用认知负荷约束和注意力节奏约束\n\n【验证结果】\n- 模块导入测试通过 ✓\n- 注意力周期配置正确 ✓\n- 页面类型分类正确 ✓\n- 节奏分析功能正常 ✓\n- 提示词生成成功 ✓\n\n【文件变更】\n- 新增：backend/app/services/attention_optimizer.py\n- 修改：backend/app/services/content_generator.py\n- 修改：backend/app/services/prompts/base.py\n- 修改：backend/app/services/prompts/cognitive.py\n\n【下一个 session 提醒】\n- feat-035 已完成，可继续 feat-036（布鲁姆目标分类法）或 feat-029（语文学科）\n- 注意力节奏优化在生成后处理阶段运行，无需额外 API 调用\n- tests.json 无需新增记录（纯后端逻辑优化，无 API 端点变更）"
     }
   ]
 }

@@ -4,10 +4,10 @@
 """
 
 from typing import Dict, Any, List, Optional
-from .base import SubjectPromptStrategy, CognitiveLoadMixin
+from .base import SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonomyMixin
 
 
-class HistoryPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
+class HistoryPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonomyMixin):
     """
     历史学科提示词策略
 
@@ -162,6 +162,9 @@ class HistoryPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
         # 应用认知负荷约束
         prompt = self.apply_cognitive_load_constraints(prompt, grade)
 
+        # 应用布鲁姆分类法约束
+        prompt += self.get_bloom_prompt_section(grade, subject)
+
         return prompt
 
     def build_schema(self, slide_count: int) -> Dict[str, Any]:
@@ -300,7 +303,7 @@ class HistoryPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
         ]
 
 
-class PoliticsPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
+class PoliticsPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonomyMixin):
     """
     政治学科提示词策略
 
@@ -432,6 +435,9 @@ class PoliticsPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
         # 应用认知负荷约束
         prompt = self.apply_cognitive_load_constraints(prompt, grade)
 
+        # 应用布鲁姆分类法约束
+        prompt += self.get_bloom_prompt_section(grade, subject)
+
         return prompt
 
     def build_schema(self, slide_count: int) -> Dict[str, Any]:
@@ -545,7 +551,7 @@ class PoliticsPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
         ]
 
 
-class GeographyPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
+class GeographyPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonomyMixin):
     """
     地理学科提示词策略
 

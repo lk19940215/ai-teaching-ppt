@@ -4,10 +4,10 @@
 """
 
 from typing import Dict, Any, List, Optional
-from .base import SubjectPromptStrategy, CognitiveLoadMixin
+from .base import SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonomyMixin
 
 
-class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
+class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonomyMixin):
     """
     通用学科提示词策略
 
@@ -108,6 +108,9 @@ class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
         # 应用认知负荷约束
         prompt = self.apply_cognitive_load_constraints(prompt, grade)
 
+        # 应用布鲁姆分类法约束
+        prompt += self.get_bloom_prompt_section(grade, subject)
+
         return prompt
 
     def build_schema(self, slide_count: int) -> Dict[str, Any]:
@@ -122,7 +125,13 @@ class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
                     "title": "页面标题",
                     "content": ["页面内容要点 1", "页面内容要点 2"],
                     "interaction": "互动环节描述（如适用）",
-                    "exercise": "练习题描述（如适用）",
+                    "exercise": {
+                        "question": "练习题目",
+                        "answer": "参考答案",
+                        "analysis": "解析说明",
+                        "bloom_level": "认知层级（remember/understand/apply/analyze/evaluate/create）",
+                        "difficulty": "难度星级（1-3 星）"
+                    },
                     "mnemonic": "记忆口诀或助记方法（如适用）"
                 }
                 for _ in range(slide_count)

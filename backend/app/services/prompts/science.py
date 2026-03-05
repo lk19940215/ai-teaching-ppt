@@ -4,10 +4,10 @@
 """
 
 from typing import Dict, Any, List, Optional
-from .base import SubjectPromptStrategy, CognitiveLoadMixin
+from .base import SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonomyMixin
 
 
-class PhysicsPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
+class PhysicsPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonomyMixin):
     """
     物理学科提示词策略
 
@@ -127,6 +127,9 @@ class PhysicsPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
         # 应用认知负荷约束
         prompt = self.apply_cognitive_load_constraints(prompt, grade)
 
+        # 应用布鲁姆分类法约束
+        prompt += self.get_bloom_prompt_section(grade, subject)
+
         return prompt
 
     def build_schema(self, slide_count: int) -> Dict[str, Any]:
@@ -227,7 +230,7 @@ class PhysicsPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
         ]
 
 
-class ChemistryPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
+class ChemistryPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonomyMixin):
     """
     化学学科提示词策略
 
@@ -348,6 +351,9 @@ class ChemistryPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
         # 应用认知负荷约束
         prompt = self.apply_cognitive_load_constraints(prompt, grade)
 
+        # 应用布鲁姆分类法约束
+        prompt += self.get_bloom_prompt_section(grade, subject)
+
         return prompt
 
     def build_schema(self, slide_count: int) -> Dict[str, Any]:
@@ -454,7 +460,7 @@ class ChemistryPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
         ]
 
 
-class BiologyPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
+class BiologyPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonomyMixin):
     """
     生物学科提示词策略
 

@@ -4,10 +4,10 @@
 """
 
 from typing import Dict, Any, List, Optional
-from .base import SubjectPromptStrategy, CognitiveLoadMixin
+from .base import SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonomyMixin
 
 
-class ChinesePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
+class ChinesePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonomyMixin):
     """
     语文学科提示词策略
 
@@ -119,6 +119,9 @@ class ChinesePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
 
         # 应用认知负荷约束
         prompt = self.apply_cognitive_load_constraints(prompt, grade)
+
+        # 应用布鲁姆分类法约束
+        prompt += self.get_bloom_prompt_section(grade, subject)
 
         return prompt
 
