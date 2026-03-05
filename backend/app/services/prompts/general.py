@@ -4,14 +4,15 @@
 """
 
 from typing import Dict, Any, List, Optional
-from .base import SubjectPromptStrategy
+from .base import SubjectPromptStrategy, CognitiveLoadMixin
 
 
-class GeneralPromptStrategy(SubjectPromptStrategy):
+class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
     """
     通用学科提示词策略
 
-    将原有的通用提示词逻辑迁移至此，适用于语文、数学、科学等大多数学科
+    适用于语文、数学、科学等大多数学科的默认提示词模板
+    继承 CognitiveLoadMixin 提供认知负荷优化约束
     """
 
     def build_prompt(
@@ -27,6 +28,7 @@ class GeneralPromptStrategy(SubjectPromptStrategy):
         """
         grade_desc = self.get_grade_description(grade)
         subject_desc = self.get_subject_description(subject)
+        max_points = self.get_max_points_for_grade(grade)
 
         prompt = f"""你是一位经验丰富的教学设计师，请根据以下教学内容，设计一份高质量的教学 PPT 内容大纲。
 
@@ -52,6 +54,12 @@ class GeneralPromptStrategy(SubjectPromptStrategy):
 - 英语：注重情境创设、听说领先、读写跟进、文化意识
 - 科学/物理/化学/生物：注重实验探究、观察记录、数据分析、结论归纳
 - 历史/政治/地理：注重时空观念、因果关系、材料分析、价值引领
+
+【认知负荷优化要求】
+- 每页内容不超过{max_points}个要点，避免信息过载
+- 图文并茂：图示与文字说明应在同一页呈现
+- 复杂内容分步展示：拆分为 2-3 页逐步展开
+- 避免冗余：文字不要重复图示已表达的信息
 
 【输出结构要求】
 请严格按照以下 JSON 结构生成内容：
@@ -89,13 +97,16 @@ class GeneralPromptStrategy(SubjectPromptStrategy):
 7. **总结回顾页**：知识框架 + 重点回顾 + 课后思考
 
 【质量要求】
-- 每页内容精炼，不超过 5 个要点
+- 每页内容精炼，不超过{max_points}个要点
 - 语言通俗易懂，符合年级认知水平
 - 互动设计有趣味性，能调动学生积极性
 - 练习题有梯度，兼顾不同层次学生
 - 记忆口诀朗朗上口，便于学生记忆
 
 请生成符合以上要求的教学 PPT 内容，确保教学逻辑清晰、互动设计丰富、学习效果显著。"""
+
+        # 应用认知负荷约束
+        prompt = self.apply_cognitive_load_constraints(prompt, grade)
 
         return prompt
 

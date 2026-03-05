@@ -656,7 +656,7 @@
         "将 CognitiveLoadMixin 混入所有学科策略，增强提示词约束",
         "验证：生成的 PPT 每页信息量符合年级认知负荷标准"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-028"
       ]

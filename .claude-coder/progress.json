@@ -140,6 +140,24 @@
       "taskId": "feat-032",
       "statusAfter": "done",
       "notes": "完成 feat-032 文科学科深度提示词实现：\n\n【新增文件】\n1. backend/app/services/prompts/humanities.py - 包含 HistoryPromptStrategy、PoliticsPromptStrategy、GeographyPromptStrategy 三个策略类\n\n【修改文件】\n1. backend/app/services/prompts/__init__.py - 注册文科策略到 STRATEGY_REGISTRY\n2. backend/app/services/ppt_generator.py - 新增 14 种文科页面类型 + 10 个渲染方法\n\n【验证结果】\n- 历史/政治/地理学科提示词引擎正常注册 ✓\n- 各学科专属页面类型正确返回 ✓\n- Schema 结构包含学科专属字段 ✓\n- PPT 生成器方法绑定正确 ✓\n\n【历史学科特色】\n- 时间轴页、因果分析页、史料解读页、影响评价页、多视角评价页、历史启示页\n\n【政治学科特色】\n- 概念界定页、原理阐述页、案例分析页、政策解读页、价值引领页、辩证分析页\n\n【地理学科特色】\n- 位置定位页、自然环境页、人文特征页、区域比较页、人地关系页、地图分析页\n\n下一个 session 可继续 feat-033 英语学科深度增强"
+    },
+    {
+      "session": 5,
+      "timestamp": "2026-03-05T06:14:28.210Z",
+      "result": "success",
+      "cost": 1.3161482499999997,
+      "taskId": "feat-033",
+      "statusAfter": "done",
+      "notes": "Session 5 完成 feat-033 英语学科提示词深度增强：\n\n【实现内容】\n1. 词根词缀分解模块：word_analysis 字段包含 root/prefix/suffix/etymology/word_family\n2. 固定搭配网络模块：collocations 字段包含 phrasal_verbs/prepositional_phrases/synonyms/antonyms/collocation_matrix\n3. 语法树模块：syntax_tree 字段包含 sentence/components/tree_diagram/clause_analysis\n4. 时态时间轴模块：tense_timeline 字段包含 tense_name/time_axis_description/reference_point/action_point\n\n【新增页面类型】（从 8 种→21 种）\n- 词根词缀页、构词法图解页、词源故事页\n- 固定搭配页、词汇网络页、搭配矩阵页\n- 语法树页、句法结构页、从句分析页、特殊句型页\n- 时态时间轴页、时态概览页、时态对比页\n\n【验证结果】\n- Python 导入验证：EnglishPromptStrategy 正常导入\n- 页面类型验证：21 种页面类型全部可用\n- Schema 验证：word_analysis/collocations/syntax_tree/tense_timeline/word_network/tense_overview 字段存在\n- Prompt 验证：提示词包含四大模块关键词\n- PromptEngine 集成验证：英语策略正确注册\n\n【tests.json 新增记录】\n- test-feat033-english-prompt-enhancement：单元测试验证\n\n【下一步建议】\n后续 session 可以基于此提示词结构实现 PPT 生成器的英语专属页面渲染方法（如_add_word_analysis_slide、_add_collocation_slide、_add_syntax_tree_slide、_add_tense_timeline_slide）"
+    },
+    {
+      "session": 6,
+      "timestamp": "2026-03-05T06:35:19.687Z",
+      "result": "success",
+      "cost": 3.73047025,
+      "taskId": "feat-033",
+      "statusAfter": "done",
+      "notes": "Session 6 完成 feat-033 英语学科提示词深度增强的 PPT 渲染方法实现：\n\n【实现内容】\n1. 在 PPTPageType 中新增 13 个英语深度增强页面类型：\n   - WORD_ROOT (词根词缀页)\n   - WORD_STRUCTURE (构词法图解页)\n   - ETYMOLOGY (词源故事页)\n   - COLLOCATION (固定搭配页)\n   - VOCAB_NETWORK (词汇网络页)\n   - COLLOCATION_MATRIX (搭配矩阵页)\n   - SYNTAX_TREE (语法树页)\n   - SYNTAX_STRUCTURE (句法结构页)\n   - CLAUSE_ANALYSIS (从句分析页)\n   - SPECIAL_SENTENCE (特殊句型页)\n   - TENSE_TIMELINE (时态时间轴页)\n   - TENSE_OVERVIEW (时态概览页)\n   - TENSE_COMPARISON (时态对比页)\n\n2. 实现 13 个对应的 PPT 渲染方法（1064 行代码）：\n   - _add_word_root_slide: 词根/前缀/后缀分析、同根词族、构词图解\n   - _add_word_structure_slide: 单词构成分解树状图\n   - _add_etymology_slide: 词源故事展示\n   - _add_collocation_slide: 动词短语/介词短语/固定表达/惯用语\n   - _add_vocab_network_slide: 同义词/反义词左右分栏布局\n   - _add_collocation_matrix_slide: 搭配矩阵表格\n   - _add_syntax_tree_slide: 句子成分分析、树状图、从句分析\n   - _add_syntax_structure_slide: 句法结构图解\n   - _add_clause_analysis_slide: 从句类型和引导词分析\n   - _add_special_sentence_slide: 特殊句型（被动/倒装/强调/虚拟）\n   - _add_tense_timeline_slide: 时态时间轴可视化（参照点/动作点/持续段）\n   - _add_tense_overview_slide: 16 种时态总览表格\n   - _add_tense_comparison_slide: 易混时态对比（左右分栏）\n\n3. 在 generate() 方法中集成新页面类型的处理逻辑\n\n【验证结果】\n- Python 语法检查通过\n- 13 个页面类型常量正确定义\n- 13 个渲染方法全部存在并可调用\n- 端到端渲染测试通过（4 个代表性页面类型测试成功）\n\n【技术要点】\n- 使用不同颜色区分信息类型（词根=主色、前缀=紫色、后缀=深蓝、词族=绿色）\n- 表格布局用于搭配矩阵和时态概览\n- 左右分栏布局用于词汇网络和时态对比\n\n【下一步】\nfeat-034 认知负荷优化提示词系统"
     }
   ]
 }

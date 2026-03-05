@@ -106,13 +106,13 @@ class SubjectPromptStrategy(ABC):
 
 class CognitiveLoadMixin:
     """
-    认知负荷优化混入类（Phase 3 填充）
+    认知负荷优化混入类
 
     基于 Mayer 多媒体学习理论，控制每页信息量和呈现方式
-    目前为占位实现，后续将增强提示词约束
+    包含 5 大核心原则：聚焦要义、空间邻近、时间邻近、切块呈现、冗余控制
     """
 
-    # 年级对应的最大要点数
+    # 年级对应的最大要点数（聚焦要义原则）
     MAX_POINTS_PER_SLIDE = {
         "1": 2,
         "2": 2,
@@ -128,13 +128,64 @@ class CognitiveLoadMixin:
         "12": 6,
     }
 
+    # 复杂概念分块规则（切块呈现原则）
+    # 定义哪些内容类型需要分块展示
+    COMPLEX_CONCEPT_TYPES = [
+        "公式推导",
+        "语法树分析",
+        "时态对比",
+        "实验步骤",
+        "化学反应过程",
+        "生命活动过程",
+        "历史因果链",
+        "地理过程",
+        "政治原理推导",
+    ]
+
     def get_max_points_for_grade(self, grade: str) -> int:
-        """获取指定年级每页最大要点数"""
+        """
+        获取指定年级每页最大要点数（聚焦要义原则）
+
+        Args:
+            grade: 年级（1-12）
+
+        Returns:
+            每页最大要点数
+        """
         return self.MAX_POINTS_PER_SLIDE.get(grade, 4)
+
+    def get_chunk_size_for_grade(self, grade: str) -> int:
+        """
+        获取指定年级的分块大小（切块呈现原则）
+
+        复杂概念需要拆分的页数
+        """
+        chunk_mapping = {
+            "1": 3,  # 低年级拆分为更多页
+            "2": 3,
+            "3": 3,
+            "4": 2,
+            "5": 2,
+            "6": 2,
+            "7": 2,
+            "8": 2,
+            "9": 2,
+            "10": 2,
+            "11": 2,
+            "12": 2,
+        }
+        return chunk_mapping.get(grade, 2)
 
     def apply_cognitive_load_constraints(self, prompt: str, grade: str) -> str:
         """
         应用认知负荷约束到提示词
+
+        基于 Mayer 多媒体学习理论的 5 大原则：
+        1. 聚焦要义原则（Coherence Principle）：每页内容不超过指定要点数
+        2. 空间邻近原则（Spatial Contiguity Principle）：图示与文字在同一页
+        3. 时间邻近原则（Temporal Contiguity Principle）：相关内容同时呈现
+        4. 切块呈现原则（Segmenting Principle）：复杂内容分步展示
+        5. 冗余控制原则（Redundancy Principle）：避免重复信息
 
         Args:
             prompt: 原始提示词
@@ -144,13 +195,48 @@ class CognitiveLoadMixin:
             增强后的提示词
         """
         max_points = self.get_max_points_for_grade(grade)
+        chunk_size = self.get_chunk_size_for_grade(grade)
 
         constraints = f"""
 
-【认知负荷优化要求】
-- 每页内容不超过{max_points}个要点，避免信息过载
-- 图文并茂：图示与文字说明应在同一页呈现
-- 复杂概念分步展示：每个复杂概念拆分为 2-3 页逐步展开
-- 避免冗余：文字不要重复图示已表达的信息"""
+【认知负荷优化要求 - 基于 Mayer 多媒体学习理论】
+
+1. **聚焦要义原则**：每页内容不超过{max_points}个要点，去除冗余信息，保持内容精炼
+2. **空间邻近原则**：相关的文字说明和图示必须在同一页呈现，避免学生来回翻看
+3. **切块呈现原则**：复杂概念（如公式推导、语法分析、实验过程等）拆分为{chunk_size}页逐步展开，每页聚焦一个子步骤
+4. **冗余控制原则**：避免用文字重复图示/表格已清晰表达的信息，图文并茂但不重复
+5. **时间邻近原则**：讲解语音与对应画面应同步呈现，避免先讲后看或先看后讲"""
 
         return prompt + constraints
+
+    def needs_chunking(self, concept_type: str) -> bool:
+        """
+        判断某概念类型是否需要分块展示
+
+        Args:
+            concept_type: 概念类型
+
+        Returns:
+            是否需要分块
+        """
+        return concept_type in self.COMPLEX_CONCEPT_TYPES
+
+    def get_suggested_layout(self, page_type: str) -> str:
+        """
+        根据页面类型建议布局方式
+
+        Args:
+            page_type: 页面类型
+
+        Returns:
+            布局建议
+        """
+        layout_suggestions = {
+            "公式推导页": "上一步骤 + 下一步骤分两栏展示，箭头连接表示推导关系",
+            "语法树页": "左侧原句 + 右侧树状图对照",
+            "实验步骤页": "顶部步骤说明 + 底部操作图示",
+            "时间轴页": "水平时间轴贯穿页面，事件标注在轴上下方",
+            "对比分析页": "左右分栏对比，中间用虚线分隔",
+            "概念引入页": "顶部生活实例图 + 底部抽象概念定义",
+        }
+        return layout_suggestions.get(page_type, "标准布局：标题 + 要点列表 + 底部图示")
