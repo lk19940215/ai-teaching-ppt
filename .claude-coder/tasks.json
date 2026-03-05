@@ -876,10 +876,11 @@
         "验证：运行 pnpm exec playwright test --project=chromium 确认至少 80% 测试通过",
         "使用 Playwright MCP browser_navigate 访问 /upload，browser_snapshot 确认 localStorage 中有 llm_config"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-045"
-      ]
+      ],
+      "notes": "Session 1 完成：Playwright 测试基础设施升级完成。test.env 已创建包含 LLM 配置凭证。"
     },
     {
       "id": "feat-047",
@@ -901,10 +902,11 @@
         "如果任何步骤失败：截图 + 控制台消息 + 错误文案，记录到 record/e2e_test_results.md，分析根因并修复",
         "验证：record/e2e_test_results.md 中场景A结果为'通过'"
       ],
-      "status": "testing",
+      "status": "done",
       "depends_on": [
         "feat-046"
-      ]
+      ],
+      "notes": "Session 2 完成：E2E 测试通过。前端表单填写、参数选择、生成按钮正常；SSE 连接建立并推送进度；后端 LLM 调用成功生成 PPT 文件（uploads/generated/三角形的面积公式_a951e88f.pptx）。发现问题：1) Playwright MCP storageState 注入失效（手动注入解决）；2) 后端服务中途崩溃（已重启）；3) SSE 进度在 20% 卡住较长时间（LLM 调用耗时）。"
     },
     {
       "id": "feat-048",
