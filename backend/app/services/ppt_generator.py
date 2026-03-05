@@ -105,6 +105,23 @@ class PPTPageType:
     QUIZ_GAME = "随堂测验页"  # 多题测验
     FILL_BLANK = "填空题页"  # 填空练习
 
+    # 理科实验页面类型（feat-031 物理/化学/生物）
+    EXPERIMENT_DESIGN = "实验设计页"  # 探究目的、器材、步骤
+    EXPERIMENT_OBSERVATION = "现象观察页"  # 实验现象记录
+    DATA_ANALYSIS = "数据分析页"  # 数据处理、规律发现
+    LAW_SUMMARY = "规律归纳页"  # 从实验提炼规律
+    APPLICATION_TRANSFER = "应用迁移页"  # 联系实际应用
+    EXPERIMENT_STEPS = "实验步骤页"  # 仪器、药品、操作流程
+    REACTION_PHENOMENA = "反应现象页"  # 颜色变化、气体、沉淀
+    CHEMICAL_EQUATION = "化学方程式页"  # 方程式书写、配平
+    MICROSCOPIC_EXPLANATION = "微观解释页"  # 分子/原子/离子模型
+    PERIODIC_TREND = "元素周期律页"  # 周期表位置、性质递变
+    STRUCTURE_OBSERVATION = "结构观察页"  # 细胞/组织/器官结构
+    FUNCTION_ANALYSIS = "功能分析页"  # 结构与功能适应
+    PROCESS_DESCRIPTION = "过程描述页"  # 生命活动过程
+    SYSTEM_THINKING = "系统思维页"  # 层次关系、整体协调
+    EXPERIMENT_INQUIRY = "实验探究页"  # 观察实验、对照实验
+
 
 class PPTStyle:
     """PPT 样式配置（优化版：细化年级自适应规则）"""
@@ -592,6 +609,114 @@ class PPTGenerator:
                     )
                 elif page_type == PPTPageType.FILL_BLANK:
                     self._add_fill_blank_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                # 理科实验页面类型（feat-031 物理/化学/生物）
+                elif page_type == PPTPageType.EXPERIMENT_DESIGN:
+                    self._add_experiment_design_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.EXPERIMENT_OBSERVATION:
+                    self._add_experiment_observation_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.DATA_ANALYSIS:
+                    self._add_data_analysis_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.LAW_SUMMARY:
+                    self._add_law_summary_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.APPLICATION_TRANSFER:
+                    self._add_application_transfer_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.EXPERIMENT_STEPS:
+                    self._add_experiment_steps_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.REACTION_PHENOMENA:
+                    self._add_reaction_phenomena_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.CHEMICAL_EQUATION:
+                    self._add_chemical_equation_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.MICROSCOPIC_EXPLANATION:
+                    self._add_microscopic_explanation_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.PERIODIC_TREND:
+                    self._add_periodic_trend_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.STRUCTURE_OBSERVATION:
+                    self._add_structure_observation_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.FUNCTION_ANALYSIS:
+                    self._add_function_analysis_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.PROCESS_DESCRIPTION:
+                    self._add_process_description_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.SYSTEM_THINKING:
+                    self._add_system_thinking_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.EXPERIMENT_INQUIRY:
+                    self._add_experiment_inquiry_slide(
                         prs,
                         slide_data,
                         content_size,
@@ -1591,6 +1716,1257 @@ class PPTGenerator:
         ans_tf.paragraphs[0].font.color.rgb = secondary_color
         ans_tf.paragraphs[0].font.bold = True
         ans_tf.paragraphs[0].alignment = PP_ALIGN.CENTER
+
+    # ========== 理科实验页面渲染方法（feat-031 物理/化学/生物）==========
+
+    def _add_experiment_design_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加实验设计页（物理/化学/生物通用）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "实验设计")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        exp_design = slide_data.get("experiment_design", {})
+        if exp_design:
+            # 探究目的
+            purpose = exp_design.get("purpose", "")
+            if purpose:
+                p = text_frame.add_paragraph()
+                p.text = "【探究目的】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = purpose
+                p.font.size = Pt(font_size)
+
+            # 实验器材
+            materials = exp_design.get("materials", [])
+            if materials:
+                p = text_frame.add_paragraph()
+                p.text = "\n【实验器材】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                for mat in materials:
+                    p = text_frame.add_paragraph()
+                    p.text = f"• {mat}"
+                    p.font.size = Pt(font_size)
+
+            # 实验步骤
+            steps = exp_design.get("steps", [])
+            if steps:
+                p = text_frame.add_paragraph()
+                p.text = "\n【实验步骤】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                for step in steps:
+                    if isinstance(step, dict):
+                        step_desc = step.get("description", "")
+                        p = text_frame.add_paragraph()
+                        p.text = f"{step.get('step_number', '')}. {step_desc}"
+                        p.font.size = Pt(font_size)
+                    else:
+                        p = text_frame.add_paragraph()
+                        p.text = str(step)
+                        p.font.size = Pt(font_size)
+
+            # 注意事项
+            notes = exp_design.get("notes", [])
+            if notes:
+                p = text_frame.add_paragraph()
+                p.text = "\n【注意事项】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                for note in notes:
+                    p = text_frame.add_paragraph()
+                    p.text = f"⚠ {note}"
+                    p.font.size = Pt(font_size)
+        else:
+            # 没有数据时显示普通内容
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_experiment_observation_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加现象观察页（物理/化学通用）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "现象观察")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容 - 三段式对比布局
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        obs = slide_data.get("experiment_observation", {})
+        if obs:
+            # 实验前
+            before = obs.get("before", "")
+            if before:
+                p = text_frame.add_paragraph()
+                p.text = "【实验前】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = COLOR_BLUE_3
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = before
+                p.font.size = Pt(font_size)
+
+            # 实验过程现象
+            process = obs.get("process", [])
+            if process:
+                p = text_frame.add_paragraph()
+                p.text = "\n【实验现象】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                for phen in process:
+                    p = text_frame.add_paragraph()
+                    p.text = f"→ {phen}"
+                    p.font.size = Pt(font_size)
+
+            # 实验后
+            after = obs.get("after", "")
+            if after:
+                p = text_frame.add_paragraph()
+                p.text = "\n【实验后】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = COLOR_GREEN_1
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = after
+                p.font.size = Pt(font_size)
+
+            # 关键现象
+            key_points = obs.get("key_points", [])
+            if key_points:
+                p = text_frame.add_paragraph()
+                p.text = "\n【关键现象】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                for kp in key_points:
+                    p = text_frame.add_paragraph()
+                    p.text = f"★ {kp}"
+                    p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_data_analysis_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加数据分析页（物理/化学通用）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "数据分析")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        data = slide_data.get("data_analysis", {})
+        if data:
+            # 数据处理方法
+            method = data.get("processing_method", "")
+            if method:
+                p = text_frame.add_paragraph()
+                p.text = "【数据处理方法】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = method
+                p.font.size = Pt(font_size)
+
+            # 发现的规律
+            pattern = data.get("pattern_discovered", "")
+            if pattern:
+                p = text_frame.add_paragraph()
+                p.text = "\n【发现的规律】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = COLOR_GREEN_1
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = pattern
+                p.font.size = Pt(font_size)
+
+            # 误差分析
+            error = data.get("error_analysis", "")
+            if error:
+                p = text_frame.add_paragraph()
+                p.text = "\n【误差分析】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = error
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_law_summary_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加规律归纳页（物理/化学通用）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "规律归纳")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        law = slide_data.get("physics_law", {})
+        if law:
+            # 规律名称
+            name = law.get("name", "")
+            if name:
+                p = text_frame.add_paragraph()
+                p.text = name
+                p.font.size = Pt(font_size + 4)
+                p.font.color.rgb = color
+                p.font.bold = True
+
+            # 文字表述
+            statement = law.get("statement", "")
+            if statement:
+                p = text_frame.add_paragraph()
+                p.text = "\n【文字表述】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = statement
+                p.font.size = Pt(font_size)
+
+            # 公式表达
+            formula = law.get("formula", "")
+            if formula:
+                p = text_frame.add_paragraph()
+                p.text = "\n【公式表达】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = formula
+                p.font.size = Pt(font_size + 2)
+                p.font.bold = True
+
+            # 适用条件
+            conditions = law.get("conditions", "")
+            if conditions:
+                p = text_frame.add_paragraph()
+                p.text = "\n【适用条件】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = conditions
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_application_transfer_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加应用迁移页（物理/化学/生物通用）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "应用迁移")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        app = slide_data.get("application", {})
+        if app:
+            # 应用场景
+            scenario = app.get("scenario", "")
+            if scenario:
+                p = text_frame.add_paragraph()
+                p.text = "【应用场景】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = scenario
+                p.font.size = Pt(font_size)
+
+            # 实际问题
+            problem = app.get("problem", "")
+            if problem:
+                p = text_frame.add_paragraph()
+                p.text = "\n【实际问题】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = problem
+                p.font.size = Pt(font_size)
+
+            # 解决方案
+            solution = app.get("solution", "")
+            if solution:
+                p = text_frame.add_paragraph()
+                p.text = "\n【解决方案】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = COLOR_GREEN_1
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = solution
+                p.font.size = Pt(font_size)
+
+            # 拓展思考
+            extension = app.get("extension", "")
+            if extension:
+                p = text_frame.add_paragraph()
+                p.text = "\n【拓展思考】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = extension
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_experiment_steps_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加实验步骤页（化学专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "实验步骤")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        exp_steps = slide_data.get("experiment_steps", {})
+        if exp_steps:
+            # 实验目的
+            purpose = exp_steps.get("purpose", "")
+            if purpose:
+                p = text_frame.add_paragraph()
+                p.text = "【实验目的】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = purpose
+                p.font.size = Pt(font_size)
+
+            # 仪器和药品
+            instruments = exp_steps.get("instruments", [])
+            reagents = exp_steps.get("reagents", [])
+            if instruments or reagents:
+                p = text_frame.add_paragraph()
+                p.text = "\n【实验用品】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                if instruments:
+                    p = text_frame.add_paragraph()
+                    p.text = "仪器：" + ", ".join(instruments)
+                    p.font.size = Pt(font_size)
+                if reagents:
+                    p = text_frame.add_paragraph()
+                    p.text = "药品：" + ", ".join(reagents)
+                    p.font.size = Pt(font_size)
+
+            # 操作步骤
+            procedures = exp_steps.get("procedures", [])
+            if procedures:
+                p = text_frame.add_paragraph()
+                p.text = "\n【操作步骤】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                for proc in procedures:
+                    if isinstance(proc, dict):
+                        desc = proc.get("description", "")
+                        p = text_frame.add_paragraph()
+                        p.text = f"{proc.get('step_number', '')}. {desc}"
+                        p.font.size = Pt(font_size)
+                    else:
+                        p = text_frame.add_paragraph()
+                        p.text = str(proc)
+                        p.font.size = Pt(font_size)
+
+            # 安全事项
+            safety = exp_steps.get("safety_notes", [])
+            if safety:
+                p = text_frame.add_paragraph()
+                p.text = "\n【安全注意事项】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_RED
+                p.font.bold = True
+                for s in safety:
+                    p = text_frame.add_paragraph()
+                    p.text = f"⚠ {s}"
+                    p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_reaction_phenomena_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加反应现象页（化学专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "反应现象")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容 - 反应前后对比
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        phen = slide_data.get("reaction_phenomena", {})
+        if phen:
+            # 反应前
+            before = phen.get("before", {})
+            if before:
+                p = text_frame.add_paragraph()
+                p.text = "【反应前】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = COLOR_BLUE_3
+                p.font.bold = True
+                if isinstance(before, dict):
+                    substances = before.get("substances", [])
+                    appearance = before.get("appearance", "")
+                    for sub in substances:
+                        p = text_frame.add_paragraph()
+                        p.text = f"• {sub}"
+                        p.font.size = Pt(font_size)
+                    if appearance:
+                        p = text_frame.add_paragraph()
+                        p.text = f"外观：{appearance}"
+                        p.font.size = Pt(font_size)
+                else:
+                    p = text_frame.add_paragraph()
+                    p.text = str(before)
+                    p.font.size = Pt(font_size)
+
+            # 反应过程现象
+            process = phen.get("process", [])
+            if process:
+                p = text_frame.add_paragraph()
+                p.text = "\n【反应现象】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                for p_item in process:
+                    p = text_frame.add_paragraph()
+                    p.text = f"→ {p_item}"
+                    p.font.size = Pt(font_size)
+
+            # 反应后
+            after = phen.get("after", {})
+            if after:
+                p = text_frame.add_paragraph()
+                p.text = "\n【反应后】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = COLOR_GREEN_1
+                p.font.bold = True
+                if isinstance(after, dict):
+                    products = after.get("products", [])
+                    appearance = after.get("appearance", "")
+                    for prod in products:
+                        p = text_frame.add_paragraph()
+                        p.text = f"• {prod}"
+                        p.font.size = Pt(font_size)
+                    if appearance:
+                        p = text_frame.add_paragraph()
+                        p.text = f"外观：{appearance}"
+                        p.font.size = Pt(font_size)
+                else:
+                    p = text_frame.add_paragraph()
+                    p.text = str(after)
+                    p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_chemical_equation_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加化学方程式页（化学专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "化学方程式")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        eq = slide_data.get("chemical_equation", {})
+        if eq:
+            # 反应物
+            reactants = eq.get("reactants", [])
+            if reactants:
+                p = text_frame.add_paragraph()
+                p.text = "【反应物】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                for r in reactants:
+                    p = text_frame.add_paragraph()
+                    p.text = f"• {r}"
+                    p.font.size = Pt(font_size)
+
+            # 生成物
+            products = eq.get("products", [])
+            if products:
+                p = text_frame.add_paragraph()
+                p.text = "\n【生成物】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                for prod in products:
+                    p = text_frame.add_paragraph()
+                    p.text = f"• {prod}"
+                    p.font.size = Pt(font_size)
+
+            # 配平方程式
+            balanced = eq.get("balanced_equation", "")
+            if balanced:
+                p = text_frame.add_paragraph()
+                p.text = "\n【配平的化学方程式】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = COLOR_GREEN_1
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = balanced
+                p.font.size = Pt(font_size + 4)
+                p.font.bold = True
+
+            # 反应条件
+            condition = eq.get("condition", "")
+            if condition:
+                p = text_frame.add_paragraph()
+                p.text = f"\n【反应条件】{condition}"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+
+            # 方程式意义
+            meaning = eq.get("meaning", "")
+            if meaning:
+                p = text_frame.add_paragraph()
+                p.text = "\n【方程式意义】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = meaning
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_microscopic_explanation_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加微观解释页（化学/生物通用）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "微观解释")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        micro = slide_data.get("microscopic_explanation", {})
+        if micro:
+            # 微粒模型描述
+            model = micro.get("model_description", "")
+            if model:
+                p = text_frame.add_paragraph()
+                p.text = "【微粒模型】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = model
+                p.font.size = Pt(font_size)
+
+            # 微粒变化过程
+            changes = micro.get("particle_changes", "")
+            if changes:
+                p = text_frame.add_paragraph()
+                p.text = "\n【微粒变化】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = changes
+                p.font.size = Pt(font_size)
+
+            # 化学键变化
+            bond_breaking = micro.get("bond_breaking", "")
+            bond_forming = micro.get("bond_forming", "")
+            if bond_breaking or bond_forming:
+                p = text_frame.add_paragraph()
+                p.text = "\n【化学键变化】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                if bond_breaking:
+                    p = text_frame.add_paragraph()
+                    p.text = f"断裂：{bond_breaking}"
+                    p.font.size = Pt(font_size)
+                if bond_forming:
+                    p = text_frame.add_paragraph()
+                    p.text = f"形成：{bond_forming}"
+                    p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_periodic_trend_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加元素周期律页（化学专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "元素周期律")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        trend = slide_data.get("periodic_trend", {})
+        if trend:
+            # 元素名称和符号
+            name = trend.get("element_name", "")
+            symbol = trend.get("symbol", "")
+            if name or symbol:
+                p = text_frame.add_paragraph()
+                p.text = f"{name} ({symbol})" if name and symbol else (name or symbol)
+                p.font.size = Pt(font_size + 4)
+                p.font.color.rgb = color
+                p.font.bold = True
+
+            # 周期表位置
+            position = trend.get("position", {})
+            if position:
+                p = text_frame.add_paragraph()
+                p.text = f"\n【周期表位置】第{position.get('period', '')}周期 第{position.get('group', '')}族"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+
+            # 原子结构
+            atomic = trend.get("atomic_structure", {})
+            if atomic:
+                p = text_frame.add_paragraph()
+                p.text = "\n【原子结构】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                protons = atomic.get("protons", "")
+                electrons = atomic.get("electrons", "")
+                config = atomic.get("electron_configuration", "")
+                if protons:
+                    p = text_frame.add_paragraph()
+                    p.text = f"质子数：{protons}"
+                    p.font.size = Pt(font_size)
+                if electrons:
+                    p = text_frame.add_paragraph()
+                    p.text = f"电子数：{electrons}"
+                    p.font.size = Pt(font_size)
+                if config:
+                    p = text_frame.add_paragraph()
+                    p.text = f"电子排布：{config}"
+                    p.font.size = Pt(font_size)
+
+            # 性质递变规律
+            props_trend = trend.get("properties_trend", "")
+            if props_trend:
+                p = text_frame.add_paragraph()
+                p.text = "\n【性质递变规律】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = COLOR_GREEN_1
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = props_trend
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_structure_observation_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加结构观察页（生物专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "结构观察")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        struct = slide_data.get("structure_observation", {})
+        if struct:
+            # 观察对象
+            obj = struct.get("object", "")
+            if obj:
+                p = text_frame.add_paragraph()
+                p.text = "【观察对象】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = obj
+                p.font.size = Pt(font_size)
+
+            # 结构组成部分
+            parts = struct.get("parts", [])
+            if parts:
+                p = text_frame.add_paragraph()
+                p.text = "\n【结构组成】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                for part in parts:
+                    if isinstance(part, dict):
+                        p = text_frame.add_paragraph()
+                        p.text = f"• {part.get('name', '')}: {part.get('description', '')}"
+                        p.font.size = Pt(font_size)
+                    else:
+                        p = text_frame.add_paragraph()
+                        p.text = f"• {part}"
+                        p.font.size = Pt(font_size)
+
+            # 观察方法
+            method = struct.get("observation_method", "")
+            if method:
+                p = text_frame.add_paragraph()
+                p.text = "\n【观察方法】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = method
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_function_analysis_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加功能分析页（生物专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "功能分析")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        func = slide_data.get("function_analysis", {})
+        if func:
+            # 结构名称
+            struct_name = func.get("structure_name", "")
+            if struct_name:
+                p = text_frame.add_paragraph()
+                p.text = "【结构名称】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = struct_name
+                p.font.size = Pt(font_size)
+
+            # 功能描述
+            function = func.get("function", "")
+            if function:
+                p = text_frame.add_paragraph()
+                p.text = "\n【功能】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = COLOR_GREEN_1
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = function
+                p.font.size = Pt(font_size)
+
+            # 功能实现机制
+            mechanism = func.get("mechanism", "")
+            if mechanism:
+                p = text_frame.add_paragraph()
+                p.text = "\n【功能实现机制】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = mechanism
+                p.font.size = Pt(font_size)
+
+            # 结构与功能相适应的证据
+            adaptation = func.get("adaptation_evidence", "")
+            if adaptation:
+                p = text_frame.add_paragraph()
+                p.text = "\n【结构与功能的适应性】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = adaptation
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_process_description_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加过程描述页（生物专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "过程描述")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        proc = slide_data.get("process_description", {})
+        if proc:
+            # 过程名称
+            name = proc.get("process_name", "")
+            if name:
+                p = text_frame.add_paragraph()
+                p.text = "【生命过程】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = name
+                p.font.size = Pt(font_size)
+
+            # 过程意义
+            significance = proc.get("significance", "")
+            if significance:
+                p = text_frame.add_paragraph()
+                p.text = "\n【生物学意义】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = COLOR_GREEN_1
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = significance
+                p.font.size = Pt(font_size)
+
+            # 阶段
+            stages = proc.get("stages", [])
+            if stages:
+                p = text_frame.add_paragraph()
+                p.text = "\n【过程阶段】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                for stage in stages:
+                    if isinstance(stage, dict):
+                        stage_name = stage.get("name", "")
+                        desc = stage.get("description", "")
+                        p = text_frame.add_paragraph()
+                        p.text = f"  {stage_name}: {desc}"
+                        p.font.size = Pt(font_size)
+                    else:
+                        p = text_frame.add_paragraph()
+                        p.text = str(stage)
+                        p.font.size = Pt(font_size)
+
+            # 调控机制
+            regulation = proc.get("regulation", "")
+            if regulation:
+                p = text_frame.add_paragraph()
+                p.text = "\n【调控机制】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = regulation
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_system_thinking_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加系统思维页（生物专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "系统思维")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        system = slide_data.get("system_thinking", {})
+        if system:
+            # 结构层次
+            level = system.get("level", "")
+            if level:
+                p = text_frame.add_paragraph()
+                p.text = "【结构层次】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = level
+                p.font.size = Pt(font_size)
+
+            # 与其他系统的联系
+            connections = system.get("connections", [])
+            if connections:
+                p = text_frame.add_paragraph()
+                p.text = "\n【系统联系】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                for conn in connections:
+                    if isinstance(conn, dict):
+                        conn_sys = conn.get("connected_system", "")
+                        rel = conn.get("relationship", "")
+                        p = text_frame.add_paragraph()
+                        p.text = f"• {conn_sys}: {rel}"
+                        p.font.size = Pt(font_size)
+                    else:
+                        p = text_frame.add_paragraph()
+                        p.text = f"• {conn}"
+                        p.font.size = Pt(font_size)
+
+            # 整体协调机制
+            coordination = system.get("coordination", "")
+            if coordination:
+                p = text_frame.add_paragraph()
+                p.text = "\n【整体协调】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = coordination
+                p.font.size = Pt(font_size)
+
+            # 稳态维持
+            homeostasis = system.get("homeostasis", "")
+            if homeostasis:
+                p = text_frame.add_paragraph()
+                p.text = "\n【稳态维持】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = COLOR_GREEN_1
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = homeostasis
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_experiment_inquiry_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加实验探究页（生物/化学通用）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "实验探究")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        inquiry = slide_data.get("experiment_inquiry", {})
+        if inquiry:
+            # 探究问题
+            question = inquiry.get("question", "")
+            if question:
+                p = text_frame.add_paragraph()
+                p.text = "【探究问题】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = question
+                p.font.size = Pt(font_size)
+
+            # 假设
+            hypothesis = inquiry.get("hypothesis", "")
+            if hypothesis:
+                p = text_frame.add_paragraph()
+                p.text = "\n【假设】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = hypothesis
+                p.font.size = Pt(font_size)
+
+            # 实验设计
+            design = inquiry.get("design", {})
+            if design:
+                p = text_frame.add_paragraph()
+                p.text = "\n【实验设计】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+
+                # 变量
+                variables = design.get("variables", {})
+                if variables:
+                    p = text_frame.add_paragraph()
+                    p.text = "变量控制："
+                    p.font.size = Pt(font_size)
+                    p.font.bold = True
+                    indep = variables.get("independent", "")
+                    dep = variables.get("dependent", "")
+                    controlled = variables.get("controlled", [])
+                    if indep:
+                        p = text_frame.add_paragraph()
+                        p.text = f"  自变量：{indep}"
+                        p.font.size = Pt(font_size)
+                    if dep:
+                        p = text_frame.add_paragraph()
+                        p.text = f"  因变量：{dep}"
+                        p.font.size = Pt(font_size)
+                    if controlled:
+                        p = text_frame.add_paragraph()
+                        p.text = f"  控制变量：{', '.join(controlled)}"
+                        p.font.size = Pt(font_size)
+
+                # 组别
+                groups = design.get("groups", [])
+                if groups:
+                    p = text_frame.add_paragraph()
+                    p.text = "\n实验组别："
+                    p.font.size = Pt(font_size)
+                    p.font.bold = True
+                    for g in groups:
+                        p = text_frame.add_paragraph()
+                        p.text = f"  • {g}"
+                        p.font.size = Pt(font_size)
+
+            # 预期结果
+            expected = inquiry.get("expected_result", "")
+            if expected:
+                p = text_frame.add_paragraph()
+                p.text = "\n【预期结果】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = expected
+                p.font.size = Pt(font_size)
+
+            # 结论推导
+            conclusion = inquiry.get("conclusion", "")
+            if conclusion:
+                p = text_frame.add_paragraph()
+                p.text = "\n【结论推导】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = secondary_color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = conclusion
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
 
 
 # 全局 PPT 生成器实例

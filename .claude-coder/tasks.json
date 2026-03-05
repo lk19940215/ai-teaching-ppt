@@ -598,7 +598,7 @@
         "在 ppt_generator.py 增加理科实验页面渲染方法",
         "验证：物理/化学/生物内容生成包含实验探究页面"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-028"
       ]
