@@ -8,5 +8,17 @@
     "tests_passed": true,
     "notes": "完成 feat-028 提示词引擎架构重构 - 创建可插拔的学科提示词策略系统：\n\n新增文件 (5 个):\n1. backend/app/services/prompts/__init__.py:\n   - PromptEngine 工厂类：根据学科自动选择策略\n   - register_strategy() 支持注册新学科策略\n   - get_available_subjects() 获取可用学科列表\n\n2. backend/app/services/prompts/base.py:\n   - SubjectPromptStrategy 抽象基类：定义 build_prompt, build_schema, get_page_types 接口\n   - CognitiveLoadMixin 混入类：认知负荷优化占位（Phase 3 填充）\n   - 共享配置：GRADE_DESCRIPTIONS, SUBJECT_DESCRIPTIONS, MAX_POINTS_PER_SLIDE\n\n3. backend/app/services/prompts/general.py:\n   - GeneralPromptStrategy: 通用学科提示词策略\n   - 迁移原有通用提示词逻辑，适用于语文、数学、科学等大多数学科\n\n4. backend/app/services/prompts/english.py:\n   - EnglishPromptStrategy: 英语学科提示词策略\n   - 迁移原有 generate_for_english 逻辑，支持单词/语法/对话/分析页面类型\n\n5. backend/app/services/prompts/cognitive.py:\n   - CognitivePromptStrategy: 认知负荷优化策略（占位实现）\n   - 为 Phase 3 的认知负荷约束奠基\n\n重构文件 (1 个):\n- backend/app/services/content_generator.py:\n  - 使用 PromptEngine 替代硬编码的 if-else 分支\n  - generate() 方法统一入口，根据 subject 参数自动选择策略\n  - 保留 generate_for_english() 方法确保向后兼容\n  - 所有 API 调用处无需修改\n\n验证通过:\n- 所有模块导入成功（PromptEngine, SubjectPromptStrategy, GeneralPromptStrategy, EnglishPromptStrategy）\n- 提示词构建功能正常（通用学科 1453 字符，英语学科 1477 字符）\n- Schema 构建成功，page_types 获取正确\n- 向后兼容性保持（generate_for_english 方法、GRADE_DESCRIPTIONS、SUBJECT_DESCRIPTIONS）\n- API 文件引用检查通过（ppt.py, history.py, generate.py 使用 generate_for_english 无需修改）\n\n服务保持运行状态，下个 session 可继续使用。\n\n为后续学科深度优化奠基：\n- feat-029: 语文学科（chinese.py）\n- feat-030: 数学学科（math.py）\n- feat-031: 理科学科（science.py）\n- feat-032: 文科学科（humanities.py）\n- feat-033: 英语学科深度增强\n- feat-034~038: 认知负荷、注意力节奏、布鲁姆分类法等"
   },
-  "history": []
+  "history": [
+    {
+      "session": 4,
+      "timestamp": "2026-03-04T18:18:51.331Z",
+      "session_result": "success",
+      "task_id": "feat-028",
+      "status_before": "pending",
+      "status_after": "done",
+      "git_commit": "144e234",
+      "tests_passed": true,
+      "notes": "完成 feat-028 提示词引擎架构重构 - 创建可插拔的学科提示词策略系统：\n\n新增文件 (5 个):\n1. backend/app/services/prompts/__init__.py:\n   - PromptEngine 工厂类：根据学科自动选择策略\n   - register_strategy() 支持注册新学科策略\n   - get_available_subjects() 获取可用学科列表\n\n2. backend/app/services/prompts/base.py:\n   - SubjectPromptStrategy 抽象基类：定义 build_prompt, build_schema, get_page_types 接口\n   - CognitiveLoadMixin 混入类：认知负荷优化占位（Phase 3 填充）\n   - 共享配置：GRADE_DESCRIPTIONS, SUBJECT_DESCRIPTIONS, MAX_POINTS_PER_SLIDE\n\n3. backend/app/services/prompts/general.py:\n   - GeneralPromptStrategy: 通用学科提示词策略\n   - 迁移原有通用提示词逻辑，适用于语文、数学、科学等大多数学科\n\n4. backend/app/services/prompts/english.py:\n   - EnglishPromptStrategy: 英语学科提示词策略\n   - 迁移原有 generate_for_english 逻辑，支持单词/语法/对话/分析页面类型\n\n5. backend/app/services/prompts/cognitive.py:\n   - CognitivePromptStrategy: 认知负荷优化策略（占位实现）\n   - 为 Phase 3 的认知负荷约束奠基\n\n重构文件 (1 个):\n- backend/app/services/content_generator.py:\n  - 使用 PromptEngine 替代硬编码的 if-else 分支\n  - generate() 方法统一入口，根据 subject 参数自动选择策略\n  - 保留 generate_for_english() 方法确保向后兼容\n  - 所有 API 调用处无需修改\n\n验证通过:\n- 所有模块导入成功（PromptEngine, SubjectPromptStrategy, GeneralPromptStrategy, EnglishPromptStrategy）\n- 提示词构建功能正常（通用学科 1453 字符，英语学科 1477 字符）\n- Schema 构建成功，page_types 获取正确\n- 向后兼容性保持（generate_for_english 方法、GRADE_DESCRIPTIONS、SUBJECT_DESCRIPTIONS）\n- API 文件引用检查通过（ppt.py, history.py, generate.py 使用 generate_for_english 无需修改）\n\n服务保持运行状态，下个 session 可继续使用。\n\n为后续学科深度优化奠基：\n- feat-029: 语文学科（chinese.py）\n- feat-030: 数学学科（math.py）\n- feat-031: 理科学科（science.py）\n- feat-032: 文科学科（humanities.py）\n- feat-033: 英语学科深度增强\n- feat-034~038: 认知负荷、注意力节奏、布鲁姆分类法等"
+    }
+  ]
 }
