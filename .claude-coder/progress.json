@@ -210,6 +210,15 @@
       "taskId": "feat-040",
       "statusAfter": "done",
       "notes": "feat-040 差异化教学支持功能已完成实现。\n\n【实现内容】\n1. 前端 upload/page.tsx：添加 DIFFICULTY_OPTIONS 选项（统一/基础/提高/拓展），config 增加 difficultyLevel 状态，API 请求传递 difficulty_level 参数\n2. 后端 API ppt.py：generate-full 端点接收 difficulty_level 参数并传递给内容生成器\n3. 内容生成器 content_generator.py：generate/generate_for_english 方法添加 difficulty_level 参数\n4. 提示词引擎 prompts/__init__.py：PromptEngine.build_prompt/build_schema 接收 difficulty_level\n5. 基类 prompts/base.py：SubjectPromptStrategy 抽象方法添加 difficulty_level 参数\n6. 学科策略 math.py/general.py/english.py：build_prompt 添加难度分层提示词，build_schema 添加 difficulty 字段\n7. PPT 生成器 ppt_generator.py：_add_exercise_slide 方法根据 difficulty 标注星级（基础★绿色/提高★★橙色/拓展★★★红色）\n\n【验证结果】\n- 所有 Python 模块导入成功，无语法错误\n- 参数签名正确：difficulty_level 参数在各层传递正常\n- 后端服务运行正常\n\n【下一步建议】\n- 如需完整 E2E 测试，可在下一个 session 使用 Playwright 验证前端 UI 和完整生成流程\n- 其他学科策略（chinese.py, science.py, humanities.py, cognitive.py）可按需添加相同的难度分层支持"
+    },
+    {
+      "session": 2,
+      "timestamp": "2026-03-05T12:43:41.200Z",
+      "result": "success",
+      "cost": 5.267515500000002,
+      "taskId": "feat-041",
+      "statusAfter": "done",
+      "notes": "feat-041 智能错题分析页功能已完成实现。\n\n【实现内容】\n1. 后端 ppt_generator.py：新增 _add_mistake_analysis_slide 方法，实现左右分栏布局（红色错误 vs 绿色正确），包含错误示例、错误原因、正确解法、预防策略四个部分\n2. PPTPageType 新增 MISTAKE_ANALYSIS 页面类型，COMMON_MISTAKES 保持向后兼容\n3. 各学科提示词增强 common_mistakes 字段定义：\n   - 数学：已在 math.py 中存在\n   - 英语：新增拼写错误、时态混用、搭配错误、语序颠倒\n   - 物理/化学/生物：新增各自学科特色错误类型（单位换算、公式套用、实验操作等）\n\n【代码验证】\n- Python 语法检查通过 (ast.parse)\n- 新方法 _add_mistake_analysis_slide 已正确插入\n- 各学科提示词 common_mistakes 字段已添加\n- 后端服务运行正常 (curl http://localhost:8000/docs 通过)\n\n【下一步建议】\n- 下一个 session 可继续 feat-042 (SSE 流式生成反馈) 或 feat-043 (点击显示答案 OOXML 实现)"
     }
   ]
 }

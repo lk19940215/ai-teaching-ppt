@@ -269,18 +269,20 @@ export default function UploadPage() {
     setFileName(null)
     setProgress(0)
     setShowResult(false)
-    setProgressStatus("")
+    setProgressStatus('')
+
+    let eventSource: EventSource | null = null
 
     try {
       // 获取 LLM 配置
       const llmConfig = getLLMConfig()
       if (!llmConfig) {
-        setError("请先在设置页面配置 LLM API Key")
+        setError('请先在设置页面配置 LLM API Key')
         setIsGenerating(false)
         return
       }
       if (!llmConfig.apiKey) {
-        setError("API Key 未配置，请前往设置页面配置")
+        setError('API Key 未配置，请前往设置页面配置')
         setIsGenerating(false)
         return
       }
@@ -288,82 +290,101 @@ export default function UploadPage() {
       // 根据上传类型处理内容提取
       let finalTextContent = textContent
 
-      if (uploadType === "image" && imageFiles.length > 0) {
+      if (uploadType === 'image' && imageFiles.length > 0) {
         setProgressStatus(`正在上传 ${imageFiles.length} 张图片...`)
         setProgress(10)
-        // 图片模式：先上传再 OCR
         finalTextContent = await uploadAndProcessImage(imageFiles)
         if (!finalTextContent) {
-          setError("图片 OCR 识别失败：未提取到有效文本")
+          setError('图片 OCR 识别失败：未提取到有效文本')
           setIsGenerating(false)
           return
         }
-        setProgressStatus("图片文字识别完成，正在生成 PPT...")
+        setProgressStatus('图片文字识别完成，正在生成 PPT...')
         setProgress(40)
-      } else if (uploadType === "pdf" && pdfFile) {
+      } else if (uploadType === 'pdf' && pdfFile) {
         setProgressStatus(`正在上传 PDF 文件...`)
         setProgress(10)
-        // PDF 模式：先上传再解析
         finalTextContent = await uploadAndProcessPdf(pdfFile)
         if (!finalTextContent) {
-          setError("PDF 解析失败：未提取到有效文本")
+          setError('PDF 解析失败：未提取到有效文本')
           setIsGenerating(false)
           return
         }
-        setProgressStatus("PDF 内容提取完成，正在生成 PPT...")
+        setProgressStatus('PDF 内容提取完成，正在生成 PPT...')
         setProgress(40)
-      } else if (uploadType === "text") {
-        setProgressStatus("正在分析文本内容...")
+      } else if (uploadType === 'text') {
+        setProgressStatus('正在分析文本内容...')
         setProgress(20)
       }
 
       // 验证文本内容
       if (!finalTextContent || finalTextContent.trim().length === 0) {
-        setError("未检测到有效内容：请确保图片/PDF 包含可识别的文字")
+        setError('未检测到有效内容：请确保图片/PDF 包含可识别的文字')
         setIsGenerating(false)
         return
       }
 
-      // 调用后端 API 完整生成 PPT（内容 + 文件）
-      setProgressStatus("正在调用 AI 生成 PPT 内容...")
-      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/generate-full`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text_content: finalTextContent,
-          grade: config.grade,
-          subject: config.subject,
-          slideCount: config.slideCount,
-          chapter: config.chapter || undefined,
-          provider: llmConfig.provider,
-          api_key: llmConfig.apiKey,
-          style: config.style,
-          difficulty_level: config.difficultyLevel,
-        }),
+      // 使用 SSE 流式生成 PPT
+      setProgressStatus('正在连接生成服务...')
+
+      const params = new URLSearchParams({
+        text_content: finalTextContent,
+        grade: config.grade,
+        subject: config.subject,
+        slide_count: config.slideCount.toString(),
+        chapter: config.chapter || '',
+        provider: llmConfig.provider,
+        api_key: llmConfig.apiKey,
+        style: config.style,
+        difficulty_level: config.difficultyLevel,
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || "生成失败")
+      const sseUrl = `${apiBaseUrl}/api/v1/ppt/generate-stream?${params.toString()}`
+      eventSource = new EventSource(sseUrl)
+
+      eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data)
+
+        if (data.stage === 'error') {
+          setError(data.message)
+          setIsGenerating(false)
+          setProgressStatus('')
+          eventSource?.close()
+          return
+        }
+
+        setProgress(data.progress)
+        setProgressStatus(data.message)
+
+        if (data.stage === 'complete') {
+          const result = data.result
+          setGeneratedContent(result.content)
+          setDownloadUrl(`${apiBaseUrl}${result.download_url}`)
+          setFileName(result.file_name)
+
+          setTimeout(() => {
+            setIsGenerating(false)
+            setShowResult(true)
+            setProgressStatus('')
+          }, 500)
+
+          eventSource?.close()
+        }
       }
 
-      const result = await response.json()
-      setGeneratedContent(result.content)
-      setDownloadUrl(`${apiBaseUrl}${result.download_url}`)
-      setFileName(result.file_name)
-      setProgressStatus("PPT 生成完成！")
-      setProgress(100)
-
-      // 延迟显示结果，让进度条走完
-      setTimeout(() => {
+      eventSource.onerror = (error) => {
+        console.error('SSE 连接错误:', error)
+        setError('生成连接中断，请稍后重试')
         setIsGenerating(false)
-        setShowResult(true)
-        setProgressStatus("")
-      }, 500)
+        setProgressStatus('')
+        eventSource?.close()
+      }
+
     } catch (err) {
-      setError(err instanceof Error ? err.message : "生成失败，请稍后重试")
+      setError(err instanceof Error ? err.message : '生成失败，请稍后重试')
       setIsGenerating(false)
-      setProgressStatus("")
+      setProgressStatus('')
+      eventSource?.close()
     }
   }
 

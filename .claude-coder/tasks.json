@@ -804,7 +804,7 @@
         "前端：实时更新进度条和阶段描述，移除 setInterval 假进度",
         "验证：生成过程中前端实时显示真实进度阶段"
       ],
-      "status": "pending",
+      "status": "testing",
       "depends_on": [
         "feat-024"
       ]
