@@ -92,6 +92,9 @@ class CognitivePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin):
         # 应用认知负荷约束
         prompt = self.apply_cognitive_load_constraints(prompt, grade)
 
+        # 应用注意力节奏约束
+        prompt += self.get_attention_rhythm_constraints(grade)
+
         return prompt
 
     def build_schema(self, slide_count: int) -> Dict[str, Any]:

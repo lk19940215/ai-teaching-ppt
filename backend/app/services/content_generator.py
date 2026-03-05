@@ -7,6 +7,7 @@ PPT 内容生成器
 from typing import Dict, Any, List, Optional
 from .llm import LLMService, LLMProvider, get_llm_service
 from .prompts import PromptEngine
+from .attention_optimizer import AttentionRhythmOptimizer, get_attention_optimizer
 import logging
 
 logger = logging.getLogger(__name__)
@@ -95,10 +96,56 @@ class PPTContentGenerator:
                 prompt, schema, **llm_kwargs
             )
             logger.info(f"PPT 内容生成成功：{result.get('title', '未知')}")
-            return result
+
+            # 应用注意力节奏优化
+            optimizer = get_attention_optimizer(grade, subject)
+            optimized_result = self._apply_attention_optimization(result, optimizer)
+
+            return optimized_result
         except Exception as e:
             logger.error(f"PPT 内容生成失败：{e}")
             raise RuntimeError(f"PPT 内容生成失败：{e}") from e
+
+    def _apply_attention_optimization(
+        self,
+        result: Dict[str, Any],
+        optimizer: AttentionRhythmOptimizer
+    ) -> Dict[str, Any]:
+        """
+        应用注意力节奏优化到生成的 PPT 内容
+
+        Args:
+            result: 原始 PPT 内容
+            optimizer: 注意力节奏优化器
+
+        Returns:
+            优化后的 PPT 内容
+        """
+        slides = result.get("slides", [])
+
+        if not slides:
+            return result
+
+        # 分析当前节奏
+        rhythm_analysis = optimizer.analyze_rhythm(slides)
+
+        # 如果有问题，尝试优化序列
+        if not rhythm_analysis["valid"]:
+            logger.warning(
+                f"注意力节奏检测到问题：{[i['message'] for i in rhythm_analysis['issues']]}"
+            )
+            optimized_slides = optimizer.optimize_sequence(slides)
+            result["slides"] = optimized_slides
+
+            # 重新分析优化后的节奏
+            final_analysis = optimizer.analyze_rhythm(optimized_slides)
+            result["attention_rhythm_analysis"] = final_analysis
+            logger.info(f"注意力节奏优化完成：{final_analysis['stats']}")
+        else:
+            # 即使没有问题，也记录分析结果
+            result["attention_rhythm_analysis"] = rhythm_analysis
+
+        return result
 
     def generate_for_english(
         self,

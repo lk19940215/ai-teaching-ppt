@@ -675,7 +675,7 @@
         "提示词增加节奏编排指令：要求 LLM 按注意力周期组织页面",
         "验证：生成的 PPT 页面序列符合注意力节奏规则"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-034"
       ]
