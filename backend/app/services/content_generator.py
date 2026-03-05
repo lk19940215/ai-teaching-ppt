@@ -63,6 +63,7 @@ class PPTContentGenerator:
         subject: str,
         slide_count: int,
         chapter: Optional[str] = None,
+        difficulty_level: str = "unified",
         **llm_kwargs
     ) -> Dict[str, Any]:
         """
@@ -73,6 +74,7 @@ class PPTContentGenerator:
             subject: 学科
             slide_count: 幻灯片数量
             chapter: 章节名称（可选）
+            difficulty_level: 教学层次（unified/basic/intermediate/advanced）
             **llm_kwargs: LLM 调用参数
         Returns:
             结构化的 PPT 内容
@@ -83,12 +85,14 @@ class PPTContentGenerator:
             grade=grade,
             subject=subject,
             slide_count=slide_count,
-            chapter=chapter
+            chapter=chapter,
+            difficulty_level=difficulty_level
         )
 
         schema = self.prompt_engine.build_schema(
             slide_count=slide_count,
-            subject=subject
+            subject=subject,
+            difficulty_level=difficulty_level
         )
 
         try:
@@ -153,6 +157,7 @@ class PPTContentGenerator:
         grade: str,
         slide_count: int,
         chapter: Optional[str] = None,
+        difficulty_level: str = "unified",
         **llm_kwargs
     ) -> Dict[str, Any]:
         """
@@ -162,6 +167,7 @@ class PPTContentGenerator:
             grade: 年级
             slide_count: 幻灯片数量
             chapter: 章节名称（可选）
+            difficulty_level: 教学层次（unified/basic/intermediate/advanced）
             **llm_kwargs: LLM 调用参数
         Returns:
             结构化的 PPT 内容
@@ -173,6 +179,7 @@ class PPTContentGenerator:
             subject="english",
             slide_count=slide_count,
             chapter=chapter,
+            difficulty_level=difficulty_level,
             **llm_kwargs
         )
 

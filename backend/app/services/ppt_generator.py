@@ -1272,7 +1272,7 @@ class PPTGenerator:
         font_size: int,
         color: RGBColor
     ):
-        """添加课堂练习页"""
+        """添加课堂练习页（支持差异化教学难度标注 feat-040）"""
         slide = prs.slides.add_slide(prs.slide_layouts[1])
 
         # 标题
@@ -1290,6 +1290,40 @@ class PPTGenerator:
             p = text_frame.add_paragraph()
             p.text = item
             p.font.size = Pt(font_size)
+
+        # 处理 classroom_exercise 字段（feat-040 差异化教学）
+        exercises = slide_data.get("classroom_exercise", [])
+        if exercises:
+            y_position = 2.0
+            for idx, exercise in enumerate(exercises):
+                # 获取难度星级
+                difficulty = exercise.get("difficulty", "basic")
+                star_display = {"basic": "★", "intermediate": "★★", "advanced": "★★★"}.get(difficulty, "★")
+
+                # 添加题目标题（带难度星级）
+                question_title = slide.shapes.add_textbox(Inches(1), Inches(y_position), Inches(9), Inches(0.5))
+                q_para = question_title.text_frame.add_paragraph()
+                q_para.text = f"【{star_display}】{exercise.get('question', '练习题')}"
+                q_para.font.size = Pt(font_size - 1)
+                q_para.font.bold = True
+                # 根据难度设置颜色
+                if difficulty == "basic":
+                    q_para.font.color.rgb = COLOR_GREEN_2  # 绿色 - 基础
+                elif difficulty == "intermediate":
+                    q_para.font.color.rgb = _COLOR_ORANGE  # 橙色 - 提高
+                else:
+                    q_para.font.color.rgb = _COLOR_RED  # 红色 - 拓展
+
+                y_position += 0.6
+
+                # 添加答案和解析（可折叠样式）
+                if exercise.get("answer"):
+                    answer_box = slide.shapes.add_textbox(Inches(1.2), Inches(y_position), Inches(8.5), Inches(0.4))
+                    a_para = answer_box.text_frame.add_paragraph()
+                    a_para.text = f"答案：{exercise.get('answer')}"
+                    a_para.font.size = Pt(font_size - 2)
+                    a_para.font.color.rgb = RGBColor(100, 100, 100)  # 灰色
+                    y_position += 0.5
 
     def _add_summary_slide(
         self,

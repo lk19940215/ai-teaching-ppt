@@ -95,6 +95,7 @@ async def generate_full_ppt(
     session_id: Optional[str] = Body(None, embed=True),
     temperature: Optional[float] = Body(None, embed=True),
     max_output_tokens: Optional[int] = Body(None, embed=True),
+    difficulty_level: str = Body("unified", embed=True),
 ):
     """
     完整生成 PPT（内容生成 + 文件生成）
@@ -109,6 +110,7 @@ async def generate_full_ppt(
         style: PPT 风格
         temperature: 温度参数（可选，从前端传递）
         max_output_tokens: 最大输出 token 数（可选，从前端传递）
+        difficulty_level: 教学层次（unified/basic/intermediate/advanced）
     Returns:
         生成结果和下载链接
     """
@@ -138,7 +140,8 @@ async def generate_full_ppt(
                 content=text_content,
                 grade=grade,
                 slide_count=slide_count,
-                chapter=chapter
+                chapter=chapter,
+                difficulty_level=difficulty_level
             )
         else:
             ppt_content = generator.generate(
@@ -146,7 +149,8 @@ async def generate_full_ppt(
                 grade=grade,
                 subject=subject,
                 slide_count=slide_count,
-                chapter=chapter
+                chapter=chapter,
+                difficulty_level=difficulty_level
             )
 
         # 步骤 2: 生成 PPT 文件

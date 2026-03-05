@@ -19,6 +19,7 @@ class MathPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonom
     4. 变式训练：同一方法不同情境，由浅入深梯度练习
     5. 易错警示：常见错误类型 + 正确方法对比
     6. 情境创设：根据知识点自动生成贴近学生生活的情境导入（feat-039）
+    7. 差异化教学：支持基础版/提高版/拓展版三套练习内容（feat-040）
     """
 
     def build_prompt(
@@ -27,13 +28,25 @@ class MathPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonom
         grade: str,
         subject: str,
         slide_count: int,
-        chapter: Optional[str] = None
+        chapter: Optional[str] = None,
+        difficulty_level: str = "unified"
     ) -> str:
         """
         构建数学学科的 PPT 内容生成提示词
+
+        Args:
+            difficulty_level: 教学层次（unified=统一混合，basic=基础版，intermediate=提高版，advanced=拓展版）
         """
         grade_desc = self.get_grade_description(grade)
         max_points = self.get_max_points_for_grade(grade)
+
+        # 难度分层策略（feat-040）
+        difficulty_strategy = {
+            "unified": "统一模式：生成包含基础（1 星）、提高（2 星）、拓展（3 星）三个难度的混合练习，每道题标注难度星级",
+            "basic": "基础版：只生成基础难度（1 星）练习，侧重基本概念回忆和简单应用",
+            "intermediate": "提高版：只生成中等难度（2 星）练习，侧重知识理解和综合应用",
+            "advanced": "拓展版：只生成高难度（3 星）练习，侧重分析评价和创造迁移"
+        }
 
         # 数学学科情境创设策略（按年级）
         if grade in ["1", "2", "3"]:
@@ -66,6 +79,19 @@ class MathPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonom
 3. **数形结合**：善于用图形、线段图、数轴等直观工具辅助理解
 4. **变式教学**：通过一题多解、一题多变、多题归一，培养学生思维灵活性
 5. **反思提升**：解题后引导学生回顾思路、总结方法、提炼数学思想
+
+【差异化教学要求（feat-040）】
+当前模式：{difficulty_level} - {difficulty_strategy.get(difficulty_level, "")}
+
+**难度标注规范**：
+- 基础题（1 星★）：直接回忆概念、模仿例题、单一知识点应用
+- 提高题（2 星★★）：理解原理、知识综合、变式应用
+- 拓展题（3 星★★★）：分析评价、创造迁移、跨知识综合
+
+**输出要求**：
+- 在"课堂练习页"和"变式训练页"中，每道题必须包含 `difficulty` 字段（basic/intermediate/advanced）
+- 统一模式下：3 种难度都要有，比例约 50%/30%/20%
+- 分层模式下：只生成指定难度的题目
 
 【数学专属教学要求】
 1. **概念引入页**：
@@ -186,10 +212,17 @@ class MathPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonom
 
         return prompt
 
-    def build_schema(self, slide_count: int) -> Dict[str, Any]:
+    def build_schema(self, slide_count: int, difficulty_level: str = "unified") -> Dict[str, Any]:
         """
         构建数学学科的输出结构定义
+
+        Args:
+            slide_count: 幻灯片数量
+            difficulty_level: 教学层次（unified/basic/intermediate/advanced）
         """
+        # 难度说明（feat-040）
+        difficulty_note = "难度标注：basic=基础 (1 星), intermediate=提高 (2 星), advanced=拓展 (3 星)"
+
         return {
             "title": "PPT 标题（章节名称）",
             "slides": [
@@ -249,9 +282,20 @@ class MathPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonom
                         {
                             "type": "变式类型（基础变式/情境变式/逆向变式/综合变式）",
                             "problem": "题目内容",
-                            "difficulty": "难度星级（1-3 星）",
+                            "difficulty": "难度星级（1-3 星，feat-040 差异化教学）",
                             "hint": "解题提示",
                             "connection": "与原题的联系"
+                        }
+                    ],
+                    # 课堂练习页字段（feat-040 差异化教学）
+                    "classroom_exercise": [
+                        {
+                            "question": "练习题题目",
+                            "type": "题型（选择题/填空题/解答题）",
+                            "difficulty": "难度（basic/intermediate/advanced）",
+                            "bloom_level": "布鲁姆认知层级（remember/understand/apply/analyze/evaluate/create）",
+                            "answer": "参考答案",
+                            "analysis": "解析说明"
                         }
                     ],
                     # 易错警示页字段

@@ -24,13 +24,25 @@ class EnglishPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
         grade: str,
         subject: str,
         slide_count: int,
-        chapter: Optional[str] = None
+        chapter: Optional[str] = None,
+        difficulty_level: str = "unified"
     ) -> str:
         """
         构建英语学科的 PPT 内容生成提示词（深度增强版）
+
+        Args:
+            difficulty_level: 教学层次（unified/basic/intermediate/advanced）
         """
         grade_desc = self.get_grade_description(grade)
         max_points = self.get_max_points_for_grade(grade)
+
+        # 难度分层策略（feat-040）
+        difficulty_strategy = {
+            "unified": "统一模式：生成包含基础（1 星）、提高（2 星）、拓展（3 星）三个难度的混合练习",
+            "basic": "基础版：只生成基础难度（1 星）练习，侧重单词回忆和简单句型",
+            "intermediate": "提高版：只生成中等难度（2 星）练习，侧重语言理解和综合应用",
+            "advanced": "拓展版：只生成高难度（3 星）练习，侧重分析评价和创造迁移"
+        }
 
         prompt = f"""你是一位经验丰富的英语教师，请根据以下英语教学内容，设计一份高质量的英语教学 PPT。
 
@@ -49,6 +61,19 @@ class EnglishPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
 3. **词不离句**：单词教学要放在句子和语篇中，避免孤立记忆
 4. **循环复现**：设计多种活动让学生反复接触目标语言
 5. **文化渗透**：适时介绍英语国家的文化背景，培养跨文化意识
+
+【差异化教学要求（feat-040）】
+当前模式：{difficulty_level} - {difficulty_strategy.get(difficulty_level, "")}
+
+**难度标注规范**：
+- 基础题（1 星★）：单词拼写、短语匹配、简单句型模仿
+- 提高题（2 星★★）：句子翻译、对话填空、语法应用
+- 拓展题（3 星★★★）：话题写作、角色扮演、批判性讨论
+
+**输出要求**：
+- 在"课堂练习页"和"情景对话页"中，每道题必须包含 `difficulty` 字段（basic/intermediate/advanced）
+- 统一模式下：3 种难度都要有，比例约 50%/30%/20%
+- 分层模式下：只生成指定难度的题目
 
 【情境创设自动生成要求（feat-039）- 英语学科】
 
@@ -277,9 +302,13 @@ class EnglishPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
 
         return prompt
 
-    def build_schema(self, slide_count: int) -> Dict[str, Any]:
+    def build_schema(self, slide_count: int, difficulty_level: str = "unified") -> Dict[str, Any]:
         """
         构建英语学科的输出结构定义（深度增强版）
+
+        Args:
+            slide_count: 幻灯片数量
+            difficulty_level: 教学层次（unified/basic/intermediate/advanced）
         """
         return {
             "title": "PPT 标题（章节名称）",

@@ -46,12 +46,21 @@ const STYLE_OPTIONS = [
   { value: "theme", label: "学科主题（根据学科自动配色）" },
 ]
 
+// 教学层次选项（差异化教学支持 feat-040）
+const DIFFICULTY_OPTIONS = [
+  { value: "unified", label: "统一（混合难度）" },
+  { value: "basic", label: "基础版（1 星）" },
+  { value: "intermediate", label: "提高版（2 星）" },
+  { value: "advanced", label: "拓展版（3 星）" },
+]
+
 interface TeachingConfig {
   grade: string
   subject: string
   style: string
   slideCount: number
   chapter: string
+  difficultyLevel: string
 }
 
 // PPT 内容类型
@@ -76,6 +85,7 @@ export default function UploadPage() {
     style: "simple",
     slideCount: 15,
     chapter: "",
+    difficultyLevel: "unified",
   })
 
   const [uploadType, setUploadType] = useState<"image" | "pdf" | "text">("text")
@@ -328,6 +338,7 @@ export default function UploadPage() {
           provider: llmConfig.provider,
           api_key: llmConfig.apiKey,
           style: config.style,
+          difficulty_level: config.difficultyLevel,
         }),
       })
 
@@ -826,6 +837,26 @@ export default function UploadPage() {
                   }
                 >
                   {STYLE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+
+              {/* 教学层次（差异化教学支持 feat-040） */}
+              <div>
+                <Label htmlFor="difficultyLevel" className="block mb-2">
+                  教学层次
+                </Label>
+                <Select
+                  id="difficultyLevel"
+                  value={config.difficultyLevel}
+                  onChange={(e) =>
+                    setConfig({ ...config, difficultyLevel: e.target.value })
+                  }
+                >
+                  {DIFFICULTY_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>

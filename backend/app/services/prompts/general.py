@@ -22,14 +22,26 @@ class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
         grade: str,
         subject: str,
         slide_count: int,
-        chapter: Optional[str] = None
+        chapter: Optional[str] = None,
+        difficulty_level: str = "unified"
     ) -> str:
         """
         构建通用学科的 PPT 内容生成提示词
+
+        Args:
+            difficulty_level: 教学层次（unified/basic/intermediate/advanced）
         """
         grade_desc = self.get_grade_description(grade)
         subject_desc = self.get_subject_description(subject)
         max_points = self.get_max_points_for_grade(grade)
+
+        # 难度分层策略（feat-040）
+        difficulty_strategy = {
+            "unified": "统一模式：生成包含基础（1 星）、提高（2 星）、拓展（3 星）三个难度的混合练习，每道题标注难度星级",
+            "basic": "基础版：只生成基础难度（1 星）练习，侧重基本概念回忆和简单应用",
+            "intermediate": "提高版：只生成中等难度（2 星）练习，侧重知识理解和综合应用",
+            "advanced": "拓展版：只生成高难度（3 星）练习，侧重分析评价和创造迁移"
+        }
 
         # 年级差异化的情境创设策略
         if grade in ["1", "2", "3", "4"]:
@@ -70,6 +82,19 @@ class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
 3. **多元互动设计**：每 2-3 页设置一个互动环节（提问/讨论/游戏/竞赛）
 4. **多感官参与**：结合视觉（图表）、听觉（朗读）、动觉（操作）多种学习方式
 5. **形成性评价**：嵌入即时反馈的练习题，检测学习效果
+
+【差异化教学要求（feat-040）】
+当前模式：{difficulty_level} - {difficulty_strategy.get(difficulty_level, "")}
+
+**难度标注规范**：
+- 基础题（1 星★）：直接回忆概念、模仿例题、单一知识点应用
+- 提高题（2 星★★）：理解原理、知识综合、变式应用
+- 拓展题（3 星★★★）：分析评价、创造迁移、跨知识综合
+
+**输出要求**：
+- 在"课堂练习页"和"巩固练习页"中，每道题必须包含 `difficulty` 字段（basic/intermediate/advanced）
+- 统一模式下：3 种难度都要有，比例约 50%/30%/20%
+- 分层模式下：只生成指定难度的题目
 
 【学科特色要求】
 - 语文：注重朗读指导、字词积累、情感体验、文化熏陶
@@ -169,9 +194,13 @@ class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
 
         return prompt
 
-    def build_schema(self, slide_count: int) -> Dict[str, Any]:
+    def build_schema(self, slide_count: int, difficulty_level: str = "unified") -> Dict[str, Any]:
         """
         构建通用学科的输出结构定义
+
+        Args:
+            slide_count: 幻灯片数量
+            difficulty_level: 教学层次（unified/basic/intermediate/advanced）
         """
         return {
             "title": "PPT 标题（章节名称）",
@@ -190,6 +219,7 @@ class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
                     "interaction": "互动环节描述（如适用）",
                     "exercise": {
                         "question": "练习题目",
+                        "difficulty": "难度（basic/intermediate/advanced，feat-040 差异化教学）",
                         "answer": "参考答案",
                         "analysis": "解析说明",
                         "bloom_level": "认知层级（remember/understand/apply/analyze/evaluate/create）",

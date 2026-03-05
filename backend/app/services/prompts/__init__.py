@@ -84,7 +84,8 @@ class PromptEngine:
         grade: str,
         subject: Optional[str] = None,
         slide_count: int = 10,
-        chapter: Optional[str] = None
+        chapter: Optional[str] = None,
+        difficulty_level: str = "unified"
     ) -> str:
         """
         构建 PPT 内容生成提示词
@@ -95,6 +96,7 @@ class PromptEngine:
             subject: 学科（可选，优先于构造函数的 subject）
             slide_count: 幻灯片数量
             chapter: 章节名称（可选）
+            difficulty_level: 教学层次（unified/basic/intermediate/advanced）
 
         Returns:
             构建好的提示词
@@ -105,15 +107,16 @@ class PromptEngine:
         else:
             strategy = self.strategy
 
-        return strategy.build_prompt(content, grade, subject or self.subject, slide_count, chapter)
+        return strategy.build_prompt(content, grade, subject or self.subject, slide_count, chapter, difficulty_level)
 
-    def build_schema(self, slide_count: int, subject: Optional[str] = None) -> Dict[str, Any]:
+    def build_schema(self, slide_count: int, subject: Optional[str] = None, difficulty_level: str = "unified") -> Dict[str, Any]:
         """
         构建输出结构定义
 
         Args:
             slide_count: 幻灯片数量
             subject: 学科（可选）
+            difficulty_level: 教学层次（unified/basic/intermediate/advanced）
 
         Returns:
             JSON Schema 结构定义
@@ -123,7 +126,7 @@ class PromptEngine:
         else:
             strategy = self.strategy
 
-        return strategy.build_schema(slide_count)
+        return strategy.build_schema(slide_count, difficulty_level)
 
     def get_page_types(self, subject: Optional[str] = None) -> list:
         """
