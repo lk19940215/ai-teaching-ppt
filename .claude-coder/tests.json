@@ -653,6 +653,29 @@
       "created_session": 4,
       "last_result": "pass",
       "last_run_session": 4
+    },
+    {
+      "id": "test-feat053-style-recommend",
+      "feature_id": "feat-053",
+      "name": "智能风格推荐 - 根据年级自动推荐风格",
+      "type": "browser",
+      "priority": "critical",
+      "affected_paths": [
+        "frontend/src/app/upload/page.tsx"
+      ],
+      "preconditions": {
+        "services": [
+          "frontend"
+        ],
+        "real_api_key": false
+      },
+      "steps": "访问 /upload 页面，验证：1) 选择小学一年级时风格自动变为活泼趣味 (fun)；2) 选择小学五年级时风格自动变为简约清晰 (simple)；3) 选择高中一年级时风格自动变为学科主题 (theme)；4) 用户手动修改风格后，再切换年级时风格不再自动变化",
+      "test_data_summary": "智能风格推荐端到端测试，包含低年级/高年级/初高中三组测试和用户手动覆盖测试",
+      "expected_result": "1-3 年级→活泼趣味，4-6 年级→简约清晰，7-12 年级→学科主题；用户手动修改后不再自动推荐",
+      "auto_generated": false,
+      "created_session": 9,
+      "last_result": "pass",
+      "last_run_session": 9
     }
   ]
 }

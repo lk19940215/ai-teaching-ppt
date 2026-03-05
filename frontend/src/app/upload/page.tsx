@@ -110,6 +110,9 @@ export default function UploadPage() {
   const [estimatedRemaining, setEstimatedRemaining] = useState<number | null>(null) // 预计剩余时间（秒）
   const [currentStageDetail, setCurrentStageDetail] = useState("") // 当前阶段详细说明
   const [nextStageText, setNextStageText] = useState("") // 下一步说明
+  // 智能风格推荐（feat-053）
+  const [hasManuallyChangedStyle, setHasManuallyChangedStyle] = useState(false) // 用户是否手动修改过风格
+  const [styleRecommendationTip, setStyleRecommendationTip] = useState("") // 风格推荐提示
 
   // 从后端加载 LLM 配置
   useEffect(() => {
@@ -178,6 +181,44 @@ export default function UploadPage() {
       nextStage: '完成'
     }
   }
+
+  // 智能风格推荐：根据年级自动推荐风格（feat-053）
+  const recommendStyleByGrade = (grade: string): string => {
+    const gradeNum = parseInt(grade)
+    if (gradeNum >= 1 && gradeNum <= 3) {
+      return 'fun' // 小学低年级 → 活泼趣味
+    } else if (gradeNum >= 4 && gradeNum <= 6) {
+      return 'simple' // 小学高年级 → 简约清晰
+    } else {
+      return 'theme' // 初中/高中 → 学科主题
+    }
+  }
+
+  // 获取风格中文名称（feat-053）
+  const getStyleLabel = (value: string): string => {
+    const style = STYLE_OPTIONS.find(s => s.value === value)
+    return style ? style.label.split('（')[0] : value
+  }
+
+  // 监听年级变化，自动推荐风格（feat-053）
+  useEffect(() => {
+    if (hasManuallyChangedStyle) return // 用户手动修改过则不再自动推荐
+
+    const recommendedStyle = recommendStyleByGrade(config.grade)
+
+    // 如果当前风格与推荐的不一致，则更新
+    if (config.style !== recommendedStyle) {
+      setConfig({ ...config, style: recommendedStyle })
+      setStyleRecommendationTip(`已为您推荐"${getStyleLabel(recommendedStyle)}"风格`)
+
+      // 3 秒后清除提示
+      const timer = setTimeout(() => {
+        setStyleRecommendationTip("")
+      }, 3000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [config.grade])
 
   // 格式化时间显示（feat-052）
   const formatTime = (seconds: number): string => {
@@ -1031,9 +1072,10 @@ export default function UploadPage() {
                 <Select
                   id="style"
                   value={config.style}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    setHasManuallyChangedStyle(true) // 标记用户手动修改
                     setConfig({ ...config, style: e.target.value })
-                  }
+                  }}
                 >
                   {STYLE_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -1041,6 +1083,13 @@ export default function UploadPage() {
                     </option>
                   ))}
                 </Select>
+                {/* 智能推荐提示（feat-053） */}
+                {styleRecommendationTip && (
+                  <p className="text-xs text-emerald-600 mt-1.5 flex items-center gap-1">
+                    <span>✨</span>
+                    <span>{styleRecommendationTip}</span>
+                  </p>
+                )}
               </div>
 
               {/* 教学层次（差异化教学支持 feat-040） */}
