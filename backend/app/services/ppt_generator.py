@@ -122,6 +122,28 @@ class PPTPageType:
     SYSTEM_THINKING = "系统思维页"  # 层次关系、整体协调
     EXPERIMENT_INQUIRY = "实验探究页"  # 观察实验、对照实验
 
+    # 文科教学页面类型（feat-032 历史/政治/地理）
+    TIMELINE = "时间轴页"  # 历史专属：时序关系、发展阶段
+    BACKGROUND_ANALYSIS = "背景分析页"  # 历史专属：时代背景
+    CAUSE_ANALYSIS = "因果分析页"  # 历史专属：原因探究
+    HISTORICAL_MATERIAL = "史料解读页"  # 历史专属：原始史料分析
+    PROCESS_NARRATIVE = "过程叙述页"  # 历史专属：事件经过
+    IMPACT_EVALUATION = "影响评价页"  # 历史专属：历史影响
+    MULTI_PERSPECTIVE = "多视角评价页"  # 历史专属：多元评价
+    HISTORICAL_REVELATION = "历史启示页"  # 历史专属：以史为鉴
+    CONCEPT_DEFINITION = "概念界定页"  # 政治专属：概念内涵外延
+    PRINCIPLE_EXPLANATION = "原理阐述页"  # 政治专属：理论原理
+    CASE_ANALYSIS = "案例分析页"  # 政治专属：理论联系实际
+    POLICY_INTERPRETATION = "政策解读页"  # 政治专属：政策分析
+    VALUE_GUIDANCE = "价值引领页"  # 政治专属：价值观教育
+    DIALECTICAL_ANALYSIS = "辩证分析页"  # 政治专属：辩证思维
+    LOCATION = "位置定位页"  # 地理专属：经纬度、海陆位置
+    NATURAL_ENVIRONMENT = "自然环境页"  # 地理专属：地形/气候/水文
+    HUMAN_FEATURES = "人文特征页"  # 地理专属：人口/城市/产业
+    REGIONAL_COMPARISON = "区域比较页"  # 地理专属：区域差异分析
+    HUMAN_LAND_RELATION = "人地关系页"  # 地理专属：人地协调
+    MAP_ANALYSIS = "地图分析页"  # 地理专属：地图阅读
+
 
 class PPTStyle:
     """PPT 样式配置（优化版：细化年级自适应规则）"""
@@ -717,6 +739,95 @@ class PPTGenerator:
                     )
                 elif page_type == PPTPageType.EXPERIMENT_INQUIRY:
                     self._add_experiment_inquiry_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                # 文科教学页面类型（feat-032 历史/政治/地理）
+                elif page_type == PPTPageType.TIMELINE:
+                    self._add_timeline_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.CAUSE_ANALYSIS:
+                    self._add_cause_analysis_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.HISTORICAL_MATERIAL:
+                    self._add_historical_material_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.IMPACT_EVALUATION:
+                    self._add_impact_evaluation_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.CONCEPT_DEFINITION:
+                    self._add_concept_definition_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.PRINCIPLE_EXPLANATION:
+                    self._add_principle_explanation_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.CASE_ANALYSIS:
+                    self._add_case_analysis_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.LOCATION:
+                    self._add_location_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.NATURAL_ENVIRONMENT:
+                    self._add_natural_environment_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.REGIONAL_COMPARISON:
+                    self._add_regional_comparison_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.HUMAN_LAND_RELATION:
+                    self._add_human_land_relation_slide(
                         prs,
                         slide_data,
                         content_size,
@@ -2962,6 +3073,647 @@ class PPTGenerator:
                 p = text_frame.add_paragraph()
                 p.text = conclusion
                 p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_timeline_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加时间轴页（历史专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "时间轴")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        timeline = slide_data.get("timeline", {})
+        if timeline:
+            # 时间范围
+            period = timeline.get("period", "")
+            if period:
+                p = text_frame.add_paragraph()
+                p.text = f"【时间范围】{period}"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+
+            # 关键事件
+            events = timeline.get("events", [])
+            if events:
+                p = text_frame.add_paragraph()
+                p.text = "\n【关键事件】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                for event in events:
+                    p = text_frame.add_paragraph()
+                    year = event.get("year", "")
+                    event_name = event.get("event", "")
+                    p.text = f"  • {year} - {event_name}"
+                    p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_cause_analysis_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加因果分析页（历史专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "因果分析")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        cause = slide_data.get("cause_analysis", {})
+        if cause:
+            root = cause.get("root_cause", "")
+            if root:
+                p = text_frame.add_paragraph()
+                p.text = "【根本原因】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = root
+                p.font.size = Pt(font_size)
+
+            direct = cause.get("direct_cause", "")
+            if direct:
+                p = text_frame.add_paragraph()
+                p.text = "\n【直接原因】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = secondary_color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = direct
+                p.font.size = Pt(font_size)
+
+            trigger = cause.get("trigger", "")
+            if trigger:
+                p = text_frame.add_paragraph()
+                p.text = "\n【导火线】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = trigger
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_historical_material_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加史料解读页（历史专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "史料解读")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        material = slide_data.get("historical_material", {})
+        if material:
+            text = material.get("text", "")
+            if text:
+                p = text_frame.add_paragraph()
+                p.text = "【史料原文】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = text
+                p.font.size = Pt(font_size)
+                p.space_after = Pt(10)
+
+            source = material.get("source", "")
+            if source:
+                p = text_frame.add_paragraph()
+                p.text = f"\n【出处】{source}"
+                p.font.size = Pt(font_size)
+                p.font.italic = True
+
+            value = material.get("value", "")
+            if value:
+                p = text_frame.add_paragraph()
+                p.text = "\n【史料价值】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = secondary_color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = value
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_impact_evaluation_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加影响评价页（历史专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "影响评价")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        impact = slide_data.get("impact_evaluation", {})
+        if impact:
+            short_term = impact.get("short_term", "")
+            if short_term:
+                p = text_frame.add_paragraph()
+                p.text = "【短期影响】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = short_term
+                p.font.size = Pt(font_size)
+
+            long_term = impact.get("long_term", "")
+            if long_term:
+                p = text_frame.add_paragraph()
+                p.text = "\n【长期影响】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = secondary_color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = long_term
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_concept_definition_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加概念界定页（政治专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "概念界定")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        concept = slide_data.get("concept_definition", {})
+        if concept:
+            name = concept.get("name", "")
+            if name:
+                p = text_frame.add_paragraph()
+                p.text = f"【概念名称】{name}"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+
+            connotation = concept.get("connotation", "")
+            if connotation:
+                p = text_frame.add_paragraph()
+                p.text = "\n【内涵】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = secondary_color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = connotation
+                p.font.size = Pt(font_size)
+
+            extension = concept.get("extension", "")
+            if extension:
+                p = text_frame.add_paragraph()
+                p.text = "\n【外延】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = extension
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_principle_explanation_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加原理阐述页（政治专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "原理阐述")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        principle = slide_data.get("principle_explanation", {})
+        if principle:
+            content = principle.get("content", "")
+            if content:
+                p = text_frame.add_paragraph()
+                p.text = "【原理内容】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = content
+                p.font.size = Pt(font_size)
+
+            basis = principle.get("theoretical_basis", "")
+            if basis:
+                p = text_frame.add_paragraph()
+                p.text = "\n【理论依据】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = secondary_color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = basis
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_case_analysis_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加案例分析页（政治专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "案例分析")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        case = slide_data.get("case_analysis", {})
+        if case:
+            background = case.get("background", "")
+            if background:
+                p = text_frame.add_paragraph()
+                p.text = "【案例背景】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = background
+                p.font.size = Pt(font_size)
+
+            description = case.get("description", "")
+            if description:
+                p = text_frame.add_paragraph()
+                p.text = "\n【案例描述】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = secondary_color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = description
+                p.font.size = Pt(font_size)
+
+            analysis = case.get("theoretical_analysis", "")
+            if analysis:
+                p = text_frame.add_paragraph()
+                p.text = "\n【理论分析】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = analysis
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_location_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加位置定位页（地理专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "位置定位")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        location = slide_data.get("location", {})
+        if location:
+            lat_lon = location.get("latitude_longitude", "")
+            if lat_lon:
+                p = text_frame.add_paragraph()
+                p.text = f"【经纬度位置】{lat_lon}"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+
+            sea_land = location.get("sea_land_position", "")
+            if sea_land:
+                p = text_frame.add_paragraph()
+                p.text = f"\n【海陆位置】{sea_land}"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = secondary_color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = sea_land
+                p.font.size = Pt(font_size)
+
+            relative = location.get("relative_position", "")
+            if relative:
+                p = text_frame.add_paragraph()
+                p.text = "\n【相对位置】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = relative
+                p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_natural_environment_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加自然环境页（地理专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "自然环境")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        env = slide_data.get("natural_environment", {})
+        if env:
+            terrain = env.get("terrain", {})
+            if isinstance(terrain, dict):
+                terrain_type = terrain.get("type", "")
+                if terrain_type:
+                    p = text_frame.add_paragraph()
+                    p.text = f"【地形】{terrain_type}"
+                    p.font.size = Pt(font_size + 2)
+                    p.font.color.rgb = color
+                    p.font.bold = True
+
+            climate = env.get("climate", {})
+            if isinstance(climate, dict):
+                climate_type = climate.get("type", "")
+                if climate_type:
+                    p = text_frame.add_paragraph()
+                    p.text = f"\n【气候】{climate_type}"
+                    p.font.size = Pt(font_size + 2)
+                    p.font.color.rgb = secondary_color
+                    p.font.bold = True
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_regional_comparison_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加区域比较页（地理专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "区域比较")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        comparison = slide_data.get("regional_comparison", {})
+        if comparison:
+            objects = comparison.get("comparison_objects", [])
+            if objects:
+                p = text_frame.add_paragraph()
+                p.text = f"【比较对象】{' vs '.join(objects)}"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+
+            similarities = comparison.get("similarities", [])
+            if similarities:
+                p = text_frame.add_paragraph()
+                p.text = "\n【相似点】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = secondary_color
+                p.font.bold = True
+                for sim in similarities:
+                    p = text_frame.add_paragraph()
+                    p.text = f"  • {sim.get('description', '') if isinstance(sim, dict) else sim}"
+                    p.font.size = Pt(font_size)
+
+            differences = comparison.get("differences", [])
+            if differences:
+                p = text_frame.add_paragraph()
+                p.text = "\n【差异点】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = _COLOR_ORANGE
+                p.font.bold = True
+                for diff in differences:
+                    if isinstance(diff, dict):
+                        p = text_frame.add_paragraph()
+                        p.text = f"  • {diff.get('aspect', '')}: {diff.get('region_a', '')} vs {diff.get('region_b', '')}"
+                        p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_human_land_relation_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加人地关系页（地理专属）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "人地关系")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
+        text_frame = content_box.text_frame
+
+        relation = slide_data.get("human_land_relationship", {})
+        if relation:
+            env_impact = relation.get("environment_impact_on_human", "")
+            if env_impact:
+                p = text_frame.add_paragraph()
+                p.text = "【环境对人类的影响】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = env_impact
+                p.font.size = Pt(font_size)
+
+            human_impact = relation.get("human_impact_on_environment", "")
+            if human_impact:
+                p = text_frame.add_paragraph()
+                p.text = "\n【人类对环境的影响】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = secondary_color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = human_impact
+                p.font.size = Pt(font_size)
+
+            measures = relation.get("coordination_measures", [])
+            if measures:
+                p = text_frame.add_paragraph()
+                p.text = "\n【协调措施】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = COLOR_GREEN_1
+                p.font.bold = True
+                for m in measures:
+                    p = text_frame.add_paragraph()
+                    p.text = f"  • {m}"
+                    p.font.size = Pt(font_size)
         else:
             for item in slide_data.get("content", []):
                 p = text_frame.add_paragraph()

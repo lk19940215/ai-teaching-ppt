@@ -124,6 +124,13 @@
       "taskId": "feat-030",
       "statusAfter": "done",
       "notes": "完成 feat-030 数学学科深度提示词与专属页面实现：\n\n【新增文件】\n1. backend/app/services/prompts/math.py - MathPromptStrategy 类\n   - 概念引入页：从生活实例/直观模型引入，逐步过渡到抽象符号\n   - 公式推导页：逐步标注推导过程，注明每步依据\n   - 例题讲解页：审题→分析→解题→反思四步法\n   - 变式训练页：基础变式、情境变式、逆向变式、综合变式\n   - 易错警示页：常见错误类型 + 正确方法对比\n   - 集成 CognitiveLoadMixin 认知负荷约束\n\n【修改文件】\n1. backend/app/services/prompts/__init__.py - 注册 MathPromptStrategy 到 STRATEGY_REGISTRY\n2. backend/app/services/ppt_generator.py - 新增数学专属页面类型 (CONCEPT, FORMULA_DERIVATION, EXAMPLE_PROBLEM, VARIATION_PRACTICE, COMMON_MISTAKES) 和处理逻辑\n3. backend/app/services/prompts/chinese.py - 修复 f-string 语法错误（第 109 行）\n\n【验证结果】14 项单元测试全部通过\n- MathPromptStrategy 正确注册到 STRATEGY_REGISTRY\n- 5 个数学专属页面类型可用\n- Schema 包含 formulas、mathematical_thinking 等字段\n- 提示词包含数学教学原则\n\n【tests.json 新增记录】test-feat030-math-prompt-engine\n\n【下一步建议】feat-031 理科学科、feat-032 文科学科、feat-039/040/041 依赖 feat-030 的功能"
+    },
+    {
+      "type": "rollback",
+      "timestamp": "2026-03-05T05:38:59.932Z",
+      "reason": "校验失败",
+      "rollbackTo": "512e52d873bdf9c662e776b9cbeb1275e4fc9997",
+      "success": true
     }
   ]
 }

@@ -11,6 +11,7 @@ from .english import EnglishPromptStrategy
 from .chinese import ChinesePromptStrategy
 from .math import MathPromptStrategy
 from .science import PhysicsPromptStrategy, ChemistryPromptStrategy, BiologyPromptStrategy
+from .humanities import HistoryPromptStrategy, PoliticsPromptStrategy, GeographyPromptStrategy
 from .cognitive import CognitivePromptStrategy
 
 
@@ -29,6 +30,9 @@ class PromptEngine:
         "physics": PhysicsPromptStrategy,
         "chemistry": ChemistryPromptStrategy,
         "biology": BiologyPromptStrategy,
+        "history": HistoryPromptStrategy,
+        "politics": PoliticsPromptStrategy,
+        "geography": GeographyPromptStrategy,
         "general": GeneralPromptStrategy,
     }
 
