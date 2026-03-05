@@ -636,7 +636,7 @@
         "在 ppt_generator.py 增加英语增强页面渲染方法",
         "验证：英语 PPT 包含词根分解、搭配网络等深度内容"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-028",
         "feat-008"
