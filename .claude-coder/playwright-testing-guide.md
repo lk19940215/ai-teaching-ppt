@@ -323,8 +323,9 @@ Phase 4: 问题修复
 
 ```
 方式 1: storageState（推荐）
-  .mcp.json 中配置 --storage-state=path/to/auth.json
+  .mcp.json 中配置 --isolated --storage-state=path/to/auth.json
   auth.json 包含 cookies + localStorage
+  注意：--storage-state 必须配合 --isolated 使用，否则不生效
   适用于：已登录状态的测试
 
 方式 2: 测试中登录
@@ -438,12 +439,15 @@ Phase 4: 问题修复
       "command": "npx",
       "args": [
         "@playwright/mcp@latest",
+        "--isolated",
         "--storage-state=path/to/auth.json"
       ]
     }
   }
 }
 ```
+
+> **注意**: `--storage-state` 必须与 `--isolated` 配合使用。没有 `--isolated` 时，Playwright MCP 使用持久化 Chrome Profile，会忽略 `--storage-state` 文件，导致 localStorage 和 cookies 不会被注入。
 
 **可选增强配置**:
 ```json
@@ -453,6 +457,7 @@ Phase 4: 问题修复
       "command": "npx",
       "args": [
         "@playwright/mcp@latest",
+        "--isolated",
         "--storage-state=path/to/auth.json",
         "--save-trace",
         "--save-video=1280x720",

@@ -4,6 +4,7 @@
       "command": "npx",
       "args": [
         "@playwright/mcp@latest",
+        "--isolated",
         "--storage-state=.claude-coder\\playwright-auth.json"
       ]
     }

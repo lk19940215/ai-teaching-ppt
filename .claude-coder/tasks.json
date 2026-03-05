@@ -901,7 +901,7 @@
         "如果任何步骤失败：截图 + 控制台消息 + 错误文案，记录到 record/e2e_test_results.md，分析根因并修复",
         "验证：record/e2e_test_results.md 中场景A结果为'通过'"
       ],
-      "status": "pending",
+      "status": "testing",
       "depends_on": [
         "feat-046"
       ]

@@ -264,6 +264,15 @@
       "taskId": "feat-045",
       "statusAfter": "done",
       "notes": "✅ feat-045 测试问题修复验证完成（Session 2 验证）\n\n执行内容:\n1. 使用 Playwright MCP 进行端到端测试：访问首页/上传页/设置页/历史页\n2. 验证所有页面加载正常、导航正常、UI 组件可交互\n3. 检查控制台消息：无错误（仅 React DevTools 提示，正常）\n4. 验证 API 端点：LLM 配置 API、历史记录 API 正常\n5. 确认 favicon.svg 已正确配置，无 404 错误\n\n测试结果:\n- 所有页面正常加载，样式一致（浅色主题）\n- 导航栏 4 个按钮正常工作\n- 表单组件可交互，验证逻辑正常\n- 控制台无错误消息\n- API 返回正确响应格式\n\n结论：playwright_test_v1.md 中记录的问题已在之前 session 修复，本次验证确认系统功能完整，无需额外修复工作。\n\n更新文件:\n- .claude-coder/tests.json: 新增 test-feat045-playwright-fix 测试记录\n- .claude-coder/tasks.json: feat-045 状态改为 done，添加 notes\n\n服务状态：前后端服务保持运行（连续模式）"
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-05T15:06:20.476Z",
+      "result": "success",
+      "cost": 1.5236815,
+      "taskId": "feat-046",
+      "statusAfter": "done",
+      "notes": "✅ feat-046 Playwright 测试基础设施升级完成\n\n执行内容:\n1. 创建 test.env 文件 - 包含 LLM 配置凭证和 API 端点，用于 Playwright CLI 脚本测试\n2. 更新 .gitignore - 添加 .claude-coder/test.env 防止凭证泄露\n3. Playwright MCP 端到端测试验证 - 所有页面正常加载\n\n测试结果:\n- 首页 (http://localhost:3000) ✅ 正常加载，导航正常\n- 上传页 (http://localhost:3000/upload) ✅ 正常加载，年级/学科/风格配置正常\n- 设置页 (http://localhost:3000/settings) ✅ 正常加载，LLM 配置表单正常\n- 历史页 (http://localhost:3000/history) ✅ 正常加载，搜索筛选组件正常\n\n凭证链路状态:\n- playwright-auth.json (MCP 模式) ✅ 已配置，包含 API Key\n- test.env (CLI 脚本模式) ✅ 新建，包含 LLM_CONFIG 和 API 端点\n- .gitignore ✅ 已更新，test.env 不会被提交\n\n测试规范文档状态:\n- testing-rules.md ✅ 已存在，AI Agent 行为规范\n- playwright-testing-guide.md ✅ 已存在，工具使用指南\n- test-seed.md ✅ 已存在，测试场景模板\n- efficient-testing-strategy.md ✅ 已存在，效率优化策略\n- ai-testing-overview.md ✅ 已存在，知识总览文档\n\n下一步：下一个 session 可继续使用已配置的凭证进行测试"
     }
   ]
 }

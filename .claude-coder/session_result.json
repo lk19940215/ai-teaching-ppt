@@ -3,7 +3,7 @@
   "task_id": "feat-046",
   "status_before": "pending",
   "status_after": "done",
-  "git_commit": "待提交",
+  "git_commit": "d5197b8",
   "tests_passed": true,
   "notes": "✅ feat-046 Playwright 测试基础设施升级完成\n\n执行内容:\n1. 创建 test.env 文件 - 包含 LLM 配置凭证和 API 端点，用于 Playwright CLI 脚本测试\n2. 更新 .gitignore - 添加 .claude-coder/test.env 防止凭证泄露\n3. Playwright MCP 端到端测试验证 - 所有页面正常加载\n\n测试结果:\n- 首页 (http://localhost:3000) ✅ 正常加载，导航正常\n- 上传页 (http://localhost:3000/upload) ✅ 正常加载，年级/学科/风格配置正常\n- 设置页 (http://localhost:3000/settings) ✅ 正常加载，LLM 配置表单正常\n- 历史页 (http://localhost:3000/history) ✅ 正常加载，搜索筛选组件正常\n\n凭证链路状态:\n- playwright-auth.json (MCP 模式) ✅ 已配置，包含 API Key\n- test.env (CLI 脚本模式) ✅ 新建，包含 LLM_CONFIG 和 API 端点\n- .gitignore ✅ 已更新，test.env 不会被提交\n\n测试规范文档状态:\n- testing-rules.md ✅ 已存在，AI Agent 行为规范\n- playwright-testing-guide.md ✅ 已存在，工具使用指南\n- test-seed.md ✅ 已存在，测试场景模板\n- efficient-testing-strategy.md ✅ 已存在，效率优化策略\n- ai-testing-overview.md ✅ 已存在，知识总览文档\n\n下一步：下一个 session 可继续使用已配置的凭证进行测试"
 }

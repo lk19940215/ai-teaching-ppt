@@ -69,6 +69,7 @@ curl http://localhost:8000/health
 
 ### MCP 工具
 
-- **Playwright MCP**: 已配置，使用 `--storage-state` 注入 API Key
+- **Playwright MCP**: 已配置，使用 `--isolated --storage-state` 注入 API Key
+- `--storage-state` 必须配合 `--isolated` 使用，否则 localStorage/cookies 不会被注入
 - 配置文件: `.mcp.json`
 - 认证状态: `.claude-coder/playwright-auth.json`
