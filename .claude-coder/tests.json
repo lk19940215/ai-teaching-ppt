@@ -575,6 +575,28 @@
       "created_session": 35,
       "last_result": "pass",
       "last_run_session": 35
+    },
+    {
+      "id": "test-feat043-ooxml-trigger",
+      "feature_id": "feat-043",
+      "name": "点击显示答案 OOXML 触发器 - 功能验证",
+      "type": "unit",
+      "priority": "critical",
+      "affected_paths": [
+        "backend/app/services/pptx_interactive.py",
+        "backend/app/services/ppt_generator.py"
+      ],
+      "preconditions": {
+        "services": [],
+        "real_api_key": false
+      },
+      "steps": "验证：1. InteractivePPTGenerator.add_click_to_reveal_slide 方法创建互动幻灯片；2. inject_click_trigger 方法注入 OOXML 触发器；3. _add_trigger_to_timing 生成正确的 <p:timing> XML 结构；4. 触发器与形状 ID 正确关联",
+      "test_data_summary": "OOXML 触发器功能单元测试，测试 PPT 创建和触发器注入成功",
+      "expected_result": "InteractivePPTGenerator 正确创建点击显示答案幻灯片，inject_click_trigger 成功注入触发器到 PPTX 文件，生成的 XML 包含 <p:timing>、<p:timeNodeList>、<p:par>、<p:cTn>、<p:stCondLst>、<p:cond> 等触发器元素，PPT 文件可正常打开",
+      "auto_generated": true,
+      "created_session": 4,
+      "last_result": "pass",
+      "last_run_session": 4
     }
   ]
 }

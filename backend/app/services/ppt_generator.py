@@ -14,6 +14,13 @@ try:
 except ImportError:
     ANIMATION_AVAILABLE = False
 
+# 互动触发器注入模块（条件导入）
+try:
+    from .pptx_interactive import InteractivePPTGenerator
+    INTERACTIVE_AVAILABLE = True
+except ImportError:
+    INTERACTIVE_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 # 预定义颜色，供类属性使用
@@ -1024,6 +1031,16 @@ class PPTGenerator:
                     logger.info(f"动画效果已添加：{output_path}")
                 except Exception as e:
                     logger.warning(f"动画添加失败：{e}，PPT 文件仍可正常使用")
+            # 添加互动触发器效果（如果互动模块可用）
+            if INTERACTIVE_AVAILABLE:
+                try:
+                    interactive_gen = InteractivePPTGenerator()
+                    logger.info(f"正在为 PPT 添加点击触发器效果...")
+                    interactive_gen.inject_click_trigger(output_path, output_path)
+                    logger.info(f"点击触发器已添加：{output_path}")
+                except Exception as e:
+                    logger.warning(f"触发器添加失败：{e}，PPT 文件仍可正常使用")
+
             return output_path
 
         except Exception as e:

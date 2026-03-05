@@ -527,7 +527,8 @@ class InteractivePPTGenerator:
     def inject_click_trigger(
         self,
         pptx_path: Path,
-        output_path: Optional[Path] = None
+        output_path: Optional[Path] = None,
+        trigger_config: Optional[Dict[str, Any]] = None
     ) -> Path:
         """
         为 PPTX 注入点击触发器动画
@@ -535,6 +536,11 @@ class InteractivePPTGenerator:
         Args:
             pptx_path: 输入 PPTX 路径
             output_path: 输出路径
+            trigger_config: 触发器配置 {
+                "trigger_shape_id": 形状 ID（点击此形状触发）,
+                "target_shape_id": 目标形状 ID（被触发动画）,
+                "effect": "appear" | "disappear" | "color_change"
+            }
 
         Returns:
             输出文件路径
@@ -549,7 +555,7 @@ class InteractivePPTGenerator:
                 self._extract_pptx(pptx_path, temp_path)
 
                 # 注入触发器动画
-                self._inject_triggers(temp_path)
+                self._inject_triggers(temp_path, trigger_config)
 
                 # 重新打包
                 self._package_pptx(temp_path, output_path)
@@ -576,12 +582,13 @@ class InteractivePPTGenerator:
                     arcname = file_path.relative_to(src_dir)
                     zip_ref.write(file_path, arcname)
 
-    def _inject_triggers(self, pptx_dir: Path):
+    def _inject_triggers(self, pptx_dir: Path, trigger_config: Optional[Dict[str, Any]] = None):
         """
         注入触发器到幻灯片
 
         Args:
             pptx_dir: 解压后的 PPTX 目录
+            trigger_config: 触发器配置
         """
         slides_dir = pptx_dir / 'ppt' / 'slides'
         if not slides_dir.exists():
@@ -593,7 +600,7 @@ class InteractivePPTGenerator:
                 root = tree.getroot()
 
                 # 查找 timing 节点并添加触发器
-                self._add_trigger_to_timing(root)
+                self._add_trigger_to_timing(root, slide_file, trigger_config)
 
                 self._save_xml(tree, slide_file)
 
@@ -602,16 +609,56 @@ class InteractivePPTGenerator:
             except Exception as e:
                 logger.warning(f"处理幻灯片失败 {slide_file.name}: {e}")
 
-    def _add_trigger_to_timing(self, slide_root: ET.Element):
+    def _add_trigger_to_timing(
+        self,
+        slide_root: ET.Element,
+        slide_file: Path,
+        trigger_config: Optional[Dict[str, Any]] = None
+    ):
         """
         添加触发器到幻灯片时间轴
 
+        OOXML 触发器结构:
+        <p:timing>
+          <p:timeNodeList>
+            <p:par>  <!-- 并行时间线 -->
+              <p:cTn id="1" fill="hold">  <!-- 根时间节点 -->
+                <p:stCondLst>
+                  <p:cond delay="indefinite"/>  <!-- 等待触发 -->
+                </p:stCondLst>
+              </p:cTn>
+            </p:par>
+            <p:par>
+              <p:cTn id="2" fill="hold" presetID="1" presetClass="entr" presetSubtype="0">
+                <p:stCondLst>
+                  <p:cond delay="0">  <!-- 立即触发 -->
+                    <p:eventFld>
+                      <p:tn p:id="1"/>  <!-- 触发器形状 ID -->
+                    </p:eventFld>
+                  </p:cond>
+                </p:stCondLst>
+              </p:cTn>
+            </p:par>
+          </p:timeNodeList>
+        </p:timing>
+
         Args:
             slide_root: 幻灯片根元素
+            slide_file: 幻灯片文件路径（用于提取形状 ID）
+            trigger_config: 触发器配置
         """
         c_sld = slide_root.find('p:cSld', NS)
         if c_sld is None:
             return
+
+        # 获取幻灯片中的所有形状及其 ID
+        sp_tree = c_sld.find('p:spTree', NS)
+        if sp_tree is None:
+            return
+
+        # 提取形状 ID 映射
+        shape_ids = self._extract_shape_ids(sp_tree)
+        logger.debug(f"幻灯片 {slide_file.name} 中的形状 ID: {shape_ids}")
 
         # 查找或创建 timing 节点
         timing = c_sld.find('p:timing', NS)
@@ -622,9 +669,155 @@ class InteractivePPTGenerator:
         if time_node_list is None:
             time_node_list = ET.SubElement(timing, '{%s}timeNodeList' % NS['p'])
 
-        # 添加触发器节点（简化实现）
-        # 在实际 PPT 中，触发器需要关联到具体的形状 ID
-        # 这里添加一个基础的触发器结构
+        # 为幻灯片添加默认的点击触发器结构
+        # 如果有配置，使用配置；否则自动检测互动元素
+        if trigger_config:
+            self._create_trigger_nodes(
+                time_node_list,
+                trigger_config.get('trigger_shape_id'),
+                trigger_config.get('target_shape_id'),
+                trigger_config.get('effect', 'appear')
+            )
+        else:
+            # 自动检测并添加触发器
+            self._auto_detect_and_create_triggers(time_node_list, shape_ids)
+
+    def _extract_shape_ids(self, sp_tree: ET.Element) -> Dict[str, int]:
+        """
+        从形状树中提取形状 ID 和文本内容
+
+        Args:
+            sp_tree: 形状树元素
+
+        Returns:
+            {形状文本：形状 ID} 映射
+        """
+        shape_ids = {}
+        for sp in sp_tree.findall('.//p:sp', NS):
+            nv_sp_pr = sp.find('p:nvSpPr', NS)
+            if nv_sp_pr is None:
+                continue
+
+            c_n = nv_sp_pr.find('p:cNvPr', NS)
+            if c_n is None:
+                continue
+
+            shape_id = c_n.get('id')
+            shape_name = c_n.get('name', '')
+
+            # 获取文本内容
+            tx_body = sp.find('p:txBody', NS)
+            if tx_body is not None:
+                text_content = ''
+                for para in tx_body.findall('.//a:p', NS):
+                    for t in para.findall('.//a:t', NS):
+                        if t.text:
+                            text_content += t.text
+
+                if text_content.strip():
+                    shape_ids[text_content.strip()] = int(shape_id)
+
+        return shape_ids
+
+    def _create_trigger_nodes(
+        self,
+        time_node_list: ET.Element,
+        trigger_id: Optional[int],
+        target_id: Optional[int],
+        effect: str = 'appear'
+    ):
+        """
+        创建触发器时间节点
+
+        Args:
+            time_node_list: 时间节点列表元素
+            trigger_id: 触发器形状 ID
+            target_id: 目标形状 ID
+            effect: 效果类型
+        """
+        # 创建根时间节点（幻灯片主时间线）
+        par_root = ET.SubElement(time_node_list, '{%s}par' % NS['p'])
+        c_tn_root = ET.SubElement(par_root, '{%s}cTn' % NS['p'])
+        c_tn_root.set('id', '1')
+        c_tn_root.set('fill', 'hold')
+
+        # 添加开始条件（无限延迟，等待触发）
+        st_cond_lst_root = ET.SubElement(c_tn_root, '{%s}stCondLst' % NS['p'])
+        ET.SubElement(st_cond_lst_root, '{%s}cond' % NS['p']).set('delay', 'indefinite')
+
+        # 如果没有配置，使用默认 ID
+        if trigger_id is None:
+            trigger_id = 2
+        if target_id is None:
+            target_id = 3
+
+        # 创建触发动画的时间节点
+        par_trigger = ET.SubElement(time_node_list, '{%s}par' % NS['p'])
+        c_tn_trigger = ET.SubElement(par_trigger, '{%s}cTn' % NS['p'])
+        c_tn_trigger.set('id', str(target_id))
+        c_tn_trigger.set('fill', 'hold')
+
+        # 设置预设动画类型（出现效果）
+        preset_id = '1'  # 出现动画的预设 ID
+        if effect == 'disappear':
+            preset_id = '2'  # 消失动画
+        elif effect == 'color_change':
+            preset_id = '10'  # 强调动画
+
+        c_tn_trigger.set('presetID', preset_id)
+        c_tn_trigger.set('presetClass', 'entr')  # 进入动画
+        c_tn_trigger.set('presetSubtype', '0')
+
+        # 添加目标形状引用
+        tgt = ET.SubElement(c_tn_trigger, '{%s}tgtEl' % NS['p'])
+        tgt_sp = ET.SubElement(tgt, '{%s}sp' % NS['p'])
+        tgt_sp.set('id', str(trigger_id))
+
+        # 添加触发条件（点击触发器形状）
+        st_cond_lst = ET.SubElement(c_tn_trigger, '{%s}stCondLst' % NS['p'])
+        cond = ET.SubElement(st_cond_lst, '{%s}cond' % NS['p'])
+        cond.set('delay', '0')
+
+        # 添加事件字段（点击触发）
+        event_fld = ET.SubElement(cond, '{%s}eventFld' % NS['p'])
+        tn = ET.SubElement(event_fld, '{%s}tn' % NS['p'])
+        tn.set('p:id', str(trigger_id))
+
+    def _auto_detect_and_create_triggers(
+        self,
+        time_node_list: ET.Element,
+        shape_ids: Dict[str, int]
+    ):
+        """
+        自动检测互动元素并创建触发器
+
+        Args:
+            time_node_list: 时间节点列表元素
+            shape_ids: 形状 ID 映射
+        """
+        # 检测"点击查看答案"按钮
+        reveal_triggers = ['点击查看答案', '显示答案', '查看答案', 'Click to reveal']
+        trigger_id = None
+        target_id = None
+
+        for trigger_text in reveal_triggers:
+            if trigger_text in shape_ids:
+                trigger_id = shape_ids[trigger_text]
+                break
+
+        # 检测答案框
+        if trigger_id:
+            # 答案框通常是下一个形状
+            target_id = trigger_id + 1
+
+            # 创建触发器
+            self._create_trigger_nodes(
+                time_node_list,
+                trigger_id,
+                target_id,
+                'appear'
+            )
+            logger.debug(f"已为'{trigger_text}'创建触发器：trigger={trigger_id}, target={target_id}")
 
     def _save_xml(self, tree: ET.ElementTree, file_path: Path):
         """保存 XML 文件"""

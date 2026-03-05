@@ -822,7 +822,7 @@
         "测试兼容性：PowerPoint 2016+ 和 WPS Office 2019+",
         "将 inject_click_trigger 集成到主生成流程的互动页面中"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-016",
         "feat-017"
