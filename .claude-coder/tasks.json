@@ -617,7 +617,7 @@
         "在 ppt_generator.py 增加文科专属页面渲染方法（时间线布局、材料引文布局）",
         "验证：历史/政治/地理内容生成包含学科特色页面"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-028"
       ]
