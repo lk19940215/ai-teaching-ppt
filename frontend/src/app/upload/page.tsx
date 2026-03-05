@@ -104,6 +104,12 @@ export default function UploadPage() {
   const [showResult, setShowResult] = useState(false) // 控制结果展示的渐入动画
   const [progressStatus, setProgressStatus] = useState("") // 当前进度状态描述
   const [showPreviewModal, setShowPreviewModal] = useState(false) // 放大预览模态框
+  // 进度反馈增强（feat-052）
+  const [stageStartTime, setStageStartTime] = useState<number | null>(null) // 当前阶段开始时间（毫秒）
+  const [elapsedTime, setElapsedTime] = useState(0) // 已用时间（秒）
+  const [estimatedRemaining, setEstimatedRemaining] = useState<number | null>(null) // 预计剩余时间（秒）
+  const [currentStageDetail, setCurrentStageDetail] = useState("") // 当前阶段详细说明
+  const [nextStageText, setNextStageText] = useState("") // 下一步说明
 
   // 从后端加载 LLM 配置
   useEffect(() => {
@@ -139,6 +145,87 @@ export default function UploadPage() {
     }
     return llmConfig
   }
+
+  // 阶段配置：预计耗时（秒）和详细说明（feat-052）
+  const STAGE_CONFIG: Record<string, {
+    duration: number
+    description: string
+    detail: string
+    nextStage: string
+  }> = {
+    analyzing_content: {
+      duration: 5,
+      description: '正在分析教材内容...',
+      detail: '提取知识点和教学重难点',
+      nextStage: '生成 PPT 大纲'
+    },
+    generating_outline: {
+      duration: 60,
+      description: '正在调用 AI 生成 PPT 大纲...',
+      detail: '根据年级和学科设计教学结构',
+      nextStage: '构建幻灯片页面'
+    },
+    building_slides: {
+      duration: 30,
+      description: '正在构建幻灯片页面...',
+      detail: '生成每页内容和布局',
+      nextStage: '添加动画效果'
+    },
+    adding_animations: {
+      duration: 15,
+      description: '正在添加动画效果...',
+      detail: '注入页面切换和元素动画',
+      nextStage: '完成'
+    }
+  }
+
+  // 格式化时间显示（feat-052）
+  const formatTime = (seconds: number): string => {
+    if (seconds < 60) return `${Math.round(seconds)}秒`
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.round(seconds % 60)
+    return `${mins}分${secs}秒`
+  }
+
+  // 动态更新已用时间（feat-052）
+  useEffect(() => {
+    if (!isGenerating || !stageStartTime) return
+
+    const timer = setInterval(() => {
+      const elapsed = (Date.now() - stageStartTime) / 1000
+      setElapsedTime(elapsed)
+
+      // 根据当前进度阶段计算预计剩余时间
+      const currentStage = Object.keys(STAGE_CONFIG).find((stage, index, arr) => {
+        const stageProgress = [10, 30, 60, 85][index]
+        const nextProgress = index < arr.length - 1 ? [10, 30, 60, 85][index + 1] : 100
+        return progress >= stageProgress && progress < nextProgress
+      })
+
+      if (currentStage && currentStage in STAGE_CONFIG) {
+        const config = STAGE_CONFIG[currentStage]
+        const stageProgress = progress >= 10 ? progress : 10
+        const stageStart = [10, 30, 60, 85].find((p, i) =>
+          Object.keys(STAGE_CONFIG)[i] === currentStage
+        ) || 10
+        const stageEnd = [30, 60, 85, 100].find((p, i) =>
+          Object.keys(STAGE_CONFIG)[i] === currentStage
+        ) || 100
+
+        // 计算当前阶段的完成比例
+        const stageProgressRatio = (stageProgress - stageStart) / (stageEnd - stageStart)
+
+        // 动态估算剩余时间
+        if (stageProgressRatio > 0.1 && elapsedTime > 0) {
+          const estimatedTotal = elapsedTime / stageProgressRatio
+          const remaining = estimatedTotal - elapsedTime
+          setEstimatedRemaining(Math.max(0, remaining))
+        }
+      }
+    }, 500)
+
+    return () => clearInterval(timer)
+  }, [isGenerating, stageStartTime, progress])
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -271,6 +358,11 @@ export default function UploadPage() {
     setProgress(0)
     setShowResult(false)
     setProgressStatus('')
+    setStageStartTime(null)
+    setElapsedTime(0)
+    setEstimatedRemaining(null)
+    setCurrentStageDetail('')
+    setNextStageText('')
 
     let eventSource: EventSource | null = null
 
@@ -358,12 +450,31 @@ export default function UploadPage() {
           setError(data.message)
           setIsGenerating(false)
           setProgressStatus('')
+    setStageStartTime(null)
+    setElapsedTime(0)
+    setEstimatedRemaining(null)
+    setCurrentStageDetail('')
+    setNextStageText('')
+          setStageStartTime(null)
+          setEstimatedRemaining(null)
           eventSource?.close()
           return
         }
 
         setProgress(data.progress)
         setProgressStatus(data.message)
+
+        // 记录阶段开始时间（feat-052）
+        if (data.stage && data.stage !== 'complete' && !stageStartTime) {
+          setStageStartTime(Date.now())
+        }
+
+        // 更新详细阶段信息（feat-052）
+        if (data.stage && data.stage in STAGE_CONFIG) {
+          const config = STAGE_CONFIG[data.stage]
+          setCurrentStageDetail(config.detail)
+          setNextStageText(config.nextStage)
+        }
 
         if (data.stage === 'complete') {
           const result = data.result
@@ -375,6 +486,15 @@ export default function UploadPage() {
             setIsGenerating(false)
             setShowResult(true)
             setProgressStatus('')
+    setStageStartTime(null)
+    setElapsedTime(0)
+    setEstimatedRemaining(null)
+    setCurrentStageDetail('')
+    setNextStageText('')
+            setStageStartTime(null)
+            setEstimatedRemaining(null)
+            setCurrentStageDetail('')
+            setNextStageText('')
           }, 500)
 
           eventSource?.close()
@@ -386,6 +506,15 @@ export default function UploadPage() {
         setError('生成连接中断，请稍后重试')
         setIsGenerating(false)
         setProgressStatus('')
+    setStageStartTime(null)
+    setElapsedTime(0)
+    setEstimatedRemaining(null)
+    setCurrentStageDetail('')
+    setNextStageText('')
+        setStageStartTime(null)
+        setEstimatedRemaining(null)
+        setCurrentStageDetail('')
+        setNextStageText('')
         eventSource?.close()
       }
 
@@ -393,6 +522,15 @@ export default function UploadPage() {
       setError(err instanceof Error ? err.message : '生成失败，请稍后重试')
       setIsGenerating(false)
       setProgressStatus('')
+    setStageStartTime(null)
+    setElapsedTime(0)
+    setEstimatedRemaining(null)
+    setCurrentStageDetail('')
+    setNextStageText('')
+      setStageStartTime(null)
+      setEstimatedRemaining(null)
+      setCurrentStageDetail('')
+      setNextStageText('')
       eventSource?.close()
     }
   }
@@ -468,7 +606,7 @@ export default function UploadPage() {
 
           {/* 进度条 */}
           <div className="mb-6">
-            <div className="flex justify-between text-sm text-gray-600 mb-2">
+            <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
               <span>{progressStatus || "正在处理教材内容..."}</span>
               <span>{Math.round(progress)}%</span>
             </div>
@@ -480,6 +618,27 @@ export default function UploadPage() {
                 <div className="progress-indeterminate"></div>
               </div>
             </div>
+          </div>
+
+          {/* 详细进度信息（feat-052） */}
+          <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+            {currentStageDetail && (
+              <div className="flex items-center gap-2 text-gray-600">
+                <span className="text-indigo-500">●</span>
+                <span>当前：{currentStageDetail}</span>
+              </div>
+            )}
+            {nextStageText && (
+              <div className="flex items-center gap-2 text-gray-600">
+                <span className="text-gray-400">○</span>
+                <span>下一步：{nextStageText}</span>
+              </div>
+            )}
+            {estimatedRemaining !== null && (
+              <div className="col-span-2 text-center text-gray-500 mt-2">
+                预计剩余时间：<span className="font-medium text-indigo-600">{formatTime(estimatedRemaining)}</span>
+              </div>
+            )}
           </div>
 
           {/* 骨架屏内容 */}
