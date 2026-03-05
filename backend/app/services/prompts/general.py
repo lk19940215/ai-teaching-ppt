@@ -13,6 +13,7 @@ class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
 
     适用于语文、数学、科学等大多数学科的默认提示词模板
     继承 CognitiveLoadMixin 提供认知负荷优化约束
+    包含情境创设自动生成支持（feat-039）
     """
 
     def build_prompt(
@@ -29,6 +30,28 @@ class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
         grade_desc = self.get_grade_description(grade)
         subject_desc = self.get_subject_description(subject)
         max_points = self.get_max_points_for_grade(grade)
+
+        # 年级差异化的情境创设策略
+        if grade in ["1", "2", "3", "4"]:
+            scenario_strategy = "低年级情境创设：使用童话故事、动画人物、趣味游戏等贴近儿童生活的场景，语言生动有趣，多用拟人化表达"
+        elif grade in ["5", "6", "7", "8"]:
+            scenario_strategy = "中年级情境创设：使用校园生活、社会实践、科普探索等场景，联系学生实际经验，激发探究兴趣"
+        else:
+            scenario_strategy = "高年级情境创设：使用科研探索、职业体验、社会热点等场景，注重知识迁移和实际应用，培养学科素养"
+
+        # 学科差异化的情境创设策略
+        scenario_templates = {
+            "math": "数学情境：购物消费（计算折扣）、体育运动（数据统计）、建筑设计（几何图形）、旅行规划（路程时间）",
+            "english": "英语情境：旅行游记（问路点餐）、校园生活（交友对话）、文化交流（节日习俗）、职场体验（面试工作）",
+            "chinese": "语文情境：生活实例（亲情友情）、故事典故（历史人物）、自然景观（四季变化）、文化传承（传统节日）",
+            "physics": "物理情境：游乐场（力学现象）、交通工具（运动规律）、家用电器（电学原理）、自然现象（光声热电）",
+            "chemistry": "化学情境：厨房化学（食物变化）、日用品（清洁剂成分）、环境保护（污染处理）、工业生产（化学反应）",
+            "biology": "生物情境：校园植物（分类观察）、健康生活（营养搭配）、生态系统（食物链）、生命科学（细胞遗传）",
+            "history": "历史情境：历史现场（穿越体验）、人物访谈（对话古人）、史料探究（文物解读）、时空对比（古今变化）",
+            "politics": "政治情境：社会热点（时事分析）、道德两难（价值判断）、政策解读（民生措施）、法律案例（权利义务）",
+            "geography": "地理情境：虚拟旅行（各地风光）、环境考察（地貌气候）、资源调查（矿产能源）、区域规划（城市发展）",
+        }
+        scenario_hint = scenario_templates.get(subject.lower(), "通用情境：联系学生已有经验，创设真实或模拟的学习场景")
 
         prompt = f"""你是一位经验丰富的教学设计师，请根据以下教学内容，设计一份高质量的教学 PPT 内容大纲。
 
@@ -55,6 +78,37 @@ class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
 - 科学/物理/化学/生物：注重实验探究、观察记录、数据分析、结论归纳
 - 历史/政治/地理：注重时空观念、因果关系、材料分析、价值引领
 
+【情境创设自动生成要求（feat-039）】
+
+**核心目标**：根据知识点自动生成贴近学生生活的情境导入，激发学习兴趣和动机
+
+**年级差异化策略**：
+- {scenario_strategy}
+
+**学科差异化模板**：
+- {scenario_hint}
+
+**情境导入页设计要求**：
+1. **情境描述（scenario_description）**：用 2-3 句话创设具体场景，让学生有代入感
+2. **引导问题（guiding_question）**：提出 1 个核心问题，引发学生思考和探究欲望
+3. **视觉建议（visual_suggestion）**：描述适合的画面或图示，帮助教师准备素材
+4. **情境类型（scenario_type）**：从以下选择——生活实例、童话故事、动画人物、校园场景、社会实践、科研探索、职业体验、购物消费、体育运动、旅行游记、游乐场、交通工具
+
+**输出格式要求**：
+在第一个内容页（情境导入页）中，必须包含 `scenario` 字段：
+```json
+{{
+    "page_type": "情境导入页",
+    "title": "吸引人的标题",
+    "scenario": {{
+        "scenario_description": "具体的情境描述（2-3 句话）",
+        "guiding_question": "引导性问题",
+        "visual_suggestion": "视觉素材建议",
+        "scenario_type": "情境类型"
+    }}
+}}
+```
+
 【认知负荷优化要求】
 - 每页内容不超过{max_points}个要点，避免信息过载
 - 图文并茂：图示与文字说明应在同一页呈现
@@ -70,6 +124,7 @@ class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
             "page_type": "页面类型",
             "title": "页面标题（吸引学生注意）",
             "content": ["要点 1（简洁、关键词）", "要点 2（配合图示说明）"],
+            "scenario": {{"scenario_description": "情境描述", "guiding_question": "引导问题", "visual_suggestion": "视觉建议", "scenario_type": "情境类型"}},
             "interaction": "互动设计（如适用）",
             "mnemonic": "记忆口诀/助记方法（如适用）"
         }}
@@ -81,7 +136,7 @@ class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
 【PPT 页面结构建议】
 1. **封面页**：课题名称 + 年级学科 + 授课教师
 2. **目录页**：清晰展示本节课的学习脉络
-3. **情境导入页**（1 页）：创设情境、激发兴趣、引出课题
+3. **情境导入页**（1 页）：创设情境、激发兴趣、引出课题（必须包含 scenario 字段）
 4. **新知讲解页**（3-5 页）：
    - 概念讲解：定义 + 特征 + 示例
    - 原理探究：推导过程 + 关键步骤 + 注意事项
@@ -99,11 +154,12 @@ class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
 【质量要求】
 - 每页内容精炼，不超过{max_points}个要点
 - 语言通俗易懂，符合年级认知水平
-- 互动设计有趣味性，能调动学生积极性
+- 情境导入有趣味性和真实性，能调动学生积极性
+- 互动设计有启发性，引导学生主动思考
 - 练习题有梯度，兼顾不同层次学生
 - 记忆口诀朗朗上口，便于学生记忆
 
-请生成符合以上要求的教学 PPT 内容，确保教学逻辑清晰、互动设计丰富、学习效果显著。"""
+请生成符合以上要求的教学 PPT 内容，确保教学逻辑清晰、情境导入生动、互动设计丰富、学习效果显著。"""
 
         # 应用认知负荷约束
         prompt = self.apply_cognitive_load_constraints(prompt, grade)
@@ -121,9 +177,16 @@ class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
             "title": "PPT 标题（章节名称）",
             "slides": [
                 {
-                    "page_type": "封面页/目录页/知识点讲解页/互动问答页/课堂练习页/总结回顾页",
+                    "page_type": "封面页/目录页/情境导入页/知识点讲解页/互动问答页/课堂练习页/总结回顾页",
                     "title": "页面标题",
                     "content": ["页面内容要点 1", "页面内容要点 2"],
+                    # 情境导入页字段（feat-039）
+                    "scenario": {
+                        "scenario_description": "情境描述（2-3 句话，贴近学生生活）",
+                        "guiding_question": "引导性问题（引发思考）",
+                        "visual_suggestion": "视觉素材建议",
+                        "scenario_type": "情境类型（生活实例/童话故事/动画人物/校园场景/社会实践/科研探索/职业体验/购物消费/体育运动/旅行游记/游乐场/交通工具）"
+                    },
                     "interaction": "互动环节描述（如适用）",
                     "exercise": {
                         "question": "练习题目",
@@ -147,6 +210,7 @@ class GeneralPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
         return [
             "封面页",
             "目录页",
+            "情境导入页",        # 情境创设自动生成（feat-039）
             "知识点讲解页",
             "互动问答页",
             "课堂练习页",

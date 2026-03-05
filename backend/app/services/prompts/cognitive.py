@@ -6,10 +6,22 @@
 """
 
 from typing import Dict, Any, List, Optional
-from .base import CognitiveLoadMixin, SubjectPromptStrategy, BloomTaxonomyMixin
+from .base import (
+    CognitiveLoadMixin,
+    SubjectPromptStrategy,
+    BloomTaxonomyMixin,
+    QuestionChainMixin,
+    MetacognitivePromptMixin,
+)
 
 
-class CognitivePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonomyMixin):
+class CognitivePromptStrategy(
+    SubjectPromptStrategy,
+    CognitiveLoadMixin,
+    BloomTaxonomyMixin,
+    QuestionChainMixin,
+    MetacognitivePromptMixin
+):
     """
     认知负荷优化提示词策略
 
@@ -19,6 +31,10 @@ class CognitivePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTa
     3. 切块呈现原则：复杂概念自动分 2-3 页逐步展开
     4. 冗余控制原则：提示词要求避免文字重复图示已表达的信息
     5. 时间邻近原则：讲解与画面同步呈现
+
+    整合问题链教学法与元认知提示系统：
+    - 问题链：是什么 → 为什么 → 怎么用 → 如果...会怎样 → 还有其他方法吗
+    - 元认知提示：想一想 / 试着解释 / 和之前学的有什么关系
     """
 
     def __init__(self):
@@ -151,6 +167,12 @@ class CognitivePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTa
         # 应用布鲁姆分类法约束
         prompt += self.get_bloom_prompt_section(grade, subject)
 
+        # 应用问题链教学法约束
+        prompt += self.get_question_chain_prompt_section(grade, subject)
+
+        # 应用元认知提示约束
+        prompt += self.get_metacognitive_prompt_section(grade, subject)
+
         return prompt
 
     def build_schema(self, slide_count: int) -> Dict[str, Any]:
@@ -163,8 +185,9 @@ class CognitivePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTa
         - chunk_info: 分块信息（如属于某个复杂概念的第几步）
         - bridge_config: 先行组织者桥接配置（概念桥接页专用）
         - scaffold_stage: 脚手架阶段（练习页专用）
+        - meta_prompt: 元认知提示（问题链与自我反思触发点）
         """
-        return {
+        base_schema = {
             "title": "PPT 标题",
             "cognitive_load_config": {
                 "max_points_per_slide": "每页最大要点数",
@@ -192,6 +215,18 @@ class CognitivePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTa
                         "connection": "X 和 Y 的关系说明（概念桥接页专用）"
                     },
                     "scaffold_stage": "脚手架阶段：1=完整示范，2=部分提示，3=独立完成（练习页专用）",
+                    "bloom_level": "认知层级：remember/understand/apply/analyze/evaluate/create",
+                    "question_chain": {
+                        "level": "问题链层级：what/why/how/what_if/what_else",
+                        "question": "递进式问题内容"
+                    },
+                    "meta_prompt": {
+                        "type": "元认知提示类型：reflect/connect/predict/evaluate/extend/monitor",
+                        "icon": "图标符号：💭/🔗/🔮/✓/🚀/📊",
+                        "content": "提示语内容",
+                        "position": "插入位置：before_content/after_content/side_note",
+                        "visual_style": "视觉样式：thought_bubble/highlight_box/sidebar"
+                    },
                     "interaction": "互动设计（如适用）"
                 }
                 for _ in range(slide_count)
@@ -199,6 +234,8 @@ class CognitivePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTa
             "summary": "整体内容总结",
             "key_points": ["重点 1", "重点 2", "重点 3"]
         }
+
+        return base_schema
 
     def get_page_types(self) -> List[str]:
         """
@@ -218,4 +255,7 @@ class CognitivePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTa
             "对比分析页",        # 认知负荷优化：对照布局
             "实验步骤页",        # 认知负荷优化：分块呈现
             "时间轴页",          # 认知负荷优化：时序清晰
+            "思考气泡页",        # 元认知提示：反思/连接/预测/评估/拓展/监控
+            "问题链递进页",      # 问题链教学法：是什么→为什么→怎么用→如果→还有
+            "反思 checkpoint 页", # 元认知提示：学习 checkpoints，促进自我监控
         ]

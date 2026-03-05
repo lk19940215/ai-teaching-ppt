@@ -50,6 +50,42 @@ class EnglishPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
 4. **循环复现**：设计多种活动让学生反复接触目标语言
 5. **文化渗透**：适时介绍英语国家的文化背景，培养跨文化意识
 
+【情境创设自动生成要求（feat-039）- 英语学科】
+
+**年级差异化策略**：
+- 低年级（1-4 年级）：使用童话故事、动画人物、简单游戏等情境，语言简单重复，多用图片辅助
+- 中年级（5-8 年级）：使用校园生活、旅行游记、文化交流等情境，语言贴近学生经验
+- 高年级（9-12 年级）：使用职场体验、社会热点、学术讨论等情境，注重语言实际应用
+
+**英语情境创设类型**：
+1. **旅行游记情境**：问路指路、酒店入住、餐厅点餐、景点参观（适用于交际用语、方向介词）
+2. **校园生活情境**：结交朋友、课堂对话、社团活动、运动会（适用于日常交流、现在时态）
+3. **文化交流情境**：节日庆祝、习俗对比、礼仪差异、饮食文化（适用于文化词汇、比较级）
+4. **职场体验情境**：面试求职、工作汇报、商务会议、客户服务（适用于正式用语、将来时态）
+5. **日常生活情境**：购物消费、健康管理、娱乐活动、家庭聚会（适用于生活词汇、各种时态）
+6. **媒体素养情境**：新闻阅读、广告分析、社交媒体、影视评论（适用于读写技能、被动语态）
+
+**情境导入页设计要求**：
+1. **情境描述（scenario_description）**：用英语或双语描述具体场景，让学生有身临其境的感觉
+2. **引导问题（guiding_question）**：提出 1 个可以用英语解决的问题，如"How would you ask for directions?"
+3. **视觉建议（visual_suggestion）**：描述相关的图示（如地图、菜单、对话场景等）
+4. **情境类型（scenario_type）**：从以上 6 种类型中选择最贴合教学内容的情境
+
+**输出格式要求**：
+在 Warm-up/Lead-in 页面中，必须包含 `scenario` 字段：
+```json
+{{
+    "page_type": "情境导入页",
+    "title": "Engaging Title",
+    "scenario": {{
+        "scenario_description": "Situation description in English or bilingual",
+        "guiding_question": "Guiding question to spark inquiry",
+        "visual_suggestion": "Visual aid suggestion",
+        "scenario_type": "Scenario type"
+    }}
+}}
+```
+
 【英语学科深度增强要求】
 
 ### 一、词根词缀分解（Word Analysis）
@@ -179,7 +215,7 @@ class EnglishPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
 【PPT 结构建议】
 1. **封面页**：Unit/Topic + Grade + Teacher
 2. **Learning Objectives**（1 页）：本节课的学习目标
-3. **Warm-up/Lead-in**（1 页）：热身活动/导入
+3. **Warm-up/Lead-in（情境导入）**（1 页）：创设情境、激发兴趣（必须包含 scenario 字段）
 4. **Vocabulary Learning**（3-4 页）：
    - 单词呈现（含词根词缀分析）
    - 词汇网络（同义词/反义词/搭配）
@@ -207,6 +243,8 @@ class EnglishPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
             "page_type": "页面类型",
             "title": "页面标题",
             "content": ["页面内容要点"],
+            # 情境导入页字段（feat-039）
+            "scenario": {{"scenario_description": "情境描述", "guiding_question": "引导问题", "visual_suggestion": "视觉建议", "scenario_type": "情境类型"}},
             "vocabulary": [{{"word": "单词", "phonetic": "音标", "meaning": "释义", "example": "例句"}}],
             "word_analysis": {{"root": "词根", "prefix": "前缀", "suffix": "后缀", "etymology": "词源"}},
             "collocations": {{"phrases": ["短语 1", "短语 2"], "synonyms": ["同义词"], "antonyms": ["反义词"]}},
@@ -247,9 +285,16 @@ class EnglishPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
             "title": "PPT 标题（章节名称）",
             "slides": [
                 {
-                    "page_type": "封面页/目录页/单词学习页/语法讲解页/情景对话页/课文分析页/课堂练习页/总结回顾页/词根词缀页/固定搭配页/语法树页/时态时间轴页",
+                    "page_type": "封面页/目录页/情境导入页/单词学习页/语法讲解页/情景对话页/课文分析页/课堂练习页/总结回顾页/词根词缀页/固定搭配页/语法树页/时态时间轴页",
                     "title": "页面标题",
                     "content": ["页面内容要点 1", "页面内容要点 2"],
+                    # 情境导入页字段（feat-039）
+                    "scenario": {
+                        "scenario_description": "情境描述（英语或双语描述具体场景）",
+                        "guiding_question": "引导性问题（用英语提出问题）",
+                        "visual_suggestion": "视觉素材建议",
+                        "scenario_type": "情境类型（旅行游记/校园生活/文化交流/职场体验/日常生活/媒体素养）"
+                    },
                     # 基础词汇字段
                     "vocabulary": [
                         {
@@ -427,6 +472,7 @@ class EnglishPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
         return [
             "封面页",
             "目录页",
+            "情境导入页",        # 情境创设自动生成（feat-039）
             # 基础页面类型
             "单词学习页",
             "语法讲解页",

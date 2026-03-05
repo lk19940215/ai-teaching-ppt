@@ -1,6 +1,7 @@
 """
 数学学科提示词策略
 专为数学教学设计的提示词模板
+包含情境创设自动生成支持（feat-039）
 """
 
 from typing import Dict, Any, List, Optional
@@ -17,6 +18,7 @@ class MathPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonom
     3. 例题精讲：审题→分析→解题→反思四步法
     4. 变式训练：同一方法不同情境，由浅入深梯度练习
     5. 易错警示：常见错误类型 + 正确方法对比
+    6. 情境创设：根据知识点自动生成贴近学生生活的情境导入（feat-039）
     """
 
     def build_prompt(
@@ -32,6 +34,20 @@ class MathPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonom
         """
         grade_desc = self.get_grade_description(grade)
         max_points = self.get_max_points_for_grade(grade)
+
+        # 数学学科情境创设策略（按年级）
+        if grade in ["1", "2", "3"]:
+            scenario_strategy = "低年级：使用童话角色（如小动物购物）、游戏场景（如积木搭建）、日常活动（如分糖果）等趣味情境，激发学习兴趣"
+            scenario_examples = "例如：小熊买文具（加减法）、搭积木认识图形（几何）、分蛋糕（分数）"
+        elif grade in ["4", "5", "6"]:
+            scenario_strategy = "中年级：使用校园生活（如运动会统计）、家庭购物（如计算折扣）、社会实践（如测量校园）等真实情境，培养应用意识"
+            scenario_examples = "例如：运动会成绩统计（数据）、装修房间计算面积（几何）、超市购物比价（小数/百分数）"
+        elif grade in ["7", "8", "9"]:
+            scenario_strategy = "初中：使用科学探究（如实验数据）、社会热点（如人口增长）、职业规划（如建筑设计）等情境，发展抽象思维"
+            scenario_examples = "例如：细胞分裂（指数函数）、桥梁设计（抛物线）、人口预测（方程模型）"
+        else:
+            scenario_strategy = "高中：使用科研探索（如数学建模）、高考真题（如实际应用题）、大学先修（如微积分应用）等情境，强化学科素养"
+            scenario_examples = "例如：最优方案选择（导数应用）、投资回报（数列）、物理运动分析（向量）"
 
         prompt = f"""你是一位经验丰富的数学教师，请根据以下数学教学内容，设计一份高质量的数学教学 PPT。
 
@@ -84,10 +100,45 @@ class MathPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonom
    - 正确解法对比
    - 预防策略和检查方法
 
+【情境创设自动生成要求（feat-039）- 数学学科】
+
+**年级差异化策略**：
+- {scenario_strategy}
+- 参考示例：{scenario_examples}
+
+**数学情境创设类型**：
+1. **购物消费情境**：计算折扣、比较价格、预算规划（适用于算术、百分数、方程）
+2. **体育运动情境**：数据统计、速度计算、比赛策略（适用于统计、函数、概率）
+3. **建筑设计情境**：图形认识、面积体积、比例尺（适用于几何、相似、三角函数）
+4. **旅行规划情境**：路程时间、费用计算、最优方案（适用于方程、不等式、线性规划）
+5. **科学探究情境**：实验数据、规律发现、模型建立（适用于函数、数列、导数）
+6. **游戏竞赛情境**：得分计算、概率分析、策略优化（适用于运算、概率、博弈）
+
+**情境导入页设计要求**：
+1. **情境描述**：用 2-3 句话创设具体的数学应用情境，让学生感受"数学就在身边"
+2. **引导问题**：提出 1 个可以用本节课知识解决的数学问题，激发探究欲望
+3. **视觉建议**：描述相关的图示（如购物小票、运动场地图、建筑平面图等）
+4. **情境类型**：从以上 6 种类型中选择最贴合知识点的类型
+
+**输出格式要求**：
+在概念引入页中，必须包含 `scenario` 字段：
+```json
+{{
+    "page_type": "情境导入页",
+    "title": "吸引人的标题",
+    "scenario": {{
+        "scenario_description": "具体的数学应用情境描述",
+        "guiding_question": "引导性的数学问题",
+        "visual_suggestion": "视觉素材建议",
+        "scenario_type": "情境类型"
+    }}
+}}
+```
+
 【PPT 结构建议】
 1. **封面页**：课题 + 年级 + 教师
 2. **学习目标**（1 页）：知识技能、数学思考、问题解决、情感态度
-3. **情境导入**（1 页）：生活实例/实际问题/数学故事引入
+3. **情境导入**（1 页）：生活实例/实际问题/数学故事引入（必须包含 scenario 字段）
 4. **探究新知**（4-6 页）：
    - 概念形成（2 页）：直观感知→抽象概括
    - 公式推导（2 页）：逐步推导→理解记忆
@@ -111,6 +162,7 @@ class MathPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonom
             "page_type": "页面类型",
             "title": "页面标题",
             "content": ["页面内容要点"],
+            "scenario": {{"scenario_description": "情境描述", "guiding_question": "引导问题", "visual_suggestion": "视觉建议", "scenario_type": "情境类型"}},
             "concept": {{"name": "概念名", "definition": "定义", "features": ["特征 1", "特征 2"], "examples": ["正例", "反例"]}},
             "formula_derivation": {{"name": "公式名", "steps": [{{"step": "步骤 1", "reason": "依据"}}], "result": "最终公式", "tips": "理解要点"}},
             "example_problem": {{"title": "例题", "given": "已知条件", "target": "求解目标", "analysis": "思路分析", "solution": ["解题步骤 1", "解题步骤 2"], "reflection": "反思总结", "alternative_methods": ["解法 2"]}},
@@ -142,9 +194,16 @@ class MathPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonom
             "title": "PPT 标题（章节名称）",
             "slides": [
                 {
-                    "page_type": "封面页/目录页/概念引入页/公式推导页/例题讲解页/变式训练页/易错警示页/课堂练习页/总结回顾页/图示页/表格页",
+                    "page_type": "封面页/目录页/情境导入页/概念引入页/公式推导页/例题讲解页/变式训练页/易错警示页/课堂练习页/总结回顾页/图示页/表格页",
                     "title": "页面标题",
                     "content": ["页面内容要点 1", "页面内容要点 2"],
+                    # 情境导入页字段（feat-039）
+                    "scenario": {
+                        "scenario_description": "情境描述（贴近学生生活的数学应用情境）",
+                        "guiding_question": "引导性问题（引发数学探究）",
+                        "visual_suggestion": "视觉素材建议",
+                        "scenario_type": "情境类型（购物消费/体育运动/建筑设计/旅行规划/科学探究/游戏竞赛）"
+                    },
                     # 概念引入页字段
                     "concept": {
                         "name": "概念名称",
@@ -231,6 +290,7 @@ class MathPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxonom
         return [
             "封面页",
             "目录页",
+            "情境导入页",        # 情境创设自动生成（feat-039）
             "概念引入页",        # 数学专属：直观→抽象
             "公式推导页",        # 数学专属：逐步标注
             "例题讲解页",        # 数学专属：四步法（审题→分析→解题→反思）

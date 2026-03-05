@@ -162,6 +162,14 @@ class PPTPageType:
     HUMAN_LAND_RELATION = "人地关系页"  # 地理专属：人地协调
     MAP_ANALYSIS = "地图分析页"  # 地理专属：地图阅读
 
+    # 问题链与元认知提示系统（feat-038）
+    QUESTION_CHAIN = "问题链递进页"  # 递进式问题序列：是什么→为什么→怎么用→如果→还有
+    METACOGNITIVE_BUBBLE = "思考气泡页"  # 元认知提示：云朵形状思考气泡 + 特殊配色
+    REFLECTION_CHECKPOINT = "反思 checkpoint 页"  # 学习 checkpoints，促进自我监控
+
+    # 情境创设自动生成（feat-039）
+    SCENARIO_IMPORT = "情境导入页"  # 贴近学生生活的情境导入：情境描述 + 引导问题 + 视觉建议
+
 
 class PPTStyle:
     """PPT 样式配置（优化版：细化年级自适应规则）"""
@@ -722,6 +730,16 @@ class PPTGenerator:
                         primary_color,
                         secondary_color
                     )
+                # 情境创设自动生成（feat-039）
+                elif page_type == PPTPageType.SCENARIO_IMPORT:
+                    # 情境导入页：贴近学生生活的情境导入
+                    self._add_scenario_import_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
                 # 互动课堂页面类型（feat-017）
                 elif page_type == PPTPageType.QUIZ:
                     self._add_quiz_slide(
@@ -956,6 +974,29 @@ class PPTGenerator:
                         slide_data,
                         content_size,
                         primary_color,
+                        secondary_color
+                    )
+                # 问题链与元认知提示系统（feat-038）
+                elif page_type == PPTPageType.QUESTION_CHAIN:
+                    self._add_question_chain_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.METACOGNITIVE_BUBBLE:
+                    self._add_metacognitive_bubble_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.REFLECTION_CHECKPOINT:
+                    self._add_reflection_checkpoint_slide(
+                        prs,
+                        slide_data,
+                        content_size,
                         secondary_color
                     )
 
@@ -4893,6 +4934,379 @@ class PPTGenerator:
                 p = text_frame.add_paragraph()
                 p.text = item
                 p.font.size = Pt(font_size)
+
+    # ========== 问题链与元认知提示系统（feat-038）==========
+
+    def _add_question_chain_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        primary_color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """
+        添加问题链递进页（feat-038）
+        展示递进式问题序列：是什么 → 为什么 → 怎么用 → 如果...会怎样 → 还有其他方法吗
+        """
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "问题链思考")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = primary_color
+        title_para.font.bold = True
+
+        # 问题链图标映射
+        question_icons = {
+            "what": "❓",
+            "why": "🤔",
+            "how": "✏️",
+            "what_if": "💡",
+            "what_else": "🚀",
+        }
+
+        # 层级颜色映射（从低阶到高阶）
+        level_colors = {
+            "what": primary_color,
+            "why": secondary_color,
+            "how": primary_color,
+            "what_if": secondary_color,
+            "what_else": _COLOR_GOLD,
+        }
+
+        question_chain = slide_data.get("question_chain", [])
+        start_y = 2.0
+        box_height = 1.2
+
+        for i, question_item in enumerate(question_chain):
+            if isinstance(question_item, dict):
+                level = question_item.get("level", "what")
+                question_text = question_item.get("question", "")
+                icon = question_icons.get(level, "❓")
+                level_color = level_colors.get(level, primary_color)
+
+                # 计算位置
+                y_pos = start_y + (i * (box_height + 0.3))
+
+                # 添加问题框
+                left = Inches(0.8)
+                top = Inches(y_pos)
+                width = Inches(8.4)
+                height = Inches(box_height)
+
+                shape = slide.shapes.add_shape(
+                    1,  # msoShapeRectangle
+                    left, top, width, height
+                )
+                shape.fill.solid()
+                shape.fill.fore_color.rgb = level_color
+                shape.fill.transparency = 0.85
+                shape.line.color.rgb = level_color
+                shape.line.width = Pt(2)
+
+                # 添加问题文本
+                text_frame = shape.text_frame
+                text_frame.word_wrap = True
+
+                p = text_frame.paragraphs[0]
+                p.text = f"{icon} 【{question_item.get('chinese_name', level)}】{question_text}"
+                p.font.size = Pt(font_size)
+                p.font.color.rgb = RGBColor(50, 50, 50)
+
+                # 添加层级说明
+                if question_item.get("description"):
+                    p = text_frame.add_paragraph()
+                    p.text = f"  {question_item.get('description')}"
+                    p.font.size = Pt(font_size - 4)
+                    p.font.color.rgb = RGBColor(100, 100, 100)
+                    p.space_before = Pt(4)
+
+    def _add_metacognitive_bubble_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """
+        添加思考气泡页（feat-038）
+        元认知提示：云朵形状思考气泡 + 特殊配色，与正常内容视觉区分
+        """
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "想一想")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # 元认知提示类型图标
+        meta_icons = {
+            "reflect": "💭",
+            "connect": "🔗",
+            "predict": "🔮",
+            "evaluate": "✓",
+            "extend": "🚀",
+            "monitor": "📊",
+        }
+
+        # 背景色（淡色）
+        bg_color = RGBColor(240, 248, 255)  # 淡蓝色背景
+
+        # 获取元认知提示数据
+        meta_prompt = slide_data.get("meta_prompt", {})
+        icon = meta_icons.get(meta_prompt.get("type", "reflect"), "💭")
+        content = meta_prompt.get("content", slide_data.get("content", ["停下来思考一下..."])[0] if isinstance(slide_data.get("content"), list) else "停下来思考一下...")
+
+        # 添加云朵形状背景（使用椭圆近似）
+        left = Inches(1)
+        top = Inches(2)
+        width = Inches(8)
+        height = Inches(4)
+
+        # 添加圆角矩形作为思考气泡背景
+        bubble = slide.shapes.add_shape(
+            5,  # msoShapeRoundedRectangle
+            left, top, width, height
+        )
+        bubble.fill.solid()
+        bubble.fill.fore_color.rgb = bg_color
+        bubble.fill.transparency = 0.3
+        bubble.line.color.rgb = color
+        bubble.line.width = Pt(3)
+        bubble.line.dash_style = 2  # 虚线边框
+
+        # 添加图标和文本
+        text_frame = bubble.text_frame
+        text_frame.word_wrap = True
+
+        p = text_frame.paragraphs[0]
+        p.text = f"{icon} {content}"
+        p.font.size = Pt(font_size + 2)
+        p.font.color.rgb = RGBColor(50, 50, 50)
+        p.alignment = 1  # 居中
+
+        # 如果是反思型提示，添加额外装饰
+        if meta_prompt.get("type") == "reflect":
+            # 添加小云朵装饰在左上角
+            small_cloud = slide.shapes.add_shape(
+                5,
+                Inches(0.8), Inches(1.7), Inches(1), Inches(0.6)
+            )
+            small_cloud.fill.solid()
+            small_cloud.fill.fore_color.rgb = bg_color
+            small_cloud.line.color.rgb = color
+            small_cloud.line.width = Pt(2)
+
+    def _add_reflection_checkpoint_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """
+        添加反思 checkpoint 页（feat-038）
+        学习 checkpoints，促进学生自我监控理解程度
+        """
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "学习检查点")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+
+        # checkpoint 配置
+        checkpoint_color = RGBColor(106, 90, 205)  # 紫色表示检查点
+        bg_color = RGBColor(250, 250, 250)  # 浅灰背景
+
+        # 获取检查点列表
+        checkpoints = slide_data.get("checkpoints", [])
+
+        if not checkpoints and slide_data.get("content"):
+            # 兼容 content 格式
+            checkpoints = [{"text": item} for item in slide_data.get("content", [])]
+
+        start_y = 1.8
+        box_height = 1.0
+
+        for i, checkpoint_item in enumerate(checkpoints):
+            if isinstance(checkpoint_item, dict):
+                checkpoint_text = checkpoint_item.get("text", checkpoint_item.get("content", ""))
+                checkpoint_type = checkpoint_item.get("type", "check")
+                difficulty = checkpoint_item.get("difficulty", 1)
+
+                # 计算位置
+                y_pos = start_y + (i * (box_height + 0.4))
+
+                # 添加检查点框
+                left = Inches(0.8)
+                top = Inches(y_pos)
+                width = Inches(8.4)
+                height = Inches(box_height)
+
+                box = slide.shapes.add_shape(
+                    1,  # msoShapeRectangle
+                    left, top, width, height
+                )
+                box.fill.solid()
+                box.fill.fore_color.rgb = bg_color
+                box.fill.transparency = 0.5
+                box.line.color.rgb = checkpoint_color
+                box.line.width = Pt(2)
+
+                # 添加检查点图标
+                icon = "✓" if checkpoint_type == "check" else "⚠" if checkpoint_type == "warn" else "?"
+                icon_box = slide.shapes.add_shape(
+                    24,  # msoShapeEllipse
+                    Inches(0.9), Inches(y_pos + 0.15), Inches(0.5), Inches(0.5)
+                )
+                icon_box.fill.solid()
+                icon_box.fill.fore_color.rgb = checkpoint_color
+                icon_box.line.color.rgb = checkpoint_color
+
+                icon_text = icon_box.text_frame
+                icon_text.paragraphs[0].text = icon
+                icon_text.paragraphs[0].alignment = 1
+                icon_text.paragraphs[0].font.size = Pt(font_size)
+                icon_text.paragraphs[0].font.color.rgb = RGBColor(255, 255, 255)
+                icon_text.paragraphs[0].font.bold = True
+
+                # 添加检查点文本
+                text_frame = box.text_frame
+                text_frame.word_wrap = True
+                text_frame.margin_left = Inches(0.7)
+
+                p = text_frame.paragraphs[0]
+                p.text = checkpoint_text
+                p.font.size = Pt(font_size)
+                p.font.color.rgb = RGBColor(50, 50, 50)
+
+                # 添加难度星级
+                stars = "★" * difficulty + "☆" * (3 - difficulty)
+                p = text_frame.add_paragraph()
+                p.text = f"难度：{stars}"
+                p.font.size = Pt(font_size - 4)
+                p.font.color.rgb = RGBColor(150, 150, 150)
+                p.space_before = Pt(4)
+
+    def _add_scenario_import_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加情境导入页（feat-039）：贴近学生生活的情境导入，全幅背景色 + 大字引导问题"""
+        slide = prs.slides.add_slide(prs.slide_layouts[6])  # 空白布局
+
+        # 获取情境配置
+        scenario = slide_data.get('scenario', {})
+        scenario_description = scenario.get('scenario_description', slide_data.get('content', [''])[0] if slide_data.get('content') else '')
+        guiding_question = scenario.get('guiding_question', '思考问题')
+        visual_suggestion = scenario.get('visual_suggestion', '')
+        scenario_type = scenario.get('scenario_type', '生活实例')
+
+        # 标题
+        title_text = slide_data.get('title', '情境导入')
+        title_box = slide.shapes.add_textbox(Inches(1), Inches(0.3), Inches(8), Inches(0.8))
+        title_frame = title_box.text_frame
+        title_frame.text = title_text
+        title_para = title_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 4)
+        title_para.font.color.rgb = color
+        title_para.font.bold = True
+        title_para.alignment = PP_ALIGN.CENTER
+
+        # 情境类型标签
+        type_icons = {
+            '生活实例': '🏠',
+            '童话故事': '📚',
+            '动画人物': '🎬',
+            '校园场景': '🏫',
+            '社会实践': '🤝',
+            '科研探索': '🔬',
+            '职业体验': '💼',
+            '购物消费': '🛒',
+            '体育运动': '⚽',
+            '旅行游记': '✈️',
+            '游乐场': '🎢',
+            '交通工具': '🚗',
+        }
+        type_icon = type_icons.get(scenario_type, '💡')
+
+        type_box = slide.shapes.add_textbox(Inches(1), Inches(1.2), Inches(8), Inches(0.5))
+        type_frame = type_box.text_frame
+        type_frame.text = f'{type_icon} {scenario_type}'
+        type_para = type_frame.paragraphs[0]
+        type_para.font.size = Pt(font_size - 2)
+        type_para.font.color.rgb = secondary_color
+        type_para.alignment = PP_ALIGN.CENTER
+
+        # 情境描述区域（带背景色块）
+        scenario_box = slide.shapes.add_shape(
+            1,  # msoShapeRectangle
+            Inches(0.5), Inches(1.8), Inches(9), Inches(2.5)
+        )
+        scenario_box.fill.solid()
+        scenario_box.fill.fore_color.rgb = color
+        scenario_box.fill.transparency = 0.85  # 高透明度背景
+        scenario_box.line.color.rgb = color
+        scenario_box.line.width = Pt(2)
+
+        scenario_frame = scenario_box.text_frame
+        scenario_frame.word_wrap = True
+        scenario_frame.margin_left = Inches(0.5)
+        scenario_frame.margin_right = Inches(0.5)
+        scenario_frame.margin_top = Inches(0.3)
+        scenario_frame.margin_bottom = Inches(0.3)
+
+        scenario_para = scenario_frame.paragraphs[0]
+        scenario_para.text = scenario_description
+        scenario_para.font.size = Pt(font_size + 1)
+        scenario_para.font.color.rgb = RGBColor(50, 50, 50)
+
+        # 引导问题（大字醒目）
+        question_box = slide.shapes.add_shape(
+            1,  # msoShapeRectangle
+            Inches(0.5), Inches(4.5), Inches(9), Inches(2)
+        )
+        question_box.fill.solid()
+        question_box.fill.fore_color.rgb = secondary_color
+        question_box.fill.transparency = 0.8
+        question_box.line.color.rgb = secondary_color
+        question_box.line.width = Pt(3)
+
+        question_frame = question_box.text_frame
+        question_frame.word_wrap = True
+        question_frame.margin_left = Inches(0.5)
+        question_frame.margin_right = Inches(0.5)
+        question_frame.margin_top = Inches(0.3)
+        question_frame.margin_bottom = Inches(0.3)
+
+        question_para = question_frame.paragraphs[0]
+        question_para.text = f'❓ {guiding_question}'
+        question_para.font.size = Pt(font_size + 3)
+        question_para.font.color.rgb = RGBColor(50, 50, 50)
+        question_para.font.bold = True
+        question_para.alignment = PP_ALIGN.CENTER
+
+        # 视觉建议（底部小字）
+        if visual_suggestion:
+            visual_box = slide.shapes.add_textbox(Inches(1), Inches(6.7), Inches(8), Inches(0.5))
+            visual_frame = visual_box.text_frame
+            visual_frame.text = f'🎨 视觉建议：{visual_suggestion}'
+            visual_para = visual_frame.paragraphs[0]
+            visual_para.font.size = Pt(font_size - 3)
+            visual_para.font.color.rgb = RGBColor(120, 120, 120)
+            visual_para.font.italic = True
+            visual_para.alignment = PP_ALIGN.CENTER
 
 
 # 全局 PPT 生成器实例

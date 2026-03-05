@@ -729,7 +729,7 @@
         "元认知提示与正常内容视觉区分：使用不同背景色和图标",
         "验证：PPT 中在适当位置出现思考气泡和递进式问题链"
       ],
-      "status": "pending",
+      "status": "in_progress",
       "depends_on": [
         "feat-037"
       ]
@@ -747,7 +747,7 @@
         "在 ppt_generator.py 增加情境导入页渲染：全幅背景色 + 大字引导问题",
         "验证：每份 PPT 开头包含贴合学科和年级的情境导入"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-030",
         "feat-033"

@@ -5,7 +5,16 @@
 """
 
 from typing import Dict, Any, Optional, Type
-from .base import SubjectPromptStrategy, CognitiveLoadMixin
+from .base import (
+    SubjectPromptStrategy,
+    CognitiveLoadMixin,
+    BloomTaxonomyMixin,
+    QuestionChainMixin,
+    MetacognitivePromptMixin,
+    MetacognitivePromptSystem,
+    MetacognitiveType,
+    QuestionChainLevel,
+)
 from .general import GeneralPromptStrategy
 from .english import EnglishPromptStrategy
 from .chinese import ChinesePromptStrategy
@@ -13,6 +22,13 @@ from .math import MathPromptStrategy
 from .science import PhysicsPromptStrategy, ChemistryPromptStrategy, BiologyPromptStrategy
 from .humanities import HistoryPromptStrategy, PoliticsPromptStrategy, GeographyPromptStrategy
 from .cognitive import CognitivePromptStrategy
+from .metacognitive import (
+    QuestionChainMixin,
+    MetacognitivePromptMixin,
+    MetacognitivePromptSystem,
+    MetacognitiveType,
+    QuestionChainLevel,
+)
 
 
 class PromptEngine:

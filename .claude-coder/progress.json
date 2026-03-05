@@ -185,6 +185,13 @@
       "taskId": "feat-036",
       "statusAfter": "done",
       "notes": "Session 1 完成 feat-036 布鲁姆目标分类法集成实现：\n\n【实现内容】\n1. 创建 bloom.py 核心模块（453 行）：\n   - BloomLevel 枚举：6 个认知层级（记忆/理解/应用/分析/评价/创造）\n   - BloomTaxonomy 工具类：层级检测、递进性验证、练习题模板\n   - 行为动词列表、问题模板、认知层级描述\n\n2. 扩展 base.py 添加 BloomTaxonomyMixin（224 行）：\n   - BLOOM_LEVELS：6 层级定义和顺序\n   - BLOOM_VERBS：各层级典型行为动词\n   - BLOOM_EXERCISE_TYPES：各层级适用题型\n   - GRADE_BLOOM_FOCUS：年级认知层级重点映射（1-12 年级差异化）\n   - get_bloom_prompt_section：布鲁姆提示词段落生成\n   - validate_bloom_progression：递进性验证\n   - get_exercise_schema_for_level：层级练习题 schema\n\n3. 更新所有学科策略集成布鲁姆分类法：\n   - general.py, math.py, english.py, chinese.py\n   - science.py (physics/chemistry/biology)\n   - humanities.py (history/politics/geography)\n   - cognitive.py\n   - 均继承 BloomTaxonomyMixin 并在 build_prompt 中调用 get_bloom_prompt_section\n\n4. 更新 schema 添加 bloom_level 字段：\n   - exercise 结构包含 bloom_level 标注\n   - 支持认知层级追踪\n\n【验证结果】\n- 所有模块导入测试通过\n- 布鲁姆功能测试通过（6 层级检测、递进性验证）\n- 各学科提示词生成测试通过（包含布鲁姆分类法段落）\n- PPT 生成 API 测试通过（curl 验证返回成功）\n\n【给下个 session 的提醒】\n- feat-036 已完成，可继续 feat-037（先行组织者与脚手架策略）\n- BloomTaxonomyMixin 已可复用，新学科策略只需继承该类\n- 生成的 PPT 会在练习题中包含 bloom_level 字段"
+    },
+    {
+      "type": "rollback",
+      "timestamp": "2026-03-05T09:00:52.683Z",
+      "reason": "校验失败",
+      "rollbackTo": "30aa4cfcccf7fcaefb81557ef1f73343fef7242c",
+      "success": true
     }
   ]
 }

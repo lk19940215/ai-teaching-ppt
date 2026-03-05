@@ -528,3 +528,24 @@ class BloomTaxonomyMixin:
             "analysis": "解析说明",
             "difficulty": "难度星级（1-3 星）",
         }
+
+
+# 问题链与元认知提示系统导出（在 base.py 末尾添加，供全局引用）
+from .metacognitive import (
+    QuestionChainMixin,
+    MetacognitivePromptMixin,
+    MetacognitivePromptSystem,
+    MetacognitiveType,
+    QuestionChainLevel,
+)
+
+__all__ = [
+    "SubjectPromptStrategy",
+    "CognitiveLoadMixin",
+    "BloomTaxonomyMixin",
+    "QuestionChainMixin",
+    "MetacognitivePromptMixin",
+    "MetacognitivePromptSystem",
+    "MetacognitiveType",
+    "QuestionChainLevel",
+]
