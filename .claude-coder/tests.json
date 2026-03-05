@@ -597,6 +597,35 @@
       "created_session": 4,
       "last_result": "pass",
       "last_run_session": 4
+    },
+    {
+      "id": "test-feat045-playwright-fix",
+      "feature_id": "feat-045",
+      "name": "测试问题修复 - Playwright MCP 端到端验证",
+      "type": "browser",
+      "priority": "critical",
+      "affected_paths": [
+        "frontend/src/app/page.tsx",
+        "frontend/src/app/upload/page.tsx",
+        "frontend/src/app/settings/page.tsx",
+        "frontend/src/app/history/page.tsx",
+        "frontend/src/app/layout.tsx",
+        "frontend/public/favicon.svg"
+      ],
+      "preconditions": {
+        "services": [
+          "frontend",
+          "backend"
+        ],
+        "real_api_key": false
+      },
+      "steps": "使用 Playwright MCP 访问首页/上传页/设置页/历史页，验证页面加载正常、导航正常、UI 组件可交互、控制台无错误、favicon 无 404 错误",
+      "test_data_summary": "Playwright MCP 端到端测试验证所有问题已修复",
+      "expected_result": "所有页面正常加载，导航正常，表单组件可交互，控制台无错误（仅 React DevTools 提示信息），favicon.ico 404 问题已修复",
+      "auto_generated": true,
+      "created_session": 2,
+      "last_result": "pass",
+      "last_run_session": 2
     }
   ]
 }

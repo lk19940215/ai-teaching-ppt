@@ -857,10 +857,11 @@
         "使用 Playwright MCP 复测修复后的功能，确认问题已解决",
         "验证：grep -q '状态: 已修复' record/playwright_test_v1.md && echo 'pass'"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-044"
-      ]
+      ],
+      "notes": "Session 2 完成：使用 Playwright MCP 进行端到端测试验证。测试结果：1. 首页/上传页/设置页/历史页均正常加载；2. 导航正常，所有 UI 组件可交互；3. 控制台无错误（仅 React DevTools 提示）；4. favicon.svg 已正确配置，无 404 错误。结论：playwright_test_v1.md 中记录的问题已修复，无需额外修复工作。"
     }
   ]
 }
