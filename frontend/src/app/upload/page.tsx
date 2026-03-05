@@ -103,6 +103,7 @@ export default function UploadPage() {
   const [progress, setProgress] = useState(0) // 生成进度 0-100
   const [showResult, setShowResult] = useState(false) // 控制结果展示的渐入动画
   const [progressStatus, setProgressStatus] = useState("") // 当前进度状态描述
+  const [showPreviewModal, setShowPreviewModal] = useState(false) // 放大预览模态框
 
   // 从后端加载 LLM 配置
   useEffect(() => {
@@ -514,7 +515,17 @@ export default function UploadPage() {
 
           {/* PPT 缩略图轮播预览 */}
           <div className="mb-6">
-            <h3 className="text-lg font-medium mb-4">PPT 预览（共 {generatedContent.slides.length + 2} 页）</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium">PPT 预览（共 {generatedContent.slides.length + 2} 页）</h3>
+              {/* 放大预览按钮（UX 修复） */}
+              <Button
+                variant="outline"
+                onClick={() => setShowPreviewModal(true)}
+                className="text-sm"
+              >
+                🔍 放大查看
+              </Button>
+            </div>
 
             {/* 缩略图导航 */}
             <div className="flex gap-2 overflow-x-auto pb-4 mb-4">
@@ -898,7 +909,7 @@ export default function UploadPage() {
                 <Label htmlFor="slideCount" className="block mb-2">
                   幻灯片数量（8-30页）
                 </Label>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 mb-3">
                   <input
                     type="range"
                     id="slideCount"
@@ -910,9 +921,25 @@ export default function UploadPage() {
                     }
                     className="flex-1"
                   />
-                  <span className="text-lg font-semibold w-8 text-center">
-                    {config.slideCount}
+                  <span className="text-lg font-semibold w-12 text-center">
+                    {config.slideCount}页
                   </span>
+                </div>
+                {/* 快捷选项按钮 */}
+                <div className="flex gap-2">
+                  {[10, 15, 20, 25].map(num => (
+                    <button
+                      key={num}
+                      onClick={() => setConfig({ ...config, slideCount: num })}
+                      className={`px-3 py-1 text-sm rounded border transition ${
+                        config.slideCount === num
+                          ? 'bg-indigo-600 text-white border-indigo-600'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-indigo-400'
+                      }`}
+                    >
+                      {num}页
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>

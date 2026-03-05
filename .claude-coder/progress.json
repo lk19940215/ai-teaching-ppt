@@ -291,6 +291,13 @@
       "taskId": "feat-048",
       "statusAfter": "done",
       "notes": "Session 3 - feat-048 图片上传 OCR 流程 E2E 测试完成。测试结果：1) 图片上传 API 测试通过（curl 验证）；2) OCR API 失败（环境问题：No module named 'paddle'，需安装 PaddlePaddle/PaddleOCR）；3) 文字输入完整生成流程测试通过（Playwright MCP，生成 16 页 PPT）；4) PPT 预览和下载功能正常。技术限制：Playwright MCP 的 browser_file_upload、browser_select_option 工具存在参数格式问题，使用替代方案完成测试。测试报告：record/e2e_test_results.md，环境问题记录：record/ocr_env_issue.md。下一个 session 建议：安装 PaddleOCR 后重新测试图片上传完整链路，或继续执行 feat-049 错误场景测试。"
+    },
+    {
+      "type": "rollback",
+      "timestamp": "2026-03-05T16:13:41.867Z",
+      "reason": "校验失败",
+      "rollbackTo": "e68e4278d32d8e2d598d8ccc917c08c6434b33b4",
+      "success": true
     }
   ]
 }

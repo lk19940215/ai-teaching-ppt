@@ -969,7 +969,7 @@
         "将所有发现的 UX 问题写入 record/exploratory_test.md，每个问题包含：严重程度/复现步骤/预期vs实际/根因分析/修复建议",
         "选择严重程度为'高'的问题，立即修复代码，并用 Playwright MCP 复测确认修复"
       ],
-      "status": "pending",
+      "status": "in_progress",
       "depends_on": [
         "feat-047",
         "feat-048",
