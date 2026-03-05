@@ -1,9 +1,9 @@
 {
   "session_result": "success",
-  "task_id": "feat-051",
-  "status_before": "in_progress",
+  "task_id": "feat-052",
+  "status_before": "pending",
   "status_after": "done",
-  "git_commit": "884ce62",
+  "git_commit": "7c486d2",
   "tests_passed": true,
-  "notes": "Session 7 - feat-051 完成。工作内容：1) 读取 upload/page.tsx 找到默认配置；2) 将默认年级从'小学三年级'改为'小学五年级'；3) 将默认 PPT 风格从'简约清晰'改为'活泼趣味'；4) 类型检查通过；5) Playwright MCP 验证通过（确认年级和风格选项已变更）。修改文件：frontend/src/app/upload/page.tsx（第 82-89 行 config 初始值）。剩余待修复 UX 问题：feat-052（进度反馈改进）、feat-053（智能风格推荐）。服务状态：前后端运行正常。"
+  "notes": "Session 8 - feat-052 完成。工作内容：1) 新增 5 个状态变量跟踪进度详情（stageStartTime, elapsedTime, estimatedRemaining, currentStageDetail, nextStageText）；2) 添加 STAGE_CONFIG 配置定义 4 个生成阶段的预计耗时和详细说明；3) 实现 useEffect 动态计算已用时间和预计剩余时间；4) 更新 Loading UI 显示当前阶段、下一步和预计剩余时间。测试验证：类型检查通过，Playwright MCP 验证页面正常加载、表单填写正常、无控制台错误。修改文件：frontend/src/app/upload/page.tsx。下一个待修复 UX 问题：feat-053（智能风格推荐）。服务状态：前后端运行正常。"
 }
