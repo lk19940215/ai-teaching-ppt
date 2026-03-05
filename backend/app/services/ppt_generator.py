@@ -91,6 +91,21 @@ class PPTPageType:
     DIALOGUE = "情景对话页"
     ANALYSIS = "课文分析页"
 
+    # 英语学科深度增强页面类型（feat-033）
+    WORD_ROOT = "词根词缀页"  # 词根/前缀/后缀分析
+    WORD_STRUCTURE = "构词法图解页"  # 单词构成树状图
+    ETYMOLOGY = "词源故事页"  # 单词来源和文化背景
+    COLLOCATION = "固定搭配页"  # 短语/搭配/惯用语
+    VOCAB_NETWORK = "词汇网络页"  # 同义词/反义词/上义词/下义词
+    COLLOCATION_MATRIX = "搭配矩阵页"  # 搭配表格
+    SYNTAX_TREE = "语法树页"  # 句子成分分析
+    SYNTAX_STRUCTURE = "句法结构页"  # 树状图展示
+    CLAUSE_ANALYSIS = "从句分析页"  # 各类从句讲解
+    SPECIAL_SENTENCE = "特殊句型页"  # 被动/倒装/强调/虚拟
+    TENSE_TIMELINE = "时态时间轴页"  # 时态可视化
+    TENSE_OVERVIEW = "时态概览页"  # 16 种时态总览
+    TENSE_COMPARISON = "时态对比页"  # 易混时态对比
+
     # 数学学科特殊页面类型
     CONCEPT = "概念引入页"  # 直观→抽象概念形成
     FORMULA_DERIVATION = "公式推导页"  # 逐步标注推导过程
@@ -554,6 +569,102 @@ class PPTGenerator:
                         prs,
                         slide_data,
                         content_size,
+                        secondary_color
+                    )
+                # 英语学科深度增强页面类型（feat-033）
+                elif page_type == PPTPageType.WORD_ROOT:
+                    self._add_word_root_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.WORD_STRUCTURE:
+                    self._add_word_structure_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.ETYMOLOGY:
+                    self._add_etymology_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.COLLOCATION:
+                    self._add_collocation_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.VOCAB_NETWORK:
+                    self._add_vocab_network_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.COLLOCATION_MATRIX:
+                    self._add_collocation_matrix_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.SYNTAX_TREE:
+                    self._add_syntax_tree_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.SYNTAX_STRUCTURE:
+                    self._add_syntax_structure_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.CLAUSE_ANALYSIS:
+                    self._add_clause_analysis_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.SPECIAL_SENTENCE:
+                    self._add_special_sentence_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.TENSE_TIMELINE:
+                    self._add_tense_timeline_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.TENSE_OVERVIEW:
+                    self._add_tense_overview_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.TENSE_COMPARISON:
+                    self._add_tense_comparison_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color,
                         secondary_color
                     )
                 # 数学学科专属页面类型
@@ -3715,6 +3826,959 @@ class PPTGenerator:
                     p.text = f"  • {m}"
                     p.font.size = Pt(font_size)
         else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    # ========== 英语学科深度增强页面类型（feat-033）==========
+
+    def _add_word_root_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加词根词缀页（英语学科深度增强 - feat-033）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "词根词缀分析")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        # 内容
+        content_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.8), Inches(8.4), Inches(5.5))
+        text_frame = content_box.text_frame
+
+        word_analysis = slide_data.get("word_analysis", {})
+        if word_analysis:
+            # 词根
+            root = word_analysis.get("root", "")
+            if root:
+                p = text_frame.add_paragraph()
+                p.text = f"【词根】{root}"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+
+                root_meaning = word_analysis.get("root_meaning", "")
+                if root_meaning:
+                    p = text_frame.add_paragraph()
+                    p.text = f"  含义：{root_meaning}"
+                    p.font.size = Pt(font_size)
+
+                root_origin = word_analysis.get("root_origin", "")
+                if root_origin:
+                    p = text_frame.add_paragraph()
+                    p.text = f"  来源：{root_origin}"
+                    p.font.size = Pt(font_size)
+
+                p = text_frame.add_paragraph()
+                p.text = ""
+
+            # 前缀
+            prefix = word_analysis.get("prefix", "")
+            if prefix:
+                p = text_frame.add_paragraph()
+                p.text = f"【前缀】{prefix}"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = RGBColor(106, 90, 205)
+                p.font.bold = True
+
+                prefix_meaning = word_analysis.get("prefix_meaning", "")
+                if prefix_meaning:
+                    p = text_frame.add_paragraph()
+                    p.text = f"  含义：{prefix_meaning}"
+                    p.font.size = Pt(font_size)
+
+                p = text_frame.add_paragraph()
+                p.text = ""
+
+            # 后缀
+            suffix = word_analysis.get("suffix", "")
+            if suffix:
+                p = text_frame.add_paragraph()
+                p.text = f"【后缀】{suffix}"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = RGBColor(63, 81, 181)
+                p.font.bold = True
+
+                suffix_function = word_analysis.get("suffix_function", "")
+                if suffix_function:
+                    p = text_frame.add_paragraph()
+                    p.text = f"  功能：{suffix_function}"
+                    p.font.size = Pt(font_size)
+
+                p = text_frame.add_paragraph()
+                p.text = ""
+
+            # 词族
+            word_family = word_analysis.get("word_family", [])
+            if word_family:
+                p = text_frame.add_paragraph()
+                p.text = "【同根词族】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = RGBColor(76, 175, 80)
+                p.font.bold = True
+
+                for word in word_family:
+                    p = text_frame.add_paragraph()
+                    p.text = f"  • {word}"
+                    p.font.size = Pt(font_size)
+
+            # 构词法图解
+            structure_diagram = word_analysis.get("structure_diagram", "")
+            if structure_diagram:
+                p = text_frame.add_paragraph()
+                p.text = ""
+                p = text_frame.add_paragraph()
+                p.text = f"【构词图解】{structure_diagram}"
+                p.font.size = Pt(font_size)
+                p.font.color.rgb = RGBColor(255, 159, 67)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_word_structure_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加构词法图解页（英语学科深度增强 - feat-033）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        # 标题
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "构词法图解")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        content_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.8), Inches(8.4), Inches(5.5))
+        text_frame = content_box.text_frame
+
+        word_analysis = slide_data.get("word_analysis", {})
+        target_word = slide_data.get("target_word", "单词")
+
+        if word_analysis:
+            p = text_frame.add_paragraph()
+            p.text = target_word
+            p.font.size = Pt(font_size + 8)
+            p.font.color.rgb = color
+            p.font.bold = True
+            p.alignment = PP_ALIGN.CENTER
+
+            p = text_frame.add_paragraph()
+            p.text = ""
+
+            prefix = word_analysis.get("prefix", "")
+            root = word_analysis.get("root", "")
+            suffix = word_analysis.get("suffix", "")
+
+            decomposition = []
+            if prefix:
+                decomposition.append(f"前缀 ({prefix})")
+            if root:
+                decomposition.append(f"词根 ({root})")
+            if suffix:
+                decomposition.append(f"后缀 ({suffix})")
+
+            if decomposition:
+                p = text_frame.add_paragraph()
+                p.text = " = ".join(decomposition)
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = RGBColor(128, 128, 128)
+
+            p = text_frame.add_paragraph()
+            p.text = ""
+
+            memory_tip = word_analysis.get("memory_tip", "")
+            if memory_tip:
+                p = text_frame.add_paragraph()
+                p.text = f"💡 记忆技巧：{memory_tip}"
+                p.font.size = Pt(font_size)
+                p.font.color.rgb = RGBColor(255, 159, 67)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_etymology_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加词源故事页（英语学科深度增强 - feat-033）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "词源故事")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
+        text_frame = content_box.text_frame
+
+        word_analysis = slide_data.get("word_analysis", {})
+        if word_analysis:
+            etymology = word_analysis.get("etymology", "")
+            if etymology:
+                p = text_frame.add_paragraph()
+                p.text = etymology
+                p.font.size = Pt(font_size)
+                p.line_spacing = 1.5
+            else:
+                for item in slide_data.get("content", []):
+                    p = text_frame.add_paragraph()
+                    p.text = item
+                    p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_collocation_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加固定搭配页（英语学科深度增强 - feat-033）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "固定搭配")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        content_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.8), Inches(8.4), Inches(5.5))
+        text_frame = content_box.text_frame
+
+        collocations = slide_data.get("collocations", {})
+        if collocations:
+            phrasal_verbs = collocations.get("phrasal_verbs", [])
+            if phrasal_verbs:
+                p = text_frame.add_paragraph()
+                p.text = "【动词短语】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+
+                for pv in phrasal_verbs:
+                    p = text_frame.add_paragraph()
+                    p.text = f"  • {pv}"
+                    p.font.size = Pt(font_size)
+
+                p = text_frame.add_paragraph()
+                p.text = ""
+
+            prepositional_phrases = collocations.get("prepositional_phrases", [])
+            if prepositional_phrases:
+                p = text_frame.add_paragraph()
+                p.text = "【介词短语】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = RGBColor(106, 90, 205)
+                p.font.bold = True
+
+                for pp in prepositional_phrases:
+                    p = text_frame.add_paragraph()
+                    p.text = f"  • {pp}"
+                    p.font.size = Pt(font_size)
+
+                p = text_frame.add_paragraph()
+                p.text = ""
+
+            fixed_expressions = collocations.get("fixed_expressions", [])
+            if fixed_expressions:
+                p = text_frame.add_paragraph()
+                p.text = "【固定表达】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = RGBColor(63, 81, 181)
+                p.font.bold = True
+
+                for fe in fixed_expressions:
+                    p = text_frame.add_paragraph()
+                    p.text = f"  • {fe}"
+                    p.font.size = Pt(font_size)
+
+                p = text_frame.add_paragraph()
+                p.text = ""
+
+            idioms = collocations.get("idioms", [])
+            if idioms:
+                p = text_frame.add_paragraph()
+                p.text = "【惯用语】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = RGBColor(255, 159, 67)
+                p.font.bold = True
+
+                for idiom in idioms:
+                    p = text_frame.add_paragraph()
+                    p.text = f"  • {idiom}"
+                    p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_vocab_network_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加词汇网络页（英语学科深度增强 - feat-033）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "词汇网络")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        collocations = slide_data.get("collocations", {})
+
+        left_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.8), Inches(4), Inches(5))
+        left_frame = left_box.text_frame
+
+        synonyms = collocations.get("synonyms", [])
+        if synonyms:
+            p = left_frame.add_paragraph()
+            p.text = "【同义词】"
+            p.font.size = Pt(font_size + 2)
+            p.font.color.rgb = RGBColor(67, 160, 71)
+            p.font.bold = True
+
+            for syn in synonyms:
+                if isinstance(syn, dict):
+                    word = syn.get("word", "")
+                    usage = syn.get("usage_diff", "")
+                    p = left_frame.add_paragraph()
+                    p.text = f"  • {word}"
+                    p.font.size = Pt(font_size)
+                    if usage:
+                        p = left_frame.add_paragraph()
+                        p.text = f"    （{usage}）"
+                        p.font.size = Pt(font_size - 2)
+                        p.font.color.rgb = RGBColor(128, 128, 128)
+                else:
+                    p = left_frame.add_paragraph()
+                    p.text = f"  • {syn}"
+                    p.font.size = Pt(font_size)
+
+        right_box = slide.shapes.add_textbox(Inches(5.2), Inches(1.8), Inches(4), Inches(5))
+        right_frame = right_box.text_frame
+
+        antonyms = collocations.get("antonyms", [])
+        if antonyms:
+            p = right_frame.add_paragraph()
+            p.text = "【反义词】"
+            p.font.size = Pt(font_size + 2)
+            p.font.color.rgb = RGBColor(255, 107, 107)
+            p.font.bold = True
+
+            for ant in antonyms:
+                if isinstance(ant, dict):
+                    word = ant.get("word", "")
+                    p = right_frame.add_paragraph()
+                    p.text = f"  • {word}"
+                    p.font.size = Pt(font_size)
+                else:
+                    p = right_frame.add_paragraph()
+                    p.text = f"  • {ant}"
+                    p.font.size = Pt(font_size)
+
+    def _add_collocation_matrix_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加搭配矩阵页（英语学科深度增强 - feat-033）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "搭配矩阵")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        collocations = slide_data.get("collocations", {})
+        matrix = collocations.get("collocation_matrix", {})
+
+        if matrix:
+            verb_noun = matrix.get("verb_noun", [])
+            if verb_noun:
+                rows = len(verb_noun) + 1
+                table_shape = slide.shapes.add_table(rows, 2, Inches(1), Inches(2.5), Inches(8), Inches(0.8 * rows))
+                table = table_shape.table
+
+                table.cell(0, 0).text = "动词"
+                table.cell(0, 1).text = "名词搭配"
+                for cell in [table.cell(0, 0), table.cell(0, 1)]:
+                    cell.fill.solid()
+                    cell.fill.fore_color.rgb = color
+                    for para in cell.text_frame.paragraphs:
+                        para.font.size = Pt(font_size)
+                        para.font.color.rgb = RGBColor(255, 255, 255)
+                        para.font.bold = True
+
+                for i, (v, n) in enumerate(verb_noun):
+                    table.cell(i + 1, 0).text = str(v)
+                    table.cell(i + 1, 1).text = str(n)
+                    for cell in [table.cell(i + 1, 0), table.cell(i + 1, 1)]:
+                        for para in cell.text_frame.paragraphs:
+                            para.font.size = Pt(font_size)
+                            para.alignment = PP_ALIGN.CENTER
+        else:
+            content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
+            text_frame = content_box.text_frame
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_syntax_tree_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加语法树页（英语学科深度增强 - feat-033）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "句子成分分析")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        content_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.8), Inches(8.4), Inches(5.5))
+        text_frame = content_box.text_frame
+
+        syntax_tree = slide_data.get("syntax_tree", {})
+        if syntax_tree:
+            sentence = syntax_tree.get("sentence", "")
+            if sentence:
+                p = text_frame.add_paragraph()
+                p.text = f"【原句】{sentence}"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+                p = text_frame.add_paragraph()
+                p.text = ""
+
+            sentence_type = syntax_tree.get("sentence_type", "")
+            if sentence_type:
+                p = text_frame.add_paragraph()
+                p.text = f"【句子类型】{sentence_type}"
+                p.font.size = Pt(font_size)
+
+            main_structure = syntax_tree.get("main_structure", "")
+            if main_structure:
+                p = text_frame.add_paragraph()
+                p.text = f"【主干结构】{main_structure}"
+                p.font.size = Pt(font_size)
+                p.font.color.rgb = RGBColor(106, 90, 205)
+                p = text_frame.add_paragraph()
+                p.text = ""
+
+            components = syntax_tree.get("components", [])
+            if components:
+                p = text_frame.add_paragraph()
+                p.text = "【句子成分】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = RGBColor(63, 81, 181)
+                p.font.bold = True
+
+                for comp in components:
+                    if isinstance(comp, dict):
+                        name = comp.get("name", "")
+                        comp_type = comp.get("type", "")
+                        text_content = comp.get("text", "")
+                        function = comp.get("function", "")
+
+                        p = text_frame.add_paragraph()
+                        p.text = f"  • {name} ({comp_type})"
+                        p.font.size = Pt(font_size)
+                        p.font.color.rgb = RGBColor(76, 175, 80)
+
+                        if text_content:
+                            p = text_frame.add_paragraph()
+                            p.text = f"    内容：{text_content}"
+                            p.font.size = Pt(font_size - 2)
+
+                        if function:
+                            p = text_frame.add_paragraph()
+                            p.text = f"    功能：{function}"
+                            p.font.size = Pt(font_size - 2)
+                            p.font.color.rgb = RGBColor(128, 128, 128)
+
+                p = text_frame.add_paragraph()
+                p.text = ""
+
+            tree_diagram = syntax_tree.get("tree_diagram", "")
+            if tree_diagram:
+                p = text_frame.add_paragraph()
+                p.text = f"【树状图】{tree_diagram}"
+                p.font.size = Pt(font_size - 2)
+                p.font.color.rgb = RGBColor(128, 128, 128)
+
+            clause_analysis = syntax_tree.get("clause_analysis", {})
+            if clause_analysis:
+                p = text_frame.add_paragraph()
+                p.text = ""
+                main_clause = clause_analysis.get("main_clause", "")
+                if main_clause:
+                    p = text_frame.add_paragraph()
+                    p.text = f"【主句】{main_clause}"
+                    p.font.size = Pt(font_size)
+                    p.font.color.rgb = RGBColor(255, 159, 67)
+
+                subordinate_clauses = clause_analysis.get("subordinate_clauses", [])
+                for clause in subordinate_clauses:
+                    if isinstance(clause, dict):
+                        clause_type = clause.get("type", "")
+                        introducer = clause.get("introducer", "")
+                        clause_text = clause.get("text", "")
+
+                        p = text_frame.add_paragraph()
+                        p.text = f"  └─ {clause_type} ({introducer}): {clause_text}"
+                        p.font.size = Pt(font_size - 2)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_syntax_structure_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加句法结构页（英语学科深度增强 - feat-033）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "句法结构图解")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        syntax_tree = slide_data.get("syntax_tree", {})
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
+        text_frame = content_box.text_frame
+
+        if syntax_tree:
+            tree_diagram = syntax_tree.get("tree_diagram", "")
+            if tree_diagram:
+                p = text_frame.add_paragraph()
+                p.text = tree_diagram
+                p.font.size = Pt(font_size)
+                p.font.color.rgb = RGBColor(128, 128, 128)
+            else:
+                for item in slide_data.get("content", []):
+                    p = text_frame.add_paragraph()
+                    p.text = item
+                    p.font.size = Pt(font_size)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_clause_analysis_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加从句分析页（英语学科深度增强 - feat-033）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "从句分析")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
+        text_frame = content_box.text_frame
+
+        syntax_tree = slide_data.get("syntax_tree", {})
+        if syntax_tree:
+            clause_analysis = syntax_tree.get("clause_analysis", {})
+            if clause_analysis:
+                main_clause = clause_analysis.get("main_clause", "")
+                if main_clause:
+                    p = text_frame.add_paragraph()
+                    p.text = f"【主句】{main_clause}"
+                    p.font.size = Pt(font_size + 2)
+                    p.font.color.rgb = color
+                    p.font.bold = True
+                    p = text_frame.add_paragraph()
+                    p.text = ""
+
+                subordinate_clauses = clause_analysis.get("subordinate_clauses", [])
+                if subordinate_clauses:
+                    p = text_frame.add_paragraph()
+                    p.text = "【从句】"
+                    p.font.size = Pt(font_size + 2)
+                    p.font.color.rgb = RGBColor(106, 90, 205)
+                    p.font.bold = True
+
+                    for clause in subordinate_clauses:
+                        if isinstance(clause, dict):
+                            clause_type = clause.get("type", "")
+                            introducer = clause.get("introducer", "")
+                            function = clause.get("function", "")
+                            clause_text = clause.get("text", "")
+
+                            p = text_frame.add_paragraph()
+                            p.text = f"  • {clause_type}"
+                            p.font.size = Pt(font_size)
+                            p.font.bold = True
+
+                            if introducer:
+                                p = text_frame.add_paragraph()
+                                p.text = f"    引导词：{introducer}"
+                                p.font.size = Pt(font_size - 2)
+
+                            if function:
+                                p = text_frame.add_paragraph()
+                                p.text = f"    功能：{function}"
+                                p.font.size = Pt(font_size - 2)
+
+                            if clause_text:
+                                p = text_frame.add_paragraph()
+                                p.text = f"    内容：{clause_text}"
+                                p.font.size = Pt(font_size - 2)
+                                p.font.color.rgb = RGBColor(128, 128, 128)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_special_sentence_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加特殊句型页（英语学科深度增强 - feat-033）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "特殊句型")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
+        text_frame = content_box.text_frame
+
+        special_sentences = slide_data.get("special_sentences", [])
+        if special_sentences:
+            for sentence_item in special_sentences:
+                if isinstance(sentence_item, dict):
+                    name = sentence_item.get("name", "")
+                    structure = sentence_item.get("structure", "")
+                    example = sentence_item.get("example", "")
+
+                    p = text_frame.add_paragraph()
+                    p.text = f"【{name}】"
+                    p.font.size = Pt(font_size + 2)
+                    p.font.color.rgb = color
+                    p.font.bold = True
+
+                    if structure:
+                        p = text_frame.add_paragraph()
+                        p.text = f"  结构：{structure}"
+                        p.font.size = Pt(font_size)
+
+                    if example:
+                        p = text_frame.add_paragraph()
+                        p.text = f"  例句：{example}"
+                        p.font.size = Pt(font_size - 2)
+                        p.font.color.rgb = RGBColor(0, 100, 200)
+
+                    p = text_frame.add_paragraph()
+                    p.text = ""
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_tense_timeline_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加时态时间轴页（英语学科深度增强 - feat-033）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "时态时间轴")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        content_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.8), Inches(8.4), Inches(5.5))
+        text_frame = content_box.text_frame
+
+        tense_timeline = slide_data.get("tense_timeline", {})
+        if tense_timeline:
+            tense_name = tense_timeline.get("tense_name", "")
+            if tense_name:
+                p = text_frame.add_paragraph()
+                p.text = f"【时态】{tense_name}"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+
+            tense_group = tense_timeline.get("tense_group", "")
+            if tense_group:
+                p = text_frame.add_paragraph()
+                p.text = f"【时态组】{tense_group}"
+                p.font.size = Pt(font_size)
+
+            aspect = tense_timeline.get("aspect", "")
+            if aspect:
+                p = text_frame.add_paragraph()
+                p.text = f"【状态】{aspect}"
+                p.font.size = Pt(font_size)
+
+            p = text_frame.add_paragraph()
+            p.text = ""
+
+            time_axis = tense_timeline.get("time_axis_description", "")
+            if time_axis:
+                p = text_frame.add_paragraph()
+                p.text = f"【时间轴】{time_axis}"
+                p.font.size = Pt(font_size)
+                p.font.color.rgb = RGBColor(106, 90, 205)
+
+            reference_point = tense_timeline.get("reference_point", "")
+            if reference_point:
+                p = text_frame.add_paragraph()
+                p.text = f"【参照点】{reference_point}"
+                p.font.size = Pt(font_size)
+
+            action_point = tense_timeline.get("action_point", "")
+            if action_point:
+                p = text_frame.add_paragraph()
+                p.text = f"【动作点】{action_point}"
+                p.font.size = Pt(font_size)
+
+            duration = tense_timeline.get("duration", "")
+            if duration:
+                p = text_frame.add_paragraph()
+                p.text = f"【持续段】{duration}"
+                p.font.size = Pt(font_size)
+
+            p = text_frame.add_paragraph()
+            p.text = ""
+
+            usage = tense_timeline.get("usage", "")
+            if usage:
+                p = text_frame.add_paragraph()
+                p.text = f"【用法】{usage}"
+                p.font.size = Pt(font_size)
+                p.font.color.rgb = RGBColor(76, 175, 80)
+
+            time_markers = tense_timeline.get("time_markers", [])
+            if time_markers:
+                p = text_frame.add_paragraph()
+                p.text = ""
+                p = text_frame.add_paragraph()
+                p.text = f"【常用时间状语】{', '.join(time_markers)}"
+                p.font.size = Pt(font_size - 2)
+                p.font.color.rgb = RGBColor(128, 128, 128)
+
+            comparison = tense_timeline.get("comparison", {})
+            if comparison:
+                similar = comparison.get("similar_tense", "")
+                diff = comparison.get("difference", "")
+
+                p = text_frame.add_paragraph()
+                p.text = ""
+                p = text_frame.add_paragraph()
+                p.text = f"【易混时态】{similar}"
+                p.font.size = Pt(font_size)
+                p.font.color.rgb = RGBColor(255, 159, 67)
+
+                if diff:
+                    p = text_frame.add_paragraph()
+                    p.text = f"  区别：{diff}"
+                    p.font.size = Pt(font_size - 2)
+        else:
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_tense_overview_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor
+    ):
+        """添加时态概览页（英语学科深度增强 - feat-033）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "时态概览")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        tense_overview = slide_data.get("tense_overview", [])
+
+        if tense_overview:
+            rows = min(len(tense_overview) + 1, 17)
+            table_shape = slide.shapes.add_table(rows, 3, Inches(0.5), Inches(2), Inches(9), Inches(0.6 * rows))
+            table = table_shape.table
+
+            headers = ["时态", "用法", "例句"]
+            for i, header in enumerate(headers):
+                cell = table.cell(0, i)
+                cell.text = header
+                cell.fill.solid()
+                cell.fill.fore_color.rgb = color
+                for para in cell.text_frame.paragraphs:
+                    para.font.size = Pt(font_size - 2)
+                    para.font.color.rgb = RGBColor(255, 255, 255)
+                    para.font.bold = True
+
+            for i, tense_item in enumerate(tense_overview[:16]):
+                if isinstance(tense_item, dict):
+                    tense_name = tense_item.get("tense", "")
+                    usage = tense_item.get("usage", "")
+                    example = tense_item.get("example", "")
+
+                    table.cell(i + 1, 0).text = tense_name
+                    table.cell(i + 1, 1).text = usage
+                    table.cell(i + 1, 2).text = example
+
+                    for j in range(3):
+                        for para in table.cell(i + 1, j).text_frame.paragraphs:
+                            para.font.size = Pt(font_size - 2)
+        else:
+            content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
+            text_frame = content_box.text_frame
+            for item in slide_data.get("content", []):
+                p = text_frame.add_paragraph()
+                p.text = item
+                p.font.size = Pt(font_size)
+
+    def _add_tense_comparison_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """添加时态对比页（英语学科深度增强 - feat-033）"""
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+
+        title_box = slide.shapes.title
+        title_box.text = slide_data.get("title", "时态对比")
+        title_para = title_box.text_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = color
+
+        tense_overview = slide_data.get("tense_overview", [])
+
+        if len(tense_overview) >= 2:
+            tense1 = tense_overview[0]
+            left_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.8), Inches(4), Inches(5))
+            left_frame = left_box.text_frame
+
+            if isinstance(tense1, dict):
+                p = left_frame.add_paragraph()
+                p.text = f"【{tense1.get('tense', '时态 1')}】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = color
+                p.font.bold = True
+
+                usage1 = tense1.get("usage", "")
+                if usage1:
+                    p = left_frame.add_paragraph()
+                    p.text = f"用法：{usage1}"
+                    p.font.size = Pt(font_size)
+
+                example1 = tense1.get("example", "")
+                if example1:
+                    p = left_frame.add_paragraph()
+                    p.text = f"例句：{example1}"
+                    p.font.size = Pt(font_size - 2)
+                    p.font.color.rgb = RGBColor(0, 100, 200)
+
+            tense2 = tense_overview[1]
+            right_box = slide.shapes.add_textbox(Inches(5.2), Inches(1.8), Inches(4), Inches(5))
+            right_frame = right_box.text_frame
+
+            if isinstance(tense2, dict):
+                p = right_frame.add_paragraph()
+                p.text = f"【{tense2.get('tense', '时态 2')}】"
+                p.font.size = Pt(font_size + 2)
+                p.font.color.rgb = secondary_color
+                p.font.bold = True
+
+                usage2 = tense2.get("usage", "")
+                if usage2:
+                    p = right_frame.add_paragraph()
+                    p.text = f"用法：{usage2}"
+                    p.font.size = Pt(font_size)
+
+                example2 = tense2.get("example", "")
+                if example2:
+                    p = right_frame.add_paragraph()
+                    p.text = f"例句：{example2}"
+                    p.font.size = Pt(font_size - 2)
+                    p.font.color.rgb = RGBColor(0, 100, 200)
+
+            diff_box = slide.shapes.add_textbox(Inches(0.8), Inches(6.8), Inches(8.4), Inches(1))
+            diff_frame = diff_box.text_frame
+            p = diff_frame.add_paragraph()
+            p.text = slide_data.get("difference", "请分析以上两种时态的区别")
+            p.font.size = Pt(font_size - 2)
+            p.font.color.rgb = RGBColor(255, 159, 67)
+        else:
+            content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
+            text_frame = content_box.text_frame
             for item in slide_data.get("content", []):
                 p = text_frame.add_paragraph()
                 p.text = item
