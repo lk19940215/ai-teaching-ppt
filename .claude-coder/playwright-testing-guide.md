@@ -1,8 +1,9 @@
-# Playwright MCP 自动化测试通用指南
+# Playwright 自动化测试通用指南（MCP + CLI）
 
 > **适用范围**: 任何 Web 项目（前后端分离、SPA、SSR 均适用）
 > **使用方式**: AI Agent 阅读本文档后，结合项目代码，自动生成并执行端到端测试
-> **版本**: 基于 @playwright/mcp@latest (2026.03)
+> **版本**: 基于 @playwright/mcp@latest + @playwright/cli@latest (2026.03)
+> **成本控制**: 配合 `token-budget-rules.md` 和 `efficient-testing-strategy.md` 使用
 
 ---
 
@@ -495,3 +496,145 @@ Phase 4: 问题修复
   ]
 }
 ```
+
+---
+
+## 第六部分：Playwright CLI — Token 高效替代方案
+
+> **重要**: 本章节介绍 `@playwright/cli`，一个专为 AI Agent 设计的 token 高效浏览器自动化工具。
+> 当测试步骤较多（>5 步）或 token 预算紧张时，应优先考虑 CLI 替代 MCP。
+
+### 6.1 MCP vs CLI 核心对比
+
+| 维度 | Playwright MCP | Playwright CLI |
+|------|---------------|----------------|
+| **每测试 token 消耗** | ~114,000 | ~27,000 |
+| **效率比** | 1x | **4x** |
+| **Snapshot 数据** | 注入上下文（50-500KB） | 存磁盘为 YAML 文件 |
+| **工具加载** | 26+ 工具完整 JSON schema | `--help` 按需发现 |
+| **操作响应** | 结构化元数据 + 更新后的 snapshot | 单行确认信息 |
+| **安装方式** | `npx @playwright/mcp@latest` | `npm i -g @playwright/cli@latest` |
+| **与 Claude Code 集成** | MCP Server（.mcp.json） | Shell 命令 / Skills |
+
+### 6.2 CLI 安装与基本使用
+
+```bash
+# 安装
+npm install -g @playwright/cli@latest
+playwright-cli install --skills
+
+# 基本流程
+playwright-cli open http://localhost:3000/upload     # 打开页面
+playwright-cli snapshot                               # 快照存 YAML
+playwright-cli fill e15 "测试内容"                     # 填写（用 ref）
+playwright-cli click e22                              # 点击
+playwright-cli snapshot                               # 再次快照
+```
+
+### 6.3 CLI 核心命令速查
+
+| 类别 | 命令 | 说明 |
+|------|------|------|
+| **导航** | `open`, `goto`, `go-back`, `go-forward`, `reload` | URL 导航 |
+| **交互** | `click`, `type`, `fill`, `check`, `drag`, `hover`, `select` | 元素操作 |
+| **快照** | `snapshot` | YAML 格式存磁盘，返回元素 ref |
+| **截图** | `screenshot`, `pdf` | 视觉验证 |
+| **键鼠** | `press`, `keydown`, `mousemove`, `mousewheel` | 底层操作 |
+| **存储** | Cookie/localStorage/sessionStorage 管理 | 凭证注入 |
+| **会话** | `session-list`, `session-stop`, `session-delete` | 多会话管理 |
+| **调试** | `console`, `network`, `tracing-start` | 开发者工具 |
+
+### 6.4 CLI 的 Skills 机制
+
+CLI 将命令暴露为 **Skills**（结构化程序手册），AI Agent 可以：
+- 通过 `playwright-cli --help` 发现可用命令（不预加载 schema）
+- 通过 `playwright-cli snapshot` 获取页面 YAML 文件路径（不注入上下文）
+- 按需读取 YAML 文件中的元素 ref（仅在需要时消耗 token）
+
+### 6.5 Token 节省原理
+
+**MCP 每步的上下文膨胀**:
+```
+Step 1: navigate → 返回 accessibility tree (8K tokens)
+Step 2: fill     → 返回 updated tree (8K tokens)
+Step 3: click    → 返回 updated tree (8K tokens)
+...
+Step 10: snapshot → 返回 tree (8K tokens)
+累计: ~80K tokens 仅在 snapshot 数据上
+```
+
+**CLI 每步的上下文精简**:
+```
+Step 1: open url   → "Page opened: http://..." (50 tokens)
+Step 2: snapshot   → "Saved to /tmp/pw-snapshot-1.yaml" (30 tokens)
+Step 3: fill e15   → "Filled element e15" (20 tokens)
+Step 4: click e22  → "Clicked element e22" (20 tokens)
+...
+Step 10: snapshot  → "Saved to /tmp/pw-snapshot-2.yaml" (30 tokens)
+累计: ~200 tokens (仅当 Agent 读取 YAML 时才增加)
+```
+
+### 6.6 工具选型决策矩阵
+
+```
+你的测试场景是什么？
+
+1. 首次搭建/调试测试 → 用 MCP（交互式、反馈丰富）
+2. 步骤 <5 的短测试 → 用 MCP（差异不大，设置简单）
+3. 步骤 ≥5 的长流程 → 用 CLI（4x 节省）
+4. 多场景回归测试 → 用 CLI（总量大，必须节省）
+5. 需要视觉验证 → 用 MCP --caps=vision
+6. 探索性测试 → 用 CLI（步骤不可预测，可能很多）
+7. CI/CD 自动化 → 用 Playwright Test Runner（npx playwright test）
+```
+
+### 6.7 混合工作流示例
+
+```
+Phase 1 — 开发期（MCP）:
+  用 MCP 交互式调试，建立测试 baseline
+  将通过的测试步骤记录到 test-seed.md
+
+Phase 2 — 回归期（CLI）:
+  用 CLI 批量执行 test-seed.md 中的场景
+  仅在失败时切回 MCP 做精确定位
+
+Phase 3 — CI/CD（Playwright Test）:
+  将验证过的流程转为 .test.ts 文件
+  用 npx playwright test 在 CI 中执行
+  零 AI token 消耗
+```
+
+---
+
+## 第七部分：成本优化最佳实践汇总
+
+### 7.1 立即可做的优化（预计节省 40-70%）
+
+| # | 优化措施 | 预计节省 | 实施难度 |
+|---|---------|---------|---------|
+| 1 | 合并操作后再 snapshot（Smart Snapshot） | 40-60% | 低 |
+| 2 | 长流程用 CLI 替代 MCP | 75% | 中 |
+| 3 | 使用 `browser_wait_for` 替代轮询 snapshot | 60-80% | 低 |
+| 4 | 跳过已缓存通过的测试场景 | 100%（跳过部分） | 中 |
+| 5 | 分层测试，非必要不跑 Full E2E | 50%+ | 低 |
+
+### 7.2 高级优化（需要架构调整）
+
+| # | 优化措施 | 预计节省 | 实施难度 |
+|---|---------|---------|---------|
+| 1 | Trace-first 离线分析（AgentAssay 思想） | 78-100% | 高 |
+| 2 | 将 Playwright MCP 测试转为 .test.ts 脚本 | 100%（CI 阶段） | 中 |
+| 3 | 使用后端 API 直接验证替代部分浏览器测试 | 80%+ | 中 |
+| 4 | 模型降级：Smoke 用 fast model，Full E2E 用 standard | 30-50% | 低 |
+
+### 7.3 相关文档索引
+
+| 文档 | 用途 | 位置 |
+|------|------|------|
+| Token 预算控制规则 | Session 预算、分层策略、铁律 | `.claude-coder/token-budget-rules.md` |
+| 高效测试策略 | Smart Snapshot、优先级排序、缓存 | `.claude-coder/efficient-testing-strategy.md` |
+| 测试行为规范 | 元素定位、等待策略、报告格式 | `.claude-coder/testing-rules.md` |
+| 测试场景模板 | 可执行的 Playwright 动作序列 | `.claude-coder/test-seed.md` |
+| Claude Code 测试规则 | 模块化规则、自动加载 | `.claude/rules/testing.md` |
+| 项目配置 | 技术栈、命令、关键路径 | `.claude/CLAUDE.md` |
