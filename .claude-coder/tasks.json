@@ -862,6 +862,116 @@
         "feat-044"
       ],
       "notes": "Session 2 完成：使用 Playwright MCP 进行端到端测试验证。测试结果：1. 首页/上传页/设置页/历史页均正常加载；2. 导航正常，所有 UI 组件可交互；3. 控制台无错误（仅 React DevTools 提示）；4. favicon.svg 已正确配置，无 404 错误。结论：playwright_test_v1.md 中记录的问题已修复，无需额外修复工作。"
+    },
+    {
+      "id": "feat-046",
+      "category": "infra",
+      "priority": 46,
+      "description": "Playwright 测试基础设施升级：修复凭证链路，创建测试规范文档，确保 AI Agent 和脚本测试都能携带 API Key",
+      "steps": [
+        "阅读 .claude-coder/testing-rules.md 和 .claude-coder/test-seed.md 了解测试规范",
+        "修改 frontend/playwright.config.ts：在 use 中增加 storageState 指向 ../.claude-coder/playwright-auth.json",
+        "创建 frontend/tests/fixtures.ts：封装带认证上下文的 test fixture，供所有测试文件使用",
+        "更新 frontend/tests/example.test.ts：使用 fixtures 中的认证上下文，而非裸 test",
+        "验证：运行 pnpm exec playwright test --project=chromium 确认至少 80% 测试通过",
+        "使用 Playwright MCP browser_navigate 访问 /upload，browser_snapshot 确认 localStorage 中有 llm_config"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-045"
+      ]
+    },
+    {
+      "id": "feat-047",
+      "category": "fullstack",
+      "priority": 47,
+      "description": "文字输入完整生成流程端到端测试：使用 Playwright MCP 真实操作生成数学 PPT 并验证全链路",
+      "steps": [
+        "阅读 .claude-coder/test-seed.md 场景 A 的完整步骤",
+        "前置检查：curl http://localhost:8000/health 确认后端正常，curl http://localhost:3000 确认前端正常",
+        "使用 Playwright MCP browser_navigate 访问 http://localhost:3000/upload",
+        "使用 browser_snapshot 确认页面加载完成，找到文本输入框",
+        "使用 browser_fill 在文本框输入数学测试内容（见 testing-rules.md 中的数学测试文本，至少100字）",
+        "使用 browser_select 选择年级=小学五年级、学科=数学、风格=活泼趣味",
+        "使用 browser_snapshot 确认参数已选择，生成按钮非 disabled 状态",
+        "使用 browser_click 点击'生成教学 PPT'按钮",
+        "每 10 秒执行 browser_snapshot 观察进度变化，最多等待 180 秒，同时 browser_console_messages 检查错误",
+        "验证成功：页面出现 PPT 预览区域，包含可翻页缩略图和'下载 PPT'按钮",
+        "使用 browser_click 点击'下载 PPT'按钮，验证下载 URL 有效（curl -sI 返回 200）",
+        "如果任何步骤失败：截图 + 控制台消息 + 错误文案，记录到 record/e2e_test_results.md，分析根因并修复",
+        "验证：record/e2e_test_results.md 中场景A结果为'通过'"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-046"
+      ]
+    },
+    {
+      "id": "feat-048",
+      "category": "fullstack",
+      "priority": 48,
+      "description": "图片上传 OCR 流程端到端测试：使用 Playwright MCP 上传图片并验证 OCR → 生成完整链路",
+      "steps": [
+        "阅读 .claude-coder/test-seed.md 了解测试规范",
+        "准备测试图片：创建 record/test_image.png（截取一段包含文字的教材图片，或用 Python 生成含文字的测试图片）",
+        "使用 Playwright MCP browser_navigate 访问 http://localhost:3000/upload",
+        "使用 browser_click 切换到'图片上传'模式",
+        "使用 browser_upload_file 上传 record/test_image.png",
+        "使用 browser_snapshot 确认页面显示已选择的图片文件名",
+        "使用 browser_select 选择年级和学科参数",
+        "使用 browser_click 点击'生成教学 PPT'按钮",
+        "每 10 秒执行 browser_snapshot，观察 OCR 提取 → SSE 生成 → 预览展示 完整链路",
+        "验证成功：页面出现 PPT 预览区域",
+        "如果 OCR 失败：记录错误信息，检查后端 PaddleOCR 是否正常安装",
+        "将测试结果记录到 record/e2e_test_results.md"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-046"
+      ]
+    },
+    {
+      "id": "feat-049",
+      "category": "fullstack",
+      "priority": 49,
+      "description": "错误场景与边界条件端到端测试：验证空内容、无 API Key、无效 Key 等异常情况的错误处理",
+      "steps": [
+        "阅读 .claude-coder/test-seed.md 场景 C 的完整步骤",
+        "场景 C1：使用 browser_navigate 访问 /upload，不输入内容，browser_snapshot 验证生成按钮是 disabled 状态",
+        "场景 C2：使用 browser_evaluate 清除 localStorage 中的 llm_config，刷新页面，输入文本后点击生成，browser_snapshot 验证显示 API Key 错误提示",
+        "场景 C3：使用 browser_navigate 访问 /settings，browser_fill 输入无效 API Key 'sk-invalid-test-key'，browser_click 点击'测试连接'，browser_snapshot 验证显示连接失败提示",
+        "场景 C4：在文本框输入超长内容（5000字以上），点击生成，验证是否正常处理或有友好的字数限制提示",
+        "每个场景的预期结果和实际结果记录到 record/e2e_test_results.md",
+        "如果发现错误处理不友好（如显示技术错误栈而非用户友好提示），修复对应的前端/后端代码"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-046"
+      ]
+    },
+    {
+      "id": "feat-050",
+      "category": "fullstack",
+      "priority": 50,
+      "description": "AI Agent 自主探索性测试：以教师视角完整使用系统，自主发现并修复 UX 问题",
+      "steps": [
+        "阅读 .claude-coder/testing-rules.md 第三节'探索性测试'模板和 .claude-coder/test-seed.md 场景 E",
+        "角色设定：你是一位小学数学教师，第一次使用 AI 教学 PPT 生成器",
+        "任务 A：从首页 http://localhost:3000 开始，browser_navigate + browser_click 找到生成入口，为'分数加减法'课程生成一份 PPT",
+        "任务 B：生成完成后，使用 browser_snapshot 逐页预览 PPT 内容，评估是否符合小学五年级数学教学要求",
+        "任务 C：使用 browser_click 下载 PPT 文件，验证文件可下载",
+        "任务 D：browser_navigate 到历史记录页面，检查是否有刚才的生成记录",
+        "任务 E：browser_navigate 到设置页面，了解当前配置",
+        "在整个过程中记录每一个'让你困惑/受阻/等待过长/不符合直觉'的交互点",
+        "将所有发现的 UX 问题写入 record/exploratory_test.md，每个问题包含：严重程度/复现步骤/预期vs实际/根因分析/修复建议",
+        "选择严重程度为'高'的问题，立即修复代码，并用 Playwright MCP 复测确认修复"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-047",
+        "feat-048",
+        "feat-049"
+      ]
     }
   ]
 }
