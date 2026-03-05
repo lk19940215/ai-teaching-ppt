@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'AI 教学 PPT 生成器',
   description: '教师上传教材内容，AI 自动生成互动性强、美观的教学 PPT',
+  icons: {
+    icon: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({
