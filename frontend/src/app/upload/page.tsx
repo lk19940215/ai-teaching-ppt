@@ -80,9 +80,9 @@ interface PPTContent {
 
 export default function UploadPage() {
   const [config, setConfig] = useState<TeachingConfig>({
-    grade: "3",
+    grade: "5",      // 默认小学五年级（更常用）
     subject: "math",
-    style: "simple",
+    style: "fun",    // 默认活泼趣味（更直观）
     slideCount: 15,
     chapter: "",
     difficultyLevel: "unified",

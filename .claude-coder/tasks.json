@@ -969,12 +969,57 @@
         "将所有发现的 UX 问题写入 record/exploratory_test.md，每个问题包含：严重程度/复现步骤/预期vs实际/根因分析/修复建议",
         "选择严重程度为'高'的问题，立即修复代码，并用 Playwright MCP 复测确认修复"
       ],
-      "status": "in_progress",
+      "status": "done",
       "depends_on": [
         "feat-047",
         "feat-048",
         "feat-049"
       ]
+    },
+    {
+      "id": "feat-051",
+      "category": "frontend",
+      "priority": 51,
+      "description": "修复 UX-01：调整默认年级选项，从'小学三年级'改为'小学五年级'或添加'请选择'占位",
+      "steps": [
+        "读取 frontend/src/app/upload/page.tsx，找到年级选择的默认值设置",
+        "方案 A（推荐）：将默认年级改为'小学五年级'（更常用）",
+        "方案 B：添加'请选择年级'占位选项，强制用户主动选择",
+        "更新默认值后验证类型检查通过",
+        "验证：访问 /upload 页面确认默认年级已变更"
+      ],
+      "status": "done",
+      "depends_on": []
+    },
+    {
+      "id": "feat-052",
+      "category": "frontend",
+      "priority": 52,
+      "description": "修复 UX-05：改进进度反馈，添加预计剩余时间或更详细的阶段说明",
+      "steps": [
+        "分析现有 SSE 进度推送逻辑（frontend/src/app/upload/page.tsx 中的 EventSource 处理）",
+        "增加阶段预计耗时提示（如'分析内容：约 10-20 秒'、'生成 PPT：约 30-60 秒'）",
+        "可选：根据已用时间动态计算剩余时间",
+        "增加更详细的阶段描述（如当前正在做什么、下一步是什么）",
+        "验证：触发 PPT 生成，观察进度提示是否更清晰"
+      ],
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-053",
+      "category": "frontend",
+      "priority": 53,
+      "description": "修复 UX-06：智能风格推荐，根据年级自动推荐风格（低年级→活泼，高年级→简约）",
+      "steps": [
+        "在 frontend/src/app/upload/page.tsx 中监听年级选择变化",
+        "创建年级到风格的映射规则：1-3 年级→活泼趣味，4-6 年级→简约清晰，7-12 年级→学科主题",
+        "当用户选择年级时，自动更新风格选项并显示提示（如'已为您推荐活泼趣味风格'）",
+        "允许用户手动覆盖自动推荐",
+        "验证：选择不同年级时风格自动变化"
+      ],
+      "status": "pending",
+      "depends_on": []
     }
   ]
 }
