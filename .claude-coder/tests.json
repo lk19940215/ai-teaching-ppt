@@ -508,6 +508,29 @@
       "created_session": 26,
       "last_result": "pass",
       "last_run_session": 26
+    },
+    {
+      "id": "test-feat030-math-prompt-engine",
+      "feature_id": "feat-030",
+      "name": "数学学科提示词引擎 - 单元测试验证",
+      "type": "unit",
+      "priority": "critical",
+      "affected_paths": [
+        "backend/app/services/prompts/math.py",
+        "backend/app/services/prompts/__init__.py",
+        "backend/app/services/ppt_generator.py"
+      ],
+      "preconditions": {
+        "services": [],
+        "real_api_key": false
+      },
+      "steps": "验证 MathPromptStrategy 已注册，验证 get_page_types 返回数学专属页面类型（概念引入页、公式推导页、例题讲解页、变式训练页、易错警示页），验证 build_schema 返回正确结构，验证 build_prompt 生成包含数学教学原则",
+      "test_data_summary": "数学提示词引擎单元测试，14 项验证全部通过",
+      "expected_result": "MathPromptStrategy 正确注册，5 个数学专属页面类型可用，schema 包含 formula_derivation、example_problem、variation_practice、common_mistakes 字段，提示词包含概念引入、公式推导、例题精讲（四步法）、变式训练、易错警示内容",
+      "auto_generated": true,
+      "created_session": 1,
+      "last_result": "pass",
+      "last_run_session": 1
     }
   ]
 }

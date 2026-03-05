@@ -558,7 +558,7 @@
         "集成 pypinyin 库实现低年级拼音标注功能",
         "验证：语文内容生成包含学科特色页面"
       ],
-      "status": "pending",
+      "status": "in_progress",
       "depends_on": [
         "feat-027",
         "feat-028"
@@ -578,7 +578,7 @@
         "在 ppt_generator.py 增加数学专属页面渲染方法（公式推导逐步展开布局）",
         "验证：数学内容生成包含推导步骤和变式训练"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-027",
         "feat-028"

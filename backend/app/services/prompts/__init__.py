@@ -8,6 +8,8 @@ from typing import Dict, Any, Optional, Type
 from .base import SubjectPromptStrategy, CognitiveLoadMixin
 from .general import GeneralPromptStrategy
 from .english import EnglishPromptStrategy
+from .chinese import ChinesePromptStrategy
+from .math import MathPromptStrategy
 from .cognitive import CognitivePromptStrategy
 
 
@@ -21,6 +23,8 @@ class PromptEngine:
     # 学科到策略类的映射
     STRATEGY_REGISTRY: Dict[str, Type[SubjectPromptStrategy]] = {
         "english": EnglishPromptStrategy,
+        "chinese": ChinesePromptStrategy,
+        "math": MathPromptStrategy,
         "general": GeneralPromptStrategy,
     }
 

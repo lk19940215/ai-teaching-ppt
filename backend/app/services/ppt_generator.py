@@ -91,6 +91,13 @@ class PPTPageType:
     DIALOGUE = "情景对话页"
     ANALYSIS = "课文分析页"
 
+    # 数学学科特殊页面类型
+    CONCEPT = "概念引入页"  # 直观→抽象概念形成
+    FORMULA_DERIVATION = "公式推导页"  # 逐步标注推导过程
+    EXAMPLE_PROBLEM = "例题讲解页"  # 四步法（审题→分析→解题→反思）
+    VARIATION_PRACTICE = "变式训练页"  # 梯度练习
+    COMMON_MISTAKES = "易错警示页"  # 错误 vs 正确对比
+
     # 互动课堂页面类型（feat-017）
     QUIZ = "互动选择题页"  # ABCD 选项选择题
     CLICK_TO_REVEAL = "点击显示答案页"  # 点击显示隐藏内容
@@ -509,6 +516,48 @@ class PPTGenerator:
                         slide_data,
                         content_size,
                         secondary_color
+                    )
+                # 数学学科专属页面类型
+                elif page_type == PPTPageType.CONCEPT:
+                    # 概念引入页：复用内容页逻辑，增加概念字段处理
+                    self._add_content_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.FORMULA_DERIVATION:
+                    # 公式推导页：复用内容页逻辑，公式步骤在 content 中展示
+                    self._add_content_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.EXAMPLE_PROBLEM:
+                    # 例题讲解页：复用内容页逻辑
+                    self._add_content_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        primary_color
+                    )
+                elif page_type == PPTPageType.VARIATION_PRACTICE:
+                    # 变式训练页：复用练习页逻辑
+                    self._add_exercise_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        secondary_color
+                    )
+                elif page_type == PPTPageType.COMMON_MISTAKES:
+                    # 易错警示页：复用对比分析页逻辑（错误 vs 正确对比）
+                    self._add_comparison_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        _COLOR_RED,  # 红色表示错误
+                        COLOR_GREEN_1  # 绿色表示正确
                     )
                 # 互动课堂页面类型（feat-017）
                 elif page_type == PPTPageType.QUIZ:
