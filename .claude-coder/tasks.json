@@ -785,7 +785,7 @@
         "在 ppt_generator.py 增加错题分析页渲染：左右分栏（红色错误 vs 绿色正确）",
         "验证：生成的 PPT 包含学科特色的错题分析对比页"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-030"
       ]

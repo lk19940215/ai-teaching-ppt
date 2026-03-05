@@ -112,6 +112,7 @@ class PPTPageType:
     EXAMPLE_PROBLEM = "例题讲解页"  # 四步法（审题→分析→解题→反思）
     VARIATION_PRACTICE = "变式训练页"  # 梯度练习
     COMMON_MISTAKES = "易错警示页"  # 错误 vs 正确对比
+    MISTAKE_ANALYSIS = "错题分析页"  # feat-041: 常见错误 vs 正确方法对比分析
 
     # 先行组织者与脚手架策略（feat-037）
     BRIDGE = "概念桥接页"  # 连接新旧知识：已知 X→新知 Y→关系说明
@@ -546,7 +547,7 @@ class PPTGenerator:
                         secondary_color
                     )
                 elif page_type == PPTPageType.COMPARISON:
-                    self._add_comparison_slide(
+                    self._add_mistake_analysis_slide(
                         prs,
                         slide_data,
                         content_size,
@@ -712,8 +713,17 @@ class PPTGenerator:
                         secondary_color
                     )
                 elif page_type == PPTPageType.COMMON_MISTAKES:
-                    # 易错警示页：复用对比分析页逻辑（错误 vs 正确对比）
-                    self._add_comparison_slide(
+                    # 易错警示页（向后兼容）：调用错题分析页方法
+                    self._add_mistake_analysis_slide(
+                        prs,
+                        slide_data,
+                        content_size,
+                        _COLOR_RED,
+                        COLOR_GREEN_1
+                    )
+                elif page_type == PPTPageType.MISTAKE_ANALYSIS:  # feat-041 智能错题分析页
+                    # 错题分析页：左右分栏（红色错误 vs 绿色正确）
+                    self._add_mistake_analysis_slide(
                         prs,
                         slide_data,
                         content_size,
@@ -1765,6 +1775,154 @@ class PPTGenerator:
                 p = content_frame.add_paragraph()
                 p.text = item
                 p.font.size = Pt(font_size)
+
+
+    def _add_mistake_analysis_slide(
+        self,
+        prs: Presentation,
+        slide_data: Dict[str, Any],
+        font_size: int,
+        primary_color: RGBColor,
+        secondary_color: RGBColor
+    ):
+        """
+        添加错题分析页 (feat-041 智能错题分析)
+
+        左右分栏布局：左侧红色展示常见错误，右侧绿色展示正确方法
+        帮助学生理解错误原因，预防易错点
+
+        Args:
+            prs: PPT 演示文稿对象
+            slide_data: 幻灯片数据 (包含 common_mistakes 数组)
+            font_size: 字号
+            primary_color: 主色调 (用于标题)
+            secondary_color: 辅助色 (用于正确方法)
+        """
+        from pptx.enum.shapes import MSO_SHAPE
+
+        slide = prs.slides.add_slide(prs.slide_layouts[6])  # 空白布局
+
+        # 标题
+        title_text = slide_data.get("title", "易错警示")
+        title_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.3), Inches(9), Inches(0.8))
+        title_frame = title_box.text_frame
+        title_frame.text = title_text
+        title_para = title_frame.paragraphs[0]
+        title_para.font.size = Pt(font_size + 6)
+        title_para.font.color.rgb = primary_color
+        title_para.font.bold = True
+        title_para.alignment = PP_ALIGN.CENTER
+
+        # 获取错题数据
+        common_mistakes = slide_data.get("common_mistakes", [])
+
+        if common_mistakes:
+            # 左右分栏布局
+            left_x, right_x = Inches(0.5), Inches(5.5)
+            col_width = Inches(4)
+
+            # === 左侧：常见错误 (红色) ===
+            # 左侧标题
+            error_title = slide.shapes.add_textbox(left_x, Inches(1.2), col_width, Inches(0.6))
+            error_title_frame = error_title.text_frame
+            error_title_para = error_title_frame.paragraphs[0]
+            error_title_para.text = "❌ 常见错误"
+            error_title_para.font.size = Pt(font_size + 2)
+            error_title_para.font.color.rgb = _COLOR_RED
+            error_title_para.font.bold = True
+            error_title_para.alignment = PP_ALIGN.CENTER
+
+            # 左侧内容区域背景 (浅红色)
+            error_bg = slide.shapes.add_shape(
+                MSO_SHAPE.ROUNDED_RECTANGLE,
+                left_x, Inches(1.8), col_width, Inches(4.5)
+            )
+            error_bg.fill.solid()
+            error_bg.fill.fore_color.rgb = RGBColor(255, 240, 240)
+            error_bg.line.fill.background()
+
+            # 左侧错题内容
+            mistake = common_mistakes[0] if common_mistakes else {}
+            error_content = slide.shapes.add_textbox(left_x + Inches(0.2), Inches(2), col_width - Inches(0.4), Inches(4.1))
+            error_frame = error_content.text_frame
+            error_frame.word_wrap = True
+
+            mistake_example = mistake.get("mistake_example", mistake.get("mistake", "无"))
+            p = error_frame.add_paragraph()
+            p.text = "【错误示例】"
+            p.font.size = Pt(font_size - 2)
+            p.font.bold = True
+            p.font.color.rgb = _COLOR_RED
+
+            p = error_frame.add_paragraph()
+            p.text = mistake_example
+            p.font.size = Pt(font_size)
+            p.space_after = Pt(8)
+
+            reason = mistake.get("reason", mistake.get("reason_analysis", "无"))
+            p = error_frame.add_paragraph()
+            p.text = "【错误原因】"
+            p.font.size = Pt(font_size - 2)
+            p.font.bold = True
+            p.font.color.rgb = _COLOR_RED
+
+            p = error_frame.add_paragraph()
+            p.text = reason
+            p.font.size = Pt(font_size)
+
+            # === 右侧：正确方法 (绿色) ===
+            correct_title = slide.shapes.add_textbox(right_x, Inches(1.2), col_width, Inches(0.6))
+            correct_title_frame = correct_title.text_frame
+            correct_title_para = correct_title_frame.paragraphs[0]
+            correct_title_para.text = "✓ 正确方法"
+            correct_title_para.font.size = Pt(font_size + 2)
+            correct_title_para.font.color.rgb = COLOR_GREEN_1
+            correct_title_para.font.bold = True
+            correct_title_para.alignment = PP_ALIGN.CENTER
+
+            correct_bg = slide.shapes.add_shape(
+                MSO_SHAPE.ROUNDED_RECTANGLE,
+                right_x, Inches(1.8), col_width, Inches(4.5)
+            )
+            correct_bg.fill.solid()
+            correct_bg.fill.fore_color.rgb = RGBColor(240, 255, 240)
+            correct_bg.line.fill.background()
+
+            correct_content = slide.shapes.add_textbox(right_x + Inches(0.2), Inches(2), col_width - Inches(0.4), Inches(4.1))
+            correct_frame = correct_content.text_frame
+            correct_frame.word_wrap = True
+
+            correct_method = mistake.get("correct_method", mistake.get("correct", "无"))
+            p = correct_frame.add_paragraph()
+            p.text = "【正确解法】"
+            p.font.size = Pt(font_size - 2)
+            p.font.bold = True
+            p.font.color.rgb = COLOR_GREEN_1
+
+            p = correct_frame.add_paragraph()
+            p.text = correct_method
+            p.font.size = Pt(font_size)
+            p.space_after = Pt(8)
+
+            prevention = mistake.get("prevention_strategy", mistake.get("prevention", "无"))
+            if prevention and prevention != "无":
+                p = correct_frame.add_paragraph()
+                p.text = "【预防策略】"
+                p.font.size = Pt(font_size - 2)
+                p.font.bold = True
+                p.font.color.rgb = COLOR_GREEN_1
+
+                p = correct_frame.add_paragraph()
+                p.text = prevention
+                p.font.size = Pt(font_size)
+        else:
+            content_box = slide.shapes.add_textbox(Inches(1), Inches(1.5), Inches(8), Inches(5))
+            content_frame = content_box.text_frame
+            for item in slide_data.get("content", []):
+                p = content_frame.add_paragraph()
+                p.text = f"• {item}"
+                p.font.size = Pt(font_size)
+                p.space_after = Pt(6)
 
     def _add_quiz_slide(
         self,

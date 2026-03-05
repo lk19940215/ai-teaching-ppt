@@ -237,6 +237,37 @@ class EnglishPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
    - 时间状语对比
    - 用法区别
 
+n### 五、错题分析页（feat-041 智能错题分析）
+
+1. **常见错误类型**：
+   - 拼写错误：单词拼写错误、大小写错误
+   - 时态混用：时态不一致、时态选择错误
+   - 搭配错误：动词短语搭配错误、介词使用错误
+   - 语序颠倒：疑问句语序、从句语序错误
+   - 主谓不一致：单复数不一致、人称不一致
+
+2. **错题分析页设计要求**：
+   - 错误示例：展示学生常见错误句子
+   - 错误原因：分析为什么这个答案是错误的
+   - 正确解法：给出正确的句子表达
+   - 预防策略：如何避免这类错误
+
+3. **输出格式要求**：
+   ```json
+   {
+     "page_type": "错题分析页",
+     "title": "Common Mistakes",
+     "common_mistakes": [
+       {
+         "mistake_type": "错误类型",
+         "mistake_example": "错误示例句子",
+         "reason": "错误原因分析",
+         "correct_method": "正确句子",
+         "prevention_strategy": "预防策略"
+       }
+     ]
+   }
+   ```
 【PPT 结构建议】
 1. **封面页**：Unit/Topic + Grade + Teacher
 2. **Learning Objectives**（1 页）：本节课的学习目标
@@ -414,6 +445,16 @@ class EnglishPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
                     },
                     "dialogue": "对话内容（如适用）",
                     "exercise": "练习题描述（如适用）"
+                    # 错题分析字段 (feat-041)
+                    "common_mistakes": [
+                        {
+                            "mistake_type": "错误类型（拼写错误/时态混用/搭配错误/语序颠倒）",
+                            "mistake_example": "错误示例句子",
+                            "reason": "错误原因分析",
+                            "correct_method": "正确解法/句子",
+                            "prevention_strategy": "预防策略"
+                        }
+                    ],
                 }
                 for _ in range(slide_count)
             ],

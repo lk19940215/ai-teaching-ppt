@@ -201,6 +201,15 @@
       "taskId": "feat-039",
       "statusAfter": "done",
       "notes": "feat-039 情境创设自动生成功能已完成实现：\n\n【实现内容】\n1. ppt_generator.py：新增 SCENARIO_IMPORT 页面类型常量，添加_add_scenario_import_slide 渲染方法（全幅背景色 + 大字引导问题 + 情境描述 + 视觉建议）\n2. general.py：在通用 prompt 中添加情境创设自动生成要求，包含年级差异化策略（低/中/高年级）和学科差异化模板（10 学科），输出 schema 增加 scenario 字段\n3. math.py：添加数学学科专属情境创设要求，6 类情境模板（购物消费/体育运动/建筑设计/旅行规划/科学探究/游戏竞赛），按年级提供差异化策略和示例\n4. english.py：添加英语学科专属情境创设要求，6 类情境模板（旅行游记/校园生活/文化交流/职场体验/日常生活/媒体素养）\n\n【年级差异化策略】\n- 低年级（1-4 年级）：童话/动画/游戏情境，语言生动有趣，多用拟人化表达\n- 中年级（5-8 年级）：校园生活/社会实践/科普探索，联系学生实际经验\n- 高年级（9-12 年级）：科研探索/职业体验/社会热点，注重知识迁移和应用\n\n【情境导入页 schema 字段】\n- scenario_description: 情境描述（2-3 句话创设具体场景）\n- guiding_question: 引导性问题（引发学生探究欲望）\n- visual_suggestion: 视觉素材建议（帮助教师准备素材）\n- scenario_type: 情境类型（12 种可选：生活实例/童话故事/动画人物/校园场景/社会实践/科研探索/职业体验/购物消费/体育运动/旅行游记/游乐场/交通工具）\n\n【验证结果】\n- 语法检查：所有 Python 文件通过 py_compile 验证\n- 导入测试：所有 prompt 模块可正常导入\n- 功能验证：GeneralPromptStrategy、MathPromptStrategy、EnglishPromptStrategy 生成的 prompt 均包含'情境创设'指令和 scenario 字段要求\n\n【下次 session 注意】\n- 如需扩展其他学科（物理/化学/生物/历史/政治/地理/科学）的情境创设模板，可在对应学科 prompt 文件中添加类似 math.py/english.py 的情境创设要求\n- 情境导入页的 PPT 渲染效果可通过实际生成 PPT 文件进行端到端测试验证"
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-05T12:28:26.819Z",
+      "result": "success",
+      "cost": 5.801691000000001,
+      "taskId": "feat-040",
+      "statusAfter": "done",
+      "notes": "feat-040 差异化教学支持功能已完成实现。\n\n【实现内容】\n1. 前端 upload/page.tsx：添加 DIFFICULTY_OPTIONS 选项（统一/基础/提高/拓展），config 增加 difficultyLevel 状态，API 请求传递 difficulty_level 参数\n2. 后端 API ppt.py：generate-full 端点接收 difficulty_level 参数并传递给内容生成器\n3. 内容生成器 content_generator.py：generate/generate_for_english 方法添加 difficulty_level 参数\n4. 提示词引擎 prompts/__init__.py：PromptEngine.build_prompt/build_schema 接收 difficulty_level\n5. 基类 prompts/base.py：SubjectPromptStrategy 抽象方法添加 difficulty_level 参数\n6. 学科策略 math.py/general.py/english.py：build_prompt 添加难度分层提示词，build_schema 添加 difficulty 字段\n7. PPT 生成器 ppt_generator.py：_add_exercise_slide 方法根据 difficulty 标注星级（基础★绿色/提高★★橙色/拓展★★★红色）\n\n【验证结果】\n- 所有 Python 模块导入成功，无语法错误\n- 参数签名正确：difficulty_level 参数在各层传递正常\n- 后端服务运行正常\n\n【下一步建议】\n- 如需完整 E2E 测试，可在下一个 session 使用 Playwright 验证前端 UI 和完整生成流程\n- 其他学科策略（chinese.py, science.py, humanities.py, cognitive.py）可按需添加相同的难度分层支持"
     }
   ]
 }
