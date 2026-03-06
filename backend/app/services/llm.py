@@ -162,7 +162,7 @@ class LLMService:
         self,
         prompt: str,
         output_schema: Dict[str, Any],
-        max_retries: int = 3,
+        max_retries: int = 1,
         **kwargs
     ) -> Dict[str, Any]:
         """
@@ -170,13 +170,13 @@ class LLMService:
         Args:
             prompt: 提示词
             output_schema: 输出结构定义
-            max_retries: 最大重试次数（默认 3 次）
+            max_retries: 最大重试次数（默认 1 次，不自动重试）
             **kwargs: 额外参数
         Returns:
             结构化的输出结果
 
         Raises:
-            ValueError: 当无法解析 JSON 且重试次数用尽时抛出
+            ValueError: 当无法解析 JSON 时抛出
         """
         schema_description = json.dumps(output_schema, ensure_ascii=False, indent=2)
 
@@ -258,9 +258,11 @@ class LLMService:
 
         # 所有重试都失败，抛出异常
         logger.error(f"JSON 解析最终失败，原始响应：{last_response}")
-        raise ValueError(
-            f"LLM 返回的内容无法解析为 JSON（已重试{max_retries}次）: {last_error}"
-        ) from last_error
+        error_msg = f"LLM 返回的内容无法解析为 JSON"
+        if last_error:
+            error_msg += f" - {type(last_error).__name__}: {str(last_error)}"
+        error_msg += "。请检查教学内容是否清晰，或尝试重新生成。"
+        raise ValueError(error_msg) from last_error
 
 
 # 全局 LLM 服务实例
