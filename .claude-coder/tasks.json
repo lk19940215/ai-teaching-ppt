@@ -105,7 +105,7 @@
         "验证下载 URL 有效",
         "记录测试结果到 record/core_flow_test.md"
       ],
-      "status": "pending",
+      "status": "in_progress",
       "depends_on": []
     },
     {
@@ -150,7 +150,7 @@
         "生成成功后清除草稿",
         "验证：输入文本→刷新→文本恢复；生成成功→刷新→文本清空"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     },
     {

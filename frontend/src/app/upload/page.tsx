@@ -54,6 +54,9 @@ const DIFFICULTY_OPTIONS = [
   { value: "advanced", label: "拓展版（3 星）" },
 ]
 
+// localStorage key 常量（feat-064 文本草稿自动保存）
+const STORAGE_KEY = "ppt_draft_content"
+
 interface TeachingConfig {
   grade: string
   subject: string
@@ -113,6 +116,27 @@ export default function UploadPage() {
   // 智能风格推荐（feat-053）
   const [hasManuallyChangedStyle, setHasManuallyChangedStyle] = useState(false) // 用户是否手动修改过风格
   const [styleRecommendationTip, setStyleRecommendationTip] = useState("") // 风格推荐提示
+
+  // 【feat-064 文本草稿自动保存】组件挂载时恢复草稿
+  useEffect(() => {
+    const savedDraft = localStorage.getItem(STORAGE_KEY)
+    if (savedDraft && !textContent) {
+      setTextContent(savedDraft)
+    }
+  }, [])
+
+  // 【feat-064 文本草稿自动保存】监听 textContent 变化，防抖 500ms 后保存
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (textContent) {
+        localStorage.setItem(STORAGE_KEY, textContent)
+      } else {
+        localStorage.removeItem(STORAGE_KEY)
+      }
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [textContent])
 
   // 从后端加载 LLM 配置
   useEffect(() => {
@@ -522,6 +546,9 @@ export default function UploadPage() {
           setGeneratedContent(result.content)
           setDownloadUrl(`${apiBaseUrl}${result.download_url}`)
           setFileName(result.file_name)
+
+          // 【feat-064】生成成功后清除草稿
+          localStorage.removeItem(STORAGE_KEY)
 
           setTimeout(() => {
             setIsGenerating(false)
