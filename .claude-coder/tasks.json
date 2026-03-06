@@ -1036,7 +1036,7 @@
         "将测试结果（通过/失败、耗时、问题）写入 record/regression_test.md",
         "验证：grep -q '状态: 通过' record/regression_test.md && echo 'pass'"
       ],
-      "status": "pending",
+      "status": "in_progress",
       "depends_on": []
     },
     {
@@ -1052,7 +1052,29 @@
         "验证：grep -q '错误场景: 通过' record/regression_test.md && echo 'pass'"
       ],
       "status": "pending",
-      "depends_on": []
+      "depends_on": [
+        "feat-054"
+      ]
+    },
+    {
+      "id": "feat-056",
+      "category": "fullstack",
+      "priority": 56,
+      "description": "Playwright MCP 全面流程测试与问题修复：执行端到端测试，记录并修复发现的问题",
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md 了解 Smart Snapshot、Token 预算控制等测试规范",
+        "【环境】curl -s http://localhost:8000/health && curl -s http://localhost:3000 确认前后端服务正常（失败则停止）",
+        "【P0 核心流程】browser_navigate → browser_fill 输入数学测试文本 → browser_select 选择参数 → browser_click 生成 → browser_wait_for text='PPT 预览' timeout=180s → browser_click 下载验证",
+        "【P1 错误场景】browser_evaluate 清除 localStorage → 输入文本点击生成 → browser_snapshot 验证 API Key 缺失错误提示；/settings 页输入无效 Key 验证连接失败提示",
+        "【P2 次要功能】browser_navigate 历史记录页验证列表展示；browser_navigate 设置页验证 LLM 配置组件",
+        "【记录与修复】将问题写入 record/playwright_test_v2.md（含严重程度/复现步骤/根因/修复建议），修复高优先级问题后复测",
+        "【验证】grep -q '状态: 已修复' record/playwright_test_v2.md && echo 'pass'"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-054",
+        "feat-055"
+      ]
     }
   ]
 }

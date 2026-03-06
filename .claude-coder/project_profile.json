@@ -1,17 +1,17 @@
 {
   "name": "ai-teaching-ppt",
-  "detected_at": "2026-03-02T06:56:09",
-  "project_type": "new",
+  "detected_at": "2026-03-06T16:30:00",
+  "project_type": "existing",
   "tech_stack": {
     "languages": ["python", "typescript"],
     "backend": {
       "framework": "fastapi",
       "runtime": "uvicorn",
-      "entry": "app/main:app"
+      "entry": "app.main:app"
     },
     "frontend": {
-      "framework": "nextjs",
-      "bundler": "vite",
+      "framework": "next",
+      "bundler": "next",
       "dir": "frontend"
     },
     "database": "sqlite",
@@ -20,29 +20,43 @@
   "services": [
     {
       "name": "backend",
-      "command": "cd backend && source ../.venv/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port 8000",
+      "command": "cd backend && uvicorn app.main:app --reload --port 8000",
       "port": 8000,
-      "health_check": "http://localhost:8000/docs"
+      "health_check": "http://localhost:8000/health",
+      "cwd": "."
     },
     {
       "name": "frontend",
       "command": "cd frontend && pnpm dev",
       "port": 3000,
-      "health_check": "http://localhost:3000"
+      "health_check": "http://localhost:3000",
+      "cwd": "frontend"
     }
   ],
   "env_setup": {
-    "python_env": "venv",
+    "python_env": "venv:.venv",
     "node_version": "20"
   },
-  "existing_docs": ["README.md", "requirements.md"],
-  "has_tests": false,
-  "has_docker": false,
+  "existing_docs": [
+    "README.md",
+    ".claude/CLAUDE.md",
+    ".claude/rules/testing.md",
+    "问题整理.md"
+  ],
+  "has_tests": true,
+  "has_docker": true,
   "mcp_tools": {
     "playwright": true
   },
+  "custom_init": [],
   "scan_files_checked": [
+    "package.json",
+    "requirements.txt",
+    "docker-compose.yml",
     "README.md",
-    "requirements.md"
+    ".claude/CLAUDE.md",
+    "backend/app/main.py",
+    "backend/app/config.py",
+    "frontend/package.json"
   ]
 }

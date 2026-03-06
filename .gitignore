@@ -46,3 +46,4 @@ yarn-error.log*
 .claude-coder/test.env
 .claude-coder/.runtime/
 .claude-coder/playwright-auth.json
+.claude-coder/.runtime/browser-profile
