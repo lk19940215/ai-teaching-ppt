@@ -196,6 +196,22 @@
       ],
       "status": "pending",
       "depends_on": ["feat-058"]
+    },
+    {
+      "id": "feat-060",
+      "category": "fullstack",
+      "priority": 60,
+      "description": "LLM 配置全链路审查与修复：检查前端默认值、后端配置模型、API 调用参数及 response_format 支持",
+      "steps": [
+        "【审计】查阅各服务商官方文档，确认 DeepSeek/OpenAI/Claude/GLM 的上下文长度、输出长度、response_format 支持情况",
+        "【前端】在 settings/page.tsx 的 PROVIDER_OPTIONS 中添加 maxContextTokens/maxOutputTokens 字段，并在 UI 显示各服务商限制提示",
+        "【后端服务】在 llm.py 中修复 generate_structured_content：DeepSeek/GLM 也应支持 response_format: {type: json_object}（若 API 支持）",
+        "【后端配置】在 llm_config.py 添加 PROVIDER_DEFAULTS 常量，按服务商设置正确的 max_input_tokens 默认值（DeepSeek 128k）",
+        "【验证】grep -q 'PROVIDER_DEFAULTS' backend/app/models/llm_config.py && grep -q 'response_format' backend/app/services/llm.py && echo 'pass'"
+      ],
+      "status": "pending",
+      "depends_on": ["feat-040"],
+      "notes": "问题发现：DeepSeek 上下文 128k 但默认值 8k；response_format 只在 OpenAI 启用，DeepSeek 也支持但未配置"
     }
   ]
 }
