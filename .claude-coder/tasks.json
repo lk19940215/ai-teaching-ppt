@@ -1023,8 +1023,40 @@
     },
     {
       "id": "feat-054",
-      "category": "fullstack",
+      "category": "backend",
       "priority": 54,
+      "description": "修复 PPT 生成重试三次问题：移除 LLM 调用的自动重试机制，改进 JSON 解析错误提示",
+      "steps": [
+        "分析 backend/app/services/llm.py 中 generate_structured_content 方法的重试逻辑",
+        "将 max_retries 默认值从 3 改为 0（不重试）或 1（只尝试一次）",
+        "改进错误信息：解析失败时返回原始 LLM 响应内容（截取前 500 字），方便用户排查",
+        "在日志中记录完整的 LLM 响应，便于调试格式问题",
+        "验证：grep -q 'max_retries: int = 0' backend/app/services/llm.py && echo 'pass'"
+      ],
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-055",
+      "category": "backend",
+      "priority": 55,
+      "description": "修复 LLM 返回 JSON 格式问题：增强 JSON 解析鲁棒性，处理各种格式错误",
+      "steps": [
+        "测试当前 JSON 解析失败的具体原因（打印原始响应分析）",
+        "增强 _extract_json_from_response 方法，处理更多格式变体（如混有文字说明）",
+        "增强 _fix_json 方法，处理更多格式问题（如未转义引号、中文字符等）",
+        "考虑使用更宽松的 JSON 解析器（如 json5 或 dirtyjson）作为备选",
+        "验证：单元测试各种格式的 LLM 响应都能正确解析"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-054"
+      ]
+    },
+    {
+      "id": "feat-056",
+      "category": "fullstack",
+      "priority": 56,
       "description": "核心生成流程回归测试：使用 Playwright MCP 验证文字输入到 PPT 下载的端到端流程",
       "steps": [
         "前置检查：curl -s http://localhost:8000/health && curl -s http://localhost:3000 确认前后端服务正常",
@@ -1036,13 +1068,16 @@
         "将测试结果（通过/失败、耗时、问题）写入 record/regression_test.md",
         "验证：grep -q '状态: 通过' record/regression_test.md && echo 'pass'"
       ],
-      "status": "in_progress",
-      "depends_on": []
+      "status": "pending",
+      "depends_on": [
+        "feat-054",
+        "feat-055"
+      ]
     },
     {
-      "id": "feat-055",
+      "id": "feat-057",
       "category": "fullstack",
-      "priority": 55,
+      "priority": 57,
       "description": "错误场景回归测试：验证无 API Key、无效 Key 等错误处理正确性",
       "steps": [
         "使用 browser_navigate 访问 /upload，browser_evaluate 清除 localStorage，刷新页面",
@@ -1053,13 +1088,13 @@
       ],
       "status": "pending",
       "depends_on": [
-        "feat-054"
+        "feat-056"
       ]
     },
     {
-      "id": "feat-056",
+      "id": "feat-058",
       "category": "fullstack",
-      "priority": 56,
+      "priority": 58,
       "description": "Playwright MCP 全面流程测试与问题修复：执行端到端测试，记录并修复发现的问题",
       "steps": [
         "【规则】阅读 .claude-coder/test_rule.md 了解 Smart Snapshot、Token 预算控制等测试规范",
@@ -1072,8 +1107,8 @@
       ],
       "status": "pending",
       "depends_on": [
-        "feat-054",
-        "feat-055"
+        "feat-056",
+        "feat-057"
       ]
     }
   ]
