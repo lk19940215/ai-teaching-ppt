@@ -269,13 +269,20 @@ class LLMService:
         # 第 1 步：提取 JSON 代码块
         json_str = self._extract_json_from_response(response)
 
+        # 用于记录解析错误的变量
+        parse_error = None
+        fix_error = None
+        json5_raw_error = None
+        json5_fixed_error = None
+
         # 第 2 步：尝试直接用标准 json 解析
         try:
             result = json.loads(json_str)
             logger.info("JSON 解析成功（标准解析器）")
             return result
-        except json.JSONDecodeError as parse_error:
-            logger.warning(f"JSON 直接解析失败：{parse_error}")
+        except json.JSONDecodeError as e:
+            parse_error = e
+            logger.warning(f"JSON 直接解析失败：{e}")
 
         # 第 3 步：尝试修复后解析
         fixed_json = self._fix_json(json_str)
@@ -285,8 +292,9 @@ class LLMService:
             result = json.loads(fixed_json)
             logger.info("JSON 修复后解析成功（标准解析器）")
             return result
-        except json.JSONDecodeError as fix_error:
-            logger.warning(f"JSON 修复后仍失败：{fix_error}")
+        except json.JSONDecodeError as e:
+            fix_error = e
+            logger.warning(f"JSON 修复后仍失败：{e}")
 
         # 第 4 步：尝试使用 json5 解析（更宽松的语法）
         try:
@@ -296,8 +304,9 @@ class LLMService:
             return result
         except ImportError:
             logger.warning("json5 未安装，跳过")
-        except Exception as json5_error:
-            logger.warning(f"json5 解析失败：{json5_error}")
+        except Exception as e:
+            json5_raw_error = e
+            logger.warning(f"json5 解析失败：{e}")
 
         # 第 5 步：尝试使用 json5 解析修复后的 JSON
         try:
@@ -305,16 +314,30 @@ class LLMService:
             result = json5.loads(fixed_json)
             logger.info("JSON 修复后解析成功（json5 解析器）")
             return result
-        except (ImportError, Exception) as final_error:
-            logger.warning(f"json5 解析修复后的 JSON 也失败：{final_error}")
+        except ImportError:
+            logger.warning("json5 未安装，跳过")
+        except Exception as e:
+            json5_fixed_error = e
+            logger.warning(f"json5 解析修复后的 JSON 也失败：{e}")
 
         # 所有方法都失败，抛出详细错误信息
         logger.error(f"JSON 解析最终失败，原始响应：{response[:500]}...")
-        error_details = [
+
+        # 构建错误详情，只包含实际发生的错误
+        error_messages = [
             f"LLM 返回的内容无法解析为有效的 JSON",
             f"原始响应片段：{response[:300]}...",
-            f"直接解析错误：{type(parse_error).__name__}: {parse_error}",
-            f"修复后解析错误：{type(fix_error).__name__}: {fix_error}",
+        ]
+        if parse_error:
+            error_messages.append(f"直接解析错误：{type(parse_error).__name__}: {parse_error}")
+        if fix_error:
+            error_messages.append(f"修复后解析错误：{type(fix_error).__name__}: {fix_error}")
+        if json5_raw_error:
+            error_messages.append(f"json5 解析原始 JSON 错误：{type(json5_raw_error).__name__}: {json5_raw_error}")
+        if json5_fixed_error:
+            error_messages.append(f"json5 解析修复后 JSON 错误：{type(json5_fixed_error).__name__}: {json5_fixed_error}")
+
+        error_messages.extend([
             "",
             "可能的原因：",
             "1. LLM 生成的 JSON 格式不完整或有语法错误",
@@ -325,8 +348,11 @@ class LLMService:
             "- 检查教学内容是否清晰、具体",
             "- 尝试简化输入内容后重新生成",
             "- 如问题持续，请联系管理员"
-        ]
-        raise ValueError("\n".join(error_details)) from fix_error
+        ])
+
+        # 选择最后一个实际发生的错误作为 cause
+        cause_error = json5_fixed_error or json5_raw_error or fix_error or parse_error
+        raise ValueError("\n".join(error_messages)) from cause_error
 
 
 # 全局 LLM 服务实例
