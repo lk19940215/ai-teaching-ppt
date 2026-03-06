@@ -1020,6 +1020,24 @@
       ],
       "status": "done",
       "depends_on": []
+    },
+    {
+      "id": "feat-054",
+      "category": "fullstack",
+      "priority": 54,
+      "description": "核心生成流程回归测试：使用 Playwright MCP 验证文字输入到 PPT 下载的端到端流程",
+      "steps": [
+        "前置检查：curl -s http://localhost:8000/health && curl -s http://localhost:3000 确认前后端服务正常",
+        "使用 Playwright MCP browser_navigate 访问 http://localhost:3000/upload，browser_snapshot 确认页面加载",
+        "使用 browser_fill 在文本框输入测试内容（数学：三角形的面积公式，至少100字）",
+        "使用 browser_select 选择年级=小学五年级、学科=数学、风格=简约清晰，browser_snapshot 确认参数已选择",
+        "使用 browser_click 点击生成按钮，browser_wait_for text='PPT 预览' timeout=180000 等待生成完成",
+        "使用 browser_snapshot 验证预览区域出现缩略图，browser_click 点击下载按钮验证下载成功",
+        "将测试结果（通过/失败、耗时、问题）写入 record/regression_test.md",
+        "验证：grep -q '状态: 通过' record/regression_test.md && echo 'pass'"
+      ],
+      "status": "pending",
+      "depends_on": []
     }
   ]
 }
