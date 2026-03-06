@@ -2,5 +2,5 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "【feat-060 LLM 提供商审计 - 完成】\n\n【审计发现的严重问题】\n1. 🔴 base_url 参数硬编码：ppt.py (3 处) 和 generate.py (1 处) 都使用 settings.OPENAI_API_BASE（DeepSeek URL），导"
+  "notes": "【feat-064 文本草稿自动保存 - 完成】\n\n实现内容：\n1. 添加 localStorage key 常量 STORAGE_KEY = \"ppt_draft_content\"\n2. 添加组件挂载时恢复草稿的 useEffect（仅当 textContent 为空时恢复，避免覆盖用户主动清空）\n3. 添加防抖 500ms 自动保存的 useEffect（有内容时保存，空内容时清除）\n4. 生成成功后清除草稿（在 handleGenerate 的 complete 阶段）\n\n验证方式（人工）：\n1. 输入文本 → 等待 600ms → 刷新页面 → 验证文本恢复\n2. 输入文本 → 等待保存 → 清空文本 → 等待 600ms → 验证 localStorage 清除\n3. 输入文本 → 生成成功 → 验证 localStorage 清除\n\n类型检查：通过（pnpm tsc --noEmit）\n\n下一个会话：feat-061 核心生成流程测试（in_progress）或 feat-062 错误场景测试"
 }

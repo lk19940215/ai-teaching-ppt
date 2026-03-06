@@ -164,6 +164,24 @@ export default function UploadPage() {
     loadLLMConfig()
   }, [])
 
+  // 【feat-066 放大预览模态框】监听键盘事件（左右箭头翻页、ESC 关闭）
+  useEffect(() => {
+    if (!showPreviewModal || !generatedContent) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowPreviewModal(false)
+      } else if (e.key === 'ArrowLeft') {
+        setCurrentPreviewSlide(prev => Math.max(0, prev - 1))
+      } else if (e.key === 'ArrowRight') {
+        setCurrentPreviewSlide(prev => Math.min(generatedContent.slides.length + 1, prev + 1))
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [showPreviewModal, generatedContent])
+
   // 从 localStorage 加载 LLM 配置（兼容旧版）
   const getLLMConfig = () => {
     const savedConfig = localStorage.getItem("llm_config")
@@ -1197,6 +1215,153 @@ export default function UploadPage() {
           </div>
         </div>
       </div>
+
+      {/* 【feat-066】放大预览模态框 */}
+      {showPreviewModal && generatedContent && (
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setShowPreviewModal(false)}
+        >
+          {/* 模态框内容区域（点击不关闭） */}
+          <div
+            className="bg-white rounded-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 顶部标题栏 */}
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-xl z-10">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">{generatedContent.title}</h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  第 {currentPreviewSlide + 1} 页 / 共 {generatedContent.slides.length + 2} 页
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPreviewModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition text-2xl w-8 h-8 flex items-center justify-center"
+                title="关闭 (ESC)"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* 幻灯片内容 */}
+            <div className="p-8 min-h-[400px]">
+              {currentPreviewSlide === 0 ? (
+                /* 封面页 */
+                <div className="text-center py-16 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl">
+                  <h1 className="text-5xl font-bold text-indigo-600 mb-6">{generatedContent.title}</h1>
+                  <p className="text-xl text-gray-600">AI 教学 PPT 生成器</p>
+                  {config.chapter && (
+                    <p className="text-lg text-gray-500 mt-4">{config.chapter}</p>
+                  )}
+                  <div className="mt-8 flex items-center justify-center gap-4 text-sm text-gray-500">
+                    <span>年级：{GRADE_OPTIONS.find(g => g.value === config.grade)?.label}</span>
+                    <span>学科：{SUBJECT_OPTIONS.find(s => s.value === config.subject)?.label}</span>
+                  </div>
+                </div>
+              ) : currentPreviewSlide === generatedContent.slides.length + 1 ? (
+                /* 总结页 */
+                <div className="py-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <span className="text-4xl">📚</span>
+                    <h3 className="text-3xl font-bold text-purple-600">总结回顾</h3>
+                  </div>
+                  <p className="text-lg text-gray-700 mb-6 leading-relaxed">{generatedContent.summary}</p>
+                  <div className="bg-purple-50 rounded-xl p-6">
+                    <h4 className="font-bold text-purple-800 mb-4 text-lg">重点内容</h4>
+                    <ul className="space-y-3">
+                      {generatedContent.key_points.map((point, index) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <span className="text-purple-600 font-bold mt-0.5">{index + 1}.</span>
+                          <span className="text-gray-700">{point}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ) : (
+                /* 内容页 */
+                <div className="py-4">
+                  <div className="flex items-center gap-3 mb-6">
+                    <span className="text-3xl">{getPageTypeIcon(generatedContent.slides[currentPreviewSlide - 1].page_type)}</span>
+                    <span className="text-sm font-medium text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
+                      {generatedContent.slides[currentPreviewSlide - 1].page_type}
+                    </span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                    {generatedContent.slides[currentPreviewSlide - 1].title}
+                  </h3>
+                  <ul className="space-y-4 mb-6">
+                    {generatedContent.slides[currentPreviewSlide - 1].content.map((item, index) => (
+                      <li key={index} className="flex items-start gap-3 text-lg text-gray-700">
+                        <span className="text-indigo-600 font-bold mt-1">•</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {generatedContent.slides[currentPreviewSlide - 1].interaction && (
+                    <div className="bg-green-50 border border-green-200 text-green-800 p-5 rounded-xl mb-4">
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">💡</span>
+                        <div>
+                          <strong className="block mb-1">互动环节：</strong>
+                          <span>{generatedContent.slides[currentPreviewSlide - 1].interaction}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {generatedContent.slides[currentPreviewSlide - 1].exercise && (
+                    <div className="bg-blue-50 border border-blue-200 text-blue-800 p-5 rounded-xl mb-4">
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">✍️</span>
+                        <div>
+                          <strong className="block mb-1">课堂练习：</strong>
+                          <span>{generatedContent.slides[currentPreviewSlide - 1].exercise}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {generatedContent.slides[currentPreviewSlide - 1].mnemonic && (
+                    <div className="bg-purple-50 border border-purple-200 text-purple-800 p-5 rounded-xl">
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">📝</span>
+                        <div>
+                          <strong className="block mb-1">记忆口诀：</strong>
+                          <span>{generatedContent.slides[currentPreviewSlide - 1].mnemonic}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* 底部翻页按钮 */}
+            <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex items-center justify-between rounded-b-xl">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPreviewSlide(prev => Math.max(0, prev - 1))}
+                disabled={currentPreviewSlide === 0}
+                className="px-6"
+              >
+                ← 上一页
+              </Button>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <span>提示：可使用键盘左右箭头翻页</span>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPreviewSlide(prev => Math.min(generatedContent.slides.length + 1, prev + 1))}
+                disabled={currentPreviewSlide === generatedContent.slides.length + 1}
+                className="px-6"
+              >
+                下一页 →
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

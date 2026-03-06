@@ -180,7 +180,7 @@
         "支持 ESC 关闭模态框",
         "验证：点击放大查看按钮→模态框弹出→可翻页→可关闭"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     }
   ]
