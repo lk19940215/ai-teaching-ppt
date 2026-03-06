@@ -1,6 +1,6 @@
 {
   "session_result": "success",
-  "status_before": "58 tasks (54 done, 4 pending)",
-  "status_after": "59 tasks (54 done, 5 pending)",
-  "notes": "追加了 1 个任务：feat-059（生成页文本内容自动草稿）。分析发现：设置页的 LLM 配置已正确存储到 localStorage 并在生成页读取使用，但用户输入的文本内容缺少自动草稿功能，因此新增任务实现此功能。"
+  "status_before": "54 done, 5 pending",
+  "status_after": "54 done, 6 pending",
+  "notes": "追加了 1 个任务：feat-060 修复 Playwright MCP storageState 注入配置。问题根因：.mcp.json 中缺少 --storage-state 参数，导致浏览器启动时 localStorage 不会被注入 llm_config，进而导致生成页点击生成时弹出'没有 API Key'错误。已更新 feat-056 依赖关系，增加对 feat-060 的依赖。"
 }
