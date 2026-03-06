@@ -1110,6 +1110,23 @@
         "feat-056",
         "feat-057"
       ]
+    },
+    {
+      "id": "feat-059",
+      "category": "frontend",
+      "priority": 59,
+      "description": "生成页文本内容自动草稿：使用 localStorage 自动保存用户输入的文本，刷新页面后自动恢复",
+      "steps": [
+        "在 upload/page.tsx 中添加 useEffect 监听 textContent 变化，自动保存到 localStorage.setItem('draft_content', textContent)",
+        "添加 useEffect 在组件挂载时从 localStorage.getItem('draft_content') 恢复文本内容",
+        "生成成功后清除草稿：localStorage.removeItem('draft_content')",
+        "添加防抖（debounce 500ms）避免频繁写入 localStorage",
+        "验证：输入文本 → 刷新页面 → 文本自动恢复；生成成功 → 刷新页面 → 文本框为空"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-058"
+      ]
     }
   ]
 }
