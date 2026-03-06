@@ -276,11 +276,15 @@ async def generate_full_ppt_stream(
             llm_temperature = temperature if temperature is not None else 0.7
             llm_max_tokens = max_output_tokens if max_output_tokens is not None else 4000
 
+            # 注意：base_url 和 model 参数不传递，让 LLMService 根据 provider 使用默认值
+            # 各服务商默认值已在 llm.py 中定义：
+            # - DeepSeek: https://api.deepseek.com, deepseek-chat
+            # - OpenAI: https://api.openai.com/v1, gpt-4
+            # - Claude: https://api.anthropic.com/v1, claude-3-opus-20240229
+            # - GLM: https://open.bigmodel.cn/api/paas/v4, glm-4
             llm_service = get_llm_service(
                 provider=provider,
                 api_key=api_key,
-                base_url=settings.OPENAI_API_BASE,
-                model=settings.OPENAI_MODEL,
                 temperature=llm_temperature,
                 max_tokens=llm_max_tokens
             )
@@ -455,11 +459,15 @@ async def generate_full_ppt_stream_get(
             llm_temperature = temperature if temperature is not None else 0.7
             llm_max_tokens = max_output_tokens if max_output_tokens is not None else 4000
 
+            # 注意：base_url 和 model 参数不传递，让 LLMService 根据 provider 使用默认值
+            # 各服务商默认值已在 llm.py 中定义：
+            # - DeepSeek: https://api.deepseek.com, deepseek-chat
+            # - OpenAI: https://api.openai.com/v1, gpt-4
+            # - Claude: https://api.anthropic.com/v1, claude-3-opus-20240229
+            # - GLM: https://open.bigmodel.cn/api/paas/v4, glm-4
             llm_service = get_llm_service(
                 provider=provider,
                 api_key=api_key,
-                base_url=settings.OPENAI_API_BASE,
-                model=settings.OPENAI_MODEL,
                 temperature=llm_temperature,
                 max_tokens=llm_max_tokens
             )

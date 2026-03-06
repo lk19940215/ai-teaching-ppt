@@ -62,11 +62,10 @@ async def generate_ppt(
         llm_temperature = temperature if temperature is not None else 0.7
         llm_max_tokens = max_output_tokens if max_output_tokens is not None else 4000
 
+        # 注意：base_url 和 model 参数不传递，让 LLMService 根据 provider 使用默认值
         llm_service = get_llm_service(
             provider=llm_provider,
             api_key=llm_api_key,
-            base_url=settings.OPENAI_API_BASE,
-            model=settings.OPENAI_MODEL,
             temperature=llm_temperature,
             max_tokens=llm_max_tokens
         )

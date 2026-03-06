@@ -1,217 +1,187 @@
 {
   "project": "ai-teaching-ppt",
   "created_at": "2026-03-02",
-  "consolidated_at": "2026-03-06",
-  "consolidation_note": "将55个已完成任务整合为6个历史里程碑，保留4个进行中任务。原始任务详情见 git history。",
-  "features": [
+  "last_updated": "2026-03-06",
+  "completed_milestones": [
     {
-      "id": "feat-001",
-      "category": "infra",
-      "priority": 1,
-      "description": "[历史] 里程碑1-基础设施与核心生成：项目初始化、文件上传、AI内容生成、PPT生成",
-      "steps": [
-        "feat-001: 后端FastAPI脚手架创建",
-        "feat-002: 前端Next.js+TypeScript+Tailwind初始化",
-        "feat-003: 文件上传API（图片OCR、PDF解析）",
-        "feat-004: 教学配置面板（年级/学科/风格选择）",
-        "feat-005: LLM内容生成（提示词工程、结构化输出）",
-        "feat-006: python-pptx生成标准.pptx文件"
-      ],
-      "status": "done",
-      "depends_on": [],
-      "consolidated_from": ["feat-001", "feat-002", "feat-003", "feat-004", "feat-005", "feat-006"],
+      "id": "milestone-1",
+      "name": "基础设施搭建",
+      "features": ["feat-001", "feat-002", "feat-012", "feat-013"],
+      "summary": "后端FastAPI脚手架、前端Next.js项目、Docker部署、SQLite数据库初始化",
+      "completed_at": "2026-03-02"
+    },
+    {
+      "id": "milestone-2",
+      "name": "核心生成流程",
+      "features": ["feat-003", "feat-004", "feat-005", "feat-006", "feat-007"],
+      "summary": "文件上传/OCR/PDF解析、教学配置面板、LLM内容生成、PPTX文件生成、预览下载",
+      "completed_at": "2026-03-02"
+    },
+    {
+      "id": "milestone-3",
+      "name": "学科增强与自适应",
+      "features": ["feat-008", "feat-009", "feat-026", "feat-027"],
+      "summary": "英语专属页面、年级自适应风格、PPT风格映射、K-12年级扩展（含高中）",
       "completed_at": "2026-03-03"
     },
     {
-      "id": "feat-007",
-      "category": "fullstack",
-      "priority": 7,
-      "description": "[历史] 里程碑2-预览下载与历史记录：PPT预览、文件下载、生成历史、LLM配置、Docker部署",
-      "steps": [
-        "feat-007: PPT缩略图预览与下载",
-        "feat-008: 英语学科专属页面生成",
-        "feat-009: 年级自适应PPT风格",
-        "feat-010: 生成历史记录CRUD",
-        "feat-011: LLM服务商切换（多AI配置）",
-        "feat-012: Docker部署支持"
-      ],
-      "status": "done",
-      "depends_on": ["feat-001"],
-      "consolidated_from": ["feat-007", "feat-008", "feat-009", "feat-010", "feat-011", "feat-012"],
+      "id": "milestone-4",
+      "name": "历史记录与LLM配置",
+      "features": ["feat-010", "feat-011", "feat-020", "feat-021"],
+      "summary": "生成历史记录、LLM服务商切换、温度/token配置、参数格式排查",
       "completed_at": "2026-03-03"
     },
     {
-      "id": "feat-013",
-      "category": "fullstack",
-      "priority": 13,
-      "description": "[历史] 里程碑3-测试与优化：数据库设置、E2E测试、质量优化、动画注入、DarkMode修复",
-      "steps": [
-        "feat-013: SQLite数据库初始化",
-        "feat-014: Playwright MCP端到端测试",
-        "feat-015: LLM提示词与PPT模板质量优化",
-        "feat-016: OOXML动画效果注入",
-        "feat-017: 互动问答和点击显示答案",
-        "feat-018: 页面走查与DarkMode修复"
-      ],
-      "status": "done",
-      "depends_on": ["feat-007"],
-      "consolidated_from": ["feat-013", "feat-014", "feat-015", "feat-016", "feat-017", "feat-018"],
+      "id": "milestone-5",
+      "name": "PPT质量优化",
+      "features": ["feat-015", "feat-016", "feat-017", "feat-043"],
+      "summary": "LLM提示词优化、PPT模板优化、动画效果注入、点击显示答案OOXML实现",
       "completed_at": "2026-03-04"
     },
     {
-      "id": "feat-019",
-      "category": "backend",
-      "priority": 19,
-      "description": "[历史] 里程碑4-学科深度优化：LLM配置增强、年级扩展、提示词引擎重构、语数英理科文科专属",
-      "steps": [
-        "feat-019: DarkMode样式修复",
-        "feat-020: LLM温度/token配置",
-        "feat-021: LLM调用参数格式排查",
-        "feat-022: 前端交互动画优化",
-        "feat-023: LLM JSON解析鲁棒性增强",
-        "feat-024: 图片/PDF上传流程修复",
-        "feat-025: API地址环境变量化",
-        "feat-026: Style参数落地（配色/字体/布局）",
-        "feat-027: K-12年级扩展（高中支持）"
-      ],
-      "status": "done",
-      "depends_on": ["feat-013"],
-      "consolidated_from": ["feat-019", "feat-020", "feat-021", "feat-022", "feat-023", "feat-024", "feat-025", "feat-026", "feat-027"],
+      "id": "milestone-6",
+      "name": "学科深度优化",
+      "features": ["feat-028", "feat-029", "feat-030", "feat-031", "feat-032", "feat-033"],
+      "summary": "提示词引擎架构、语文/数学/理科/文科/英语学科深度提示词与专属页面",
       "completed_at": "2026-03-04"
     },
     {
-      "id": "feat-028",
-      "category": "backend",
-      "priority": 28,
-      "description": "[历史] 里程碑5-教学增强功能：提示词策略系统、学科专属页面、认知负荷优化、注意力节奏、布鲁姆分类",
-      "steps": [
-        "feat-028: 提示词引擎架构重构（策略模式）",
-        "feat-029: 语文学科深度提示词（古诗/字词/作文）",
-        "feat-030: 数学学科深度提示词（推导/例题/变式）",
-        "feat-031: 理科学科深度提示词（物理/化学/生物）",
-        "feat-032: 文科学科深度提示词（历史/政治/地理）",
-        "feat-033: 英语学科深度增强（词根/搭配/语法树）",
-        "feat-034: 认知负荷优化（Mayer理论）",
-        "feat-035: 注意力节奏引擎",
-        "feat-036: 布鲁姆目标分类法集成",
-        "feat-037: 先行组织者与脚手架策略",
-        "feat-038: 问题链与元认知提示系统",
-        "feat-039: 情境创设自动生成"
-      ],
-      "status": "done",
-      "depends_on": ["feat-019"],
-      "consolidated_from": ["feat-028", "feat-029", "feat-030", "feat-031", "feat-032", "feat-033", "feat-034", "feat-035", "feat-036", "feat-037", "feat-038", "feat-039"],
+      "id": "milestone-7",
+      "name": "教学设计科学化",
+      "features": ["feat-034", "feat-035", "feat-036", "feat-037", "feat-038", "feat-039", "feat-040", "feat-041"],
+      "summary": "认知负荷优化、注意力节奏引擎、布鲁姆分类法、先行组织者、问题链元认知、情境创设、差异化教学、错题分析",
       "completed_at": "2026-03-05"
     },
     {
-      "id": "feat-040",
-      "category": "fullstack",
-      "priority": 40,
-      "description": "[历史] 里程碑6-高级功能与UX改进：差异化教学、错题分析、SSE流式生成、OOXML交互、E2E测试、UX修复",
-      "steps": [
-        "feat-040: 差异化教学支持（基础/提高/拓展）",
-        "feat-041: 智能错题分析页",
-        "feat-042: SSE流式生成反馈",
-        "feat-043: OOXML点击显示答案真实实现",
-        "feat-044: Playwright MCP全面测试",
-        "feat-045: 测试问题修复",
-        "feat-046: Playwright测试基础设施升级",
-        "feat-047: 文字输入E2E测试",
-        "feat-048: 图片上传OCR E2E测试",
-        "feat-049: 错误场景边界条件E2E测试",
-        "feat-050: AI Agent自主探索性测试",
-        "feat-051: UX-01修复（默认年级调整）",
-        "feat-052: UX-05修复（进度反馈改进）",
-        "feat-053: UX-06修复（智能风格推荐）",
-        "feat-054: PPT生成重试问题修复",
-        "feat-055: LLM返回JSON格式问题修复"
-      ],
-      "status": "done",
-      "depends_on": ["feat-028"],
-      "consolidated_from": ["feat-040", "feat-041", "feat-042", "feat-043", "feat-044", "feat-045", "feat-046", "feat-047", "feat-048", "feat-049", "feat-050", "feat-051", "feat-052", "feat-053", "feat-054", "feat-055"],
+      "id": "milestone-8",
+      "name": "前端优化与修复",
+      "features": ["feat-014", "feat-018", "feat-019", "feat-022", "feat-024", "feat-025", "feat-051", "feat-052", "feat-053"],
+      "summary": "Dark Mode修复、交互动画、上传流程修复、API环境变量化、默认年级调整、进度反馈优化、智能风格推荐",
+      "completed_at": "2026-03-05"
+    },
+    {
+      "id": "milestone-9",
+      "name": "后端优化与修复",
+      "features": ["feat-023", "feat-045", "feat-046", "feat-047", "feat-048", "feat-049", "feat-050", "feat-054", "feat-055"],
+      "summary": "JSON解析增强、Playwright测试基础设施、E2E测试（文字/图片/错误场景）、探索性测试、重试机制修复",
       "completed_at": "2026-03-06"
     },
     {
-      "id": "feat-056",
-      "category": "fullstack",
-      "priority": 56,
-      "description": "核心生成流程回归测试：使用 Playwright MCP 验证文字输入到 PPT 下载的端到端流程",
-      "steps": [
-        "前置检查：curl -s http://localhost:8000/health && curl -s http://localhost:3000 确认前后端服务正常",
-        "使用 Playwright MCP browser_navigate 访问 http://localhost:3000/upload，browser_snapshot 确认页面加载",
-        "使用 browser_fill 在文本框输入测试内容（数学：三角形的面积公式，至少100字）",
-        "使用 browser_select 选择年级=小学五年级、学科=数学、风格=简约清晰，browser_snapshot 确认参数已选择",
-        "使用 browser_click 点击生成按钮，browser_wait_for text='PPT 预览' timeout=180000 等待生成完成",
-        "使用 browser_snapshot 验证预览区域出现缩略图，browser_click 点击下载按钮验证下载成功",
-        "将测试结果（通过/失败、耗时、问题）写入 record/regression_test.md",
-        "验证：grep -q '状态: 通过' record/regression_test.md && echo 'pass'"
-      ],
-      "status": "failed",
-      "depends_on": ["feat-040"],
-      "notes": "测试发现后端 SSE 端点问题：连接建立后停留在 20% 进度，后端未推送进一步事件。详细见 record/regression_test.md"
-    },
-    {
-      "id": "feat-057",
-      "category": "fullstack",
-      "priority": 57,
-      "description": "错误场景回归测试：验证无 API Key、无效 Key 等错误处理正确性",
-      "steps": [
-        "使用 browser_navigate 访问 /upload，browser_evaluate 清除 localStorage，刷新页面",
-        "输入文本后点击生成，browser_snapshot 验证显示 API Key 缺失错误提示",
-        "使用 browser_navigate 访问 /settings，输入无效 API Key 'sk-invalid-test'，点击测试连接",
-        "browser_snapshot 验证显示连接失败提示，将结果追加到 record/regression_test.md",
-        "验证：grep -q '错误场景: 通过' record/regression_test.md && echo 'pass'"
-      ],
-      "status": "pending",
-      "depends_on": ["feat-056"]
-    },
-    {
-      "id": "feat-058",
-      "category": "fullstack",
-      "priority": 58,
-      "description": "Playwright MCP 全面流程测试与问题修复：执行端到端测试，记录并修复发现的问题",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md 了解 Smart Snapshot、Token 预算控制等测试规范",
-        "【环境】curl -s http://localhost:8000/health && curl -s http://localhost:3000 确认前后端服务正常（失败则停止）",
-        "【P0 核心流程】browser_navigate → browser_fill 输入数学测试文本 → browser_select 选择参数 → browser_click 生成 → browser_wait_for text='PPT 预览' timeout=180s → browser_click 下载验证",
-        "【P1 错误场景】browser_evaluate 清除 localStorage → 输入文本点击生成 → browser_snapshot 验证 API Key 缺失错误提示；/settings 页输入无效 Key 验证连接失败提示",
-        "【P2 次要功能】browser_navigate 历史记录页验证列表展示；browser_navigate 设置页验证 LLM 配置组件",
-        "【记录与修复】将问题写入 record/playwright_test_v2.md（含严重程度/复现步骤/根因/修复建议），修复高优先级问题后复测",
-        "【验证】grep -q '状态: 已修复' record/playwright_test_v2.md && echo 'pass'"
-      ],
-      "status": "pending",
-      "depends_on": ["feat-056", "feat-057"]
-    },
-    {
-      "id": "feat-059",
-      "category": "frontend",
-      "priority": 59,
-      "description": "生成页文本内容自动草稿：使用 localStorage 自动保存用户输入的文本，刷新页面后自动恢复",
-      "steps": [
-        "在 upload/page.tsx 中添加 useEffect 监听 textContent 变化，自动保存到 localStorage.setItem('draft_content', textContent)",
-        "添加 useEffect 在组件挂载时从 localStorage.getItem('draft_content') 恢复文本内容",
-        "生成成功后清除草稿：localStorage.removeItem('draft_content')",
-        "添加防抖（debounce 500ms）避免频繁写入 localStorage",
-        "验证：输入文本 → 刷新页面 → 文本自动恢复；生成成功 → 刷新页面 → 文本框为空"
-      ],
-      "status": "pending",
-      "depends_on": ["feat-058"]
-    },
+      "id": "milestone-10",
+      "name": "SSE流式反馈",
+      "features": ["feat-042"],
+      "summary": "SSE流式生成进度推送，替换假进度条",
+      "completed_at": "2026-03-05"
+    }
+  ],
+  "features": [
     {
       "id": "feat-060",
-      "category": "fullstack",
+      "category": "backend",
       "priority": 60,
-      "description": "LLM 配置全链路审查与修复：检查前端默认值、后端配置模型、API 调用参数及 response_format 支持",
+      "description": "LLM 提供商审计：排查所有 LLM 服务商调用代码，确保参数传递正确",
       "steps": [
-        "【审计】查阅各服务商官方文档，确认 DeepSeek/OpenAI/Claude/GLM 的上下文长度、输出长度、response_format 支持情况",
-        "【前端】在 settings/page.tsx 的 PROVIDER_OPTIONS 中添加 maxContextTokens/maxOutputTokens 字段，并在 UI 显示各服务商限制提示",
-        "【后端服务】在 llm.py 中修复 generate_structured_content：DeepSeek/GLM 也应支持 response_format: {type: json_object}（若 API 支持）",
-        "【后端配置】在 llm_config.py 添加 PROVIDER_DEFAULTS 常量，按服务商设置正确的 max_input_tokens 默认值（DeepSeek 128k）",
-        "【验证】grep -q 'PROVIDER_DEFAULTS' backend/app/models/llm_config.py && grep -q 'response_format' backend/app/services/llm.py && echo 'pass'"
+        "阅读 backend/app/services/llm.py，审计 DeepSeek/OpenAI/Claude/GLM 四种服务商的调用实现",
+        "检查 temperature、max_tokens、response_format 等参数是否正确传递",
+        "验证各服务商的 API 基础 URL 和请求头格式",
+        "检查错误处理和重试逻辑",
+        "修复发现的问题",
+        "验证：curl 测试各服务商 API 连接（如配置了有效 Key）"
+      ],
+      "status": "done",
+      "depends_on": []
+    },
+    {
+      "id": "feat-061",
+      "category": "fullstack",
+      "priority": 61,
+      "description": "核心生成流程完整测试：文字输入→生成PPT→下载",
+      "steps": [
+        "启动前后端服务，确认健康检查通过",
+        "使用 Playwright MCP 访问 /upload 页面",
+        "填写测试文本（数学：三角形的面积公式）",
+        "选择年级=小学五年级、学科=数学、风格=简约清晰",
+        "点击生成，等待 PPT 预览出现（timeout=180s）",
+        "验证下载 URL 有效",
+        "记录测试结果到 record/core_flow_test.md"
       ],
       "status": "pending",
-      "depends_on": ["feat-040"],
-      "notes": "问题发现：DeepSeek 上下文 128k 但默认值 8k；response_format 只在 OpenAI 启用，DeepSeek 也支持但未配置"
+      "depends_on": []
+    },
+    {
+      "id": "feat-062",
+      "category": "fullstack",
+      "priority": 62,
+      "description": "错误场景测试：验证 API Key 缺失、无效等错误处理",
+      "steps": [
+        "场景1：不输入内容，验证生成按钮 disabled",
+        "场景2：清除 localStorage 后生成，验证显示 API Key 缺失提示",
+        "场景3：输入无效 API Key，验证显示连接失败提示",
+        "场景4：输入超长内容（10000+字），验证字数限制提示",
+        "记录测试结果到 record/error_handling_test.md"
+      ],
+      "status": "pending",
+      "depends_on": ["feat-061"]
+    },
+    {
+      "id": "feat-063",
+      "category": "fullstack",
+      "priority": 63,
+      "description": "图片/PDF 上传流程测试：验证 OCR 和 PDF 解析链路",
+      "steps": [
+        "准备测试图片（含文字的教材截图）",
+        "测试图片上传→OCR识别→生成PPT完整流程",
+        "准备测试 PDF 文件",
+        "测试 PDF 上传→解析→生成PPT完整流程",
+        "记录测试结果到 record/upload_test.md"
+      ],
+      "status": "pending",
+      "depends_on": ["feat-061"]
+    },
+    {
+      "id": "feat-064",
+      "category": "frontend",
+      "priority": 64,
+      "description": "文本草稿自动保存：使用 localStorage 保存用户输入",
+      "steps": [
+        "在 upload/page.tsx 添加 useEffect 监听 textContent 变化",
+        "自动保存到 localStorage（防抖 500ms）",
+        "组件挂载时恢复草稿内容",
+        "生成成功后清除草稿",
+        "验证：输入文本→刷新→文本恢复；生成成功→刷新→文本清空"
+      ],
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-065",
+      "category": "backend",
+      "priority": 65,
+      "description": "多学科生成验证：确认各学科专属页面和提示词正确触发",
+      "steps": [
+        "测试语文学科生成：验证拼音标注、古诗鉴赏页面",
+        "测试数学学科生成：验证公式推导、例题讲解页面",
+        "测试英语学科生成：验证单词卡片、语法结构页面",
+        "测试理科（物理/化学/生物）：验证实验探究页面",
+        "记录各学科生成结果到 record/multi_subject_test.md"
+      ],
+      "status": "pending",
+      "depends_on": ["feat-061"]
+    },
+    {
+      "id": "feat-066",
+      "category": "frontend",
+      "priority": 66,
+      "description": "放大预览模态框完善：实现 PPT 页面放大查看功能",
+      "steps": [
+        "当前 showPreviewModal 状态已定义但未实现 UI",
+        "创建模态框组件，展示当前预览页面的放大版本",
+        "支持键盘左右箭头翻页",
+        "支持 ESC 关闭模态框",
+        "验证：点击放大查看按钮→模态框弹出→可翻页→可关闭"
+      ],
+      "status": "pending",
+      "depends_on": []
     }
   ]
 }
