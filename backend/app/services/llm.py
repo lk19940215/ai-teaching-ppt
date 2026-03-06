@@ -103,40 +103,74 @@ class LLMService:
     def _extract_json_from_response(self, response: str) -> str:
         """
         从 LLM 响应中提取 JSON 内容
-        处理 ```json ... ``` 或 ``` ... ``` 代码块包裹的情况
+        处理多种格式变体：代码块、文字说明前后缀、混合内容等
         """
-        # 尝试提取 ```json 或 ``` 代码块
         import re
 
-        # 匹配 ```json ... ```
+        # 1. 优先匹配 ```json ... ```
         json_match = re.search(r'```json\s*([\s\S]*?)\s*```', response)
         if json_match:
             return json_match.group(1)
 
-        # 匹配 ``` ... ```
+        # 2. 匹配 ``` ... ```（无语言标记）
         code_match = re.search(r'```\s*([\s\S]*?)\s*```', response)
         if code_match:
             return code_match.group(1)
 
-        # 没有代码块，返回原始内容
+        # 3. 匹配 JSON 对象：从第一个 { 到最后一个 }
+        # 处理大括号嵌套，找到最外层的 JSON 对象
+        brace_count = 0
+        start_idx = None
+        end_idx = None
+
+        for i, char in enumerate(response):
+            if char == '{':
+                if start_idx is None:
+                    start_idx = i
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+                if brace_count == 0 and start_idx is not None:
+                    end_idx = i + 1
+                    break
+
+        if start_idx is not None and end_idx is not None:
+            json_candidate = response[start_idx:end_idx]
+            # 验证是否包含基本的 JSON 特征
+            if re.search(r'".*?"\s*:', json_candidate):  # 至少有一个键值对
+                return json_candidate
+
+        # 4. 移除常见的前缀说明文字
+        # 匹配： "以下是...："、"JSON 如下："、"返回结果：" 等
+        prefix_patterns = [
+            r'^[\s\S]*?(?=\{)',  # 移除 { 之前的所有内容
+        ]
+        for pattern in prefix_patterns:
+            match = re.match(pattern, response, re.MULTILINE)
+            if match:
+                remaining = response[match.end():]
+                # 检查剩余部分是否以 { 开头
+                if remaining.strip().startswith('{'):
+                    return remaining.strip()
+
+        # 5. 没有匹配到，返回原始内容（去除首尾空白）
         return response.strip()
 
     def _fix_json(self, json_str: str) -> str:
         """
         修复常见的 JSON 格式问题
-        处理：尾部逗号、缺失引号、单引号等问题
+        处理：尾部逗号、缺失引号、单引号、未转义引号、特殊字符等
         """
         import re
 
         # 去除首尾空白
         json_str = json_str.strip()
 
-        # 替换单引号为双引号（键名和值都处理）
+        # 1. 替换单引号为双引号（键名和值都处理）
         # 先处理键名的单引号：'key':
         json_str = re.sub(r"'([^']*)'(?=\s*:)", r'"\1"', json_str)
 
         # 处理值的单引号：将字符串值两边的单引号换成双引号
-        # 匹配：': 'value' 或 ': 'value', 或 ': 'value'}
         def replace_value_quotes(match):
             prefix = match.group(1)  # ': ' 部分
             value = match.group(2)   # 值内容
@@ -146,15 +180,43 @@ class LLMService:
         # 匹配单引号包裹的字符串值
         json_str = re.sub(r"(:\s*)'([^']*)'(\s*[,}\]])", replace_value_quotes, json_str)
 
-        # 移除尾部的逗号（} 或] 之前的逗号）
+        # 2. 移除尾部的逗号（} 或] 之前的逗号）
         json_str = re.sub(r',\s*([}\]])', r'\1', json_str)
 
         # 移除属性值末尾的逗号（在}或]之前）
         json_str = re.sub(r'(["\d\w}\]])\s*,\s*([}\]])', r'\1\2', json_str)
 
-        # 处理可能存在的未转义引号（简单的 key: value 形式）
-        # 匹配 key 没有引号的情况：{key: 或 , key:
+        # 3. 处理 key 没有引号的情况：{key: 或 , key:
         json_str = re.sub(r'([{,]\s*)(\w+)(\s*:)', r'\1"\2"\3', json_str)
+
+        # 4. 处理字符串值中未转义的双引号
+        # 匹配 "hello "world" test" → "hello \"world\" test"
+        def escape_inner_quotes(match):
+            content = match.group(1)
+            # 转义内部的双引号
+            escaped = content.replace('\\"', '"').replace('"', '\\"')
+            return f'"{escaped}"'
+
+        # 先识别已经是字符串的内容（在双引号之间的内容），避免重复处理
+        # 这个步骤比较复杂，只在简单情况下处理
+        # 更复杂的情况交给 json5 处理
+
+        # 5. 处理中文字符后的冒号可能是全角冒号
+        json_str = json_str.replace('：', ':')
+
+        # 6. 替换全角逗号为半角逗号
+        json_str = json_str.replace('，', ',')
+
+        # 7. 处理可能存在的换行符在字符串值中（需要转义）
+        # 这个比较复杂，只在确定安全的情况下处理
+
+        # 8. 移除控制字符（但保留正常的换行和制表符）
+        json_str = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F]', '', json_str)
+
+        # 9. 确保布尔值和 null 是小写的
+        json_str = re.sub(r'\bTrue\b', 'true', json_str)
+        json_str = re.sub(r'\bFalse\b', 'false', json_str)
+        json_str = re.sub(r'\bNone\b', 'null', json_str)
 
         return json_str
 
@@ -207,42 +269,64 @@ class LLMService:
         # 第 1 步：提取 JSON 代码块
         json_str = self._extract_json_from_response(response)
 
-        # 第 2 步：尝试直接解析
+        # 第 2 步：尝试直接用标准 json 解析
         try:
             result = json.loads(json_str)
-            logger.info("JSON 解析成功")
+            logger.info("JSON 解析成功（标准解析器）")
             return result
         except json.JSONDecodeError as parse_error:
             logger.warning(f"JSON 直接解析失败：{parse_error}")
 
-            # 第 3 步：尝试修复后解析
-            fixed_json = self._fix_json(json_str)
-            logger.debug(f"修复后的 JSON: {fixed_json[:200]}...")
+        # 第 3 步：尝试修复后解析
+        fixed_json = self._fix_json(json_str)
+        logger.debug(f"修复后的 JSON: {fixed_json[:200]}...")
 
-            try:
-                result = json.loads(fixed_json)
-                logger.info("JSON 修复后解析成功")
-                return result
-            except json.JSONDecodeError as fix_error:
-                # 详细记录错误信息，帮助用户定位问题
-                logger.error(f"JSON 解析最终失败，原始响应：{response[:500]}...")
-                error_details = [
-                    f"LLM 返回的内容无法解析为有效的 JSON",
-                    f"原始响应片段：{response[:300]}...",
-                    f"直接解析错误：{type(parse_error).__name__}: {parse_error}",
-                    f"修复后解析错误：{type(fix_error).__name__}: {fix_error}",
-                    "",
-                    "可能的原因：",
-                    "1. LLM 生成的 JSON 格式不完整或有语法错误",
-                    "2. 教学内容描述不够清晰，导致 LLM 理解偏差",
-                    "3. 输出包含了非 JSON 的额外内容",
-                    "",
-                    "建议：",
-                    "- 检查教学内容是否清晰、具体",
-                    "- 尝试简化输入内容后重新生成",
-                    "- 如问题持续，请联系管理员"
-                ]
-                raise ValueError("\n".join(error_details)) from fix_error
+        try:
+            result = json.loads(fixed_json)
+            logger.info("JSON 修复后解析成功（标准解析器）")
+            return result
+        except json.JSONDecodeError as fix_error:
+            logger.warning(f"JSON 修复后仍失败：{fix_error}")
+
+        # 第 4 步：尝试使用 json5 解析（更宽松的语法）
+        try:
+            import json5
+            result = json5.loads(json_str)
+            logger.info("JSON 解析成功（json5 解析器）")
+            return result
+        except ImportError:
+            logger.warning("json5 未安装，跳过")
+        except Exception as json5_error:
+            logger.warning(f"json5 解析失败：{json5_error}")
+
+        # 第 5 步：尝试使用 json5 解析修复后的 JSON
+        try:
+            import json5
+            result = json5.loads(fixed_json)
+            logger.info("JSON 修复后解析成功（json5 解析器）")
+            return result
+        except (ImportError, Exception) as final_error:
+            logger.warning(f"json5 解析修复后的 JSON 也失败：{final_error}")
+
+        # 所有方法都失败，抛出详细错误信息
+        logger.error(f"JSON 解析最终失败，原始响应：{response[:500]}...")
+        error_details = [
+            f"LLM 返回的内容无法解析为有效的 JSON",
+            f"原始响应片段：{response[:300]}...",
+            f"直接解析错误：{type(parse_error).__name__}: {parse_error}",
+            f"修复后解析错误：{type(fix_error).__name__}: {fix_error}",
+            "",
+            "可能的原因：",
+            "1. LLM 生成的 JSON 格式不完整或有语法错误",
+            "2. 教学内容描述不够清晰，导致 LLM 理解偏差",
+            "3. 输出包含了非 JSON 的额外内容",
+            "",
+            "建议：",
+            "- 检查教学内容是否清晰、具体",
+            "- 尝试简化输入内容后重新生成",
+            "- 如问题持续，请联系管理员"
+        ]
+        raise ValueError("\n".join(error_details)) from fix_error
 
 
 # 全局 LLM 服务实例
