@@ -1,0 +1,11 @@
+{
+  "sessions": [
+    {
+      "type": "rollback",
+      "timestamp": "2026-03-06T10:15:41.557Z",
+      "reason": "校验失败",
+      "rollbackTo": "42833e1744d775c370588c0f5fc4482789bebedd",
+      "success": true
+    }
+  ]
+}

@@ -162,21 +162,19 @@ class LLMService:
         self,
         prompt: str,
         output_schema: Dict[str, Any],
-        max_retries: int = 1,
         **kwargs
     ) -> Dict[str, Any]:
         """
-        生成结构化内容
+        生成结构化内容（单次执行，不自动重试）
         Args:
             prompt: 提示词
             output_schema: 输出结构定义
-            max_retries: 最大重试次数（默认 1 次，不自动重试）
             **kwargs: 额外参数
         Returns:
             结构化的输出结果
 
         Raises:
-            ValueError: 当无法解析 JSON 时抛出
+            ValueError: 当无法解析 JSON 时抛出，包含详细错误信息
         """
         schema_description = json.dumps(output_schema, ensure_ascii=False, indent=2)
 
@@ -203,66 +201,48 @@ class LLMService:
         if self.provider == LLMProvider.OPENAI:
             kwargs["response_format"] = {"type": "json_object"}
 
-        last_error = None
-        last_response = None
+        # 单次执行，不重试
+        response = self.chat(messages, **kwargs)
 
-        for attempt in range(max_retries):
+        # 第 1 步：提取 JSON 代码块
+        json_str = self._extract_json_from_response(response)
+
+        # 第 2 步：尝试直接解析
+        try:
+            result = json.loads(json_str)
+            logger.info("JSON 解析成功")
+            return result
+        except json.JSONDecodeError as parse_error:
+            logger.warning(f"JSON 直接解析失败：{parse_error}")
+
+            # 第 3 步：尝试修复后解析
+            fixed_json = self._fix_json(json_str)
+            logger.debug(f"修复后的 JSON: {fixed_json[:200]}...")
+
             try:
-                response = self.chat(messages, **kwargs)
-                last_response = response
-
-                # 第 1 步：提取 JSON 代码块
-                json_str = self._extract_json_from_response(response)
-
-                # 第 2 步：尝试直接解析
-                try:
-                    result = json.loads(json_str)
-                    logger.info(f"JSON 解析成功 (尝试 {attempt + 1}/{max_retries})")
-                    return result
-                except json.JSONDecodeError as parse_error:
-                    logger.warning(f"JSON 直接解析失败 (尝试 {attempt + 1}/{max_retries}): {parse_error}")
-
-                    # 第 3 步：尝试修复后解析
-                    fixed_json = self._fix_json(json_str)
-                    logger.debug(f"修复后的 JSON: {fixed_json[:200]}...")
-
-                    try:
-                        result = json.loads(fixed_json)
-                        logger.info(f"JSON 修复后解析成功 (尝试 {attempt + 1}/{max_retries})")
-                        return result
-                    except json.JSONDecodeError as fix_error:
-                        logger.warning(f"JSON 修复后仍解析失败 (尝试 {attempt + 1}/{max_retries}): {fix_error}")
-                        last_error = fix_error
-
-                        # 如果是最后一次尝试，不再重试
-                        if attempt >= max_retries - 1:
-                            break
-
-                        # 添加重试提示，要求 LLM 重新生成
-                        messages = messages + [
-                            {
-                                "role": "assistant",
-                                "content": f"JSON 格式有误，无法解析。错误信息：{fix_error}"
-                            },
-                            {
-                                "role": "user",
-                                "content": "请重新生成格式正确的 JSON，不要包含代码块标记或其他文字，确保：\n1. 所有键名用双引号包裹\n2. 没有尾部逗号\n3. 括号完全匹配\n4. 字符串值中的引号已正确转义"
-                            }
-                        ]
-
-            except Exception as e:
-                logger.error(f"LLM 调用失败 (尝试 {attempt + 1}/{max_retries}): {e}")
-                last_error = e
-                if attempt >= max_retries - 1:
-                    break
-
-        # 所有重试都失败，抛出异常
-        logger.error(f"JSON 解析最终失败，原始响应：{last_response}")
-        error_msg = f"LLM 返回的内容无法解析为 JSON"
-        if last_error:
-            error_msg += f" - {type(last_error).__name__}: {str(last_error)}"
-        error_msg += "。请检查教学内容是否清晰，或尝试重新生成。"
-        raise ValueError(error_msg) from last_error
+                result = json.loads(fixed_json)
+                logger.info("JSON 修复后解析成功")
+                return result
+            except json.JSONDecodeError as fix_error:
+                # 详细记录错误信息，帮助用户定位问题
+                logger.error(f"JSON 解析最终失败，原始响应：{response[:500]}...")
+                error_details = [
+                    f"LLM 返回的内容无法解析为有效的 JSON",
+                    f"原始响应片段：{response[:300]}...",
+                    f"直接解析错误：{type(parse_error).__name__}: {parse_error}",
+                    f"修复后解析错误：{type(fix_error).__name__}: {fix_error}",
+                    "",
+                    "可能的原因：",
+                    "1. LLM 生成的 JSON 格式不完整或有语法错误",
+                    "2. 教学内容描述不够清晰，导致 LLM 理解偏差",
+                    "3. 输出包含了非 JSON 的额外内容",
+                    "",
+                    "建议：",
+                    "- 检查教学内容是否清晰、具体",
+                    "- 尝试简化输入内容后重新生成",
+                    "- 如问题持续，请联系管理员"
+                ]
+                raise ValueError("\n".join(error_details)) from fix_error
 
 
 # 全局 LLM 服务实例
