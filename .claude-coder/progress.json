@@ -15,6 +15,15 @@
       "taskId": "feat-055",
       "statusAfter": "done",
       "notes": "完成 feat-055 JSON 解析增强：\n1. _extract_json_from_response 增强：支持嵌套 JSON 提取（从第一个{到最后一个}）、移除前缀说明文字\n2. _fix_json 增强：处理全角冒号/逗号、Python True/False/None、控制字符过滤\n3. 集成 json5 作为第 4 步备选解析器，支持注释等宽松 JSON 语法\n4. 添加 json5>=0.9.0 依赖\n5. 8 项单元测试全部通过（标准 JSON、代码块、前缀说明、嵌套 JSON、单引号、尾部逗号、无引号 key、json5 注释）\n6. 后端服务运行正常（curl health check 通过）\n\n下一个 session 可继续 feat-056 核心生成流程回归测试"
+    },
+    {
+      "session": 2,
+      "timestamp": "2026-03-06T13:00:34.894Z",
+      "result": "success",
+      "cost": 5.4448912499999995,
+      "taskId": "unknown",
+      "statusAfter": "failed",
+      "notes": "feat-056 核心生成流程回归测试执行完成：\n\n✅ 测试通过部分：\n1. 前端页面加载、表单填写、参数选择正常\n2. 生成按钮点击响应正常\n3. SSE 连接建立成功，进度推送启动（20%）\n4. 错误提示展示正常（API Key 缺失等）\n\n❌ 测试失败原因：\n1. 后端 SSE 端点问题：连接建立后停留在 20%\"正在连接生成服务...\"，后端未推送进一步事件\n2. LLM JSON 生成质量问题：第一次测试（15 页）LLM 返回的 JSON 超过 10000 字符且有未终止字符串，超出当前_json 修复能力\n\n📝 详细记录：record/regression_test.md\n\n🔧 待修复问题：\n1. 排查后端 SSE 端点为何不推送事件（可能是 api_key 参数传递问题或 LLM 服务初始化问题）\n2. 增强 _fix_json 方法处理字符串值中换行符的能力\n\n⏭️ 下个 session 建议：\n1. 先修复后端 SSE 端点问题\n2. 使用更短的测试内容（8 页）验证完整流程\n3. 继续执行 feat-057 错误场景测试"
     }
   ]
 }

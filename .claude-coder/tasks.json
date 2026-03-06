@@ -1,1057 +1,135 @@
 {
   "project": "ai-teaching-ppt",
   "created_at": "2026-03-02",
+  "consolidated_at": "2026-03-06",
+  "consolidation_note": "将55个已完成任务整合为6个历史里程碑，保留4个进行中任务。原始任务详情见 git history。",
   "features": [
     {
       "id": "feat-001",
       "category": "infra",
       "priority": 1,
-      "description": "后端项目初始化：创建 FastAPI 脚手架，配置基本路由和设置",
+      "description": "[历史] 里程碑1-基础设施与核心生成：项目初始化、文件上传、AI内容生成、PPT生成",
       "steps": [
-        "创建 backend/ 目录结构",
-        "编写 FastAPI 应用入口 main.py",
-        "配置 CORS 中间件和静态文件服务",
-        "创建基础 API 路由（健康检查）",
-        "编写 requirements.txt 包含核心依赖",
-        "验证后端服务可启动"
+        "feat-001: 后端FastAPI脚手架创建",
+        "feat-002: 前端Next.js+TypeScript+Tailwind初始化",
+        "feat-003: 文件上传API（图片OCR、PDF解析）",
+        "feat-004: 教学配置面板（年级/学科/风格选择）",
+        "feat-005: LLM内容生成（提示词工程、结构化输出）",
+        "feat-006: python-pptx生成标准.pptx文件"
       ],
       "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-002",
-      "category": "infra",
-      "priority": 2,
-      "description": "前端项目初始化：创建 Next.js 14 + TypeScript + Tailwind CSS 项目",
-      "steps": [
-        "创建 frontend/ 目录结构",
-        "初始化 Next.js 14 项目（TypeScript + Tailwind CSS）",
-        "集成 shadcn/ui 组件库",
-        "配置基础布局和页面路由",
-        "设置 API 代理到后端",
-        "验证前端开发服务器可启动"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-003",
-      "category": "backend",
-      "priority": 3,
-      "description": "教材内容输入：实现文件上传、OCR 识别和 PDF 解析服务",
-      "steps": [
-        "创建文件上传 API 端点（支持图片/PDF）",
-        "集成 PaddleOCR 进行图片文字识别",
-        "集成 PyMuPDF 进行 PDF 文本提取",
-        "实现文本内容清洗和合并逻辑",
-        "添加文件大小限制和类型验证",
-        "测试三种输入方式（图片/PDF/文字）"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-001"
-      ]
-    },
-    {
-      "id": "feat-004",
-      "category": "frontend",
-      "priority": 4,
-      "description": "教学配置面板：实现年级、学科、风格等参数选择界面",
-      "steps": [
-        "创建上传页面布局（拖拽上传区）",
-        "实现年级选择组件（小学1-6、初中7-9）",
-        "实现学科选择组件（多学科选项）",
-        "实现 PPT 风格和页数选择组件",
-        "集成表单验证和状态管理",
-        "与后端 API 连接传递配置参数"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-002"
-      ]
-    },
-    {
-      "id": "feat-005",
-      "category": "backend",
-      "priority": 5,
-      "description": "AI 内容生成：调用 LLM 分析教材内容并生成结构化 PPT 内容",
-      "steps": [
-        "设计 LLM 统一调用接口（支持多服务商）",
-        "实现提示词工程：提炼知识点、重难点、互动环节",
-        "根据年级调整内容深度和表达方式",
-        "生成课堂练习题、记忆口诀、助记方法",
-        "实现内容结构化输出（JSON 格式）",
-        "添加 LLM 调用超时和错误处理"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-001",
-        "feat-003"
-      ]
-    },
-    {
-      "id": "feat-006",
-      "category": "backend",
-      "priority": 6,
-      "description": "PPT 文件生成：使用 python-pptx 生成标准 .pptx 文件",
-      "steps": [
-        "设计 PPT 模板系统（封面、目录、知识点页等）",
-        "实现 python-pptx 集成和页面布局",
-        "根据年级自适应字号、配色、留白",
-        "实现多种页面类型生成逻辑",
-        "确保生成的 .pptx 兼容 WPS Office",
-        "添加模板管理和样式配置"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-001",
-        "feat-005"
-      ]
+      "depends_on": [],
+      "consolidated_from": ["feat-001", "feat-002", "feat-003", "feat-004", "feat-005", "feat-006"],
+      "completed_at": "2026-03-03"
     },
     {
       "id": "feat-007",
       "category": "fullstack",
       "priority": 7,
-      "description": "PPT 预览与下载：实现生成结果预览和文件下载功能",
+      "description": "[历史] 里程碑2-预览下载与历史记录：PPT预览、文件下载、生成历史、LLM配置、Docker部署",
       "steps": [
-        "后端：生成 PPT 文件并返回可下载链接",
-        "后端：生成每页缩略图预览",
-        "前端：展示 PPT 页面缩略图轮播",
-        "前端：实现一键下载 .pptx 文件",
-        "前端：支持重新生成按钮和参数调整",
-        "添加加载状态和进度提示"
+        "feat-007: PPT缩略图预览与下载",
+        "feat-008: 英语学科专属页面生成",
+        "feat-009: 年级自适应PPT风格",
+        "feat-010: 生成历史记录CRUD",
+        "feat-011: LLM服务商切换（多AI配置）",
+        "feat-012: Docker部署支持"
       ],
       "status": "done",
-      "depends_on": [
-        "feat-002",
-        "feat-004",
-        "feat-006"
-      ]
-    },
-    {
-      "id": "feat-008",
-      "category": "backend",
-      "priority": 8,
-      "description": "英语学科增强：实现英语教学专属页面生成",
-      "steps": [
-        "设计单词卡片页模板（单词+音标+释义+例句）",
-        "设计语法结构图解页模板",
-        "设计情景对话页模板",
-        "设计课文要点分析页模板",
-        "实现英语专属页面生成逻辑",
-        "集成到主生成流程中（根据学科条件触发）"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-005",
-        "feat-006"
-      ]
-    },
-    {
-      "id": "feat-009",
-      "category": "backend",
-      "priority": 9,
-      "description": "年级自适应 PPT 风格：实现不同年级的样式适配",
-      "steps": [
-        "定义小学1-3年级样式（特大字号、鲜艳配色、趣味化）",
-        "定义小学4-6年级样式（较大字号、明快配色、互动游戏）",
-        "定义初中7-9年级样式（标准字号、稳重配色、体系化）",
-        "实现年级参数到样式的映射逻辑",
-        "集成拼音标注逻辑（语文科目）",
-        "验证各年级生成效果符合设计要求"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-006"
-      ]
-    },
-    {
-      "id": "feat-010",
-      "category": "fullstack",
-      "priority": 10,
-      "description": "生成历史记录：保存和展示用户生成历史",
-      "steps": [
-        "设计数据库模型（生成记录表）",
-        "后端：实现历史记录 CRUD API",
-        "前端：创建历史记录页面",
-        "前端：展示生成时间、主题、年级学科等信息",
-        "实现重新下载和基于历史重新生成功能",
-        "添加历史记录分页和搜索"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-001",
-        "feat-002",
-        "feat-007"
-      ]
-    },
-    {
-      "id": "feat-011",
-      "category": "fullstack",
-      "priority": 11,
-      "description": "LLM 服务商切换：支持多 AI 服务商配置",
-      "steps": [
-        "设计服务商配置存储（SQLite）",
-        "后端：实现 API Key 管理和验证",
-        "后端：实现服务商切换路由",
-        "前端：创建设置页面（服务商选择、API Key 输入）",
-        "前端：实现配置表单和保存",
-        "集成到 LLM 调用接口，支持 DeepSeek/OpenAI/Claude/GLM"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-001",
-        "feat-002",
-        "feat-005"
-      ]
-    },
-    {
-      "id": "feat-012",
-      "category": "infra",
-      "priority": 12,
-      "description": "Docker 部署支持：提供前后端 Dockerfile 和 docker-compose.yml",
-      "steps": [
-        "编写后端 Dockerfile（Python 3.11+）",
-        "编写前端 Dockerfile（Node.js + Next.js）",
-        "编写 docker-compose.yml 整合前后端",
-        "配置环境变量和文件卷映射",
-        "测试 Docker 构建和运行",
-        "更新 README 中的部署说明"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-001",
-        "feat-002"
-      ]
+      "depends_on": ["feat-001"],
+      "consolidated_from": ["feat-007", "feat-008", "feat-009", "feat-010", "feat-011", "feat-012"],
+      "completed_at": "2026-03-03"
     },
     {
       "id": "feat-013",
-      "category": "infra",
+      "category": "fullstack",
       "priority": 13,
-      "description": "数据库设置：SQLite 数据库初始化和迁移",
+      "description": "[历史] 里程碑3-测试与优化：数据库设置、E2E测试、质量优化、动画注入、DarkMode修复",
       "steps": [
-        "设计数据库表结构（用户配置、生成历史等）",
-        "创建 SQLite 数据库连接配置",
-        "实现数据库迁移脚本",
-        "创建模型类和 CRUD 操作",
-        "集成到后端服务中",
-        "测试数据库操作功能"
+        "feat-013: SQLite数据库初始化",
+        "feat-014: Playwright MCP端到端测试",
+        "feat-015: LLM提示词与PPT模板质量优化",
+        "feat-016: OOXML动画效果注入",
+        "feat-017: 互动问答和点击显示答案",
+        "feat-018: 页面走查与DarkMode修复"
       ],
       "status": "done",
-      "depends_on": [
-        "feat-001"
-      ],
-      "notes": "数据库设置已通过 feat-010（历史记录数据库）和 feat-011（LLM 配置数据库）完成"
-    },
-    {
-      "id": "feat-014",
-      "category": "fullstack",
-      "priority": 14,
-      "description": "Playwright MCP 端到端测试：完整走查页面流程，确保无 BUG",
-      "steps": [
-        "启动前端开发服务器",
-        "使用 Playwright 访问首页，验证页面加载",
-        "测试文件上传功能（拖拽/点击上传）",
-        "测试年级、学科、风格等配置选项选择",
-        "测试 PPT 生成流程（提交配置 -> 等待生成 -> 预览展示）",
-        "测试 PPT 缩略图预览轮播功能",
-        "测试 PPT 文件下载功能",
-        "测试历史记录页面浏览和重新生成",
-        "测试 LLM 服务商设置页面",
-        "记录发现的 UI/UX 问题（如 dark 背景黑色文字等）",
-        "生成测试报告和修复建议"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-002",
-        "feat-007",
-        "feat-010",
-        "feat-011"
-      ]
-    },
-    {
-      "id": "feat-015",
-      "category": "backend",
-      "priority": 15,
-      "description": "PPT 生成质量优化：优化 LLM 提示词工程和 PPT 模板设计，提升生成效果",
-      "steps": [
-        "分析现有生成文件（如 fractions_recognition_d2820f4e.pptx）的质量问题",
-        "优化 LLM 提示词：增强知识点结构化、教学逻辑、互动设计",
-        "优化 PPT 模板：改进字号、配色、留白、视觉层次",
-        "增加页面类型多样性（图示、表格、流程图等）",
-        "调整年级自适应规则的精细度",
-        "准备测试素材（示例文本、PDF 文件）用于验证 upload 页面功能",
-        "生成测试样本并对比优化前后效果"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-005",
-        "feat-006",
-        "feat-009"
-      ],
-      "notes": "Session 2 完成优化：\n1. LLM 提示词优化：增强教学设计原则、学科特色要求、页面结构建议、质量要求\n2. 英语学科提示词优化：增加英语教学原则、PPT 结构建议\n3. PPT 模板优化：新增图示页、表格页、对比分析页三种页面类型\n4. 年级自适应规则优化：增加 teaching_strategy、interaction_style、max_content_lines、use_icons、animation_suggestion 等配置\n5. 更新测试样本文件 record/test_samples.md，添加优化验证检查清单"
-    },
-    {
-      "id": "feat-016",
-      "category": "backend",
-      "priority": 16,
-      "description": "PPT 动画效果注入：通过 OOXML 直接操作实现 PPT 动画",
-      "steps": [
-        "研究 OOXML 动画规范（CT_Animate、CT_Transition 等）",
-        "设计动画配置结构（页面切换动画、元素进入动画）",
-        "实现 python-pptx 生成后处理：解压 pptx 修改 XML 再打包",
-        "实现页面切换动画（淡入、滑动、推进等效果）",
-        "实现元素动画（标题飞入、内容逐项显示）",
-        "测试生成的动画 PPT 在 WPS/Office 的兼容性"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-006",
-        "feat-015"
-      ]
-    },
-    {
-      "id": "feat-017",
-      "category": "backend",
-      "priority": 17,
-      "description": "PPT 课堂互动功能增强：实现互动问答和点击显示答案效果",
-      "steps": [
-        "设计互动问答页模板（带 ABCD 选项按钮布局）",
-        "设计“点击显示答案”效果（使用 OOXML 触发器或超链接）",
-        "设计拖拽匹配游戏页（如单词 - 释义配对）",
-        "设计随堂测验页（选择题、填空题）",
-        "实现互动元素的 OOXML 注入逻辑",
-        "测试互动功能在 WPS/Office 的可用性"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-006",
-        "feat-015",
-        "feat-016"
-      ]
-    },
-    {
-      "id": "feat-018",
-      "category": "fullstack",
-      "priority": 18,
-      "description": "Playwright MCP 页面走查：完整测试页面流程并记录问题",
-      "steps": [
-        "使用 Playwright MCP 访问首页，验证导航和功能模块",
-        "使用 Playwright MCP 访问上传页面，测试表单填写和参数选择",
-        "使用 Playwright MCP 访问设置页面，验证 LLM 配置组件",
-        "使用 Playwright MCP 访问历史记录页面，验证搜索筛选组件",
-        "检查所有页面的样式问题（特别是 dark 背景黑色文字问题）",
-        "记录发现的 UI/UX 问题并生成修复任务"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-002",
-        "feat-007",
-        "feat-010",
-        "feat-011",
-        "feat-014"
-      ],
-      "notes": "页面走查完成，发现一个问题：Dark Mode 支持不完整（组件有 dark:样式但页面强制浅色背景）"
+      "depends_on": ["feat-007"],
+      "consolidated_from": ["feat-013", "feat-014", "feat-015", "feat-016", "feat-017", "feat-018"],
+      "completed_at": "2026-03-04"
     },
     {
       "id": "feat-019",
-      "category": "frontend",
+      "category": "backend",
       "priority": 19,
-      "description": "修复 Dark Mode 样式不一致问题",
+      "description": "[历史] 里程碑4-学科深度优化：LLM配置增强、年级扩展、提示词引擎重构、语数英理科文科专属",
       "steps": [
-        "分析现有 dark mode 样式问题（组件有 dark:样式但布局强制浅色背景）",
-        "方案 A（推荐）：移除所有 dark:样式类，统一浅色主题",
-        "方案 B：完整实现 dark mode，添加主题切换器和完整 dark 样式",
-        "更新 button.tsx、select.tsx 等组件的样式",
-        "更新 layout.tsx 支持主题切换（如选方案 B）",
-        "测试所有页面在浅色/深色模式下的显示效果"
+        "feat-019: DarkMode样式修复",
+        "feat-020: LLM温度/token配置",
+        "feat-021: LLM调用参数格式排查",
+        "feat-022: 前端交互动画优化",
+        "feat-023: LLM JSON解析鲁棒性增强",
+        "feat-024: 图片/PDF上传流程修复",
+        "feat-025: API地址环境变量化",
+        "feat-026: Style参数落地（配色/字体/布局）",
+        "feat-027: K-12年级扩展（高中支持）"
       ],
       "status": "done",
-      "depends_on": [
-        "feat-002",
-        "feat-018"
-      ]
-    },
-    {
-      "id": "feat-020",
-      "category": "fullstack",
-      "priority": 20,
-      "description": "LLM 模型配置增强：支持温度、最大输入输出 token 设置",
-      "steps": [
-        "后端：更新 LLM 配置数据模型，新增 temperature、max_input_tokens、max_output_tokens 字段",
-        "后端：更新 LLM 调用接口，正确传递 temperature、max_tokens 参数",
-        "后端：检查 OpenAI 调用是否设置 response_format 为 JSON",
-        "前端：在设置页面添加温度滑块（0-2，步长 0.1）",
-        "前端：添加最大输入/输出 token 输入框",
-        "验证：curl -s http://localhost:8000/api/llm/config 返回包含新配置字段"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-011"
-      ]
-    },
-    {
-      "id": "feat-021",
-      "category": "backend",
-      "priority": 21,
-      "description": "LLM 调用参数格式排查：确保传递的参数符合各服务商规范",
-      "steps": [
-        "检查 DeepSeek 调用的参数格式（temperature、max_tokens 等）",
-        "检查 OpenAI 调用的参数格式（temperature、max_tokens、response_format）",
-        "检查 Claude 调用的参数格式（temperature、max_tokens）",
-        "检查 GLM 调用的参数格式",
-        "统一参数验证和错误处理逻辑",
-        "验证：grep -q \"max_tokens\" backend/app/services/llm_service.py && echo \"pass\""
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-005",
-        "feat-011"
-      ]
-    },
-    {
-      "id": "feat-022",
-      "category": "frontend",
-      "priority": 22,
-      "description": "AI 备课交互动画优化：增强动画视觉效果",
-      "steps": [
-        "分析现有交互动画问题（不够醒目）",
-        "优化 loading 动画（添加骨架屏、进度动画）",
-        "优化按钮点击反馈（缩放、波纹效果）",
-        "优化页面切换动画（流畅过渡效果）",
-        "添加生成进度的实时动画反馈",
-        "验证：curl -s http://localhost:3000 | grep -q \"animation\" && echo \"pass\""
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-002",
-        "feat-004"
-      ]
-    },
-    {
-      "id": "feat-023",
-      "category": "backend",
-      "priority": 23,
-      "description": "修复 LLM JSON 解析失败问题：增强 JSON 输出解析的鲁棒性，处理 LLM 返回非标准 JSON 的情况",
-      "steps": [
-        "分析 content_generator.py 中 JSON 解析逻辑，定位解析失败原因",
-        "实现 JSON 提取：从 LLM 响应中提取 ```json ... ``` 代码块内容",
-        "添加 JSON 修复：处理缺失引号、尾部逗号等常见格式问题",
-        "增加重试机制：解析失败时自动请求 LLM 重新生成",
-        "添加降级处理：重试失败时返回结构化的错误信息而非空内容",
-        "验证：curl -s http://localhost:8000/docs 检查 API 正常，日志中无 JSON 解析错误"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-005",
-        "feat-021"
-      ]
-    },
-    {
-      "id": "feat-024",
-      "category": "frontend",
-      "priority": 24,
-      "description": "图片/PDF上传流程修复：前端在图片/PDF模式下先调用OCR/PDF解析API，再用提取文本生成PPT",
-      "steps": [
-        "分析 handleGenerate() 当前逻辑：image/pdf 模式下直接发送空 textContent",
-        "图片模式：先调用 /api/v1/upload/image 上传，再调用 /api/v1/process/ocr 提取文字",
-        "PDF 模式：先调用 /api/v1/upload/pdf 上传，再调用 /api/v1/process/pdf 提取文字",
-        "将提取的文字填入 textContent 状态，再调用 generate-full",
-        "添加上传和解析阶段的进度提示（正在上传... 正在识别文字...）",
-        "测试：上传图片/PDF 后能正确提取文字并生成 PPT"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-003",
-        "feat-007"
-      ]
-    },
-    {
-      "id": "feat-025",
-      "category": "frontend",
-      "priority": 25,
-      "description": "前端API地址环境变量化：消除硬编码的 localhost:8000，支持灵活部署",
-      "steps": [
-        "创建 frontend/.env.local 配置 NEXT_PUBLIC_API_URL=http://localhost:8000",
-        "创建 frontend/src/lib/api.ts 统一管理 API 基础地址和请求方法",
-        "替换 upload/page.tsx 中所有 http://localhost:8000 为环境变量引用",
-        "替换 settings/page.tsx 中所有硬编码 API 地址",
-        "替换 history/page.tsx 中所有硬编码 API 地址",
-        "验证：修改 .env.local 中的地址后前端请求指向新地址"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-002"
-      ]
-    },
-    {
-      "id": "feat-026",
-      "category": "backend",
-      "priority": 26,
-      "description": "Style参数落地：将PPT风格选项（活泼/简约/学科主题）映射到实际配色、字体和布局",
-      "steps": [
-        "在 PPTStyle 中定义 3 种风格的独立配色方案（fun=鲜艳暖色、simple=灰蓝冷色、theme=学科色）",
-        "theme 模式按学科自动选色：数学=蓝、英语=绿、语文=红、理科=橙、文科=紫",
-        "每种风格定义字体选择、布局密度、装饰元素密度",
-        "修改 ppt_generator.py 的 generate() 方法，接收 style 参数并应用对应配置",
-        "修改后端 API 确保 style 参数正确传递到生成器",
-        "测试：同一内容用 3 种风格生成，验证视觉差异明显"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-006",
-        "feat-009"
-      ]
-    },
-    {
-      "id": "feat-027",
-      "category": "fullstack",
-      "priority": 27,
-      "description": "K-12年级扩展：增加高中阶段（高一到高三）的支持",
-      "steps": [
-        "前端 GRADE_OPTIONS 增加高一(10)、高二(11)、高三(12) 选项",
-        "后端 GRADE_DESCRIPTIONS 增加高中年级描述（需要专业学术语言、系统化思维、考试导向）",
-        "PPTStyle.GRADE_STYLES 增加高中样式：学术风格、严谨配色、更高信息密度",
-        "PPTStyle.GRADE_GROUPS 增加 high_school 组，配置教学策略和互动风格",
-        "AnimationPreset 增加高中动画预设（克制、专业）",
-        "验证：选择高中年级后生成的 PPT 风格符合学术规范"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-004",
-        "feat-009"
-      ]
+      "depends_on": ["feat-013"],
+      "consolidated_from": ["feat-019", "feat-020", "feat-021", "feat-022", "feat-023", "feat-024", "feat-025", "feat-026", "feat-027"],
+      "completed_at": "2026-03-04"
     },
     {
       "id": "feat-028",
       "category": "backend",
       "priority": 28,
-      "description": "提示词引擎架构重构：创建可插拔的学科提示词策略系统，为后续学科深度优化奠基",
+      "description": "[历史] 里程碑5-教学增强功能：提示词策略系统、学科专属页面、认知负荷优化、注意力节奏、布鲁姆分类",
       "steps": [
-        "创建 backend/app/services/prompts/ 目录结构",
-        "创建 prompts/base.py：定义 SubjectPromptStrategy 基类（build_prompt, build_schema, get_page_types 抽象方法）",
-        "创建 prompts/__init__.py：实现 PromptEngine 工厂，根据 subject 自动选择策略",
-        "创建 prompts/general.py：将现有通用 prompt 迁移为默认策略",
-        "创建 prompts/english.py：将 generate_for_english 迁移为英语策略",
-        "重构 content_generator.py：使用 PromptEngine 替代硬编码的 if-else 分支",
-        "创建 prompts/cognitive.py：定义 CognitiveLoadMixin 占位（Phase 3 填充）",
-        "验证：重构后现有功能不受影响，英语/通用学科生成结果一致"
+        "feat-028: 提示词引擎架构重构（策略模式）",
+        "feat-029: 语文学科深度提示词（古诗/字词/作文）",
+        "feat-030: 数学学科深度提示词（推导/例题/变式）",
+        "feat-031: 理科学科深度提示词（物理/化学/生物）",
+        "feat-032: 文科学科深度提示词（历史/政治/地理）",
+        "feat-033: 英语学科深度增强（词根/搭配/语法树）",
+        "feat-034: 认知负荷优化（Mayer理论）",
+        "feat-035: 注意力节奏引擎",
+        "feat-036: 布鲁姆目标分类法集成",
+        "feat-037: 先行组织者与脚手架策略",
+        "feat-038: 问题链与元认知提示系统",
+        "feat-039: 情境创设自动生成"
       ],
       "status": "done",
-      "depends_on": [
-        "feat-005",
-        "feat-015"
-      ]
-    },
-    {
-      "id": "feat-029",
-      "category": "backend",
-      "priority": 29,
-      "description": "语文学科深度提示词与专属页面：古诗鉴赏、字词教学、阅读理解、作文指导",
-      "steps": [
-        "创建 prompts/chinese.py 实现 ChinesePromptStrategy",
-        "设计语文专属提示词：古诗教学（朗读节奏、意象分析、背景知识）、现代文（段落分析、修辞、主题）",
-        "设计字词教学提示词：字形演变、组词造句、近反义词、书写要点",
-        "设计作文指导提示词：审题立意、结构框架、好词好句",
-        "定义语文专属 schema：生字学习页（字/拼音/组词/造句）、古诗鉴赏页（原文/注释/赏析）",
-        "在 ppt_generator.py 增加语文专属页面渲染方法",
-        "集成 pypinyin 库实现低年级拼音标注功能",
-        "验证：语文内容生成包含学科特色页面"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-027",
-        "feat-028"
-      ]
-    },
-    {
-      "id": "feat-030",
-      "category": "backend",
-      "priority": 30,
-      "description": "数学学科深度提示词与专属页面：概念推导、例题精讲、变式训练、易错警示",
-      "steps": [
-        "创建 prompts/math.py 实现 MathPromptStrategy",
-        "设计数学专属提示词：概念引入（直观→抽象）、公式推导（逐步标注）、例题精讲（审题→分析→解题→反思四步法）",
-        "设计变式训练提示词：同一方法不同情境，由浅入深",
-        "设计易错点警示提示词：常见错误类型 + 正确方法对比",
-        "定义数学专属 schema：公式推导页（steps数组）、例题讲解页（四步法结构）、变式训练页（梯度练习）",
-        "在 ppt_generator.py 增加数学专属页面渲染方法（公式推导逐步展开布局）",
-        "验证：数学内容生成包含推导步骤和变式训练"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-027",
-        "feat-028"
-      ]
-    },
-    {
-      "id": "feat-031",
-      "category": "backend",
-      "priority": 31,
-      "description": "理科学科深度提示词（物理/化学/生物）：实验探究、现象分析、数据归纳",
-      "steps": [
-        "创建 prompts/science.py 实现 PhysicsPromptStrategy、ChemistryPromptStrategy、BiologyPromptStrategy",
-        "物理提示词：实验设计→观察现象→分析数据→归纳规律；力学图示、电路图分解",
-        "化学提示词：实验步骤→反应现象→方程式→微观解释；元素周期律、反应类型",
-        "生物提示词：结构观察→功能分析→过程描述→系统思维；细胞结构、生理过程",
-        "定义共用页面类型 schema：实验步骤页（分步图示）、现象观察页（对比表格）、数据分析页",
-        "在 ppt_generator.py 增加理科实验页面渲染方法",
-        "验证：物理/化学/生物内容生成包含实验探究页面"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-028"
-      ]
-    },
-    {
-      "id": "feat-032",
-      "category": "backend",
-      "priority": 32,
-      "description": "文科学科深度提示词（历史/政治/地理）：时间轴、因果分析、材料解读、区域比较",
-      "steps": [
-        "创建 prompts/humanities.py 实现 HistoryPromptStrategy、PoliticsPromptStrategy、GeographyPromptStrategy",
-        "历史提示词：时间轴展示、因果链分析、史料引用、多视角评价",
-        "政治提示词：概念界定→原理阐述→案例分析→联系实际",
-        "地理提示词：位置定位→自然环境→人文特征→区域比较；地图标注建议",
-        "定义文科页面类型 schema：时间线页（水平/垂直时间轴）、材料分析页（引文+问题）、因果关系页",
-        "在 ppt_generator.py 增加文科专属页面渲染方法（时间线布局、材料引文布局）",
-        "验证：历史/政治/地理内容生成包含学科特色页面"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-028"
-      ]
-    },
-    {
-      "id": "feat-033",
-      "category": "backend",
-      "priority": 33,
-      "description": "英语学科提示词深度增强：词根词缀分解、固定搭配网络、语法树、时态时间轴",
-      "steps": [
-        "增强 prompts/english.py：词根词缀分解策略，要求 LLM 输出 word_parts（前缀/词根/后缀）",
-        "增加固定搭配网络：输出 collocations 字段（如 take: [up, off, on, away]）",
-        "增加语法树形结构：输出 sentence_structure 字段，标注主谓宾定状补",
-        "增加时态对比：输出 tense_comparison 字段，对比不同时态用法",
-        "新增页面类型：词根分析页（颜色高亮分解）、搭配网络页（放射状布局）、语法结构页（层级结构）、时态对比页（时间轴）",
-        "在 ppt_generator.py 增加英语增强页面渲染方法",
-        "验证：英语 PPT 包含词根分解、搭配网络等深度内容"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-028",
-        "feat-008"
-      ]
-    },
-    {
-      "id": "feat-034",
-      "category": "backend",
-      "priority": 34,
-      "description": "认知负荷优化提示词系统：基于 Mayer 多媒体学习理论控制每页信息量和呈现方式",
-      "steps": [
-        "在 prompts/cognitive.py 创建 CognitiveLoadMixin 类",
-        "实现聚焦要义原则：根据年级设定每页最大要点数（低年级2-3、初中3-4、高中5-6）",
-        "实现空间邻近原则：提示词要求图示与文字说明必须在同一页",
-        "实现切块呈现原则：复杂概念自动分 2-3 页逐步展开",
-        "实现冗余控制原则：提示词要求避免文字重复图示已表达的信息",
-        "将 CognitiveLoadMixin 混入所有学科策略，增强提示词约束",
-        "验证：生成的 PPT 每页信息量符合年级认知负荷标准"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-028"
-      ]
-    },
-    {
-      "id": "feat-035",
-      "category": "backend",
-      "priority": 35,
-      "description": "注意力节奏引擎：设计注意捕捉→保持→转移的内容编排，防止学生注意力涣散",
-      "steps": [
-        "创建 backend/app/services/attention_optimizer.py",
-        "定义注意力周期模型：低年级 2-3 页/周期、初中 3-4 页/周期、高中 4-5 页/周期",
-        "实现页面类型节奏规则：禁止连续 3 页以上同类型，确保讲解-互动-练习交替",
-        "实现 Engagement Hooks：在注意力低点插入趣味事实/你知道吗/挑战时刻",
-        "在 content_generator.py 的生成后处理中集成 AttentionRhythmOptimizer",
-        "提示词增加节奏编排指令：要求 LLM 按注意力周期组织页面",
-        "验证：生成的 PPT 页面序列符合注意力节奏规则"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-034"
-      ]
-    },
-    {
-      "id": "feat-036",
-      "category": "backend",
-      "priority": 36,
-      "description": "布鲁姆目标分类法集成：为问题和练习标注认知层级，确保思维训练的递进性",
-      "steps": [
-        "在 prompts/cognitive.py 定义 Bloom 六层级常量和年级适配规则",
-        "低年级侧重记忆/理解/应用，初中覆盖到分析，高中覆盖全部 6 级",
-        "提示词要求 LLM 为每道题标注 bloom_level 字段",
-        "提示词约束：每份 PPT 至少覆盖 3 个不同 Bloom 层级",
-        "在 ppt_generator.py 的互动/练习页角标显示 Bloom 层级标识",
-        "验证：生成的练习题 bloom_level 分布合理且符合年级要求"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-034"
-      ]
-    },
-    {
-      "id": "feat-037",
-      "category": "backend",
-      "priority": 37,
-      "description": "先行组织者与脚手架策略：新概念前自动生成桥接材料，渐进式撤除学习支架",
-      "steps": [
-        "在 prompts/cognitive.py 增加先行组织者生成规则",
-        "提示词要求：每个新概念前用 1 页连接学生已有知识（类比/回顾/生活经验）",
-        "设计脚手架渐撤策略：完整示范 → 部分提示 → 独立完成 的递进结构",
-        "定义概念桥接页 page_type：你已经知道X → 今天学习Y → X和Y的关系是...",
-        "在 ppt_generator.py 增加概念桥接页渲染方法（双色对比布局）",
-        "验证：新概念前出现桥接页，练习难度呈递进趋势"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-034"
-      ]
-    },
-    {
-      "id": "feat-038",
-      "category": "backend",
-      "priority": 38,
-      "description": "问题链与元认知提示系统：生成递进式问题序列，嵌入自我反思触发点",
-      "steps": [
-        "提示词设计问题链模板：是什么 → 为什么 → 怎么用 → 如果...会怎样 → 还有其他方法吗",
-        "提示词要求在关键学习节点嵌入元认知提问：想一想/试着解释/和之前学的有什么关系",
-        "定义元认知提示的 JSON 字段：meta_prompt（类型/内容/位置）",
-        "在 ppt_generator.py 增加思考气泡形状渲染（云朵形状 + 特殊配色）",
-        "元认知提示与正常内容视觉区分：使用不同背景色和图标",
-        "验证：PPT 中在适当位置出现思考气泡和递进式问题链"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-037"
-      ]
-    },
-    {
-      "id": "feat-039",
-      "category": "backend",
-      "priority": 39,
-      "description": "情境创设自动生成：根据知识点自动生成贴近学生生活的情境导入",
-      "steps": [
-        "在各学科 prompt 中增加情境创设指令：要求 LLM 输出 scenario 字段",
-        "学科差异化情境模板：数学=购物/运动/建筑、英语=旅行/校园、物理=游乐场/交通",
-        "年级差异化：低年级用童话/动画人物、初中用校园/社会、高中用科研/职业",
-        "定义情境导入页 schema：scenario_description + guiding_question + visual_suggestion",
-        "在 ppt_generator.py 增加情境导入页渲染：全幅背景色 + 大字引导问题",
-        "验证：每份 PPT 开头包含贴合学科和年级的情境导入"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-030",
-        "feat-033"
-      ]
+      "depends_on": ["feat-019"],
+      "consolidated_from": ["feat-028", "feat-029", "feat-030", "feat-031", "feat-032", "feat-033", "feat-034", "feat-035", "feat-036", "feat-037", "feat-038", "feat-039"],
+      "completed_at": "2026-03-05"
     },
     {
       "id": "feat-040",
       "category": "fullstack",
       "priority": 40,
-      "description": "差异化教学支持：同一知识点生成基础版/提高版/拓展版三套练习内容",
+      "description": "[历史] 里程碑6-高级功能与UX改进：差异化教学、错题分析、SSE流式生成、OOXML交互、E2E测试、UX修复",
       "steps": [
-        "前端配置面板增加教学层次选项：统一/基础/提高/拓展",
-        "后端 API 接收 difficulty_level 参数",
-        "提示词要求 LLM 为每道练习题标注 difficulty: basic/intermediate/advanced",
-        "统一模式：生成包含三个难度的混合练习；分层模式：只生成指定难度",
-        "PPT 中练习题旁标注难度星级（基础1星、提高2星、拓展3星）",
-        "验证：选择不同教学层次后生成的练习难度分布符合预期"
+        "feat-040: 差异化教学支持（基础/提高/拓展）",
+        "feat-041: 智能错题分析页",
+        "feat-042: SSE流式生成反馈",
+        "feat-043: OOXML点击显示答案真实实现",
+        "feat-044: Playwright MCP全面测试",
+        "feat-045: 测试问题修复",
+        "feat-046: Playwright测试基础设施升级",
+        "feat-047: 文字输入E2E测试",
+        "feat-048: 图片上传OCR E2E测试",
+        "feat-049: 错误场景边界条件E2E测试",
+        "feat-050: AI Agent自主探索性测试",
+        "feat-051: UX-01修复（默认年级调整）",
+        "feat-052: UX-05修复（进度反馈改进）",
+        "feat-053: UX-06修复（智能风格推荐）",
+        "feat-054: PPT生成重试问题修复",
+        "feat-055: LLM返回JSON格式问题修复"
       ],
       "status": "done",
-      "depends_on": [
-        "feat-030"
-      ]
-    },
-    {
-      "id": "feat-041",
-      "category": "backend",
-      "priority": 41,
-      "description": "智能错题分析页：生成常见错误 vs 正确方法的对比分析，帮助教师预防学生易错点",
-      "steps": [
-        "提示词要求 LLM 输出 common_mistakes 字段：错误示例、错误原因、正确解法",
-        "数学错题模板：计算错误、概念混淆、步骤遗漏、单位遗忘",
-        "英语错题模板：拼写错误、时态混用、搭配错误、语序颠倒",
-        "理科错题模板：单位换算、公式套用、实验操作、受力分析遗漏",
-        "定义错题分析页 schema：mistake_example + why_wrong + correct_method",
-        "在 ppt_generator.py 增加错题分析页渲染：左右分栏（红色错误 vs 绿色正确）",
-        "验证：生成的 PPT 包含学科特色的错题分析对比页"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-030"
-      ]
-    },
-    {
-      "id": "feat-042",
-      "category": "fullstack",
-      "priority": 42,
-      "description": "SSE流式生成反馈：替换假进度条，实现真实的分阶段进度推送",
-      "steps": [
-        "后端：将 generate-full 端点改为 SSE (Server-Sent Events) 流式响应",
-        "定义阶段事件：analyzing_content → generating_outline → building_slides → adding_animations → complete",
-        "每个阶段推送进度百分比和当前状态描述",
-        "生成完成后推送最终结果（download_url、content）",
-        "前端：使用 EventSource API 接收 SSE 事件",
-        "前端：实时更新进度条和阶段描述，移除 setInterval 假进度",
-        "验证：生成过程中前端实时显示真实进度阶段"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-024"
-      ]
-    },
-    {
-      "id": "feat-043",
-      "category": "backend",
-      "priority": 43,
-      "description": "点击显示答案OOXML真实实现：使用OOXML触发器实现PPT中真正的点击交互效果",
-      "steps": [
-        "研究 OOXML <p:timing> + <p:seq> + <p:cTn> 触发器规范",
-        "完善 pptx_interactive.py 的 _add_trigger_to_timing() 实现",
-        "答案框初始设置透明度 0%，点击显示答案形状后触发 appear 动画",
-        "选择题正确选项点击后变绿、错误选项点击后变红（使用超链接+隐藏幻灯片方案）",
-        "测试兼容性：PowerPoint 2016+ 和 WPS Office 2019+",
-        "将 inject_click_trigger 集成到主生成流程的互动页面中"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-016",
-        "feat-017"
-      ]
-    },
-    {
-      "id": "feat-044",
-      "category": "fullstack",
-      "priority": 44,
-      "description": "Playwright MCP 全面测试：执行端到端测试并记录问题",
-      "steps": [
-        "启动前后端服务，使用 Playwright MCP 访问首页验证页面加载正常",
-        "测试完整 PPT 生成流程：上传文本内容 -> 配置参数 -> 点击生成 -> 等待 SSE 推送 -> 预览缩略图 -> 下载文件",
-        "测试历史记录页面（列表展示、重新下载）和设置页面（LLM 配置保存）",
-        "将发现的 UI/UX 问题、功能缺陷、性能问题记录到 record/playwright_test_v1.md",
-        "验证：grep -q '问题描述' record/playwright_test_v1.md && echo 'pass'"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-043"
-      ]
-    },
-    {
-      "id": "feat-045",
-      "category": "fullstack",
-      "priority": 45,
-      "description": "测试问题修复：修复 Playwright 测试发现的问题",
-      "steps": [
-        "读取 record/playwright_test_v1.md 问题清单，分类问题（UI/UX/功能/性能）",
-        "修复前端问题（样式、交互、状态管理）",
-        "修复后端问题（API、业务逻辑、错误处理）",
-        "使用 Playwright MCP 复测修复后的功能，确认问题已解决",
-        "验证：grep -q '状态: 已修复' record/playwright_test_v1.md && echo 'pass'"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-044"
-      ],
-      "notes": "Session 2 完成：使用 Playwright MCP 进行端到端测试验证。测试结果：1. 首页/上传页/设置页/历史页均正常加载；2. 导航正常，所有 UI 组件可交互；3. 控制台无错误（仅 React DevTools 提示）；4. favicon.svg 已正确配置，无 404 错误。结论：playwright_test_v1.md 中记录的问题已修复，无需额外修复工作。"
-    },
-    {
-      "id": "feat-046",
-      "category": "infra",
-      "priority": 46,
-      "description": "Playwright 测试基础设施升级：修复凭证链路，创建测试规范文档，确保 AI Agent 和脚本测试都能携带 API Key",
-      "steps": [
-        "阅读 .claude-coder/testing-rules.md 和 .claude-coder/test-seed.md 了解测试规范",
-        "修改 frontend/playwright.config.ts：在 use 中增加 storageState 指向 ../.claude-coder/playwright-auth.json",
-        "创建 frontend/tests/fixtures.ts：封装带认证上下文的 test fixture，供所有测试文件使用",
-        "更新 frontend/tests/example.test.ts：使用 fixtures 中的认证上下文，而非裸 test",
-        "验证：运行 pnpm exec playwright test --project=chromium 确认至少 80% 测试通过",
-        "使用 Playwright MCP browser_navigate 访问 /upload，browser_snapshot 确认 localStorage 中有 llm_config"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-045"
-      ],
-      "notes": "Session 1 完成：Playwright 测试基础设施升级完成。test.env 已创建包含 LLM 配置凭证。"
-    },
-    {
-      "id": "feat-047",
-      "category": "fullstack",
-      "priority": 47,
-      "description": "文字输入完整生成流程端到端测试：使用 Playwright MCP 真实操作生成数学 PPT 并验证全链路",
-      "steps": [
-        "阅读 .claude-coder/test-seed.md 场景 A 的完整步骤",
-        "前置检查：curl http://localhost:8000/health 确认后端正常，curl http://localhost:3000 确认前端正常",
-        "使用 Playwright MCP browser_navigate 访问 http://localhost:3000/upload",
-        "使用 browser_snapshot 确认页面加载完成，找到文本输入框",
-        "使用 browser_fill 在文本框输入数学测试内容（见 testing-rules.md 中的数学测试文本，至少100字）",
-        "使用 browser_select 选择年级=小学五年级、学科=数学、风格=活泼趣味",
-        "使用 browser_snapshot 确认参数已选择，生成按钮非 disabled 状态",
-        "使用 browser_click 点击'生成教学 PPT'按钮",
-        "每 10 秒执行 browser_snapshot 观察进度变化，最多等待 180 秒，同时 browser_console_messages 检查错误",
-        "验证成功：页面出现 PPT 预览区域，包含可翻页缩略图和'下载 PPT'按钮",
-        "使用 browser_click 点击'下载 PPT'按钮，验证下载 URL 有效（curl -sI 返回 200）",
-        "如果任何步骤失败：截图 + 控制台消息 + 错误文案，记录到 record/e2e_test_results.md，分析根因并修复",
-        "验证：record/e2e_test_results.md 中场景A结果为'通过'"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-046"
-      ],
-      "notes": "Session 2 完成：E2E 测试通过。前端表单填写、参数选择、生成按钮正常；SSE 连接建立并推送进度；后端 LLM 调用成功生成 PPT 文件（uploads/generated/三角形的面积公式_a951e88f.pptx）。发现问题：1) Playwright MCP storageState 注入失效（手动注入解决）；2) 后端服务中途崩溃（已重启）；3) SSE 进度在 20% 卡住较长时间（LLM 调用耗时）。"
-    },
-    {
-      "id": "feat-048",
-      "category": "fullstack",
-      "priority": 48,
-      "description": "图片上传 OCR 流程端到端测试：使用 Playwright MCP 上传图片并验证 OCR → 生成完整链路",
-      "steps": [
-        "阅读 .claude-coder/test-seed.md 了解测试规范",
-        "准备测试图片：创建 record/test_image.png（截取一段包含文字的教材图片，或用 Python 生成含文字的测试图片）",
-        "使用 Playwright MCP browser_navigate 访问 http://localhost:3000/upload",
-        "使用 browser_click 切换到'图片上传'模式",
-        "使用 browser_upload_file 上传 record/test_image.png",
-        "使用 browser_snapshot 确认页面显示已选择的图片文件名",
-        "使用 browser_select 选择年级和学科参数",
-        "使用 browser_click 点击'生成教学 PPT'按钮",
-        "每 10 秒执行 browser_snapshot，观察 OCR 提取 → SSE 生成 → 预览展示 完整链路",
-        "验证成功：页面出现 PPT 预览区域",
-        "如果 OCR 失败：记录错误信息，检查后端 PaddleOCR 是否正常安装",
-        "将测试结果记录到 record/e2e_test_results.md"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-046"
-      ],
-      "notes": "Session 3 完成：1) 图片上传 API 测试通过；2) OCR API 失败（环境问题：No module named 'paddle'，需安装 PaddlePaddle/PaddleOCR）；3) 文字输入完整流程测试通过（生成 16 页 PPT）；4) PPT 预览和下载功能正常。详见 record/e2e_test_results.md 和 record/ocr_env_issue.md"
-    },
-    {
-      "id": "feat-049",
-      "category": "fullstack",
-      "priority": 49,
-      "description": "错误场景与边界条件端到端测试：验证空内容、无 API Key、无效 Key 等异常情况的错误处理",
-      "steps": [
-        "阅读 .claude-coder/test-seed.md 场景 C 的完整步骤",
-        "场景 C1：使用 browser_navigate 访问 /upload，不输入内容，browser_snapshot 验证生成按钮是 disabled 状态",
-        "场景 C2：使用 browser_evaluate 清除 localStorage 中的 llm_config，刷新页面，输入文本后点击生成，browser_snapshot 验证显示 API Key 错误提示",
-        "场景 C3：使用 browser_navigate 访问 /settings，browser_fill 输入无效 API Key 'sk-invalid-test-key'，browser_click 点击'测试连接'，browser_snapshot 验证显示连接失败提示",
-        "场景 C4：在文本框输入超长内容（5000字以上），点击生成，验证是否正常处理或有友好的字数限制提示",
-        "每个场景的预期结果和实际结果记录到 record/e2e_test_results.md",
-        "如果发现错误处理不友好（如显示技术错误栈而非用户友好提示），修复对应的前端/后端代码"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-046"
-      ]
-    },
-    {
-      "id": "feat-050",
-      "category": "fullstack",
-      "priority": 50,
-      "description": "AI Agent 自主探索性测试：以教师视角完整使用系统，自主发现并修复 UX 问题",
-      "steps": [
-        "阅读 .claude-coder/testing-rules.md 第三节'探索性测试'模板和 .claude-coder/test-seed.md 场景 E",
-        "角色设定：你是一位小学数学教师，第一次使用 AI 教学 PPT 生成器",
-        "任务 A：从首页 http://localhost:3000 开始，browser_navigate + browser_click 找到生成入口，为'分数加减法'课程生成一份 PPT",
-        "任务 B：生成完成后，使用 browser_snapshot 逐页预览 PPT 内容，评估是否符合小学五年级数学教学要求",
-        "任务 C：使用 browser_click 下载 PPT 文件，验证文件可下载",
-        "任务 D：browser_navigate 到历史记录页面，检查是否有刚才的生成记录",
-        "任务 E：browser_navigate 到设置页面，了解当前配置",
-        "在整个过程中记录每一个'让你困惑/受阻/等待过长/不符合直觉'的交互点",
-        "将所有发现的 UX 问题写入 record/exploratory_test.md，每个问题包含：严重程度/复现步骤/预期vs实际/根因分析/修复建议",
-        "选择严重程度为'高'的问题，立即修复代码，并用 Playwright MCP 复测确认修复"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-047",
-        "feat-048",
-        "feat-049"
-      ]
-    },
-    {
-      "id": "feat-051",
-      "category": "frontend",
-      "priority": 51,
-      "description": "修复 UX-01：调整默认年级选项，从'小学三年级'改为'小学五年级'或添加'请选择'占位",
-      "steps": [
-        "读取 frontend/src/app/upload/page.tsx，找到年级选择的默认值设置",
-        "方案 A（推荐）：将默认年级改为'小学五年级'（更常用）",
-        "方案 B：添加'请选择年级'占位选项，强制用户主动选择",
-        "更新默认值后验证类型检查通过",
-        "验证：访问 /upload 页面确认默认年级已变更"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-052",
-      "category": "frontend",
-      "priority": 52,
-      "description": "修复 UX-05：改进进度反馈，添加预计剩余时间或更详细的阶段说明",
-      "steps": [
-        "分析现有 SSE 进度推送逻辑（frontend/src/app/upload/page.tsx 中的 EventSource 处理）",
-        "增加阶段预计耗时提示（如'分析内容：约 10-20 秒'、'生成 PPT：约 30-60 秒'）",
-        "可选：根据已用时间动态计算剩余时间",
-        "增加更详细的阶段描述（如当前正在做什么、下一步是什么）",
-        "验证：触发 PPT 生成，观察进度提示是否更清晰"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-053",
-      "category": "frontend",
-      "priority": 53,
-      "description": "修复 UX-06：智能风格推荐，根据年级自动推荐风格（低年级→活泼，高年级→简约）",
-      "steps": [
-        "在 frontend/src/app/upload/page.tsx 中监听年级选择变化",
-        "创建年级到风格的映射规则：1-3 年级→活泼趣味，4-6 年级→简约清晰，7-12 年级→学科主题",
-        "当用户选择年级时，自动更新风格选项并显示提示（如'已为您推荐活泼趣味风格'）",
-        "允许用户手动覆盖自动推荐",
-        "验证：选择不同年级时风格自动变化"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-054",
-      "category": "backend",
-      "priority": 54,
-      "description": "修复 PPT 生成重试三次问题：移除 LLM 调用的自动重试机制，改进 JSON 解析错误提示",
-      "steps": [
-        "分析 backend/app/services/llm.py 中 generate_structured_content 方法的重试逻辑",
-        "将 max_retries 默认值从 3 改为 0（不重试）或 1（只尝试一次）",
-        "改进错误信息：解析失败时返回原始 LLM 响应内容（截取前 500 字），方便用户排查",
-        "在日志中记录完整的 LLM 响应，便于调试格式问题",
-        "验证：grep -q 'max_retries: int = 0' backend/app/services/llm.py && echo 'pass'"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-055",
-      "category": "backend",
-      "priority": 55,
-      "description": "修复 LLM 返回 JSON 格式问题：增强 JSON 解析鲁棒性，处理各种格式错误",
-      "steps": [
-        "测试当前 JSON 解析失败的具体原因（打印原始响应分析）",
-        "增强 _extract_json_from_response 方法，处理更多格式变体（如混有文字说明）",
-        "增强 _fix_json 方法，处理更多格式问题（如未转义引号、中文字符等）",
-        "考虑使用更宽松的 JSON 解析器（如 json5 或 dirtyjson）作为备选",
-        "验证：单元测试各种格式的 LLM 响应都能正确解析"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-054"
-      ]
+      "depends_on": ["feat-028"],
+      "consolidated_from": ["feat-040", "feat-041", "feat-042", "feat-043", "feat-044", "feat-045", "feat-046", "feat-047", "feat-048", "feat-049", "feat-050", "feat-051", "feat-052", "feat-053", "feat-054", "feat-055"],
+      "completed_at": "2026-03-06"
     },
     {
       "id": "feat-056",
@@ -1069,12 +147,9 @@
         "验证：grep -q '状态: 通过' record/regression_test.md && echo 'pass'"
       ],
       "status": "failed",
-      "depends_on": [
-        "feat-054",
-        "feat-055",
-        "feat-060"
-      ],
+      "depends_on": ["feat-040"],
       "notes": "测试发现后端 SSE 端点问题：连接建立后停留在 20% 进度，后端未推送进一步事件。详细见 record/regression_test.md"
+    },
     {
       "id": "feat-057",
       "category": "fullstack",
@@ -1088,9 +163,7 @@
         "验证：grep -q '错误场景: 通过' record/regression_test.md && echo 'pass'"
       ],
       "status": "pending",
-      "depends_on": [
-        "feat-056"
-      ]
+      "depends_on": ["feat-056"]
     },
     {
       "id": "feat-058",
@@ -1107,10 +180,7 @@
         "【验证】grep -q '状态: 已修复' record/playwright_test_v2.md && echo 'pass'"
       ],
       "status": "pending",
-      "depends_on": [
-        "feat-056",
-        "feat-057"
-      ]
+      "depends_on": ["feat-056", "feat-057"]
     },
     {
       "id": "feat-059",
@@ -1125,9 +195,7 @@
         "验证：输入文本 → 刷新页面 → 文本自动恢复；生成成功 → 刷新页面 → 文本框为空"
       ],
       "status": "pending",
-      "depends_on": [
-        "feat-058"
-      ]
+      "depends_on": ["feat-058"]
     }
   ]
 }
