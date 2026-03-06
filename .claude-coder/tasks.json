@@ -1071,7 +1071,8 @@
       "status": "pending",
       "depends_on": [
         "feat-054",
-        "feat-055"
+        "feat-055",
+        "feat-060"
       ]
     },
     {
@@ -1127,6 +1128,22 @@
       "depends_on": [
         "feat-058"
       ]
+    },
+    {
+      "id": "feat-060",
+      "category": "infra",
+      "priority": 60,
+      "description": "修复 Playwright MCP storageState 注入配置：添加 --storage-state 参数确保 localStorage 自动注入",
+      "steps": [
+        "分析 .mcp.json 当前配置：只有 --extension 参数，缺少 --storage-state",
+        "修改 .mcp.json：在 args 数组中添加 '--storage-state=.claude-coder/playwright-auth.json'",
+        "重启 Playwright MCP 服务使配置生效",
+        "使用 browser_navigate 访问 /upload，browser_evaluate 执行 localStorage.getItem('llm_config') 验证注入成功",
+        "验证：browser_snapshot 显示 llm_config 包含有效的 apiKey 字段"
+      ],
+      "status": "pending",
+      "depends_on": [],
+      "notes": "问题根因：MCP 配置缺少 --storage-state 参数，导致浏览器启动时 localStorage 不会被注入 llm_config，进而导致生成页 API Key 检查失败"
     }
   ]
 }
