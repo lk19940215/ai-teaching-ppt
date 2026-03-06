@@ -1,1 +1,0 @@
-{"session_result":"failed","status_before":"in_progress","status_after":"failed","notes":"测试遇到后端 SSE 连接问题。修复了 llm.py 变量作用域 bug，但测试仍失败。可能原因：1) DeepSeek API Key 无效 2) SSE 异步任务调度问题。建议下会话验证 API Key 有效性，检查 SSE 路由日志。"}
