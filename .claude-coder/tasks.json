@@ -1068,13 +1068,13 @@
         "将测试结果（通过/失败、耗时、问题）写入 record/regression_test.md",
         "验证：grep -q '状态: 通过' record/regression_test.md && echo 'pass'"
       ],
-      "status": "pending",
+      "status": "failed",
       "depends_on": [
         "feat-054",
         "feat-055",
         "feat-060"
-      ]
-    },
+      ],
+      "notes": "测试发现后端 SSE 端点问题：连接建立后停留在 20% 进度，后端未推送进一步事件。详细见 record/regression_test.md"
     {
       "id": "feat-057",
       "category": "fullstack",

@@ -6,6 +6,15 @@
       "reason": "校验失败",
       "rollbackTo": "42833e1744d775c370588c0f5fc4482789bebedd",
       "success": true
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-06T12:38:07.466Z",
+      "result": "success",
+      "cost": 1.5139932499999995,
+      "taskId": "feat-055",
+      "statusAfter": "done",
+      "notes": "完成 feat-055 JSON 解析增强：\n1. _extract_json_from_response 增强：支持嵌套 JSON 提取（从第一个{到最后一个}）、移除前缀说明文字\n2. _fix_json 增强：处理全角冒号/逗号、Python True/False/None、控制字符过滤\n3. 集成 json5 作为第 4 步备选解析器，支持注释等宽松 JSON 语法\n4. 添加 json5>=0.9.0 依赖\n5. 8 项单元测试全部通过（标准 JSON、代码块、前缀说明、嵌套 JSON、单引号、尾部逗号、无引号 key、json5 注释）\n6. 后端服务运行正常（curl health check 通过）\n\n下一个 session 可继续 feat-056 核心生成流程回归测试"
     }
   ]
 }

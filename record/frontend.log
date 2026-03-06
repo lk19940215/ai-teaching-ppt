@@ -1,0 +1,16 @@
+
+> ai-teaching-ppt-frontend@0.1.0 dev E:\Code\ai-teaching-ppt\frontend
+> next dev
+
+   ▲ Next.js 15.5.12
+   - Local:        http://localhost:3000
+   - Network:   ▲ Next.js 15.5.12
+   - Local:        http://localhost:3001
+   - Network:     ✓ Ready in 9.9s
+ ○ Compiling / ...
+ ✓ Compiled /upload in 5.9s (634 modules)
+ GET / 200 in 6482ms
+ GET /upload 200 in 1681ms
+ GET /upload 200 in 61ms
+ GET /upload 200 in 64ms
+ GET /upload 200 in 55ms
