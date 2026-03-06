@@ -1038,6 +1038,21 @@
       ],
       "status": "pending",
       "depends_on": []
+    },
+    {
+      "id": "feat-055",
+      "category": "fullstack",
+      "priority": 55,
+      "description": "错误场景回归测试：验证无 API Key、无效 Key 等错误处理正确性",
+      "steps": [
+        "使用 browser_navigate 访问 /upload，browser_evaluate 清除 localStorage，刷新页面",
+        "输入文本后点击生成，browser_snapshot 验证显示 API Key 缺失错误提示",
+        "使用 browser_navigate 访问 /settings，输入无效 API Key 'sk-invalid-test'，点击测试连接",
+        "browser_snapshot 验证显示连接失败提示，将结果追加到 record/regression_test.md",
+        "验证：grep -q '错误场景: 通过' record/regression_test.md && echo 'pass'"
+      ],
+      "status": "pending",
+      "depends_on": []
     }
   ]
 }
