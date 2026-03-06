@@ -1033,7 +1033,7 @@
         "在日志中记录完整的 LLM 响应，便于调试格式问题",
         "验证：grep -q 'max_retries: int = 0' backend/app/services/llm.py && echo 'pass'"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     },
     {

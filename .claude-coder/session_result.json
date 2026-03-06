@@ -1,0 +1,6 @@
+{
+  "session_result": "success",
+  "status_before": "pending",
+  "status_after": "done",
+  "notes": "修复了 PPT 生成重试三次问题：\n1. 移除了 llm.py 中 generate_structured_content 方法的 max_retries 参数和重试循环逻辑\n2. 改为单次执行，不再自动重试（不再追加消息让 LLM 重新生成）\n3. 改进了 JSON 解析错误提示，返回详细错误信息：原始响应片段、直接解析错误、修复后解析错误、可能原因和建议\n4. 后端语法检查通过，服务启动正常\n5. 日志确认只有一次 LLM 调用，无重试行为\n\n下一个 session 注意：任务已完成，可继续下一个 pending 任务"
+}
