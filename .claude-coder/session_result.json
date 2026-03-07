@@ -2,5 +2,5 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "✅ feat-062 错误场景测试完成\n\n【完成的工作】\n1. 环境检查：前后端服务运行正常（backend:8000, frontend:3000）\n2. 场景 1：空输入验证 - 生成按钮保持 disabled 状态 ✅\n3. 场景 2：API Key 缺失 - 显示提示\"API Key 未配置，请前往设置页面配置\" ✅\n4. 场景 3：无效 API Key - SSE 连接报错，控制台显示错误日志 ✅\n5. 场景 4：超长内容验证 - 前端验证逻辑存在（代码审查确认），React 状态同步问题导致自动化测试未完全验证 ⚠️\n6. 测试报告写入：record/error_handling_test.md\n\n【发现的问题】\n1. P2 无效 API Key 响应时间长（约 60 秒超时），建议后端增加快速验证步骤\n2. P2 前端 React 状态同步问题：browser_evaluate 直接修改 DOM 未能触发 onChange 事件\n\n【给下一个会话的提醒】\n- feat-062 已完成，下一个任务是 feat-063（图片/PDF 上传流程测试）\n- 测试报告已生成，包含详细测试步骤和改进建议\n- 保持后台服务运行（连续模式）"
+  "notes": "【feat-065 多学科生成验证完成】\n\n【测试通过】8 个学科（语文/数学/英语/物理/化学/生物/历史/地理）的专属提示词引擎和页面类型配置全部验证通过。\n\n【Bug 修复】\n1. 修复 chinese.py/humanities.py/cognitive.py 的 build_prompt 缺少 difficulty_level 参数\n2. 修复 science.py (物化生) 的 build_prompt/build_schema 参数不一致\n3. 修复 english.py/science.py 中 f-string JSON 示例的转义错误（{} → {{}}）\n\n【测试结果】\n- 语文：13 个页面类型（6 个专属）\n- 数学：13 个页面类型（6 个专属）\n- 英语：22 个页面类型（18 个专属）\n- 物理：10 个页面类型（5 个专属）\n- 化学：9 个页面类型（5 个专属）\n- 生物：9 个页面类型（5 个专属）\n- 历史：12 个页面类型（8 个专属）\n- 地理：10 个页面类型（6 个专属）\n\n【测试报告】.claude-coder/multi_subject_test_report.md\n【测试结果】.claude-coder/subject_test_results.json\n\n【给下个会话的提醒】\n- feat-065 已完成，下一个任务是 feat-063（图片/PDF 上传流程测试）或 feat-068（历史记录功能测试）\n- 后端服务运行在 8000 端口，保持运行状态"
 }
