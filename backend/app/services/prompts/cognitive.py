@@ -47,7 +47,8 @@ class CognitivePromptStrategy(
         grade: str,
         subject: str,
         slide_count: int,
-        chapter: Optional[str] = None
+        chapter: Optional[str] = None,
+        difficulty_level: str = "unified"
     ) -> str:
         """
         构建认知负荷优化的提示词
@@ -58,6 +59,7 @@ class CognitivePromptStrategy(
             subject: 学科
             slide_count: 幻灯片数量
             chapter: 章节名称（可选）
+            difficulty_level: 教学层次（unified/basic/intermediate/advanced）
 
         Returns:
             认知负荷优化后的提示词
@@ -175,7 +177,7 @@ class CognitivePromptStrategy(
 
         return prompt
 
-    def build_schema(self, slide_count: int) -> Dict[str, Any]:
+    def build_schema(self, slide_count: int, difficulty_level: str = "unified") -> Dict[str, Any]:
         """
         构建认知负荷优化的输出结构
 

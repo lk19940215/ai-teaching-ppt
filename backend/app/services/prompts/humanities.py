@@ -25,7 +25,8 @@ class HistoryPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
         grade: str,
         subject: str,
         slide_count: int,
-        chapter: Optional[str] = None
+        chapter: Optional[str] = None,
+        difficulty_level: str = "unified"
     ) -> str:
         """
         构建历史学科的 PPT 内容生成提示词
@@ -167,7 +168,7 @@ class HistoryPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
 
         return prompt
 
-    def build_schema(self, slide_count: int) -> Dict[str, Any]:
+    def build_schema(self, slide_count: int, difficulty_level: str = "unified") -> Dict[str, Any]:
         """
         构建历史学科的输出结构定义
         """
@@ -440,7 +441,7 @@ class PoliticsPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTax
 
         return prompt
 
-    def build_schema(self, slide_count: int) -> Dict[str, Any]:
+    def build_schema(self, slide_count: int, difficulty_level: str = "unified") -> Dict[str, Any]:
         """
         构建政治学科的输出结构定义
         """
@@ -569,7 +570,8 @@ class GeographyPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTa
         grade: str,
         subject: str,
         slide_count: int,
-        chapter: Optional[str] = None
+        chapter: Optional[str] = None,
+        difficulty_level: str = "unified"
     ) -> str:
         """
         构建地理学科的 PPT 内容生成提示词
@@ -686,7 +688,7 @@ class GeographyPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTa
 
         return prompt
 
-    def build_schema(self, slide_count: int) -> Dict[str, Any]:
+    def build_schema(self, slide_count: int, difficulty_level: str = "unified") -> Dict[str, Any]:
         """
         构建地理学科的输出结构定义
         """

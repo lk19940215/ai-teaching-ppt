@@ -24,7 +24,8 @@ class ChinesePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
         grade: str,
         subject: str,
         slide_count: int,
-        chapter: Optional[str] = None
+        chapter: Optional[str] = None,
+        difficulty_level: str = "unified"
     ) -> str:
         """
         构建语文学科的 PPT 内容生成提示词
@@ -125,7 +126,7 @@ class ChinesePromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
 
         return prompt
 
-    def build_schema(self, slide_count: int) -> Dict[str, Any]:
+    def build_schema(self, slide_count: int, difficulty_level: str = "unified") -> Dict[str, Any]:
         """
         构建语文学科的输出结构定义
         """

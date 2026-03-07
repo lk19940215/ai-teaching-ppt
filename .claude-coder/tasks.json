@@ -209,7 +209,7 @@
         "【记录】测试结果写入 record/upload_test.md（使用 test_rule.md 模板）",
         "【预算】每个场景 2-3 次 snapshot，合并操作减少消耗"
       ],
-      "status": "pending",
+      "status": "in_progress",
       "depends_on": [
         "feat-061"
       ]
@@ -243,7 +243,7 @@
         "【记录】各学科生成结果写入 record/multi_subject_test.md",
         "【预算】每个学科 1 次完整生成，共 4 次 snapshot"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-061"
       ]

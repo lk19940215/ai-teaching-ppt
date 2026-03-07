@@ -254,19 +254,19 @@ n### 五、错题分析页（feat-041 智能错题分析）
 
 3. **输出格式要求**：
    ```json
-   {
+   {{
      "page_type": "错题分析页",
      "title": "Common Mistakes",
      "common_mistakes": [
-       {
+       {{
          "mistake_type": "错误类型",
          "mistake_example": "错误示例句子",
          "reason": "错误原因分析",
          "correct_method": "正确句子",
          "prevention_strategy": "预防策略"
-       }
+       }}
      ]
-   }
+   }}
    ```
 【PPT 结构建议】
 1. **封面页**：Unit/Topic + Grade + Teacher

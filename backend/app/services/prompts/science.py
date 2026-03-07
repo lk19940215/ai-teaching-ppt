@@ -25,7 +25,8 @@ class PhysicsPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
         grade: str,
         subject: str,
         slide_count: int,
-        chapter: Optional[str] = None
+        chapter: Optional[str] = None,
+        difficulty_level: str = "unified"
     ) -> str:
         """
         构建物理学科的 PPT 内容生成提示词
@@ -100,19 +101,19 @@ n【错题分析要求（feat-041 智能错题分析）- 物理学科】
 
 3. **输出格式要求**：
    ```json
-   {
+   {{
      "page_type": "错题分析页",
      "title": "易错警示",
      "common_mistakes": [
-       {
+       {{
          "mistake_type": "错误类型",
          "mistake_example": "错误示例",
          "reason": "错误原因分析",
          "correct_method": "正确解法",
          "prevention_strategy": "预防策略"
-       }
+       }}
      ]
-   }
+   }}
    ```
 1. **封面页**：课题 + 年级 + 教师
 2. **学习目标**（1 页）：物理观念、科学思维、科学探究、科学态度
@@ -163,7 +164,7 @@ n【错题分析要求（feat-041 智能错题分析）- 物理学科】
 
         return prompt
 
-    def build_schema(self, slide_count: int) -> Dict[str, Any]:
+    def build_schema(self, slide_count: int, difficulty_level: str = "unified") -> Dict[str, Any]:
         """
         构建物理学科的输出结构定义
         """
@@ -279,7 +280,8 @@ class ChemistryPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTa
         grade: str,
         subject: str,
         slide_count: int,
-        chapter: Optional[str] = None
+        chapter: Optional[str] = None,
+        difficulty_level: str = "unified"
     ) -> str:
         """
         构建化学学科的 PPT 内容生成提示词
@@ -370,19 +372,19 @@ n【错题分析要求（feat-041 智能错题分析）- 化学学科】
 
 3. **输出格式要求**：
    ```json
-   {
+   {{
      "page_type": "错题分析页",
      "title": "易错警示",
      "common_mistakes": [
-       {
+       {{
          "mistake_type": "错误类型",
          "mistake_example": "错误示例",
          "reason": "错误原因分析",
          "correct_method": "正确解法",
          "prevention_strategy": "预防策略"
-       }
+       }}
      ]
-   }
+   }}
    ```
 - 复杂反应分步展示
 - 化学方程式配平过程逐步显示
@@ -418,7 +420,7 @@ n【错题分析要求（feat-041 智能错题分析）- 化学学科】
 
         return prompt
 
-    def build_schema(self, slide_count: int) -> Dict[str, Any]:
+    def build_schema(self, slide_count: int, difficulty_level: str = "unified") -> Dict[str, Any]:
         """
         构建化学学科的输出结构定义
         """
@@ -540,7 +542,8 @@ class BiologyPromptStrategy(SubjectPromptStrategy, CognitiveLoadMixin, BloomTaxo
         grade: str,
         subject: str,
         slide_count: int,
-        chapter: Optional[str] = None
+        chapter: Optional[str] = None,
+        difficulty_level: str = "unified"
     ) -> str:
         """
         构建生物学科的 PPT 内容生成提示词
@@ -627,19 +630,19 @@ n【错题分析要求（feat-041 智能错题分析）- 生物学科】
 
 3. **输出格式要求**：
    ```json
-   {
+   {{
      "page_type": "错题分析页",
      "title": "易错警示",
      "common_mistakes": [
-       {
+       {{
          "mistake_type": "错误类型",
          "mistake_example": "错误示例",
          "reason": "错误原因分析",
          "correct_method": "正确解法",
          "prevention_strategy": "预防策略"
-       }
+       }}
      ]
-   }
+   }}
    ```
 【认知负荷优化要求】
 - 每页内容不超过{max_points}个要点
@@ -675,7 +678,7 @@ n【错题分析要求（feat-041 智能错题分析）- 生物学科】
 
         return prompt
 
-    def build_schema(self, slide_count: int) -> Dict[str, Any]:
+    def build_schema(self, slide_count: int, difficulty_level: str = "unified") -> Dict[str, Any]:
         """
         构建生物学科的输出结构定义
         """

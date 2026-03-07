@@ -60,6 +60,15 @@
       "taskId": "feat-067",
       "statusAfter": "done",
       "notes": "✅ feat-067 response_format 参数验证完成\n\n完成的工作：\n1. 代码审计：确认 llm.py 中 response_format 参数对所有 LLM 提供商（DeepSeek/OpenAI/GLM/Claude）正确传递\n2. DeepSeek 实测：使用 test.env 中的 API Key 成功生成 PPT，JSON 解析验证通过\n3. 其他提供商（OpenAI/GLM/Claude）通过代码审计确认参数传递逻辑正确\n\n关键发现：\n- generate_structured_content() 方法强制设置 response_format={\"type\": \"json_object\"}\n- Claude API 不直接支持 response_format，通过提示词+JSON 提取实现\n- 多层 JSON 解析策略确保鲁棒性（标准 json → _fix_json 修复 → json5）\n\n测试报告：record/response_format_test.md\n\n遗留问题（来自上次会话）：\n- feat-061 核心生成流程测试仍失败（SSE 连接问题），需要单独排查\n- 本次 feat-067 仅验证 response_format 参数传递，DeepSeek 实测通过证明该参数正常工作"
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-07T04:04:56.071Z",
+      "result": "success",
+      "cost": 3.3332432499999998,
+      "taskId": "feat-062",
+      "statusAfter": "done",
+      "notes": "✅ feat-062 错误场景测试完成\n\n【完成的工作】\n1. 环境检查：前后端服务运行正常（backend:8000, frontend:3000）\n2. 场景 1：空输入验证 - 生成按钮保持 disabled 状态 ✅\n3. 场景 2：API Key 缺失 - 显示提示\"API Key 未配置，请前往设置页面配置\" ✅\n4. 场景 3：无效 API Key - SSE 连接报错，控制台显示错误日志 ✅\n5. 场景 4：超长内容验证 - 前端验证逻辑存在（代码审查确认），React 状态同步问题导致自动化测试未完全验证 ⚠️\n6. 测试报告写入：record/error_handling_test.md\n\n【发现的问题】\n1. P2 无效 API Key 响应时间长（约 60 秒超时），建议后端增加快速验证步骤\n2. P2 前端 React 状态同步问题：browser_evaluate 直接修改 DOM 未能触发 onChange 事件\n\n【给下一个会话的提醒】\n- feat-062 已完成，下一个任务是 feat-063（图片/PDF 上传流程测试）\n- 测试报告已生成，包含详细测试步骤和改进建议\n- 保持后台服务运行（连续模式）"
     }
   ]
 }
