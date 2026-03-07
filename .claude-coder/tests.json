@@ -16,6 +16,14 @@
       "expected": "HTTP 200, 返回 LLM 配置信息",
       "last_result": "pass",
       "last_run_session": 2
+    },
+    {
+      "id": "test-feat068-history",
+      "feature_id": "feat-068",
+      "verify": "python -c \"import requests; r=requests.get('http://localhost:8000/api/v1/history/search',params={'session_id':'test'}); print(r.status_code, r.json())\"",
+      "expected": "HTTP 200, 返回历史记录列表（空或含记录）",
+      "last_result": "pass",
+      "last_run_session": 3
     }
   ]
 }
