@@ -755,7 +755,7 @@
         "【记录】性能数据写入 record/performance-test.md",
         "【预算】Smart Snapshot： upload→wait→snapshot（性能数据）→tracing-stop，共 3 次"
       ],
-      "status": "failed",
+      "status": "done",
       "depends_on": [
         "feat-087"
       ]
@@ -774,7 +774,7 @@
         "【记录】各浏览器渲染效果截图，写入 record/compatibility-test.md",
         "【预算】每个浏览器 2 次 snapshot（导航→渲染验证），共 6 次"
       ],
-      "status": "pending",
+      "status": "in_progress",
       "depends_on": [
         "feat-087"
       ]

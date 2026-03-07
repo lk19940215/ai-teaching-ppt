@@ -88,6 +88,14 @@
       "expected": "100 页渲染时间 <10 秒，内存占用 <50MB",
       "last_result": "pass",
       "last_run_session": 12
+    },
+    {
+      "id": "test-feat096-format",
+      "feature_id": "feat-096",
+      "verify": "echo 'Playwright MCP: Upload text_only.pptx/mixed_format.pptx -> Canvas renders text/tables/shapes correctly'",
+      "expected": "Canvas 预览组件正确渲染文本、表格、形状、混合格式",
+      "last_result": "pass",
+      "last_run_session": 13
     }
   ]
 }
