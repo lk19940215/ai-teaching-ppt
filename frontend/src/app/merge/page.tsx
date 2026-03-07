@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { apiBaseUrl } from '@/lib/api'
 import PptPreview, { type PptPageData } from '@/components/ppt-preview'
+import PromptEditor from '@/components/prompt-editor'
 
 // PPT 文件上传区域属性
 interface PptUploadAreaProps {
@@ -146,8 +147,8 @@ export default function MergePage() {
   const [selectedPagesA, setSelectedPagesA] = useState<number[]>([])
   const [selectedPagesB, setSelectedPagesB] = useState<number[]>([])
 
-  // 提示语状态（预留，feat-077 实现）
-  const [pagePrompts, setPagePrompts] = useState<Record<number, string>>({})
+  // 提示语状态
+  const [pagePrompts, setPagePrompts] = useState<Record<string, string>>({})
   const [globalPrompt, setGlobalPrompt] = useState("")
 
   // 生成状态
@@ -350,7 +351,7 @@ export default function MergePage() {
               合并提示语
             </h3>
 
-            {/* 已选页面提示（feat-076） */}
+            {/* 已选页面提示 */}
             {(selectedPagesA.length > 0 || selectedPagesB.length > 0) && (
               <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded">
                 <p className="text-sm font-medium text-indigo-900 mb-2">已选择页面：</p>
@@ -367,34 +368,21 @@ export default function MergePage() {
               </div>
             )}
 
-            {/* 页面级提示语列表（预留） */}
-            <div className="mb-4">
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                页面级提示语
-              </Label>
-              <div className="text-center text-gray-500 py-4 border-2 border-dashed border-gray-200 rounded">
-                <p className="text-sm">选择页面后添加提示语</p>
-                <p className="text-xs text-gray-400 mt-1">（feat-077 实现）</p>
-              </div>
-            </div>
-
-            {/* 总提示语输入框 */}
-            <div className="mb-4">
-              <Label htmlFor="global-prompt" className="text-sm font-medium text-gray-700 mb-2 block">
-                总体合并策略
-              </Label>
-              <textarea
-                id="global-prompt"
-                value={globalPrompt}
-                onChange={(e) => setGlobalPrompt(e.target.value)}
-                placeholder="例如：保留 PPT A 的课程结构，将 PPT B 的例题插入到对应知识点..."
-                className="w-full h-32 p-3 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                disabled={isGenerating}
-              />
-            </div>
+            {/* PromptEditor 组件（feat-077） */}
+            <PromptEditor
+              pagesA={pptAPages}
+              pagesB={pptBPages}
+              selectedPagesA={selectedPagesA}
+              selectedPagesB={selectedPagesB}
+              pagePrompts={pagePrompts}
+              onPagePromptsChange={setPagePrompts}
+              globalPrompt={globalPrompt}
+              onGlobalPromptChange={setGlobalPrompt}
+              disabled={isGenerating}
+            />
 
             {/* 操作按钮 */}
-            <div className="flex flex-col gap-3 pt-4 border-t">
+            <div className="flex flex-col gap-3 pt-4 border-t mt-4">
               <Button
                 onClick={handleMerge}
                 disabled={!pptA || !pptB || isGenerating}
