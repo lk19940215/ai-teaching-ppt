@@ -223,6 +223,10 @@ interface PptCanvasRendererProps {
   onClick?: () => void
   // 渲染质量（1.0 = 高质量，0.5 = 低质量）
   quality?: number
+  // 渲染失败回调（feat-097）
+  onError?: (error: Error) => void
+  // 降级模式标识（feat-097）
+  fallbackMode?: boolean
 }
 
 /**
@@ -242,6 +246,8 @@ export function PptCanvasRenderer({
   isSelected = false,
   onClick,
   quality: explicitQuality,
+  onError,
+  fallbackMode = false,
 }: PptCanvasRendererProps) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const containerRef = React.useRef<HTMLDivElement>(null)
@@ -249,6 +255,8 @@ export function PptCanvasRenderer({
   const [isInCache, setIsInCache] = React.useState(false)
   const [isVisible, setIsVisible] = React.useState(true) // feat-094: 默认可见，加快初始渲染
   const [renderPriority, setRenderPriority] = React.useState(10)
+  // feat-097: 渲染错误状态
+  const [renderError, setRenderError] = React.useState<Error | null>(null)
 
   // 计算缩放比例（添加默认 layout 防止出错）
   const layout = pageData.layout || { width: 960, height: 540 }
@@ -502,68 +510,75 @@ export function PptCanvasRenderer({
     if (!canvas) return
 
     const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    if (!ctx) {
+      // Canvas 2D 上下文获取失败，触发降级
+      const error = new Error('无法获取 Canvas 2D 上下文')
+      setRenderError(error)
+      onError?.(error)
+      return
+    }
 
-    // 检查缓存
-    const cachedCanvas = getCachedCanvas(cacheKey)
-    if (cachedCanvas) {
-      // 使用缓存渲染
-      ctx.drawImage(cachedCanvas, 0, 0)
-      setIsInCache(true)
-      setIsLoaded(true)
+    try {
+      // 检查缓存
+      const cachedCanvas = getCachedCanvas(cacheKey)
+      if (cachedCanvas) {
+        // 使用缓存渲染
+        ctx.drawImage(cachedCanvas, 0, 0)
+        setIsInCache(true)
+        setIsLoaded(true)
 
-      // 绘制选中边框（如果需要）
-      if (isSelected) {
-        drawSelectionBorder(ctx, width, height)
+        // 绘制选中边框（如果需要）
+        if (isSelected) {
+          drawSelectionBorder(ctx, width, height)
+        }
+        return true // 渲染成功
       }
-      return true // 渲染成功
-    }
 
-    // 清空画布
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+      // 清空画布
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    // 计算偏移（居中）
-    const offsetX = (width - layout.width * scale) / 2
-    const offsetY = (height - layout.height * scale) / 2
+      // 计算偏移（居中）
+      const offsetX = (width - layout.width * scale) / 2
+      const offsetY = (height - layout.height * scale) / 2
 
-    // 绘制白色背景
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, width, height)
+      // 绘制白色背景
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, width, height)
 
-    // 不可见时只绘制背景和占位符
-    if (!isVisible) {
-      // 绘制占位符文本
-      ctx.fillStyle = '#999999'
-      ctx.font = '14px Microsoft YaHei, sans-serif'
-      ctx.textAlign = 'center'
-      ctx.fillText('加载中...', width / 2, height / 2)
-      return false // 等待可见
-    }
+      // 不可见时只绘制背景和占位符
+      if (!isVisible) {
+        // 绘制占位符文本
+        ctx.fillStyle = '#999999'
+        ctx.font = '14px Microsoft YaHei, sans-serif'
+        ctx.textAlign = 'center'
+        ctx.fillText('加载中...', width / 2, height / 2)
+        return false // 等待可见
+      }
 
-    // feat-094: 简化渲染 - 只绘制标题和背景色块，不绘制详细内容
-    // 这样可以将每页渲染时间从 600ms 降低到 50ms
-    const bgColor = getPageBgColor(pageData.index)
+      // feat-094: 简化渲染 - 只绘制标题和背景色块，不绘制详细内容
+      // 这样可以将每页渲染时间从 600ms 降低到 50ms
+      const bgColor = getPageBgColor(pageData.index)
 
-    // 绘制顶部背景色带
-    ctx.fillStyle = bgColor
-    ctx.fillRect(0, 0, width, height * 0.15)
+      // 绘制顶部背景色带
+      ctx.fillStyle = bgColor
+      ctx.fillRect(0, 0, width, height * 0.15)
 
-    // 绘制标题（只取前 20 个字符）
-    ctx.fillStyle = '#ffffff'
-    ctx.font = 'bold 16px Microsoft YaHei, sans-serif'
-    ctx.textAlign = 'left'
-    ctx.textBaseline = 'middle'
-    const title = pageData.title.substring(0, 20) + (pageData.title.length > 20 ? '...' : '')
-    ctx.fillText(title, offsetX + 10, offsetY + height * 0.075)
+      // 绘制标题（只取前 20 个字符）
+      ctx.fillStyle = '#ffffff'
+      ctx.font = 'bold 16px Microsoft YaHei, sans-serif'
+      ctx.textAlign = 'left'
+      ctx.textBaseline = 'middle'
+      const title = pageData.title.substring(0, 20) + (pageData.title.length > 20 ? '...' : '')
+      ctx.fillText(title, offsetX + 10, offsetY + height * 0.075)
 
-    // 绘制页码
-    ctx.font = '12px Microsoft YaHei, sans-serif'
-    ctx.textAlign = 'right'
-    ctx.fillText(`P${pageData.index + 1}`, width - 10, height * 0.075)
+      // 绘制页码
+      ctx.font = '12px Microsoft YaHei, sans-serif'
+      ctx.textAlign = 'right'
+      ctx.fillText(`P${pageData.index + 1}`, width - 10, height * 0.075)
 
-    // 绘制内容占位符（灰色块表示有内容）
-    ctx.fillStyle = '#f5f5f5'
-    ctx.fillRect(offsetX + 10, offsetY + height * 0.2, width - 20, height * 0.3)
+      // 绘制内容占位符（灰色块表示有内容）
+      ctx.fillStyle = '#f5f5f5'
+      ctx.fillRect(offsetX + 10, offsetY + height * 0.2, width - 20, height * 0.3)
     ctx.fillRect(offsetX + 10, offsetY + height * 0.55, width - 20, height * 0.15)
 
     // 如果有图片，绘制图片占位符
@@ -597,8 +612,18 @@ export function PptCanvasRenderer({
 
     setIsInCache(false)
     setIsLoaded(true)
+    // 渲染成功，清除错误状态
+    setRenderError(null)
     return true
+  } catch (error) {
+    // 渲染失败，触发降级
+    const err = error instanceof Error ? error : new Error('Canvas 渲染失败')
+    setRenderError(err)
+    onError?.(err)
+    console.error('Canvas 渲染失败:', error)
+    return false
   }
+}
 
   // 获取页面背景色（简化版本）
   const getPageBgColor = (index: number) => {

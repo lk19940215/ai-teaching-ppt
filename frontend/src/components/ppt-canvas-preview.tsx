@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/ppt-canvas-renderer"
 import { PptxjsRenderer, type PptxjsPageData } from "@/components/pptxjs-renderer"
+import { apiBaseUrl } from '@/lib/api'
 
 // 兼容旧的 PPT 页面数据结构
 export interface PptPageData {
@@ -45,6 +46,14 @@ interface PptCanvasPreviewProps {
   onCopyPage?: (source: 'A' | 'B', pageIndex: number) => void
   // 删除页面回调（用于右键菜单）
   onDeletePage?: (source: 'A' | 'B', pageIndex: number) => void
+  // 降级模式：使用后端解析数据（feat-097）
+  fallbackMode?: boolean
+  // 降级模式切换回调（feat-097）
+  onFallbackModeChange?: (fallback: boolean) => void
+  // PPT 文件引用（用于降级时调用后端 API，feat-097）
+  file?: File | null
+  // Canvas 渲染失败回调（feat-097）
+  onRenderError?: (error: Error) => void
 }
 
 // 每页显示的缩略图数量
@@ -80,6 +89,8 @@ export function PptCanvasPreview({
   onJumpToPage,
   onCopyPage,
   onDeletePage,
+  fallbackMode = false,
+  onFallbackModeChange,
 }: PptCanvasPreviewProps) {
   const [internalCurrentPage, setInternalCurrentPage] = useState(1)
   // 虚拟滚动：滚动容器引用
@@ -88,6 +99,15 @@ export function PptCanvasPreview({
   const [scrollTop, setScrollTop] = useState(0)
   // 虚拟滚动：缩略图高度（含间距）
   const thumbnailHeight = 180 // 估算每个缩略图的高度（像素）
+
+  // feat-097: 降级模式状态（内部）
+  const [internalFallbackMode, setInternalFallbackMode] = useState(fallbackMode)
+  // feat-097: 降级提示消息
+  const [fallbackMessage, setFallbackMessage] = useState<string | null>(null)
+
+  // 使用外部控制的降级模式或内部状态
+  const isFallbackMode = onFallbackModeChange ? fallbackMode : internalFallbackMode
+  const setFallbackModeState = onFallbackModeChange || setInternalFallbackMode
 
   // feat-089: 右键菜单状态
   const [contextMenu, setContextMenu] = useState<{
@@ -284,6 +304,31 @@ export function PptCanvasPreview({
     }
   }, [])
 
+  // feat-097: 从后端 API 获取降级数据（需要文件作为参数）
+  const fetchFallbackData = React.useCallback(async (file: File) => {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('extract_enhanced', 'false')
+
+      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/parse`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        console.error('后端解析 API 调用失败:', response.status)
+        return null
+      }
+
+      const data = await response.json()
+      return data.pages || []
+    } catch (error) {
+      console.error('获取降级数据失败:', error)
+      return null
+    }
+  }, [apiBaseUrl])
+
   // 处理上一页
   const handlePrevPage = () => {
     const newPage = Math.max(1, currentPg - 1)
@@ -451,6 +496,23 @@ export function PptCanvasPreview({
           共 {pages.length} 页
         </span>
       </div>
+
+      {/* feat-097: 降级模式警告提示 */}
+      {isFallbackMode && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-start gap-2">
+            <svg className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div className="flex-1">
+              <p className="text-sm text-amber-800 font-medium">已启用降级渲染模式</p>
+              <p className="text-xs text-amber-700 mt-1">
+                {fallbackMessage || 'Canvas 渲染不可用，已切换到后端解析模式，仅显示文本内容。'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 加载状态 */}
       {isLoading ? (

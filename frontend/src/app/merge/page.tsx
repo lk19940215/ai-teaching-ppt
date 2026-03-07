@@ -17,6 +17,14 @@ interface PptUploadAreaProps {
   disabled?: boolean
 }
 
+// feat-097: 降级模式数据结构
+interface FallbackPageData {
+  index: number
+  title: string
+  content: string[]
+  shapes?: any[]
+}
+
 /**
  * PPT 上传区域组件（复用）
  */
@@ -144,6 +152,13 @@ export default function MergePage() {
   const [isLoadingA, setIsLoadingA] = useState(false)
   const [isLoadingB, setIsLoadingB] = useState(false)
 
+  // feat-097: A/B PPT 降级模式状态
+  const [fallbackModeA, setFallbackModeA] = useState(false)
+  const [fallbackModeB, setFallbackModeB] = useState(false)
+  // feat-097: A/B PPT 降级模式获取的数据
+  const [fallbackDataA, setFallbackDataA] = useState<FallbackPageData[]>([])
+  const [fallbackDataB, setFallbackDataB] = useState<FallbackPageData[]>([])
+
   // A/B PPT 选中的页面索引
   const [selectedPagesA, setSelectedPagesA] = useState<number[]>([])
   const [selectedPagesB, setSelectedPagesB] = useState<number[]>([])
@@ -185,6 +200,48 @@ export default function MergePage() {
     }
 
     return result.pages || []
+  }
+
+  // feat-097: 从后端获取降级数据（简化模式）
+  const fetchFallbackData = async (file: File): Promise<FallbackPageData[]> => {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('extract_enhanced', 'false')
+
+      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/parse`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        console.error('后端降级数据获取失败:', response.status)
+        return []
+      }
+
+      const result = await response.json()
+      return result.pages || []
+    } catch (err) {
+      console.error('获取降级数据失败:', err)
+      return []
+    }
+  }
+
+  // feat-097: Canvas 渲染失败回调（切换到降级模式）
+  const handleRenderError = async (source: 'A' | 'B', file: File | null, errorMsg: string) => {
+    if (!file) return
+
+    console.warn(`${source} PPT Canvas 渲染失败，切换到降级模式：${errorMsg}`)
+
+    if (source === 'A') {
+      setFallbackModeA(true)
+      const data = await fetchFallbackData(file)
+      setFallbackDataA(data)
+    } else {
+      setFallbackModeB(true)
+      const data = await fetchFallbackData(file)
+      setFallbackDataB(data)
+    }
   }
 
   // 监听 PPT A 文件变化，自动解析
@@ -395,7 +452,7 @@ export default function MergePage() {
     }
   }
 
-  // 重置状态
+  // 重置状态（feat-097: 添加降级模式重置）
   const handleReset = () => {
     setPptA(null)
     setPptB(null)
@@ -410,6 +467,11 @@ export default function MergePage() {
     setFileName(null)
     setProgress(0)
     setProgressStatus("")
+    // feat-097: 重置降级模式状态
+    setFallbackModeA(false)
+    setFallbackModeB(false)
+    setFallbackDataA([])
+    setFallbackDataB([])
   }
 
   return (
@@ -473,14 +535,25 @@ export default function MergePage() {
             disabled={isGenerating}
           />
 
-          {/* PPT A 预览组件（feat-089: 支持右键菜单） */}
+          {/* PPT A 预览组件（feat-089: 支持右键菜单，feat-097: 降级模式） */}
           <PptCanvasPreview
             label="PPT A 预览"
-            pages={pptAPages}
+            pages={fallbackModeA && fallbackDataA.length > 0 ? fallbackDataA : pptAPages}
             isLoading={isLoadingA}
             selectedPages={selectedPagesA}
             onSelectionChange={handleSelectionChangeA}
             pptSource="A"
+            fallbackMode={fallbackModeA}
+            onFallbackModeChange={(fallback) => {
+              setFallbackModeA(fallback)
+              if (fallback && pptA) {
+                handleRenderError('A', pptA, 'Canvas 渲染失败')
+              }
+            }}
+            file={pptA}
+            onRenderError={(error) => {
+              handleRenderError('A', pptA, error.message)
+            }}
             onJumpToPage={(source, pageIndex) => {
               // 跳转查看：滚动到对应页面
               console.log('跳转到 PPT', source, '页面', pageIndex)
@@ -498,14 +571,25 @@ export default function MergePage() {
             }}
           />
 
-          {/* PPT B 预览组件（feat-089: 支持右键菜单） */}
+          {/* PPT B 预览组件（feat-089: 支持右键菜单，feat-097: 降级模式） */}
           <PptCanvasPreview
             label="PPT B 预览"
-            pages={pptBPages}
+            pages={fallbackModeB && fallbackDataB.length > 0 ? fallbackDataB : pptBPages}
             isLoading={isLoadingB}
             selectedPages={selectedPagesB}
             onSelectionChange={handleSelectionChangeB}
             pptSource="B"
+            fallbackMode={fallbackModeB}
+            onFallbackModeChange={(fallback) => {
+              setFallbackModeB(fallback)
+              if (fallback && pptB) {
+                handleRenderError('B', pptB, 'Canvas 渲染失败')
+              }
+            }}
+            file={pptB}
+            onRenderError={(error) => {
+              handleRenderError('B', pptB, error.message)
+            }}
             onJumpToPage={(source, pageIndex) => {
               console.log('跳转到 PPT', source, '页面', pageIndex)
             }}
