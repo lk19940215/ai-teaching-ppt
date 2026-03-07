@@ -204,6 +204,15 @@
       "taskId": "feat-082",
       "statusAfter": "done",
       "notes": "### 双PPT合并功能优化 (feat-082 ~ feat-086) - 完成\\n\\n## 实现内容\\n\\n### 后端增强 (feat-082)\\n1. **扩展 /api/v1/ppt/parse 端点** (`backend/app/api/ppt.py`)\\n   - 新增 `extract_enhanced` 参数支持\\n   - 新增 `max_image_size` 参数控制图片尺寸\\n   - 提取文本样式（字体、颜色、大小、粗体、斜体、下划线）\\n   - 提取图片并转换为 Base64（使用 Pillow 压缩）\\n   - 提取表格结构和数据\\n   - 提取形状位置信息（绝对位置和相对百分比）\\n   - 提取页面布局信息（宽度、高度）\\n   - 保持基础模式向后兼容\\n\\n2. **关键代码**\\n   - `extract_text_run_style()`: 提取文本运行的样式信息\\n   - `image_to_base64()`: 将图片压缩并转换为 Base64\\n   - `parse_shape()`: 解析单个形状，提取详细信息\\n\\n### 前端增强 (feat-083)\\n1. **创建 PptCanvasRenderer 组件** (`frontend/src/components/ppt-canvas-renderer.tsx`)\\n   - 使用原生 Canvas API 渲染 PPT 页面\\n   - 支持文本渲染（字体、颜色、大小、粗体、斜体、下划线、对齐）\\n   - 支持图片渲染（Base64）\\n   - 支持表格渲染（绘制表格边框和单元格内容）\\n   - 支持形状渲染（矩形、文本框）\\n   - 实现缩放和居中显示\\n   - 实现离屏 Canvas 缓存优化性能\\n   - 实现选中状态高亮（绘制虚线边框）\\n   - 实现加载状态指示器\\n\\n2. **创建 PptCanvasPreview 组件** (`frontend/src/components/ppt-canvas-preview.tsx`)\\n   - 集成 PptCanvasRenderer 到缩略图网格\\n   - 支持分页显示（每页 6 个缩略图）\\n   - 支持点击选择/多选页面\\n   - 保持 CSS fallback 渲染选项\\n\\n3. **类型定义**\\n   - `EnhancedPptPageData`: 增强的页面数据结构\\n   - 支持基础数据和增强数据的兼容转换\\n\\n### 前端集成 (feat-084)\\n1. **重构 PPT 合并页面** (`frontend/src/app/merge/page.tsx`)\\n   - 将 `PptPreview` 替换为 `PptCanvasPreview`\\n   - 保持提示语编辑功能\\n   - 保持页面选择和多选功能\\n\\n### 测试支持 (feat-085, feat-086)\\n1. **Playwright 测试脚本** (`frontend/tests/merge-page.test.ts`)\\n   - 页面加载和导航测试\\n   - PPT 文件上传测试\\n   - Canvas 预览显示测试\\n   - 页面选择和提示语面板联动测试\\n   - 错误处理测试\\n   - 重置功能测试\\n\\n2. **测试文件集** (`backend/tests/fixtures/`)\\n   - `ppt_a.pptx`: 5页，基础教学课件\\n   - `ppt_b.pptx`: 5页，补充内容\\n   - `small_ppt.pptx`: 2页，小型测试\\n   - `text_only.pptx`: 5页，纯文本测试\\n\\n## 类型检查验证\\n- Backend: `python -m py_compile app/api/ppt.py` ✅\\n- Frontend: `npx tsc --noEmit --skipLibCheck` ✅\\n\\n## 更新 tasks.json\\n添加了 feat-079 到 feat-100 的完整任务清单\\n\\n## 注意事项\\n- PPT 解析的增强模式需要安装 Pillow 库（requirements.txt 已包含）\\n- Canvas 渲染在 Chrome/Firefox/Safari 等现代浏览器中表现良好\\n- 遇到 Canvas 渲染失败时会降级到基础数据渲染\\n\\n## 给下一会话的提醒\\n- feat-082/083/084/085/086 已完成\\n- 可用测试命令：`pnpm exec playwright test frontend/tests/merge-page.test.ts`\\n- 后端服务运行在 8000 端口，前端运行在 3000 端口\\n- 完整的合并测试需要配置有效的 API Key"
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-07T17:25:28.148Z",
+      "result": "success",
+      "cost": 2.7706862500000002,
+      "taskId": "feat-079",
+      "statusAfter": "done",
+      "notes": "## Playwright MCP 文件上传能力验证 - 完成\n\n### 测试内容\n1. **单文件上传**: 验证 browser_file_upload 工具支持绝对路径\n2. **多文件上传**: 同时上传 3 张图片文件\n3. **PPTX 格式支持**: 上传 .pptx 文件\n4. **大文件上传**: 上传 15MB 测试文件\n\n### 测试结果\n- ✅ 所有上传测试通过\n- ✅ browser_file_upload 完全支持文件上传场景\n- ✅ 支持绝对路径（Windows/Linux 格式）\n- ✅ 支持多文件数组传递\n- ✅ 无明显文件大小限制（15MB 测试通过）\n- ⚠️ 发现合并页面预览渲染 Bug（与上传功能无关，是前端渲染问题）\n\n### 测试报告\n- 位置：record/playwright-upload-test.md\n\n### 给下会话的提醒\n- 如需继续测试文件上传相关功能，可直接使用 browser_file_upload 工具\n- 合并页面渲染 Bug 需要单独修复（位置：src\\components\\ppt-canvas-renderer.tsx:108）\n- 测试文件已创建在 backend/tests/fixtures/ 目录\n"
     }
   ]
 }
