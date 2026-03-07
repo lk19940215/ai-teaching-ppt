@@ -774,7 +774,7 @@
         "【记录】各浏览器渲染效果截图，写入 record/compatibility-test.md",
         "【预算】每个浏览器 2 次 snapshot（导航→渲染验证），共 6 次"
       ],
-      "status": "in_progress",
+      "status": "done",
       "depends_on": [
         "feat-087"
       ]
