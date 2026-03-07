@@ -511,6 +511,16 @@ export default function UploadPage() {
       // 使用 SSE 流式生成 PPT
       setProgressStatus('正在连接生成服务...')
 
+      // 生成 session_id（用于历史记录保存）
+      const getSessionId = () => {
+        let sessionId = localStorage.getItem('session_id')
+        if (!sessionId) {
+          sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+          localStorage.setItem('session_id', sessionId)
+        }
+        return sessionId
+      }
+
       const params = new URLSearchParams({
         text_content: finalTextContent,
         grade: config.grade,
@@ -521,6 +531,7 @@ export default function UploadPage() {
         api_key: llmConfig.apiKey,
         style: config.style,
         difficulty_level: config.difficultyLevel,
+        session_id: getSessionId(),
       })
 
       const sseUrl = `${apiBaseUrl}/api/v1/ppt/generate-stream?${params.toString()}`

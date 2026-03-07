@@ -297,7 +297,7 @@
         "【记录】测试结果写入 record/history_test.md",
         "【预算】每个场景 1-2 次 snapshot"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-061"
       ]
