@@ -1,7 +1,7 @@
 {
   "project": "ai-teaching-ppt",
   "created_at": "2026-03-02",
-  "last_updated": "2026-03-06",
+  "last_updated": "2026-03-07",
   "completed_milestones": [
     {
       "id": "milestone-1",
@@ -300,6 +300,70 @@
       "status": "done",
       "depends_on": [
         "feat-061"
+      ]
+    },
+    {
+      "id": "feat-069",
+      "category": "backend",
+      "priority": 69,
+      "description": "OCR API 响应格式统一：解决重复路由导致的字段不匹配问题",
+      "steps": [
+        "分析 upload.py 和 process.py 中的重复 OCR 路由（/api/v1/process/ocr）",
+        "删除 upload.py 中的冗余 /process/ocr 路由，保留 process.py 的完整版本",
+        "确认 process.py 返回 cleaned_text、original_text、metrics、keywords",
+        "前端 page.tsx 已使用 cleaned_text，无需修改",
+        "验证：curl -X POST http://localhost:8000/api/v1/process/ocr -H 'Content-Type: application/json' -d '{\"file_path\":\"test.jpg\"}' → 返回 cleaned_text"
+      ],
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-070",
+      "category": "frontend",
+      "priority": 70,
+      "description": "图片二次上传修复：解决同一文件无法重复选择的问题",
+      "steps": [
+        "分析 handleFileSelect 函数，确认 input.value 未清空导致 onChange 不触发",
+        "在 handleFileSelect 末尾添加 e.target.value = '' 清空 input",
+        "同样处理 handleDrop 中删除文件后的 input 重置",
+        "验证：上传图片→删除→再上传同一图片→onChange 触发"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-069"
+      ]
+    },
+    {
+      "id": "feat-071",
+      "category": "backend",
+      "priority": 71,
+      "description": "PPT 文本溢出修复：解决文字超出页面、不换行问题",
+      "steps": [
+        "审计 ppt_generator.py 中所有文本框，确认设置 word_wrap = True",
+        "检查文本框尺寸计算逻辑，确保留有边距",
+        "实现文本长度检测，超长内容自动截断或调整字号",
+        "添加 LLM 提示词约束，限制单页内容长度",
+        "验证：生成含长文本的 PPT，下载后打开检查无文字溢出"
+      ],
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-072",
+      "category": "fullstack",
+      "priority": 72,
+      "description": "PPT 合并生成功能：支持上传多个 PPT 合并生成新课件",
+      "steps": [
+        "【后端】实现 PPT 内容解析服务（使用 python-pptx 读取文本和结构）",
+        "【后端】新增 /api/v1/upload/pptx 上传接口",
+        "【后端】实现内容合并提示词，指导 LLM 整合多 PPT 内容",
+        "【前端】upload/page.tsx 添加 'pptx' 上传类型和多文件选择",
+        "验证：上传 2 个 PPT→输入合并提示词→生成新 PPT"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-069",
+        "feat-071"
       ]
     }
   ]
