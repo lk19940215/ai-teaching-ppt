@@ -345,12 +345,13 @@ export function PptCanvasPreview({
         role={disableSelection ? "button" : undefined}
         aria-disabled={disableSelection}
       >
+        {/* 注意：PptCanvasRenderer 的 onClick 不传递事件，点击事件由外层 div 的 onClick 处理 */}
         <PptCanvasRenderer
           pageData={enhancedPage}
           width={300}
           height={169}
           isSelected={isSelected}
-          onClick={() => handlePageClick(page.index)}
+          onClick={() => {}} // 空回调，点击事件由外层 div 捕获
           quality={0.8}
         />
         {/* feat-089: 选中指示器 */}

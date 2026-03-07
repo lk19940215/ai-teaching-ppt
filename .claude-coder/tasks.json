@@ -710,7 +710,7 @@
         "【记录】测试结果写入 record/canvas-multiselect-test.md",
         "【预算】Smart Snapshot：Shift选择→验证→Ctrl选择→验证，共 3 次"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-089"
       ]
