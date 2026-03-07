@@ -585,7 +585,7 @@
         "【结论】确定采用混合方案（PptxRender + 后端辅助）",
         "【预算】文档调研不消耗 snapshot"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     },
     {
