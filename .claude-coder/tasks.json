@@ -328,7 +328,7 @@
         "同样处理 handleDrop 中删除文件后的 input 重置",
         "验证：上传图片→删除→再上传同一图片→onChange 触发"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-069"
       ]

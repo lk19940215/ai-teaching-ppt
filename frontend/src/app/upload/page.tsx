@@ -328,9 +328,15 @@ export default function UploadPage() {
     if (uploadType === "image") {
       const validFiles = files.filter(f => f.type.startsWith("image/"))
       setImageFiles(prev => [...prev, ...validFiles])
+      // 清空 input 确保同一文件可重复选择（feat-070）
+      const imageInput = document.getElementById('image-upload') as HTMLInputElement
+      if (imageInput) imageInput.value = ''
     } else if (uploadType === "pdf") {
       const validFile = files.find(f => f.type === "application/pdf")
       if (validFile) setPdfFile(validFile)
+      // 清空 input 确保同一文件可重复选择（feat-070）
+      const pdfInput = document.getElementById('pdf-upload') as HTMLInputElement
+      if (pdfInput) pdfInput.value = ''
     }
   }
 
@@ -339,8 +345,12 @@ export default function UploadPage() {
 
     if (uploadType === "image") {
       setImageFiles(prev => [...prev, ...files])
+      // 清空 input 确保同一文件可重复选择（feat-070）
+      e.target.value = ''
     } else if (uploadType === "pdf" && files[0]) {
       setPdfFile(files[0])
+      // 清空 input 确保同一文件可重复选择（feat-070）
+      e.target.value = ''
     }
   }
 
