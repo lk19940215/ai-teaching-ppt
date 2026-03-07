@@ -91,10 +91,11 @@ export default function UploadPage() {
     difficultyLevel: "unified",
   })
 
-  const [uploadType, setUploadType] = useState<"image" | "pdf" | "text">("text")
+  const [uploadType, setUploadType] = useState<"image" | "pdf" | "text" | "ppt_merge">("text")
   const [textContent, setTextContent] = useState("")
   const [imageFiles, setImageFiles] = useState<File[]>([])
   const [pdfFile, setPdfFile] = useState<File | null>(null)
+  const [pptMergeFiles, setPptMergeFiles] = useState<File[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedContent, setGeneratedContent] = useState<PPTContent | null>(null)
@@ -460,6 +461,37 @@ export default function UploadPage() {
     let eventSource: EventSource | null = null
 
     try {
+      // PPT 合并类型：直接调用合并 API
+      if (uploadType === 'ppt_merge' && pptMergeFiles.length >= 2) {
+        setProgressStatus(`正在上传 ${pptMergeFiles.length} 个 PPT 文件...`)
+        setProgress(10)
+
+        const formData = new FormData()
+        pptMergeFiles.forEach(file => {
+          formData.append('files', file)
+        })
+        formData.append('title', '合并课件')
+
+        const response = await fetch(`${apiBaseUrl}/api/v1/ppt/merge`, {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(`PPT 合并失败：${errorData.detail || '未知错误'}`)
+        }
+
+        const result = await response.json()
+        setProgressStatus('PPT 合并完成！')
+        setProgress(100)
+        setDownloadUrl(`${apiBaseUrl}${result.download_url}`)
+        setFileName(result.file_name)
+        setShowResult(true)
+        setIsGenerating(false)
+        return
+      }
+
       // 获取 LLM 配置
       const llmConfig = getLLMConfig()
       if (!llmConfig) {
@@ -935,11 +967,12 @@ export default function UploadPage() {
             <h2 className="text-xl font-semibold mb-4">上传教材内容</h2>
 
             {/* 上传方式选择 */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4 flex-wrap">
               {[
                 { value: "text" as const, label: "文字输入" },
                 { value: "image" as const, label: "图片上传" },
                 { value: "pdf" as const, label: "PDF 上传" },
+                { value: "ppt_merge" as const, label: "PPT 合并" },
               ].map((option) => (
                 <button
                   key={option.value}
@@ -1061,6 +1094,67 @@ export default function UploadPage() {
                     >
                       删除
                     </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* PPT 合并上传 */}
+            {uploadType === "ppt_merge" && (
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-lg p-8 text-center transition ${
+                  isDragging ? "border-indigo-500 bg-indigo-50" : "border-gray-300"
+                }`}
+              >
+                <input
+                  type="file"
+                  multiple
+                  accept=".pptx"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || [])
+                    if (files.length > 0) {
+                      setPptMergeFiles(files)
+                    }
+                  }}
+                  className="hidden"
+                  id="ppt-merge-upload"
+                />
+                <label
+                  htmlFor="ppt-merge-upload"
+                  className="cursor-pointer block"
+                >
+                  <div className="text-gray-500 mb-2">
+                    拖拽 PPT 文件到这里或点击上传
+                  </div>
+                  <div className="text-sm text-gray-400">
+                    支持 .pptx 格式，至少选择 2 个文件，最多 10 个
+                  </div>
+                </label>
+
+                {pptMergeFiles.length > 0 && (
+                  <div className="mt-4 text-left">
+                    <div className="text-sm text-gray-600 mb-2">
+                      已选择 {pptMergeFiles.length} 个 PPT 文件：
+                    </div>
+                    {pptMergeFiles.map((file, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded mb-1"
+                      >
+                        <span className="text-sm truncate">{file.name}</span>
+                        <button
+                          onClick={() => {
+                            setPptMergeFiles(prev => prev.filter((_, i) => i !== index))
+                          }}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          删除
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -1221,7 +1315,13 @@ export default function UploadPage() {
             {/* 生成按钮 */}
             <Button
               onClick={handleGenerate}
-              disabled={isGenerating || !textContent && imageFiles.length === 0 && !pdfFile}
+              disabled={
+                isGenerating ||
+                (uploadType === 'text' && !textContent) ||
+                (uploadType === 'image' && imageFiles.length === 0) ||
+                (uploadType === 'pdf' && !pdfFile) ||
+                (uploadType === 'ppt_merge' && pptMergeFiles.length < 2)
+              }
               className="w-full mt-6 btn-click-animate"
             >
               {isGenerating ? (
@@ -1230,7 +1330,7 @@ export default function UploadPage() {
                   AI 正在备课中...
                 </span>
               ) : (
-                "生成教学 PPT"
+                uploadType === 'ppt_merge' ? "合并 PPT 课件" : "生成教学 PPT"
               )}
             </Button>
           </div>

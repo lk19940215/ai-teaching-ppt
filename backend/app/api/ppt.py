@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Body, UploadFile, File
+from fastapi import APIRouter, HTTPException, Body, UploadFile, File, Form
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pathlib import Path
 from typing import Optional, AsyncGenerator
@@ -614,3 +614,79 @@ async def generate_full_ppt_stream_get(
             "X-Accel-Buffering": "no"
         }
     )
+
+
+@router.post("/ppt/merge")
+async def merge_ppts(
+    files: list[UploadFile] = File(..., description="要合并的多个 PPT 文件"),
+    title: str = Form("合并课件", description="合并后课件的标题"),
+):
+    """
+    合并多个 PPT 文件为一个新课件
+    Args:
+        files: 要合并的 PPTX 文件列表（至少 2 个）
+        title: 合并后课件的标题
+    Returns:
+        合并后的 PPT 文件下载链接
+    """
+    try:
+        if len(files) < 2:
+            raise HTTPException(status_code=400, detail="至少需要上传 2 个 PPT 文件")
+
+        if len(files) > 10:
+            raise HTTPException(status_code=400, detail="最多支持合并 10 个 PPT 文件")
+
+        # 验证文件类型并保存临时文件
+        from pathlib import Path
+        import tempfile
+
+        temp_dir = Path(tempfile.gettempdir()) / "ppt_merge"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+
+        ppt_paths = []
+        try:
+            for file in files:
+                if not file.filename.lower().endswith(".pptx"):
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"不支持的文件格式：{file.filename}，仅支持 .pptx 格式"
+                    )
+
+                # 保存临时文件
+                temp_path = temp_dir / f"{uuid.uuid4().hex}_{file.filename}"
+                async with aiofiles.open(temp_path, "wb") as f:
+                    content = await file.read()
+                    await f.write(content)
+                ppt_paths.append(temp_path)
+
+            # 生成输出文件名
+            output_file_name = f"merged_{uuid.uuid4().hex[:8]}.pptx"
+            output_path = settings.UPLOAD_DIR / "generated" / output_file_name
+
+            # 调用合并服务
+            from ..services.ppt_generator import get_ppt_generator
+            generator = get_ppt_generator()
+            generator.merge_ppts(ppt_paths, output_path, title)
+
+            return JSONResponse(content={
+                "success": True,
+                "message": f"成功合并 {len(files)} 个 PPT 文件",
+                "download_url": f"/uploads/generated/{output_file_name}",
+                "file_name": output_file_name,
+                "merged_count": len(files)
+            })
+
+        finally:
+            # 清理临时文件
+            for temp_path in ppt_paths:
+                try:
+                    if temp_path.exists():
+                        temp_path.unlink()
+                except Exception as e:
+                    logger.warning(f"清理临时文件失败：{temp_path}, {e}")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"PPT 合并失败：{e}")
+        raise HTTPException(status_code=500, detail=f"PPT 合并失败：{str(e)}")

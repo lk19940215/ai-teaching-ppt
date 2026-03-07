@@ -24,6 +24,14 @@
       "expected": "HTTP 200, 返回历史记录列表（空或含记录）",
       "last_result": "pass",
       "last_run_session": 3
+    },
+    {
+      "id": "test-feat072-merge",
+      "feature_id": "feat-072",
+      "verify": "python -c \"import requests; r=requests.post('http://localhost:8000/api/v1/ppt/merge', data={'title':'test'}); print(r.status_code)\"",
+      "expected": "HTTP 422, 返回字段验证错误（需要至少 2 个文件）",
+      "last_result": "pass",
+      "last_run_session": 4
     }
   ]
 }

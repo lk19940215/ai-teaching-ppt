@@ -6024,6 +6024,147 @@ class PPTGenerator:
             visual_para.alignment = PP_ALIGN.CENTER
 
 
+    def merge_ppts(self, ppt_paths: List[Path], output_path: Path, title: str = "合并课件") -> Path:
+        """
+        合并多个 PPT 文件为一个新课件
+
+        Args:
+            ppt_paths: 要合并的 PPT 文件路径列表
+            output_path: 输出文件路径
+            title: 合并后课件的标题（用于封面页）
+
+        Returns:
+            合并后的 PPT 文件路径
+        """
+        try:
+            from pptx import Presentation
+
+            # 创建新的 PPT
+            merged_prs = Presentation()
+            merged_prs.slide_width = Inches(10)
+            merged_prs.slide_height = Inches(7.5)
+
+            # 添加封面页
+            self._add_cover_slide(
+                merged_prs,
+                title,
+                40,  # 标题字号
+                COLOR_BLUE_6,  # 主色
+                False  # 不需要拼音
+            )
+
+            # 遍历每个 PPT 文件，复制所有幻灯片
+            total_slides = 0
+            for ppt_path in ppt_paths:
+                if not ppt_path.exists():
+                    logger.warning(f"PPT 文件不存在：{ppt_path}")
+                    continue
+
+                try:
+                    source_prs = Presentation(ppt_path)
+
+                    # 跳过第一个幻灯片（假设是封面），避免重复
+                    start_idx = 1 if len(source_prs.slides) > 1 else 0
+
+                    for slide_idx in range(start_idx, len(source_prs.slides)):
+                        source_slide = source_prs.slides[slide_idx]
+
+                        # 复制幻灯片内容到新 PPT
+                        # 注意：python-pptx 不直接支持复制幻灯片，需要手动复制内容
+                        self._copy_slide_content(source_slide, merged_prs)
+                        total_slides += 1
+
+                except Exception as e:
+                    logger.error(f"复制 PPT {ppt_path} 时出错：{e}")
+                    continue
+
+            # 保存合并后的 PPT
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            merged_prs.save(output_path)
+
+            logger.info(f"成功合并 {len(ppt_paths)} 个 PPT 文件，共 {total_slides} 页幻灯片")
+            return output_path
+
+        except Exception as e:
+            logger.error(f"合并 PPT 失败：{e}")
+            raise
+
+    def _copy_slide_content(self, source_slide, target_prs: Presentation):
+        """
+        复制幻灯片内容到新 PPT
+
+        Args:
+            source_slide: 源幻灯片
+            target_prs: 目标 PPT 对象
+        """
+        try:
+            # 添加空白幻灯片
+            blank_layout = target_prs.slide_layouts[6]  # 空白布局
+            target_slide = target_prs.slides.add_slide(blank_layout)
+
+            # 复制所有形状
+            for shape in source_slide.shapes:
+                if shape.shape_type == 14:  # msoShapeType['placeHolder']
+                    # 跳过占位符
+                    continue
+                elif shape.shape_type == 5:  # msoShapeType['textBox']
+                    # 复制文本框
+                    self._copy_textbox(shape, target_slide)
+                elif shape.shape_type == 13:  # msoShapeType['picture']
+                    # 复制图片（暂不支持，跳过）
+                    logger.debug("跳过图片复制")
+                    continue
+                # 其他形状暂不支持
+
+        except Exception as e:
+            logger.error(f"复制幻灯片内容失败：{e}")
+
+    def _copy_textbox(self, source_shape, target_slide):
+        """
+        复制文本框到目标幻灯片
+
+        Args:
+            source_shape: 源文本框形状
+            target_slide: 目标幻灯片
+        """
+        try:
+            from pptx.util import Inches, Pt
+            from pptx.enum.text import PP_ALIGN
+            from pptx.dml.color import RGBColor
+
+            # 获取源文本框属性
+            src_left = source_shape.left
+            src_top = source_shape.top
+            src_width = source_shape.width
+            src_height = source_shape.height
+
+            # 在目标幻灯片创建文本框
+            target_box = target_slide.shapes.add_textbox(
+                src_left, src_top, src_width, src_height
+            )
+            target_frame = target_box.text_frame
+
+            # 复制文本内容和格式
+            source_frame = source_shape.text_frame
+            if source_frame.text:
+                target_frame.text = source_frame.text
+
+                # 复制段落格式
+                for i, src_para in enumerate(source_frame.paragraphs):
+                    if i < len(target_frame.paragraphs):
+                        tgt_para = target_frame.paragraphs[i]
+                        tgt_para.font.size = src_para.font.size
+                        tgt_para.font.bold = src_para.font.bold
+                        tgt_para.font.italic = src_para.font.italic
+                        if src_para.font.color.rgb:
+                            tgt_para.font.color.rgb = src_para.font.color.rgb
+                        tgt_para.alignment = src_para.alignment
+                        tgt_para.level = src_para.level
+
+        except Exception as e:
+            logger.error(f"复制文本框失败：{e}")
+
+
 # 全局 PPT 生成器实例
 _ppt_generator_instance: Optional[PPTGenerator] = None
 
