@@ -129,8 +129,6 @@ async def generate_full_ppt(
         llm_service = get_llm_service(
             provider=provider,
             api_key=api_key,
-            base_url=settings.OPENAI_API_BASE,
-            model=settings.OPENAI_MODEL,
             temperature=llm_temperature,
             max_tokens=llm_max_tokens
         )
@@ -261,8 +259,10 @@ async def generate_full_ppt_stream(
 
     async def generate_in_background():
         """后台执行生成任务"""
+        logger.info("后台生成任务启动")
         try:
             # 阶段 1: 分析内容 (10%)
+            logger.info("发送第一个 SSE 事件：analyzing_content 10%")
             await progress_queue.put({
                 "stage": "analyzing_content",
                 "progress": 10,
@@ -408,7 +408,11 @@ async def generate_full_ppt_stream(
             await progress_queue.put(None)
 
     # 启动后台任务
-    asyncio.create_task(generate_in_background())
+    task = asyncio.create_task(generate_in_background())
+
+    # 让出控制权给事件循环，确保后台任务立即开始执行
+    # 这样第一个 SSE 事件（analyzing_content 10%）会在返回响应前被放入队列
+    await asyncio.sleep(0)
 
     # 返回 SSE 流
     return StreamingResponse(
@@ -440,12 +444,15 @@ async def generate_full_ppt_stream_get(
     """
     完整生成 PPT（SSE 流式响应 - GET 版本，用于 EventSource）
     """
+    logger.info(f"收到 SSE 生成请求：text_content={text_content[:50]}..., grade={grade}, subject={subject}")
     progress_queue: asyncio.Queue = asyncio.Queue()
 
     async def generate_in_background():
         """后台执行生成任务"""
+        logger.info("后台生成任务启动")
         try:
             # 阶段 1: 分析内容 (10%)
+            logger.info("发送第一个 SSE 事件：analyzing_content 10%")
             await progress_queue.put({
                 "stage": "analyzing_content",
                 "progress": 10,
@@ -591,7 +598,11 @@ async def generate_full_ppt_stream_get(
             await progress_queue.put(None)
 
     # 启动后台任务
-    asyncio.create_task(generate_in_background())
+    task = asyncio.create_task(generate_in_background())
+
+    # 让出控制权给事件循环，确保后台任务立即开始执行
+    # 这样第一个 SSE 事件（analyzing_content 10%）会在返回响应前被放入队列
+    await asyncio.sleep(0)
 
     # 返回 SSE 流
     return StreamingResponse(

@@ -151,8 +151,6 @@ async def regenerate_from_history_api(
         llm_service = get_llm_service(
             provider=provider,
             api_key=api_key,
-            base_url=settings.OPENAI_API_BASE,
-            model=settings.OPENAI_MODEL,
             temperature=llm_temperature,
             max_tokens=llm_max_tokens
         )

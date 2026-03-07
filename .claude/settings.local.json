@@ -15,7 +15,9 @@
       "Bash(ls:*)",
       "WebSearch",
       "Bash(tasklist:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(kill:*)",
+      "Bash(lsof:*)"
     ]
   }
 }

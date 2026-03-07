@@ -83,8 +83,8 @@ class LLMService:
             "timeout": kwargs.get("timeout", 60)
         }
 
-        # OpenAI 支持 response_format 参数用于 JSON 输出
-        if self.provider == LLMProvider.OPENAI and kwargs.get("response_format"):
+        # 设置 response_format 确保 JSON 输出（不支持的服务器会忽略此参数）
+        if kwargs.get("response_format"):
             chat_kwargs["response_format"] = kwargs["response_format"]
 
         try:
@@ -259,9 +259,8 @@ class LLMService:
             }
         ]
 
-        # OpenAI 使用 response_format 确保 JSON 输出
-        if self.provider == LLMProvider.OPENAI:
-            kwargs["response_format"] = {"type": "json_object"}
+        # 设置 response_format 确保 JSON 输出（不支持的服务器会忽略此参数）
+        kwargs["response_format"] = {"type": "json_object"}
 
         # 单次执行，不重试
         response = self.chat(messages, **kwargs)

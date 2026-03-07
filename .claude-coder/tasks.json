@@ -171,7 +171,7 @@
         "【记录】测试结果写入 record/core_flow_test.md（使用 test_rule.md 模板）",
         "【预算】Smart Snapshot 策略：导航→填写→点击→等待→验证，共 3-4 次 snapshot"
       ],
-      "status": "in_progress",
+      "status": "done",
       "depends_on": []
     },
     {

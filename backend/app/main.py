@@ -1,16 +1,27 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 from pathlib import Path
+import logging
 from .config import settings
 from .api import upload, process, generate, ppt, history, config as config_router
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="AI 教学 PPT 生成器 API",
     description="教师上传教材内容，AI 自动生成教学 PPT 的后端服务",
     version="1.0.0",
 )
+
+# 请求日志中间件
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.info(f"收到请求：{request.method} {request.url.path}")
+    response = await call_next(request)
+    logger.info(f"响应：{request.method} {request.url.path} - {response.status_code}")
+    return response
 
 # 配置 CORS
 app.add_middleware(

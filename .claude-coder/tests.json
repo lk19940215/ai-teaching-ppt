@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "test_cases": [
+    {
+      "id": "test-feat061-core-flow",
+      "feature_id": "feat-061",
+      "verify": "curl -s http://localhost:8000/health",
+      "expected": "HTTP 200, 返回 {\"status\":\"healthy\"}",
+      "last_result": "pass",
+      "last_run_session": 2
+    },
+    {
+      "id": "test-feat061-api",
+      "feature_id": "feat-061",
+      "verify": "curl -s \"http://localhost:8000/api/v1/config/providers/default\"",
+      "expected": "HTTP 200, 返回 LLM 配置信息",
+      "last_result": "pass",
+      "last_run_session": 2
+    }
+  ]
+}
