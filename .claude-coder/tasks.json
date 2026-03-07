@@ -602,7 +602,7 @@
         "【记录】结果写入 record/ppt-capability-detection.md",
         "【预算】每个端点 1 次 curl，不消耗 snapshot"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     },
     {

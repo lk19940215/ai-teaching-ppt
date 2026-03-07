@@ -2,5 +2,4 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "## Playwright MCP 文件上传能力验证 - 完成\n\n### 测试内容\n1. **单文件上传**: 验证 browser_file_upload 工具支持绝对路径\n2. **多文件上传**: 同时上传 3 张图片文件\n3. **PPTX 格式支持**: 上传 .pptx 文件\n4. **大文件上传**: 上传 15MB 测试文件\n\n### 测试结果\n- ✅ 所有上传测试通过\n- ✅ browser_file_upload 完全支持文件上传场景\n- ✅ 支持绝对路径（Windows/Linux 格式）\n- ✅ 支持多文件数组传递\n- ✅ 无明显文件大小限制（15MB 测试通过）\n- ⚠️ 发现合并页面预览渲染 Bug（与上传功能无关，是前端渲染问题）\n\n### 测试报告\n- 位置：record/playwright-upload-test.md\n\n### 给下会话的提醒\n- 如需继续测试文件上传相关功能，可直接使用 browser_file_upload 工具\n- 合并页面渲染 Bug 需要单独修复（位置：src\\components\\ppt-canvas-renderer.tsx:108）\n- 测试文件已创建在 backend/tests/fixtures/ 目录\n"
-}
+  "notes": "## feat-080 Canvas 渲染 PPT 可行性调研 - 完成\n\n### 完成内容\n1. 调研 4 种技术方案：\n   - PptxRender (npm 库)\n   - pptxjs (老牌库)\n   - 自研解析器+Canvas（当前实现）\n   - 后端解析 + 前端渲染（混合方案）\n2. 完成调研报告：record/canvas-render-research.md\n3. 确定技术选型：后端解析 + 前端 Canvas 渲染组合方案\n\n### 调研结论\n- 当前实现（feat-083 ppt-canvas-renderer.tsx）已验证可行\n- python-pptx 解析能力强于纯 JS 方案\n- Canvas 渲染可控性高，支持渐进优化\n- 已实现：文本/图片/表格/形状渲染，离屏缓存\n\n### 后续任务\n- feat-087: 集成 PptxRender 库（可选增强）\n- feat-088: 性能优化（虚拟滚动、懒加载）\n- feat-097: 降级机制实现\n\n### 注意事项\n- 任务状态已更新为 done\n- Git commit: b17783d\n- 保持后台服务运行（连续模式）"
