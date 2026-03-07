@@ -227,6 +227,8 @@ interface PptCanvasRendererProps {
   onError?: (error: Error) => void
   // 降级模式标识（feat-097）
   fallbackMode?: boolean
+  // 页面索引（用于超时检测，feat-098）
+  pageIndex?: number
 }
 
 /**
@@ -257,6 +259,10 @@ export function PptCanvasRenderer({
   const [renderPriority, setRenderPriority] = React.useState(10)
   // feat-097: 渲染错误状态
   const [renderError, setRenderError] = React.useState<Error | null>(null)
+  // feat-098: 渲染超时状态
+  const [isTimeout, setIsTimeout] = React.useState(false)
+  // feat-098: 内存不足状态
+  const [isMemoryLow, setIsMemoryLow] = React.useState(false)
 
   // 计算缩放比例（添加默认 layout 防止出错）
   const layout = pageData.layout || { width: 960, height: 540 }
@@ -509,16 +515,31 @@ export function PptCanvasRenderer({
     const canvas = canvasRef.current
     if (!canvas) return
 
+    // feat-098: 超时检测 - 开始计时
+    const renderStartTime = performance.now()
+    const RENDER_TIMEOUT = 5000 // 5 秒超时阈值
+
     const ctx = canvas.getContext('2d')
     if (!ctx) {
       // Canvas 2D 上下文获取失败，触发降级
-      const error = new Error('无法获取 Canvas 2D 上下文')
+      const error = new Error('浏览器不支持 Canvas 2D 渲染')
       setRenderError(error)
       onError?.(error)
       return
     }
 
     try {
+      // feat-098: 内存检查
+      // 检查 Canvas 是否过大导致内存问题
+      const maxCanvasSize = 4096 // 最大边长
+      if (width > maxCanvasSize || height > maxCanvasSize) {
+        const memoryError = new Error(`Canvas 尺寸过大（${width}x${height}），可能导致内存不足`)
+        setIsMemoryLow(true)
+        setRenderError(memoryError)
+        onError?.(memoryError)
+        return
+      }
+
       // 检查缓存
       const cachedCanvas = getCachedCanvas(cacheKey)
       if (cachedCanvas) {
@@ -610,14 +631,31 @@ export function PptCanvasRenderer({
       setCachedCanvas(cacheKey, offscreen)
     }
 
+    // feat-098: 检查渲染时间是否超时
+    const renderTime = performance.now() - renderStartTime
+    if (renderTime > RENDER_TIMEOUT) {
+      console.warn(`Canvas 渲染耗时过长：${renderTime.toFixed(0)}ms（阈值：${RENDER_TIMEOUT}ms）`)
+      setIsTimeout(true)
+    }
+
     setIsInCache(false)
     setIsLoaded(true)
     // 渲染成功，清除错误状态
     setRenderError(null)
+    setIsTimeout(false)
+    setIsMemoryLow(false)
     return true
   } catch (error) {
     // 渲染失败，触发降级
     const err = error instanceof Error ? error : new Error('Canvas 渲染失败')
+
+    // feat-098: 分类错误类型
+    if (err.message.includes('内存') || err.message.includes('memory')) {
+      setIsMemoryLow(true)
+    } else if (err.message.includes('超时') || renderError?.message?.includes('timeout')) {
+      setIsTimeout(true)
+    }
+
     setRenderError(err)
     onError?.(err)
     console.error('Canvas 渲染失败:', error)

@@ -36,8 +36,18 @@ function PptUploadArea({ label, file, onFileSelect, disabled = false }: PptUploa
     if (selectedFile) {
       // 验证文件类型
       if (!selectedFile.type.includes('presentation') && !selectedFile.name.endsWith('.pptx')) {
-        alert('请选择 PPTX 格式文件')
-        return
+        // feat-098: 详细的错误提示
+        const errorMsg = !selectedFile.name.endsWith('.pptx')
+          ? `文件格式错误："${selectedFile.name}" 不是 PPTX 格式，请选择 .pptx 文件`
+          : `文件格式错误："${selectedFile.name}" 格式无法识别，请选择 .pptx 文件`
+        onFileSelect(null)
+        throw new Error(errorMsg)
+      }
+      // 验证文件大小（20MB 限制）
+      const maxSize = 20 * 1024 * 1024
+      if (selectedFile.size > maxSize) {
+        const sizeMB = (selectedFile.size / 1024 / 1024).toFixed(1)
+        throw new Error(`文件大小超出限制：${sizeMB}MB > 20MB，请上传小于 20MB 的文件`)
       }
       onFileSelect(selectedFile)
     }
@@ -54,8 +64,17 @@ function PptUploadArea({ label, file, onFileSelect, disabled = false }: PptUploa
     const droppedFile = e.dataTransfer.files?.[0]
     if (droppedFile) {
       if (!droppedFile.type.includes('presentation') && !droppedFile.name.endsWith('.pptx')) {
-        alert('请选择 PPTX 格式文件')
-        return
+        // feat-098: 详细的错误提示
+        const errorMsg = !droppedFile.name.endsWith('.pptx')
+          ? `文件格式错误："${droppedFile.name}" 不是 PPTX 格式，请选择 .pptx 文件`
+          : `文件格式错误："${droppedFile.name}" 格式无法识别，请选择 .pptx 文件`
+        throw new Error(errorMsg)
+      }
+      // 验证文件大小（20MB 限制）
+      const maxSize = 20 * 1024 * 1024
+      if (droppedFile.size > maxSize) {
+        const sizeMB = (droppedFile.size / 1024 / 1024).toFixed(1)
+        throw new Error(`文件大小超出限制：${sizeMB}MB > 20MB，请上传小于 20MB 的文件`)
       }
       onFileSelect(droppedFile)
     }
@@ -179,27 +198,71 @@ export default function MergePage() {
 
   // 解析 PPT 文件获取页面数据
   const parsePptFile = async (file: File): Promise<PptPageData[]> => {
+    // feat-098: 超时检测（30 秒）
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000)
+
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await fetch(`${apiBaseUrl}/api/v1/ppt/parse`, {
-      method: 'POST',
-      body: formData,
-    })
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/parse`, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      })
 
-    if (!response.ok) {
-      throw new Error('PPT 解析失败')
+      clearTimeout(timeoutId)
+
+      // feat-098: 详细的错误处理
+      if (!response.ok) {
+        // 文件不存在
+        if (response.status === 404) {
+          throw new Error(`文件 "${file.name}" 无法访问或不存在`)
+        }
+        // 文件格式不支持
+        if (response.status === 415) {
+          throw new Error(`文件格式不支持："${file.name}"，仅支持 .pptx 格式`)
+        }
+        // 文件损坏
+        if (response.status === 400) {
+          const errorData = await response.json().catch(() => ({ detail: '文件损坏或格式错误' }))
+          throw new Error(`文件损坏或无法解析：${errorData.detail || '请检查文件是否完整'}`)
+        }
+        // 服务器错误
+        if (response.status >= 500) {
+          throw new Error(`服务器错误（${response.status}）：PPT 解析服务暂时不可用，请稍后重试`)
+        }
+        // 其他错误
+        throw new Error(`PPT 解析失败（HTTP ${response.status}）：${response.statusText}`)
+      }
+
+      const result = await response.json()
+
+      // 验证返回数据
+      if (!result.pages || !Array.isArray(result.pages)) {
+        throw new Error('PPT 解析返回数据格式错误，无法读取页面内容')
+      }
+
+      // feat-098: 检测空 PPT
+      if (result.pages.length === 0) {
+        throw new Error(`PPT 文件 "${file.name}" 中没有检测到页面内容`)
+      }
+
+      // 记录到全局性能指标
+      const win = window as any
+      if (win.perfMetrics) {
+        win.perfMetrics.apiEnd = performance.now()
+      }
+
+      return result.pages || []
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        throw new Error('PPT 解析超时（30 秒），文件可能过大或网络连接不稳定，请重试')
+      }
+      // 重新抛出已处理的错误
+      throw err
     }
-
-    const result = await response.json()
-
-    // 记录到全局性能指标
-    const win = window as any
-    if (win.perfMetrics) {
-      win.perfMetrics.apiEnd = performance.now()
-    }
-
-    return result.pages || []
   }
 
   // feat-097: 从后端获取降级数据（简化模式）
@@ -233,6 +296,27 @@ export default function MergePage() {
 
     console.warn(`${source} PPT Canvas 渲染失败，切换到降级模式：${errorMsg}`)
 
+    // feat-098: 错误分类处理
+    const isTimeout = errorMsg.includes('超时') || errorMsg.includes('timeout')
+    const isMemoryLow = errorMsg.includes('内存') || errorMsg.includes('memory')
+    const isCanvasUnsupported = errorMsg.includes('Canvas') || errorMsg.includes('2D') || errorMsg.includes('上下文')
+    const isFormatIncompatible = errorMsg.includes('格式') || errorMsg.includes('compatibility')
+
+    // 设置错误消息
+    let message = ''
+    if (isTimeout) {
+      message = `渲染超时（5 秒），PPT 页面内容过多或浏览器性能不足，已切换到简化渲染模式。建议：关闭其他浏览器标签页释放内存。`
+    } else if (isMemoryLow) {
+      message = `内存不足，无法渲染此 PPT 页面。建议：关闭其他浏览器标签页，或重启浏览器释放内存后重试。`
+    } else if (isCanvasUnsupported) {
+      message = `浏览器不支持 Canvas 2D 渲染，已切换到后端解析模式（仅显示文本内容）。建议使用 Chrome、Firefox、Edge 等现代浏览器。`
+    } else if (isFormatIncompatible) {
+      message = `PPT 格式部分不兼容，某些元素可能无法正确显示。`
+    } else {
+      message = errorMsg || 'Canvas 渲染失败，已切换到简化模式。'
+    }
+    setError(message)
+
     if (source === 'A') {
       setFallbackModeA(true)
       const data = await fetchFallbackData(file)
@@ -257,9 +341,11 @@ export default function MergePage() {
         const pages = await parsePptFile(pptA)
         setPptAPages(pages)
         setSelectedPagesA([]) // 重置选择
-      } catch (err) {
+      } catch (err: any) {
         console.error('解析 PPT A 失败:', err)
-        setError('解析 PPT A 失败，请重试')
+        // feat-098: 详细的错误提示
+        const errorMsg = err.message || '解析 PPT A 失败，请重试'
+        setError(errorMsg)
       } finally {
         setIsLoadingA(false)
       }
@@ -281,9 +367,11 @@ export default function MergePage() {
         const pages = await parsePptFile(pptB)
         setPptBPages(pages)
         setSelectedPagesB([]) // 重置选择
-      } catch (err) {
+      } catch (err: any) {
         console.error('解析 PPT B 失败:', err)
-        setError('解析 PPT B 失败，请重试')
+        // feat-098: 详细的错误提示
+        const errorMsg = err.message || '解析 PPT B 失败，请重试'
+        setError(errorMsg)
       } finally {
         setIsLoadingB(false)
       }

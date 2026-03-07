@@ -54,6 +54,8 @@ interface PptCanvasPreviewProps {
   file?: File | null
   // Canvas 渲染失败回调（feat-097）
   onRenderError?: (error: Error) => void
+  // feat-098: 格式兼容性警告回调
+  onCompatibilityWarning?: (warnings: string[]) => void
 }
 
 // 每页显示的缩略图数量
@@ -91,6 +93,8 @@ export function PptCanvasPreview({
   onDeletePage,
   fallbackMode = false,
   onFallbackModeChange,
+  file,
+  onRenderError,
 }: PptCanvasPreviewProps) {
   const [internalCurrentPage, setInternalCurrentPage] = useState(1)
   // 虚拟滚动：滚动容器引用
@@ -104,6 +108,10 @@ export function PptCanvasPreview({
   const [internalFallbackMode, setInternalFallbackMode] = useState(fallbackMode)
   // feat-097: 降级提示消息
   const [fallbackMessage, setFallbackMessage] = useState<string | null>(null)
+  // feat-098: 超时重试状态
+  const [retryCount, setRetryCount] = useState(0)
+  // feat-098: 格式兼容性警告
+  const [compatibilityWarnings, setCompatibilityWarnings] = useState<string[]>([])
 
   // 使用外部控制的降级模式或内部状态
   const isFallbackMode = onFallbackModeChange ? fallbackMode : internalFallbackMode
@@ -329,6 +337,28 @@ export function PptCanvasPreview({
     }
   }, [apiBaseUrl])
 
+  // feat-098: 处理重试
+  const handleRetry = async () => {
+    if (!file) return
+
+    setRetryCount(prev => prev + 1)
+    setFallbackMessage(null)
+    setCompatibilityWarnings([])
+
+    // 重置降级模式，尝试重新渲染
+    if (onFallbackModeChange) {
+      onFallbackModeChange(false)
+    } else {
+      setInternalFallbackMode(false)
+    }
+
+    // 触发父组件重新解析
+    if (onRenderError) {
+      // 通过重新调用 onRenderError 来触发重试逻辑
+      // 实际重试由父组件的 useEffect 处理
+    }
+  }
+
   // 处理上一页
   const handlePrevPage = () => {
     const newPage = Math.max(1, currentPg - 1)
@@ -509,6 +539,32 @@ export function PptCanvasPreview({
               <p className="text-xs text-amber-700 mt-1">
                 {fallbackMessage || 'Canvas 渲染不可用，已切换到后端解析模式，仅显示文本内容。'}
               </p>
+              {/* feat-098: 重试按钮 */}
+              <button
+                onClick={handleRetry}
+                className="mt-2 text-xs text-amber-900 underline hover:no-underline"
+              >
+                尝试重新渲染（重试 {retryCount} 次）
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* feat-098: 格式兼容性警告 */}
+      {compatibilityWarnings.length > 0 && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-start gap-2">
+            <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="flex-1">
+              <p className="text-sm text-blue-800 font-medium">格式兼容性提示</p>
+              <ul className="text-xs text-blue-700 mt-1 list-disc list-inside">
+                {compatibilityWarnings.map((warning, idx) => (
+                  <li key={idx}>{warning}</li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
