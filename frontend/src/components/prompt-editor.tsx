@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -37,6 +37,8 @@ interface PromptEditorProps {
   onGlobalPromptChange?: (prompt: string) => void
   // 是否禁用编辑
   disabled?: boolean
+  // 需要聚焦的页面（用于 Canvas 点击后自动滚动到对应输入框）
+  focusPage?: { pptSource: 'A' | 'B'; pageIndex: number } | null
 }
 
 /**
@@ -58,9 +60,12 @@ export function PromptEditor({
   globalPrompt = "",
   onGlobalPromptChange,
   disabled = false,
+  focusPage = null,
 }: PromptEditorProps) {
   const [localPagePrompts, setLocalPagePrompts] = useState<Record<string, string>>(pagePrompts)
   const [localGlobalPrompt, setLocalGlobalPrompt] = useState(globalPrompt)
+  // 存储每个页面输入框的引用
+  const inputRefs = useRef<Record<string, HTMLTextAreaElement | null>>({})
 
   // 同步外部状态变化
   React.useEffect(() => {
@@ -70,6 +75,23 @@ export function PromptEditor({
   React.useEffect(() => {
     setLocalGlobalPrompt(globalPrompt)
   }, [globalPrompt])
+
+  // 当 focusPage 变化时，自动滚动并聚焦到对应输入框
+  React.useEffect(() => {
+    if (!focusPage) return
+
+    const key = `${focusPage.pptSource}-${focusPage.pageIndex}`
+    const element = inputRefs.current[key]
+
+    if (element) {
+      // 滚动到可视区域
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      // 聚焦输入框
+      element.focus()
+      // 选中全部文本（方便快速编辑）
+      element.select()
+    }
+  }, [focusPage])
 
   // 获取页面的标题（截断）
   const getPageTitle = (pptSource: 'A' | 'B', pageIndex: number): string => {
@@ -180,6 +202,7 @@ export function PromptEditor({
                             {getPageTitle('A', page.index)}
                           </p>
                           <textarea
+                            ref={(el) => { inputRefs.current[key] = el }}
                             value={value}
                             onChange={(e) => handlePagePromptChange('A', page.index, e.target.value)}
                             placeholder="例如：保留此页，与 B 第 5 页合并..."
@@ -235,6 +258,7 @@ export function PromptEditor({
                             {getPageTitle('B', page.index)}
                           </p>
                           <textarea
+                            ref={(el) => { inputRefs.current[key] = el }}
                             value={value}
                             onChange={(e) => handlePagePromptChange('B', page.index, e.target.value)}
                             placeholder="例如：将此页内容插入到 A 第 3 页之后..."

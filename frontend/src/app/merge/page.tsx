@@ -151,6 +151,8 @@ export default function MergePage() {
   // 提示语状态
   const [pagePrompts, setPagePrompts] = useState<Record<string, string>>({})
   const [globalPrompt, setGlobalPrompt] = useState("")
+  // 聚焦状态：记录需要从 Canvas 点击后聚焦到哪个输入框
+  const [focusPage, setFocusPage] = useState<{ pptSource: 'A' | 'B'; pageIndex: number } | null>(null)
 
   // 生成状态
   const [isGenerating, setIsGenerating] = useState(false)
@@ -227,13 +229,39 @@ export default function MergePage() {
   }, [pptB])
 
   // 处理页面选择变化（用于后续提示语编辑）
+  // 当选中页面时，自动聚焦到对应的提示语输入框
   const handleSelectionChangeA = (selected: number[]) => {
     setSelectedPagesA(selected)
+    // 如果是单选（只有一个选中项），设置聚焦
+    if (selected.length === 1) {
+      const newIndex = selected[0]
+      // 只有新增选中时才聚焦
+      if (!selectedPagesA.includes(newIndex) || selectedPagesA.length === 1) {
+        setFocusPage({ pptSource: 'A', pageIndex: newIndex })
+      }
+    }
   }
 
   const handleSelectionChangeB = (selected: number[]) => {
     setSelectedPagesB(selected)
+    // 如果是单选（只有一个选中项），设置聚焦
+    if (selected.length === 1) {
+      const newIndex = selected[0]
+      if (!selectedPagesB.includes(newIndex) || selectedPagesB.length === 1) {
+        setFocusPage({ pptSource: 'B', pageIndex: newIndex })
+      }
+    }
   }
+
+  // 当 focusPage 被消费后（PromptEditor 中的 useEffect 会触发），重置聚焦状态
+  useEffect(() => {
+    if (focusPage) {
+      const timer = setTimeout(() => {
+        setFocusPage(null)
+      }, 500) // 0.5 秒后重置，给用户时间聚焦
+      return () => clearTimeout(timer)
+    }
+  }, [focusPage])
 
   // 处理合并生成（feat-078）
   const handleMerge = async () => {
@@ -518,6 +546,7 @@ export default function MergePage() {
               globalPrompt={globalPrompt}
               onGlobalPromptChange={setGlobalPrompt}
               disabled={isGenerating}
+              focusPage={focusPage}
             />
 
             {/* 进度反馈（feat-078） */}

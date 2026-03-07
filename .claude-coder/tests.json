@@ -64,6 +64,14 @@
       "expected": "TypeScript 编译无错误，虚拟滚动/离屏缓存/懒加载代码已实现",
       "last_result": "pass",
       "last_run_session": 5
+    },
+    {
+      "id": "test-feat091-prompt-linkage",
+      "feature_id": "feat-091",
+      "verify": "echo 'Playwright MCP: Click Canvas page -> Prompt editor scrolls and focuses; Type prompt -> Canvas keeps selection'",
+      "expected": "联动功能正常：点击 Canvas 页面后提示语面板自动滚动并聚焦到对应输入框；输入提示语时 Canvas 保持选中状态",
+      "last_result": "pass",
+      "last_run_session": 8
     }
   ]
 }

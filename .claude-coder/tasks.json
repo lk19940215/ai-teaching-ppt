@@ -691,7 +691,7 @@
         "【记录】测试结果写入 record/prompt-editor联动-test.md",
         "【预算】Smart Snapshot：点击页面→验证面板→输入→验证高亮，共 3 次"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-084",
         "feat-077"
