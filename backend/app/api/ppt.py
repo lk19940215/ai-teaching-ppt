@@ -9,6 +9,10 @@ import asyncio
 import json
 import io
 import tempfile
+import hashlib
+import time
+import psutil
+import os
 
 from ..services.ppt_generator import get_ppt_generator
 from ..config import settings
@@ -16,6 +20,59 @@ from ..config import settings
 router = APIRouter(prefix=settings.API_V1_STR, tags=["ppt"])
 
 logger = logging.getLogger(__name__)
+
+# PPT 解析缓存
+_ppt_parse_cache: Dict[str, Dict[str, Any]] = {}
+_PPT_CACHE_MAX_SIZE = 100
+_PPT_CACHE_TTL = 1800
+_MEMORY_WARNING_THRESHOLD = 0.85
+_MEMORY_CRITICAL_THRESHOLD = 0.95
+
+def _get_memory_usage() -> float:
+    """获取当前进程内存使用率"""
+    try:
+        process = psutil.Process(os.getpid())
+        mem_info = process.memory_info()
+        system_mem = psutil.virtual_memory().total
+        return mem_info.rss / system_mem
+    except Exception:
+        return 0.0
+
+def _compute_file_hash(content: bytes) -> str:
+    """计算文件内容的 SHA256 哈希值"""
+    return hashlib.sha256(content).hexdigest()
+
+def _cleanup_cache():
+    """清理过期缓存并执行 LRU 淘汰"""
+    current_time = time.time()
+    keys_to_remove = []
+    for file_hash, cache_entry in list(_ppt_parse_cache.items()):
+        if current_time - cache_entry["timestamp"] > _PPT_CACHE_TTL:
+            keys_to_remove.append(file_hash)
+    if len(_ppt_parse_cache) - len(keys_to_remove) > _PPT_CACHE_MAX_SIZE:
+        sorted_entries = sorted(
+            [(k, v) for k, v in _ppt_parse_cache.items() if k not in keys_to_remove],
+            key=lambda x: x[1]["timestamp"]
+        )
+        keys_to_remove.extend([k for k, _ in sorted_entries[:_PPT_CACHE_MAX_SIZE // 2]])
+    for key in keys_to_remove:
+        del _ppt_parse_cache[key]
+
+def _get_from_cache(file_hash: str) -> Optional[Dict[str, Any]]:
+    """从缓存中获取解析结果"""
+    if file_hash not in _ppt_parse_cache:
+        return None
+    cache_entry = _ppt_parse_cache[file_hash]
+    current_time = time.time()
+    if current_time - cache_entry["timestamp"] > _PPT_CACHE_TTL:
+        del _ppt_parse_cache[file_hash]
+        return None
+    return cache_entry["data"]
+
+def _add_to_cache(file_hash: str, data: Dict[str, Any]):
+    """添加解析结果到缓存"""
+    _cleanup_cache()
+    _ppt_parse_cache[file_hash] = {"data": data, "timestamp": time.time()}
 
 @router.post("/ppt/generate")
 async def generate_ppt(
@@ -698,6 +755,8 @@ async def parse_ppt(
     file: UploadFile = File(..., description="要解析的 PPTX 文件"),
     extract_enhanced: bool = Form(False, description="是否提取增强元数据（图片、表格、样式等）"),
     max_image_size: int = Form(512, description="图片最大尺寸（宽度/高度），用于控制Base64大小"),
+    timeout: int = Form(30, description="解析超时时间（秒），默认 30 秒"),
+    use_cache: bool = Form(True, description="是否启用缓存（默认启用）"),
 ):
     """
     解析 PPTX 文件，提取每页的内容用于前端预览
@@ -711,6 +770,34 @@ async def parse_ppt(
         增强模式：{ pages: [{ index, title, content: [{type, text, font, position}], shapes, layout }] }
     """
     try:
+        start_time = time.time()
+        
+        # 内存检查
+        memory_usage = _get_memory_usage()
+        if memory_usage > _MEMORY_CRITICAL_THRESHOLD:
+            raise HTTPException(status_code=503, detail=f"服务器内存紧张 ({memory_usage:.1%})")
+        if memory_usage > _MEMORY_WARNING_THRESHOLD:
+            logger.warning(f"内存使用率较高：{memory_usage:.1%}，启用降级模式")
+            extract_enhanced = False
+        
+        # 读取文件内容
+        content_bytes = await file.read()
+        file_size = len(content_bytes)
+        
+        # 文件大小检查
+        if file_size > 50 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="文件大小不能超过 50MB")
+        
+        # 检查缓存
+        file_hash = _compute_file_hash(content_bytes)
+        cache_key = f"{file_hash}_{'enhanced' if extract_enhanced else 'basic'}_{max_image_size}"
+        
+        if use_cache:
+            cached_result = _get_from_cache(cache_key)
+            if cached_result:
+                logger.info(f"缓存命中：{file.filename}")
+                return JSONResponse(content={**cached_result, "from_cache": True})
+        
         # 验证文件类型
         if not file.filename.lower().endswith(".pptx"):
             raise HTTPException(status_code=400, detail="仅支持 .pptx 格式文件")
@@ -722,8 +809,7 @@ async def parse_ppt(
 
         try:
             async with aiofiles.open(temp_path, "wb") as f:
-                content = await file.read()
-                await f.write(content)
+                await f.write(content_bytes)
 
             # 解析 PPTX
             from pptx import Presentation
@@ -778,7 +864,7 @@ async def parse_ppt(
 
                     # 保存为 JPEG 并压缩
                     output = BytesIO()
-                    img.save(output, format='JPEG', quality=85, optimize=True)
+                    img.save(output, format='JPEG', quality=75, optimize=True, progressive=True)
                     output.seek(0)
 
                     # 转换为 Base64
@@ -929,12 +1015,24 @@ async def parse_ppt(
 
                 pages.append(page_data)
 
-            return JSONResponse(content={
+            result = {
                 'success': True,
                 'file_name': file.filename,
+                'file_size': file_size,
                 'total_pages': len(pages),
                 'enhanced': extract_enhanced,
-                'pages': pages
+                'pages': pages,
+                'parse_time_ms': int((time.time() - start_time) * 1000)
+            }
+            
+            # 缓存结果
+            if use_cache:
+                _add_to_cache(cache_key, result)
+            
+            return JSONResponse(content={
+                **result,
+                "total_time_ms": int((time.time() - start_time) * 1000),
+                "memory_usage": _get_memory_usage()
             })
 
         finally:

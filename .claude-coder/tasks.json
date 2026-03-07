@@ -871,7 +871,7 @@
         "【记录】性能测试结果，写入 record/performance-final-test.md",
         "【预算】Smart Snapshot： upload→解析→snapshot（时间）→验证结果，共 3 次"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-082"
       ]
