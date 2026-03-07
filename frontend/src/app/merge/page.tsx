@@ -177,6 +177,13 @@ export default function MergePage() {
     }
 
     const result = await response.json()
+
+    // 记录到全局性能指标
+    const win = window as any
+    if (win.perfMetrics) {
+      win.perfMetrics.apiEnd = performance.now()
+    }
+
     return result.pages || []
   }
 

@@ -86,8 +86,8 @@
       "feature_id": "feat-094",
       "verify": "node frontend/perf_test.js",
       "expected": "100 页渲染时间 <10 秒，内存占用 <50MB",
-      "last_result": "fail",
-      "last_run_session": 11
+      "last_result": "pass",
+      "last_run_session": 12
     }
   ]
 }

@@ -294,6 +294,15 @@
       "taskId": "feat-093",
       "statusAfter": "done",
       "notes": "Session 10 完成 feat-093 Playwright 端到端测试任务。\n\n## 主要工作\n1. 发现并修复智能合并 API 的 JSON 解析问题：LLM 返回 markdown 代码块包裹的 JSON，原代码未调用 _extract_json_from_response() 导致解析失败\n2. 修复 HTTPException 错误消息为空的问题（使用 e.detail 而非 str(e)）\n3. 修复 MSO_AUTO_SHAPE_TYPE 导入兼容性问题（旧版本 python-pptx 无此枚举）\n4. 添加详细日志记录便于调试\n\n## 测试结果\n- 后端 API /api/v1/ppt/smart-merge-stream 验证通过（8003 端口）\n- Canvas 渲染正常（分页预览 + 缓存标记）\n- 页面选择与提示语面板联动正常\n- 合并策略生成正确，下载链接返回成功\n\n## 环境说明\n- 8000 端口有僵尸进程无法清理，已切换到 8003 端口\n- 前端 .env.local 已更新为 NEXT_PUBLIC_API_URL=http://localhost:8003\n- 测试报告：record/e2e-merge-canvas-test.md\n\n## 给下个 session 的提醒\n- 如需测试其他功能，继续使用 8003 端口后端\n- 或者清理 8000 端口僵尸进程后重启（可能需要重启机器）\n- feat-093 已标记 done，下一个 pending 任务是 feat-094（Canvas 渲染性能测试）"
+    },
+    {
+      "session": 11,
+      "timestamp": "2026-03-07T19:12:23.920Z",
+      "result": "success",
+      "cost": 2.7047277500000004,
+      "taskId": "feat-094",
+      "statusAfter": "failed",
+      "notes": "## Session 11 完成 feat-094 Canvas 渲染性能测试\\n\\n### 主要工作\\n1. 创建 100 页 PPT 测试文件（backend/tests/fixtures/large_test.pptx）\\n2. 编写 Playwright 性能测试脚本（frontend/perf_test.js）\\n3. 执行性能测试并生成报告（record/performance-test.md）\\n\\n### 测试结果\\n- **渲染时间**: 60029ms（60 秒）- ❌ 失败（标准 <10 秒）\\n- **内存使用**: 38MB - ✓ 通过（标准 <50MB）\\n\\n### 问题分析\\n渲染时间超标 6 倍，可能原因：\\n1. Canvas 渲染 100 页缩略图时逐个渲染，未充分利用缓存\\n2. 虚拟滚动在 100 页时可能未正确启用\\n3. PptCanvasRenderer 组件可能对每页都进行完整渲染\\n\\n### 下一步建议\\n下一个 session 应：\\n1. 读取 record/performance-test.md 了解详细性能数据\\n2. 检查 PptCanvasRenderer 的渲染逻辑和缓存机制\\n3. 优化渲染性能（如：降低缩略图分辨率、增加缓存大小、优化 Canvas 绘制）\\n4. 重新运行性能测试验证优化效果\\n\\n### 文件变更\\n- 新增：backend/tests/fixtures/large_test.pptx（100 页测试文件）\\n- 新增：frontend/perf_test.js（性能测试脚本）\\n- 新增：record/performance-test.md（性能测试报告）\\n- 新增：record/perf-test-screenshot.png（测试截图）\\n- 更新：tests.json（添加性能测试记录）\\n"
     }
   ]
 }
