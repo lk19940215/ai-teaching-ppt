@@ -833,7 +833,7 @@
         "【记录】错误处理策略，写入 record/error-handling-canvas-test.md",
         "【预算】每个错误场景 1 次 snapshot（触发→验证错误提示），共 5 次"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-083"
       ]
