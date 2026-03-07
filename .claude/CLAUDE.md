@@ -55,6 +55,16 @@ Key paths:
 * History API
   `backend/app/api/v1/history.py`
 
+* Canvas 预览组件
+  `frontend/src/components/ppt-canvas-renderer.tsx`
+  `frontend/src/components/ppt-canvas-preview.tsx`
+
+* PPT 合并页面
+  `frontend/src/app/merge/page.tsx`
+
+* Canvas 文档
+  `docs/canvas-preview.md`
+
 ---
 
 ## Development Commands
