@@ -755,7 +755,7 @@
         "【记录】性能数据写入 record/performance-test.md",
         "【预算】Smart Snapshot： upload→wait→snapshot（性能数据）→tracing-stop，共 3 次"
       ],
-      "status": "pending",
+      "status": "failed",
       "depends_on": [
         "feat-087"
       ]
