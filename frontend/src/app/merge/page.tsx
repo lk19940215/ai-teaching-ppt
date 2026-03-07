@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { apiBaseUrl } from '@/lib/api'
 import PptCanvasPreview, { type PptPageData } from '@/components/ppt-canvas-preview'
 import PromptEditor from '@/components/prompt-editor'
+import { PptxjsRenderer, type PptxjsPageData as PptxjsParsedData } from '@/components/pptxjs-renderer'
 
 // PPT 文件上传区域属性
 interface PptUploadAreaProps {

@@ -104,8 +104,9 @@ export function PptCanvasRenderer({
   const offscreenCanvasRef = React.useRef<HTMLCanvasElement | null>(null)
   const cacheKeyRef = React.useRef<string>('')
 
-  // 计算缩放比例
-  const scale = Math.min(width / pageData.layout.width, height / pageData.layout.height) * quality
+  // 计算缩放比例（添加默认 layout 防止出错）
+  const layout = pageData.layout || { width: 960, height: 540 }
+  const scale = Math.min(width / layout.width, height / layout.height) * quality
 
   // 渲染单个文本运行
   const renderTextRun = (
@@ -160,7 +161,7 @@ export function PptCanvasRenderer({
 
     const x = shape.position.x * scale + offsetX
     const y = shape.position.y * scale + offsetY
-    const maxWidth = (shape.position.width || pageData.layout.width) * scale
+    const maxWidth = (shape.position.width || layout.width) * scale
 
     let currentY = y + 20 * scale // 初始Y位置，留出顶部边距
 
@@ -327,23 +328,24 @@ export function PptCanvasRenderer({
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
     // 计算偏移（居中）
-    const offsetX = (width - pageData.layout.width * scale) / 2
-    const offsetY = (height - pageData.layout.height * scale) / 2
+    const offsetX = (width - layout.width * scale) / 2
+    const offsetY = (height - layout.height * scale) / 2
 
     // 绘制白色背景
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, width, height)
 
     // 按顺序渲染所有形状
-    for (const shape of pageData.shapes) {
+    for (const shape of pageData.shapes || []) {
       try {
-        if (shape.type === 'text_box' || shape.type === 'placeholder') {
+        const shapeType = shape.type?.toLowerCase() || ''
+        if (shapeType.includes('text') || shapeType.includes('placeholder')) {
           renderTextShape(ctx, shape, offsetX, offsetY)
-        } else if (shape.type === 'picture') {
+        } else if (shapeType.includes('picture') || shapeType.includes('image')) {
           renderImageShape(ctx, shape, offsetX, offsetY)
-        } else if (shape.type === 'table') {
+        } else if (shapeType.includes('table')) {
           renderTableShape(ctx, shape, offsetX, offsetY)
-        } else if (shape.type === 'auto_shape' || shape.type === 'rectangle') {
+        } else if (shapeType.includes('auto_shape') || shapeType.includes('rect') || shapeType.includes('shape')) {
           renderAutoShape(ctx, shape, offsetX, offsetY)
         }
       } catch (error) {

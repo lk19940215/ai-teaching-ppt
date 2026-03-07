@@ -618,7 +618,7 @@
         "验证：/merge 页面 PPT A/B 显示真实渲染效果",
         "预算：每个测试 PPT 1 次 snapshot"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-080"
       ]

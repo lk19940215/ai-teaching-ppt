@@ -5,6 +5,7 @@ import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/ppt-canvas-renderer"
+import { PptxjsRenderer, type PptxjsPageData } from "@/components/pptxjs-renderer"
 
 // 兼容旧的 PPT 页面数据结构
 export interface PptPageData {
@@ -75,16 +76,42 @@ export function PptCanvasPreview({
   const currentPageThumbnails = pages.slice(startIndex, endIndex)
 
   // 转换为基础数据（用于兼容）
-  const convertToEnhanced = (page: PptPageData | EnhancedPptPageData): EnhancedPptPageData => {
-    if ((page as EnhancedPptPageData).shapes && Array.isArray((page as EnhancedPptPageData).shapes)) {
-      return page as EnhancedPptPageData
+  const convertToEnhanced = (page: PptPageData | EnhancedPptPageData, pageIndex: number): EnhancedPptPageData => {
+    // 检查是否已经是完整的 EnhancedPptPageData（有 shapes 且有 text_content）
+    const maybeEnhanced = page as EnhancedPptPageData
+    const hasRealShapes = maybeEnhanced.shapes && maybeEnhanced.shapes.length > 0 &&
+                          maybeEnhanced.shapes[0]?.text_content
+
+    if (hasRealShapes) {
+      // 确保有 layout 属性
+      if (!maybeEnhanced.layout) {
+        maybeEnhanced.layout = { width: 960, height: 540 }
+      }
+      return maybeEnhanced
     }
+
     // 基础数据转换为增强数据
+    // 将 content 字符串数组转换为 shapes
+    const shapes: any[] = []
+    const content = page.content as string[]
+
+    if (content && content.length > 0) {
+      // 创建文本框形状
+      shapes.push({
+        type: 'text_box',
+        name: `content-${pageIndex}`,
+        position: { x: 50, y: 80, width: 860, height: 400 },
+        text_content: content.map((text: string) => ({
+          runs: [{ text, font: { size: 18, color: '000000' } }]
+        }))
+      })
+    }
+
     return {
       index: page.index,
       title: page.title,
-      content: (page.content as string[]).map(text => ({ type: 'text' as const, text })),
-      shapes: [],
+      content: content.map((text: string) => ({ type: 'text' as const, text })),
+      shapes,
       layout: { width: 960, height: 540 },
     }
   }
@@ -144,7 +171,7 @@ export function PptCanvasPreview({
 
   // 渲染 Canvas 缩略图
   const renderCanvasThumbnail = (page: PptPageData | EnhancedPptPageData) => {
-    const enhancedPage = convertToEnhanced(page)
+    const enhancedPage = convertToEnhanced(page, page.index)
     const isSelected = selectedPages.includes(page.index)
 
     return (
