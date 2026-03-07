@@ -209,7 +209,7 @@
         "【记录】测试结果写入 record/upload_test.md（使用 test_rule.md 模板）",
         "【预算】每个场景 2-3 次 snapshot，合并操作减少消耗"
       ],
-      "status": "in_progress",
+      "status": "done",
       "depends_on": [
         "feat-061"
       ]

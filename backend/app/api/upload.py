@@ -8,6 +8,7 @@ import uuid
 from ..config import settings
 from ..services.ocr import get_ocr_service
 from ..services.pdf_parser import get_pdf_parser
+from ..services.text_processor import get_text_processor
 
 router = APIRouter(prefix=settings.API_V1_STR, tags=["upload"])
 

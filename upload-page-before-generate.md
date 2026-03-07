@@ -1,0 +1,103 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - link "AI 教学 PPT 生成器" [ref=e6] [cursor=pointer]:
+          - /url: /
+        - navigation [ref=e7]:
+          - link "首页" [ref=e8] [cursor=pointer]:
+            - /url: /
+            - button "首页" [ref=e9]
+          - link "生成 PPT" [ref=e10] [cursor=pointer]:
+            - /url: /upload
+            - button "生成 PPT" [ref=e11]
+          - link "历史记录" [ref=e12] [cursor=pointer]:
+            - /url: /history
+            - button "历史记录" [ref=e13]
+          - link "设置" [ref=e14] [cursor=pointer]:
+            - /url: /settings
+            - button "设置" [ref=e15]
+    - main [ref=e16]:
+      - generic [ref=e17]:
+        - heading "AI 教学 PPT 生成器" [level=1] [ref=e18]
+        - generic [ref=e19]:
+          - generic [ref=e21]:
+            - heading "上传教材内容" [level=2] [ref=e22]
+            - generic [ref=e23]:
+              - button "文字输入" [ref=e24] [cursor=pointer]
+              - button "图片上传" [ref=e25] [cursor=pointer]
+              - button "PDF 上传" [ref=e26] [cursor=pointer]
+            - generic [ref=e59]:
+              - generic [ref=e60] [cursor=pointer]:
+                - generic [ref=e61]: 拖拽图片到这里或点击上传
+                - generic [ref=e62]: 支持 JPG、PNG 格式，支持多张图片
+              - generic [ref=e73]:
+                - generic [ref=e74]: 已选择 1 张图片：
+                - generic [ref=e75]:
+                  - generic [ref=e76]: test_image.png
+                  - button "删除" [ref=e77] [cursor=pointer]
+          - generic [ref=e29]:
+            - heading "教学参数配置" [level=2] [ref=e30]
+            - generic [ref=e31]:
+              - generic [ref=e32]:
+                - generic [ref=e33]: 年级
+                - combobox "年级" [ref=e34]:
+                  - option "小学一年级"
+                  - option "小学二年级"
+                  - option "小学三年级"
+                  - option "小学四年级"
+                  - option "小学五年级" [selected]
+                  - option "小学六年级"
+                  - option "初中一年级"
+                  - option "初中二年级"
+                  - option "初中三年级"
+                  - option "高中一年级"
+                  - option "高中二年级"
+                  - option "高中三年级"
+              - generic [ref=e35]:
+                - generic [ref=e36]: 学科
+                - combobox "学科" [ref=e37]:
+                  - option "语文"
+                  - option "数学" [selected]
+                  - option "英语"
+                  - option "科学"
+                  - option "物理"
+                  - option "化学"
+                  - option "生物"
+                  - option "历史"
+                  - option "政治"
+                  - option "地理"
+                  - option "通用"
+              - generic [ref=e38]:
+                - generic [ref=e39]: 章节名称（可选）
+                - textbox "章节名称（可选）" [ref=e40]:
+                  - /placeholder: 例如：第三章 分数的加减法
+              - generic [ref=e41]:
+                - generic [ref=e42]: PPT 风格
+                - combobox "PPT 风格" [ref=e43]:
+                  - option "活泼趣味（适合低年级）"
+                  - option "简约清晰（适合高年级）" [selected]
+                  - option "学科主题（根据学科自动配色）"
+              - generic [ref=e44]:
+                - generic [ref=e45]: 教学层次
+                - combobox "教学层次" [ref=e46]:
+                  - option "统一（混合难度）" [selected]
+                  - option "基础版（1 星）"
+                  - option "提高版（2 星）"
+                  - option "拓展版（3 星）"
+              - generic [ref=e47]:
+                - generic [ref=e48]: 幻灯片数量（8-30页）
+                - generic [ref=e49]:
+                  - slider "幻灯片数量（8-30页）" [ref=e50]: "15"
+                  - generic [ref=e51]: 15页
+                - generic [ref=e52]:
+                  - button "10页" [ref=e53] [cursor=pointer]
+                  - button "15页" [ref=e54] [cursor=pointer]
+                  - button "20页" [ref=e55] [cursor=pointer]
+                  - button "25页" [ref=e56] [cursor=pointer]
+            - button "生成教学 PPT" [ref=e78] [cursor=pointer]
+    - contentinfo [ref=e57]:
+      - paragraph [ref=e58]: © 2026 AI 教学 PPT 生成器 - 助力教师高效备课
+  - button "Open Next.js Dev Tools" [ref=e68] [cursor=pointer]:
+    - img [ref=e69]
+  - alert [ref=e72]
