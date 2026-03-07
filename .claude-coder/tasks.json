@@ -189,7 +189,7 @@
         "【记录】测试结果写入 record/error_handling_test.md（使用 test_rule.md 模板）",
         "【预算】Token 消耗 >80% 时跳过低优先级场景，记录 session_result.json"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-061"
       ]
