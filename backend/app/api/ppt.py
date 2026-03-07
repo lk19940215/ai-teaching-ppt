@@ -1,13 +1,14 @@
 from fastapi import APIRouter, HTTPException, Body, UploadFile, File, Form
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pathlib import Path
-from typing import Optional, AsyncGenerator
+from typing import Optional, AsyncGenerator, List, Dict, Any
 import logging
 import uuid
 import aiofiles
 import asyncio
 import json
 import io
+import tempfile
 
 from ..services.ppt_generator import get_ppt_generator
 from ..config import settings
@@ -690,3 +691,93 @@ async def merge_ppts(
     except Exception as e:
         logger.error(f"PPT 合并失败：{e}")
         raise HTTPException(status_code=500, detail=f"PPT 合并失败：{str(e)}")
+
+
+@router.post("/ppt/parse")
+async def parse_ppt(
+    file: UploadFile = File(..., description="要解析的 PPTX 文件"),
+):
+    """
+    解析 PPTX 文件，提取每页的内容用于前端预览
+    Args:
+        file: PPTX 文件
+    Returns:
+        JSON 格式：{ pages: [{ index, title, content, shapes }] }
+    """
+    try:
+        # 验证文件类型
+        if not file.filename.lower().endswith(".pptx"):
+            raise HTTPException(status_code=400, detail="仅支持 .pptx 格式文件")
+
+        # 保存到临时文件
+        temp_dir = Path(tempfile.gettempdir()) / "ppt_parse"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+        temp_path = temp_dir / f"{uuid.uuid4().hex}_{file.filename}"
+
+        try:
+            async with aiofiles.open(temp_path, "wb") as f:
+                content = await file.read()
+                await f.write(content)
+
+            # 解析 PPTX
+            from pptx import Presentation
+            from pptx.enum.shapes import MSO_SHAPE_TYPE
+
+            prs = Presentation(temp_path)
+            pages: List[Dict[str, Any]] = []
+
+            for slide_idx, slide in enumerate(prs.slides):
+                page_data: Dict[str, Any] = {
+                    "index": slide_idx + 1,  # 从 1 开始计数
+                    "title": "",
+                    "content": [],
+                    "shapes": []
+                }
+
+                # 提取形状信息
+                for shape in slide.shapes:
+                    shape_info: Dict[str, Any] = {
+                        "type": str(shape.shape_type) if hasattr(shape, "shape_type") else "unknown",
+                        "name": shape.name if hasattr(shape, "name") else ""
+                    }
+
+                    # 提取文本框内容
+                    if hasattr(shape, "has_text_frame") and shape.has_text_frame:
+                        text_content = ""
+                        for paragraph in shape.text_frame.paragraphs:
+                            para_text = paragraph.text.strip()
+                            if para_text:
+                                text_content += para_text + "\n"
+
+                        if text_content.strip():
+                            # 第一个文本框通常作为标题（通过形状名称判断）
+                            if not page_data["title"] and ("Title" in shape_info["name"] or shape_info["type"].startswith("PLACEHOLDER")):
+                                page_data["title"] = text_content.strip()
+                            else:
+                                page_data["content"].append(text_content.strip())
+
+                    # 记录形状类型
+                    page_data["shapes"].append(shape_info)
+
+                pages.append(page_data)
+
+            return JSONResponse(content={
+                "success": True,
+                "file_name": file.filename,
+                "total_pages": len(pages),
+                "pages": pages
+            })
+
+        finally:
+            # 清理临时文件
+            try:
+                if temp_path.exists():
+                    temp_path.unlink()
+            except Exception as e:
+                logger.warning(f"清理临时文件失败：{temp_path}, {e}")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"PPT 解析失败：{e}")
+        raise HTTPException(status_code=500, detail=f"PPT 解析失败：{str(e)}")

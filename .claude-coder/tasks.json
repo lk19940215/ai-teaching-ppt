@@ -377,7 +377,7 @@
         "返回 JSON 格式：{ pages: [{ index, title, content, shapes }] }",
         "验证：curl -F 'file=@test.pptx' http://localhost:8000/api/v1/ppt/parse → 返回页面列表 JSON"
       ],
-      "status": "pending",
+      "status": "testing",
       "depends_on": [
         "feat-072"
       ]

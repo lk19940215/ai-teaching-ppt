@@ -1,5 +1,6 @@
 {
   "session_result": "success",
-  "status_before": "done",
-  "status_after": "done",
-  "notes": "Session 5 开始：\n\n**状态确认**：\n- 所有 13 个任务已完成（13/13 done, 0 failed）\n- feat-072 在上个会话已完成并测试通过，本会话更新了 tasks.json 状态为 done\n\n**服务状态**：\n- 后端 8000 端口：运行中（uvicorn --reload 模式）\n- 前端 3000 端口：应保持运行（连续模式）\n\n**Git 提交**：\n- 078bc12 feat(feat-072): 新增 PPT 合并生成功能\n- ee38476 chore: update session_result.json for feat-072\n- 716b353 chore: update feat-072 status to done\n\n**下一步**：\n- 所有里程碑任务已完成，等待用户新指令或新需求"
+  "status_before": "13 done, 0 pending",
+  "status_after": "13 done, 6 pending",
+  "notes": "追加了 6 个任务（feat-073 至 feat-078），用于实现 PPT 智能合并独立页面。任务依赖链：feat-072 → feat-073 → feat-074 → feat-078；feat-073 → feat-075 → feat-076 → feat-077 → feat-078。核心功能：独立 /merge 页面、A/B PPT 分页预览、页面级提示语编辑、LLM 智能合并。"
+}
