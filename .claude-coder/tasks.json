@@ -411,7 +411,7 @@
         "添加页面导航入口（Header 组件新增链接）",
         "验证：pnpm tsc --noEmit 无错误；访问 /merge 页面显示基础布局"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-073"
       ]

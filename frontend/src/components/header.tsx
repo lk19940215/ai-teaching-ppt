@@ -16,6 +16,9 @@ export function Header() {
             <Link href="/upload">
               <Button variant="ghost">生成 PPT</Button>
             </Link>
+            <Link href="/merge">
+              <Button variant="ghost">PPT 合并</Button>
+            </Link>
             <Link href="/history">
               <Button variant="ghost">历史记录</Button>
             </Link>
