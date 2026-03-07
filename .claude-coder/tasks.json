@@ -568,7 +568,7 @@
         "【记录】结果写入 record/playwright-upload-test.md",
         "【预算】每个文件 1 次 snapshot，共 3-4 次"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     },
     {
