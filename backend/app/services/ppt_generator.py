@@ -6164,6 +6164,237 @@ class PPTGenerator:
         except Exception as e:
             logger.error(f"复制文本框失败：{e}")
 
+    def smart_merge_ppts(
+        self,
+        ppt_a_path: Path,
+        ppt_b_path: Path,
+        output_path: Path,
+        merge_strategy: Dict[str, Any],
+        title: str = "智能合并课件"
+    ) -> Path:
+        """
+        根据 LLM 生成的合并策略，智能合并两个 PPT 文件
+
+        Args:
+            ppt_a_path: PPT A 文件路径
+            ppt_b_path: PPT B 文件路径
+            output_path: 输出文件路径
+            merge_strategy: 合并策略，包含：
+                - slides_to_merge: 要合并的页面对象列表
+                - slides_to_skip_a: 从 A 中跳过的页码
+                - slides_to_skip_b: 从 B 中跳过的页码
+                - global_adjustments: 全局调整说明
+            title: 合并后课件的标题
+
+        Returns:
+            合并后的 PPT 文件路径
+        """
+        try:
+            from pptx import Presentation
+
+            # 创建新的 PPT
+            merged_prs = Presentation()
+            merged_prs.slide_width = Inches(10)
+            merged_prs.slide_height = Inches(7.5)
+
+            # 添加封面页
+            self._add_cover_slide(
+                merged_prs,
+                title,
+                40,
+                COLOR_BLUE_6,
+                False
+            )
+
+            # 加载两个 PPT
+            prs_a = Presentation(ppt_a_path) if ppt_a_path.exists() else None
+            prs_b = Presentation(ppt_b_path) if ppt_b_path.exists() else None
+
+            if not prs_a and not prs_b:
+                raise ValueError("两个 PPT 文件都不存在")
+
+            # 解析合并策略
+            slides_to_merge = merge_strategy.get("slides_to_merge", [])
+            skip_a = set(merge_strategy.get("slides_to_skip_a", []))
+            skip_b = set(merge_strategy.get("slides_to_skip_b", []))
+
+            # 执行合并操作
+            total_slides = 0
+
+            # 1. 处理策略中明确指定的合并操作
+            for merge_item in slides_to_merge:
+                from_a = merge_item.get("from_a", [])
+                from_b = merge_item.get("from_b", [])
+                action = merge_item.get("action", "append")
+                instruction = merge_item.get("instruction", "")
+
+                if action == "combine":
+                    # 合并 A 和 B 的页面内容到一页
+                    self._merge_slide_content(
+                        merged_prs,
+                        prs_a, from_a,
+                        prs_b, from_b,
+                        instruction
+                    )
+                    total_slides += 1
+                elif action == "append_a":
+                    # 追加 A 的页面
+                    for slide_idx in from_a:
+                        if slide_idx not in skip_a and prs_a:
+                            self._copy_slide_from_prs(prs_a, slide_idx - 1, merged_prs)
+                            total_slides += 1
+                elif action == "append_b":
+                    # 追加 B 的页面
+                    for slide_idx in from_b:
+                        if slide_idx not in skip_b and prs_b:
+                            self._copy_slide_from_prs(prs_b, slide_idx - 1, merged_prs)
+                            total_slides += 1
+
+            # 2. 处理未被策略覆盖的页面（默认追加）
+            if prs_a:
+                for i in range(len(prs_a.slides)):
+                    slide_num = i + 1
+                    # 跳过封面和已处理的页面
+                    if slide_num == 1 or slide_num in skip_a:
+                        continue
+                    # 检查是否已在策略中处理
+                    already_processed = any(
+                        slide_num in merge_item.get("from_a", [])
+                        for merge_item in slides_to_merge
+                    )
+                    if not already_processed:
+                        self._copy_slide_from_prs(prs_a, i, merged_prs)
+                        total_slides += 1
+
+            if prs_b:
+                for i in range(len(prs_b.slides)):
+                    slide_num = i + 1
+                    # 跳过封面和已处理的页面
+                    if slide_num == 1 or slide_num in skip_b:
+                        continue
+                    # 检查是否已在策略中处理
+                    already_processed = any(
+                        slide_num in merge_item.get("from_b", [])
+                        for merge_item in slides_to_merge
+                    )
+                    if not already_processed:
+                        self._copy_slide_from_prs(prs_b, i, merged_prs)
+                        total_slides += 1
+
+            # 保存合并后的 PPT
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            merged_prs.save(output_path)
+
+            logger.info(f"智能合并完成：{total_slides} 页幻灯片")
+            return output_path
+
+        except Exception as e:
+            logger.error(f"智能合并 PPT 失败：{e}")
+            raise
+
+    def _merge_slide_content(
+        self,
+        target_prs: Presentation,
+        prs_a: Optional[Presentation], indices_a: List[int],
+        prs_b: Optional[Presentation], indices_b: List[int],
+        instruction: str
+    ):
+        """
+        将多个幻灯片内容合并到一页
+
+        Args:
+            target_prs: 目标 PPT
+            prs_a: PPT A
+            indices_a: A 中要合并的页码（从 1 开始）
+            prs_b: PPT B
+            indices_b: B 中要合并的页码（从 1 开始）
+            instruction: 合并指令说明
+        """
+        try:
+            # 添加空白幻灯片
+            blank_layout = target_prs.slide_layouts[6]
+            target_slide = target_prs.slides.add_slide(blank_layout)
+
+            # 设置合并后的标题（使用指令中的说明或默认标题）
+            title_box = target_slide.shapes.add_textbox(
+                Inches(0.5), Inches(0.3), Inches(9), Inches(0.8)
+            )
+            title_frame = title_box.text_frame
+            title_para = title_frame.paragraphs[0]
+            title_para.text = instruction[:50] if instruction else "合并内容"
+            title_para.font.size = Pt(28)
+            title_para.font.bold = True
+            title_para.font.color.rgb = COLOR_BLUE_6
+
+            # 垂直分割线
+            divider = target_slide.shapes.add_shape(
+                1,  # msoShapeRectangle
+                Inches(0.5), Inches(1.1), Inches(9), Inches(0.02)
+            )
+            divider.fill.solid()
+            divider.fill.fore_color.rgb = COLOR_BLUE_1
+            divider.line.fill.background()
+
+            # 复制 A 的内容（上半部分）
+            content_y = Inches(1.3)
+            if prs_a:
+                for idx in indices_a:
+                    if 0 < idx <= len(prs_a.slides):
+                        source_slide = prs_a.slides[idx - 1]
+                        for shape in source_slide.shapes:
+                            if shape.has_text_frame:
+                                box = target_slide.shapes.add_textbox(
+                                    Inches(0.5), content_y, Inches(8.5), Inches(1.5)
+                                )
+                                frame = box.text_frame
+                                frame.text = shape.text[:200]  # 限制长度
+                                for para in frame.paragraphs:
+                                    para.font.size = Pt(14)
+                                content_y += Inches(1.7)
+
+            # 复制 B 的内容（下半部分）
+            if prs_b:
+                for idx in indices_b:
+                    if 0 < idx <= len(prs_b.slides):
+                        source_slide = prs_b.slides[idx - 1]
+                        for shape in source_slide.shapes:
+                            if shape.has_text_frame:
+                                box = target_slide.shapes.add_textbox(
+                                    Inches(0.5), content_y, Inches(8.5), Inches(1.5)
+                                )
+                                frame = box.text_frame
+                                frame.text = shape.text[:200]
+                                for para in frame.paragraphs:
+                                    para.font.size = Pt(14)
+                                content_y += Inches(1.7)
+
+        except Exception as e:
+            logger.error(f"合并幻灯片内容失败：{e}")
+
+    def _copy_slide_from_prs(
+        self,
+        source_prs: Presentation,
+        slide_index: int,
+        target_prs: Presentation
+    ):
+        """
+        从 PPT 复制指定索引的幻灯片到目标 PPT
+
+        Args:
+            source_prs: 源 PPT
+            slide_index: 幻灯片索引（从 0 开始）
+            target_prs: 目标 PPT
+        """
+        try:
+            if slide_index < 0 or slide_index >= len(source_prs.slides):
+                return
+
+            source_slide = source_prs.slides[slide_index]
+            self._copy_slide_content(source_slide, target_prs)
+
+        except Exception as e:
+            logger.error(f"复制幻灯片失败：{e}")
+
 
 # 全局 PPT 生成器实例
 _ppt_generator_instance: Optional[PPTGenerator] = None

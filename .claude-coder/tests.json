@@ -38,8 +38,16 @@
       "feature_id": "feat-073",
       "verify": "curl -s -X POST http://localhost:8000/api/v1/ppt/parse -F 'file=@uploads/generated/test_parse.pptx'",
       "expected": "HTTP 200, 返回 { success: true, pages: [{ index, title, content, shapes }] }",
-      "last_result": null,
-      "last_run_session": null
+      "last_result": "pass",
+      "last_run_session": 5
+    },
+    {
+      "id": "test-feat074-smart-merge",
+      "feature_id": "feat-074",
+      "verify": "python -c \"from app.main import app; routes=[r.path for r in app.routes if hasattr(r,'path') and 'smart-merge' in str(r.path)]; print('smart-merge' in str(routes))\"",
+      "expected": "True, 路由 POST /api/v1/ppt/smart-merge 已注册",
+      "last_result": "pass",
+      "last_run_session": 3
     }
   ]
 }

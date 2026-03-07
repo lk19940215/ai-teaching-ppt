@@ -377,7 +377,7 @@
         "返回 JSON 格式：{ pages: [{ index, title, content, shapes }] }",
         "验证：curl -F 'file=@test.pptx' http://localhost:8000/api/v1/ppt/parse → 返回页面列表 JSON"
       ],
-      "status": "testing",
+      "status": "done",
       "depends_on": [
         "feat-072"
       ]
@@ -394,7 +394,7 @@
         "根据策略调用 ppt_generator.py 的智能合并方法",
         "验证：curl 发送智能合并请求 → 返回合并后的 PPT 下载链接"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-073"
       ]

@@ -111,3 +111,8 @@ ai-teaching-ppt/
 ## License
 
 MIT
+
+
+```
+claude --auto-accept-edits --allowed-tools edit,read,write,grep
+```
