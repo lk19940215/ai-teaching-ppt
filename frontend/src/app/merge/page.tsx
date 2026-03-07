@@ -155,6 +155,9 @@ export default function MergePage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
+  const [fileName, setFileName] = useState<string | null>(null)
+  const [progress, setProgress] = useState(0) // 生成进度 0-100
+  const [progressStatus, setProgressStatus] = useState("") // 当前进度状态描述
 
   // 解析 PPT 文件获取页面数据
   const parsePptFile = async (file: File): Promise<PptPageData[]> => {
@@ -231,23 +234,129 @@ export default function MergePage() {
     setSelectedPagesB(selected)
   }
 
-  // 处理合并生成（预留，feat-078 实现）
+  // 处理合并生成（feat-078）
   const handleMerge = async () => {
     if (!pptA || !pptB) {
       setError("请上传 A/B 两个 PPT 文件")
       return
     }
 
+    // 从 localStorage 获取 LLM 配置
+    const llmConfigStr = localStorage.getItem("llm_config")
+    if (!llmConfigStr) {
+      setError("请先在设置页配置 LLM API Key")
+      return
+    }
+
+    const llmConfig = JSON.parse(llmConfigStr)
+    if (!llmConfig.apiKey) {
+      setError("LLM API Key 未配置")
+      return
+    }
+
     setIsGenerating(true)
     setError(null)
+    setDownloadUrl(null)
+    setProgress(0)
+    setProgressStatus("准备合并...")
 
-    // TODO: feat-078 实现合并逻辑
-    console.log('准备合并:', {
-      pptA: pptA.name,
-      pptB: pptB.name,
-      pagePrompts,
-      globalPrompt
+    // 准备 FormData
+    const formData = new FormData()
+    formData.append("file_a", pptA)
+    formData.append("file_b", pptB)
+
+    // 转换 pagePrompts 格式：从 { "A-0": "提示语", "B-1": "提示语" } 转为 { "a_pages": { "1": "提示语" }, "b_pages": { "2": "提示语" } }
+    const formattedPrompts: { a_pages: Record<string, string>; b_pages: Record<string, string> } = {
+      a_pages: {},
+      b_pages: {}
+    }
+    Object.entries(pagePrompts).forEach(([key, prompt]) => {
+      if (!prompt.trim()) return
+      const [pptSource, pageIndex] = key.split("-")
+      const pageNum = (parseInt(pageIndex) + 1).toString()
+      if (pptSource === "A") {
+        formattedPrompts.a_pages[pageNum] = prompt
+      } else {
+        formattedPrompts.b_pages[pageNum] = prompt
+      }
     })
+
+    formData.append("page_prompts", JSON.stringify(formattedPrompts))
+    formData.append("global_prompt", globalPrompt)
+    formData.append("api_key", llmConfig.apiKey)
+    formData.append("provider", llmConfig.provider || "deepseek")
+    formData.append("title", "智能合并课件")
+    formData.append("temperature", "0.3")
+    formData.append("max_tokens", "2000")
+
+    // 使用 EventSource 监听 SSE 流
+    // 由于 EventSource 不支持 POST + FormData，使用 fetch + ReadableStream
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/smart-merge-stream`, {
+        method: "POST",
+        body: formData
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: "请求失败" }))
+        throw new Error(errorData.detail || `HTTP ${response.status}`)
+      }
+
+      const reader = response.body?.getReader()
+      if (!reader) {
+        throw new Error("无法读取响应流")
+      }
+
+      const decoder = new TextDecoder()
+      let buffer = ""
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split("\n")
+        buffer = lines.pop() || "" // 保留不完整行
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const dataStr = line.slice(6)
+            try {
+              const event = JSON.parse(dataStr)
+
+              // 更新进度
+              if (event.progress) {
+                setProgress(event.progress)
+              }
+              if (event.message) {
+                setProgressStatus(event.message)
+              }
+
+              // 处理错误
+              if (event.stage === "error") {
+                setError(event.message || "合并失败")
+                setIsGenerating(false)
+                return
+              }
+
+              // 处理完成
+              if (event.stage === "complete" && event.result) {
+                setDownloadUrl(`${apiBaseUrl}${event.result.download_url}`)
+                setFileName(event.result.file_name)
+                setIsGenerating(false)
+              }
+            } catch (e) {
+              console.warn("解析 SSE 事件失败:", e)
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error("合并失败:", err)
+      setError(err.message || "合并失败，请重试")
+      setIsGenerating(false)
+      setProgress(0)
+    }
   }
 
   // 重置状态
@@ -262,6 +371,9 @@ export default function MergePage() {
     setGlobalPrompt("")
     setError(null)
     setDownloadUrl(null)
+    setFileName(null)
+    setProgress(0)
+    setProgressStatus("")
   }
 
   return (
@@ -380,6 +492,22 @@ export default function MergePage() {
               onGlobalPromptChange={setGlobalPrompt}
               disabled={isGenerating}
             />
+
+            {/* 进度反馈（feat-078） */}
+            {isGenerating && (
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">{progressStatus}</span>
+                  <span className="font-medium text-indigo-600">{progress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* 操作按钮 */}
             <div className="flex flex-col gap-3 pt-4 border-t mt-4">

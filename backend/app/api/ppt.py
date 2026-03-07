@@ -1008,3 +1008,281 @@ B 页面：
         logger.error(f"智能合并失败：{e}")
         raise HTTPException(status_code=500, detail=f"智能合并失败：{str(e)}")
 
+
+@router.post("/ppt/smart-merge-stream")
+async def smart_merge_ppt_stream(
+    file_a: UploadFile = File(..., description="PPT 文件 A"),
+    file_b: UploadFile = File(..., description="PPT 文件 B"),
+    page_prompts: str = Form("{}", description="页面级提示语 JSON"),
+    global_prompt: str = Form("", description="全局合并提示语"),
+    api_key: str = Form(..., description="LLM API Key"),
+    provider: str = Form("deepseek", description="LLM 服务商"),
+    title: str = Form("智能合并课件", description="合并后课件标题"),
+    temperature: Optional[float] = Form(0.3, description="LLM 温度参数"),
+    max_tokens: Optional[int] = Form(2000, description="LLM 最大输出 token 数"),
+):
+    """
+    智能合并两个 PPT 文件（SSE 流式响应）：根据页面级提示语调用 LLM 生成合并策略
+
+    Args:
+        file_a: PPT 文件 A
+        file_b: PPT 文件 B
+        page_prompts: 页面级提示语 JSON，格式：{"a_pages": {"1": "提示语 1", "2": "提示语 2"}, "b_pages": {"1": "提示语 1"}}
+        global_prompt: 全局合并提示语，如"将 A 的概念讲解与 B 的例题结合"
+        api_key: LLM API Key
+        provider: LLM 服务商（deepseek/openai/claude/glm）
+        title: 合并后课件标题
+        temperature: LLM 温度参数
+        max_tokens: LLM 最大输出 token 数
+
+    Returns:
+        SSE 流式响应，包含进度事件和最终结果
+    """
+    progress_queue: asyncio.Queue = asyncio.Queue()
+
+    async def merge_in_background():
+        """后台执行合并任务"""
+        logger.info("后台智能合并任务启动")
+        try:
+            # 阶段 1: 上传文件 (10%)
+            await progress_queue.put({
+                "stage": "uploading_files",
+                "progress": 10,
+                "message": "正在上传 PPT 文件..."
+            })
+
+            # 验证文件类型
+            if not file_a.filename.lower().endswith(".pptx"):
+                raise HTTPException(status_code=400, detail="文件 A 格式错误，仅支持 .pptx 格式")
+            if not file_b.filename.lower().endswith(".pptx"):
+                raise HTTPException(status_code=400, detail="文件 B 格式错误，仅支持 .pptx 格式")
+
+            # 解析页面提示语
+            try:
+                page_prompts_dict = json.loads(page_prompts) if page_prompts else {}
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=400, detail="页面提示语 JSON 格式错误")
+
+            # 保存临时文件
+            temp_dir = Path(tempfile.gettempdir()) / "ppt_smart_merge"
+            temp_dir.mkdir(parents=True, exist_ok=True)
+
+            temp_a = temp_dir / f"{uuid.uuid4().hex}_{file_a.filename}"
+            temp_b = temp_dir / f"{uuid.uuid4().hex}_{file_b.filename}"
+
+            ppt_paths = []
+            try:
+                async with aiofiles.open(temp_a, "wb") as f:
+                    content = await file_a.read()
+                    await f.write(content)
+                ppt_paths.append(temp_a)
+
+                async with aiofiles.open(temp_b, "wb") as f:
+                    content = await file_b.read()
+                    await f.write(content)
+                ppt_paths.append(temp_b)
+
+                # 阶段 2: 解析 PPT 内容 (25%)
+                await progress_queue.put({
+                    "stage": "parsing_ppt",
+                    "progress": 25,
+                    "message": "正在解析 PPT 内容..."
+                })
+
+                from pptx import Presentation
+
+                prs_a = Presentation(temp_a)
+                prs_b = Presentation(temp_b)
+
+                a_pages_info = []
+                for i, slide in enumerate(prs_a.slides):
+                    page_info = {"index": i + 1, "title": "", "content_summary": ""}
+                    for shape in slide.shapes:
+                        if shape.has_text_frame and shape.text.strip():
+                            if not page_info["title"]:
+                                page_info["title"] = shape.text.strip()[:50]
+                            else:
+                                page_info["content_summary"] += shape.text.strip()[:100] + "..."
+                                break
+                    a_pages_info.append(page_info)
+
+                b_pages_info = []
+                for i, slide in enumerate(prs_b.slides):
+                    page_info = {"index": i + 1, "title": "", "content_summary": ""}
+                    for shape in slide.shapes:
+                        if shape.has_text_frame and shape.text.strip():
+                            if not page_info["title"]:
+                                page_info["title"] = shape.text.strip()[:50]
+                            else:
+                                page_info["content_summary"] += shape.text.strip()[:100] + "..."
+                                break
+                    b_pages_info.append(page_info)
+
+                # 阶段 3: 调用 LLM 生成策略 (50%)
+                await progress_queue.put({
+                    "stage": "generating_strategy",
+                    "progress": 50,
+                    "message": "正在调用 AI 生成合并策略..."
+                })
+
+                from ..services.llm import get_llm_service
+
+                a_prompts_str = ""
+                for page_num, prompt in page_prompts_dict.get("a_pages", {}).items():
+                    page_data = a_pages_info[int(page_num) - 1] if int(page_num) <= len(a_pages_info) else {}
+                    a_prompts_str += f"- A 第{page_num}页 [{page_data.get('title', '无标题')}]: {prompt}\n"
+
+                b_prompts_str = ""
+                for page_num, prompt in page_prompts_dict.get("b_pages", {}).items():
+                    page_data = b_pages_info[int(page_num) - 1] if int(page_num) <= len(b_pages_info) else {}
+                    b_prompts_str += f"- B 第{page_num}页 [{page_data.get('title', '无标题')}]: {prompt}\n"
+
+                system_prompt = """你是一个专业的 PPT 合并助手。请根据用户提供的页面级提示语，生成 PPT 合并策略。
+
+请严格按照以下 JSON 格式输出：
+{
+  "slides_to_merge": [
+    {
+      "from_a": [1, 2],
+      "from_b": [3, 4],
+      "action": "combine",
+      "instruction": "保留标题，正文合并"
+    }
+  ],
+  "slides_to_skip_a": [5, 6],
+  "slides_to_skip_b": [7, 8],
+  "global_adjustments": "统一字体和颜色"
+}
+
+要求：
+1. 所有页码从 1 开始计数
+2. 封面页（第 1 页）通常不需要合并，会自动跳过
+3. action 只能是 combine/append_a/append_b
+4. 未被明确处理的页面默认追加到末尾"""
+
+                user_prompt = f"""PPT A 内容（共{len(a_pages_info)}页）：
+{json.dumps(a_pages_info, ensure_ascii=False, indent=2)}
+
+PPT B 内容（共{len(b_pages_info)}页）：
+{json.dumps(b_pages_info, ensure_ascii=False, indent=2)}
+
+页面级提示语：
+A 页面：
+{a_prompts_str if a_prompts_str else "无"}
+
+B 页面：
+{b_prompts_str if b_prompts_str else "无"}
+
+全局提示语：
+{global_prompt if global_prompt else "无"}
+
+请根据以上信息，生成合并策略 JSON。"""
+
+                llm_service = get_llm_service(
+                    provider=provider,
+                    api_key=api_key,
+                    temperature=temperature,
+                    max_tokens=max_tokens
+                )
+
+                strategy_response = llm_service.chat([
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ])
+
+                try:
+                    merge_strategy = json.loads(strategy_response)
+                except json.JSONDecodeError as e:
+                    logger.error(f"LLM 返回的策略 JSON 解析失败：{strategy_response[:500]}")
+                    from ..services.llm import LLMService
+                    fix_service = LLMService()
+                    fixed_json = fix_service._fix_json(strategy_response)
+                    try:
+                        merge_strategy = json.loads(fixed_json)
+                    except:
+                        raise HTTPException(status_code=500, detail=f"LLM 生成的策略 JSON 格式错误：{e}")
+
+                logger.info(f"LLM 生成的合并策略：{json.dumps(merge_strategy, ensure_ascii=False)}")
+
+                # 阶段 4: 执行合并 (75%)
+                await progress_queue.put({
+                    "stage": "merging_ppt",
+                    "progress": 75,
+                    "message": "正在执行 PPT 合并..."
+                })
+
+                output_file_name = f"smart_merged_{uuid.uuid4().hex[:8]}.pptx"
+                output_path = settings.UPLOAD_DIR / "generated" / output_file_name
+
+                from ..services.ppt_generator import get_ppt_generator
+                generator = get_ppt_generator()
+                generator.smart_merge_ppts(
+                    ppt_a_path=temp_a,
+                    ppt_b_path=temp_b,
+                    output_path=output_path,
+                    merge_strategy=merge_strategy,
+                    title=title
+                )
+
+                response_data = {
+                    "success": True,
+                    "message": "智能合并成功",
+                    "download_url": f"/uploads/generated/{output_file_name}",
+                    "file_name": output_file_name,
+                    "strategy": merge_strategy,
+                    "merged_from": [file_a.filename, file_b.filename]
+                }
+
+                # 阶段 5: 完成 (100%)
+                await progress_queue.put({
+                    "stage": "complete",
+                    "progress": 100,
+                    "message": "合并完成！",
+                    "result": response_data
+                })
+
+            finally:
+                for temp_path in ppt_paths:
+                    try:
+                        if temp_path.exists():
+                            temp_path.unlink()
+                    except Exception as e:
+                        logger.warning(f"清理临时文件失败：{temp_path}, {e}")
+
+        except ValueError as e:
+            logger.error(f"参数错误：{e}")
+            await progress_queue.put({
+                "stage": "error",
+                "progress": 0,
+                "message": f"参数错误：{str(e)}"
+            })
+        except TimeoutError as e:
+            logger.error(f"LLM 调用超时：{e}")
+            await progress_queue.put({
+                "stage": "error",
+                "progress": 0,
+                "message": "LLM 调用超时，请稍后重试"
+            })
+        except Exception as e:
+            logger.error(f"智能合并失败：{e}")
+            await progress_queue.put({
+                "stage": "error",
+                "progress": 0,
+                "message": f"智能合并失败：{str(e)}"
+            })
+        finally:
+            await progress_queue.put(None)
+
+    task = asyncio.create_task(merge_in_background())
+    await asyncio.sleep(0)
+
+    return StreamingResponse(
+        sse_generator(progress_queue),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+

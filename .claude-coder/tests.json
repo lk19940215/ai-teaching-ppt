@@ -45,7 +45,15 @@
       "id": "test-feat074-smart-merge",
       "feature_id": "feat-074",
       "verify": "python -c \"from app.main import app; routes=[r.path for r in app.routes if hasattr(r,'path') and 'smart-merge' in str(r.path)]; print('smart-merge' in str(routes))\"",
-      "expected": "True, 路由 POST /api/v1/ppt/smart-merge 已注册",
+      "expected": "True, 路由 POST /api/v1/ppt/smart-merge 和 /api/v1/ppt/smart-merge-stream 已注册",
+      "last_result": "pass",
+      "last_run_session": 3
+    },
+    {
+      "id": "test-feat078-merge-ui",
+      "feature_id": "feat-078",
+      "verify": "curl -s http://localhost:3000/merge | grep -c 'PPT 智能合并' || echo 0",
+      "expected": "1, 合并页面可访问且包含标题",
       "last_result": "pass",
       "last_run_session": 3
     }

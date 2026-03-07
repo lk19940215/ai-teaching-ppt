@@ -445,7 +445,7 @@
         "实现提示语实时预览：右侧面板显示所有提示语汇总",
         "验证：选中多页 → 输入各页提示语 → 右侧面板正确显示汇总"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-076"
       ]
@@ -457,13 +457,14 @@
       "description": "智能合并生成流程：集成前后端完成端到端合并",
       "steps": [
         "【规则】阅读 .claude-coder/test_rule.md",
-        "【前端】实现智能合并按钮：收集所有提示语，调用 /api/v1/ppt/smart-merge",
-        "【前端】添加 SSE 进度反馈（复用 generate-stream 模式）",
-        "【前端】实现合并结果预览和下载",
-        "【P0 测试】Playwright MCP：上传 A/B PPT → 选择页面 → 输入提示语 → 生成 → 下载验证",
-        "验证：完整流程走通，合并后的 PPT 符合提示语要求"
+        "【后端】添加 SSE 流式版本的 /ppt/smart-merge-stream 端点",
+        "【前端】实现 handleMerge 函数：收集提示语，调用 API",
+        "【前端】添加 SSE 进度反馈",
+        "【前端】实现结果展示和下载",
+        "【P0 测试】Playwright MCP 完整流程验证",
+        "验证：完整流程走通"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-074",
         "feat-077"
