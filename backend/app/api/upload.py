@@ -6,9 +6,7 @@ from pathlib import Path
 from typing import List, Optional
 import uuid
 from ..config import settings
-from ..services.ocr import get_ocr_service
 from ..services.pdf_parser import get_pdf_parser
-from ..services.text_processor import get_text_processor
 
 router = APIRouter(prefix=settings.API_V1_STR, tags=["upload"])
 
@@ -63,7 +61,7 @@ async def upload_image(files: List[UploadFile] = File(...)):
                 "content_type": file.content_type
             })
         except Exception as e:
-            errors.append(f"文件 {file.filename} 上传失败: {str(e)}")
+            errors.append(f"文件 {file.filename} 上传失败：{str(e)}")
 
     if errors and not saved_files:
         raise HTTPException(status_code=400, detail="; ".join(errors))
@@ -91,7 +89,7 @@ async def upload_pdf(file: UploadFile = File(...)):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"PDF 上传失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"PDF 上传失败：{str(e)}")
 
 @router.post("/upload/text")
 async def upload_text(text: str = Body(..., embed=True)):
@@ -118,29 +116,6 @@ async def upload_text(text: str = Body(..., embed=True)):
         "preview": cleaned_text[:200] + ("..." if len(cleaned_text) > 200 else "")
     })
 
-@router.post("/process/ocr")
-async def process_ocr(file_path: str = Body(..., embed=True)):
-    """对已上传的图片进行 OCR 识别"""
-    try:
-        # 构建完整路径
-        full_path = settings.UPLOAD_DIR / file_path
-        if not full_path.exists():
-            raise HTTPException(status_code=404, detail="文件不存在")
-
-        # 调用 OCR 服务
-        ocr_service = get_ocr_service()
-        text = ocr_service.extract_text(full_path)
-
-        return JSONResponse(content={
-            "message": "OCR 识别成功",
-            "text": text,
-            "char_count": len(text)
-        })
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"OCR 识别失败: {str(e)}")
-
 @router.post("/process/pdf")
 async def process_pdf(file_path: str = Body(..., embed=True)):
     """对已上传的 PDF 进行文本提取"""
@@ -165,7 +140,7 @@ async def process_pdf(file_path: str = Body(..., embed=True)):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"PDF 解析失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"PDF 解析失败：{str(e)}")
 
 @router.post("/process/extract")
 async def extract_content(
@@ -181,7 +156,7 @@ async def extract_content(
             full_path = settings.UPLOAD_DIR / file_path
 
         if not full_path.exists():
-            raise HTTPException(status_code=404, detail=f"文件不存在: {full_path}")
+            raise HTTPException(status_code=404, detail=f"文件不存在：{full_path}")
 
         # 根据文件扩展名判断类型
         ext = full_path.suffix.lower()
@@ -195,6 +170,7 @@ async def extract_content(
                 "page_count": len(pages_text)
             })
         elif ext in [".jpg", ".jpeg", ".png"]:
+            from ..services.ocr import get_ocr_service
             ocr_service = get_ocr_service()
             text = ocr_service.extract_text(full_path)
             return JSONResponse(content={
@@ -211,8 +187,8 @@ async def extract_content(
                 "text": text
             })
         else:
-            raise HTTPException(status_code=400, detail=f"不支持的文件类型: {ext}")
+            raise HTTPException(status_code=400, detail=f"不支持的文件类型：{ext}")
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"内容提取失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"内容提取失败：{str(e)}")

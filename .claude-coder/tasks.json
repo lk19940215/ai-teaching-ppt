@@ -314,7 +314,7 @@
         "前端 page.tsx 已使用 cleaned_text，无需修改",
         "验证：curl -X POST http://localhost:8000/api/v1/process/ocr -H 'Content-Type: application/json' -d '{\"file_path\":\"test.jpg\"}' → 返回 cleaned_text"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     },
     {
