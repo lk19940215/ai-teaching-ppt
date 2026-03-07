@@ -671,7 +671,7 @@
         "【记录】测试结果写入 record/merge-canvas-test.md",
         "【预算】Smart Snapshot：导航→上传→验证渲染→选择→验证联动，共 3 次"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-083",
         "feat-084"
