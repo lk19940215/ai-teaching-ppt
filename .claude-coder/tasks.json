@@ -345,7 +345,7 @@
         "添加 LLM 提示词约束，限制单页内容长度",
         "验证：生成含长文本的 PPT，下载后打开检查无文字溢出"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     },
     {

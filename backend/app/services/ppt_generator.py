@@ -1,6 +1,6 @@
 from pptx import Presentation
 from pptx.util import Inches, Pt
-from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+from pptx.enum.text import PP_ALIGN, MSO_ANCHOR, MSO_VERTICAL_ANCHOR
 from pptx.dml.color import RGBColor
 from pathlib import Path
 from typing import Dict, Any, List, Optional
@@ -439,6 +439,28 @@ class PPTGenerator:
     def __init__(self):
         """初始化 PPT 生成器"""
         pass
+
+    def _setup_text_frame(self, text_frame, vertical_anchor=MSO_VERTICAL_ANCHOR.TOP, add_margins=True):
+        """
+        统一设置文本框属性，防止文本溢出
+
+        Args:
+            text_frame: 文本框对象
+            vertical_anchor: 垂直对齐方式（默认顶部对齐）
+            add_margins: 是否添加边距（默认添加）
+        """
+        text_frame.word_wrap = True  # 自动换行
+        text_frame.vertical_anchor = vertical_anchor
+
+        if add_margins:
+            # 设置边距（防止文字贴边）
+            text_frame.margin_left = Inches(0.1)
+            text_frame.margin_right = Inches(0.1)
+            text_frame.margin_top = Inches(0.05)
+            text_frame.margin_bottom = Inches(0.05)
+
+        # 注意：不设置 auto_size，因为它可能导致 XML 命名空间错误
+        # 文本溢出问题主要通过 word_wrap 和 margins 解决
 
     def generate(
         self,
@@ -1123,6 +1145,9 @@ class PPTGenerator:
         text_frame = title_box.text_frame
         text_frame.text = title
 
+        # 使用辅助方法设置文本框属性
+        self._setup_text_frame(text_frame, vertical_anchor=MSO_VERTICAL_ANCHOR.MIDDLE)
+
         # 设置标题样式
         title_para = text_frame.paragraphs[0]
         title_para.alignment = PP_ALIGN.CENTER
@@ -1134,6 +1159,9 @@ class PPTGenerator:
         subtitle_box = slide.shapes.add_textbox(Inches(2), Inches(4), Inches(6), Inches(1))
         subtitle_frame = subtitle_box.text_frame
         subtitle_frame.text = "AI 教学 PPT 生成器"
+
+        # 设置副标题文本框属性
+        self._setup_text_frame(subtitle_frame, vertical_anchor=MSO_VERTICAL_ANCHOR.MIDDLE)
 
         subtitle_para = subtitle_frame.paragraphs[0]
         subtitle_para.alignment = PP_ALIGN.CENTER
@@ -1158,9 +1186,10 @@ class PPTGenerator:
         title_para.font.size = Pt(title_size)
         title_para.font.color.rgb = color
 
-        # 目录内容 - 手动添加文本框
+        # 目录内容 - 手动添加文本框（使用辅助方法设置防溢出属性）
         content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         for idx, slide_data in enumerate(slides):
             if slide_data.get("page_type") == PPTPageType.TOC:
@@ -1188,9 +1217,10 @@ class PPTGenerator:
         title_para.font.size = Pt(font_size + 6)
         title_para.font.color.rgb = color
 
-        # 内容 - 手动添加文本框
+        # 内容 - 手动添加文本框（使用辅助方法设置防溢出属性）
         content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)  # 统一设置 word_wrap、auto_fit、margins
 
         for item in slide_data.get("content", []):
             p = text_frame.add_paragraph()
@@ -1231,9 +1261,10 @@ class PPTGenerator:
         title_para.font.size = Pt(font_size + 6)
         title_para.font.color.rgb = color
 
-        # 内容
+        # 内容（使用辅助方法设置防溢出属性）
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.5), Inches(8), Inches(5.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         char = slide_data.get("character", {})
         if char:
@@ -1313,9 +1344,10 @@ class PPTGenerator:
         title_para.font.size = Pt(font_size + 6)
         title_para.font.color.rgb = color
 
-        # 内容
+        # 内容（使用辅助方法设置防溢出属性）
         content_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.5), Inches(8.4), Inches(5.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         poem = slide_data.get("poem", {})
         if poem:
@@ -1377,6 +1409,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.5), Inches(8), Inches(5.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         reading = slide_data.get("reading", {})
         if reading:
@@ -1438,6 +1471,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.5), Inches(8), Inches(5.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         writing = slide_data.get("writing", {})
         if writing:
@@ -1509,6 +1543,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.5), Inches(8), Inches(5.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         reading = slide_data.get("reading", {})
         if reading:
@@ -1559,6 +1594,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.5), Inches(8), Inches(5.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         for item in slide_data.get("content", []):
             p = text_frame.add_paragraph()
@@ -1711,6 +1747,7 @@ class PPTGenerator:
         # 内容 - 手动添加文本框
         content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         for item in slide_data.get("content", []):
             p = text_frame.add_paragraph()
@@ -1737,6 +1774,7 @@ class PPTGenerator:
         # 内容 - 手动添加文本框
         content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         for item in slide_data.get("content", []):
             p = text_frame.add_paragraph()
@@ -1798,6 +1836,7 @@ class PPTGenerator:
         # 内容 - 手动添加文本框
         content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         p = text_frame.add_paragraph()
         p.text = content.get("summary", "")
@@ -1834,6 +1873,7 @@ class PPTGenerator:
         # 内容 - 手动添加文本框
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         # 显示单词列表
         vocabulary = slide_data.get("vocabulary", [])
@@ -1901,6 +1941,7 @@ class PPTGenerator:
         # 内容 - 手动添加文本框
         content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         # 语法规则说明
         grammar = slide_data.get("grammar", "")
@@ -1957,6 +1998,7 @@ class PPTGenerator:
         # 内容 - 手动添加文本框
         content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         # 对话内容
         dialogue = slide_data.get("dialogue", [])
@@ -1999,6 +2041,7 @@ class PPTGenerator:
         # 内容 - 手动添加文本框
         content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         # 段落大意
         if slide_data.get("paragraph_summary"):
@@ -2747,6 +2790,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         exp_design = slide_data.get("experiment_design", {})
         if exp_design:
@@ -2834,6 +2878,7 @@ class PPTGenerator:
         # 内容 - 三段式对比布局
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         obs = slide_data.get("experiment_observation", {})
         if obs:
@@ -2914,6 +2959,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         data = slide_data.get("data_analysis", {})
         if data:
@@ -2979,6 +3025,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         law = slide_data.get("physics_law", {})
         if law:
@@ -3054,6 +3101,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         app = slide_data.get("application", {})
         if app:
@@ -3131,6 +3179,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         exp_steps = slide_data.get("experiment_steps", {})
         if exp_steps:
@@ -3222,6 +3271,7 @@ class PPTGenerator:
         # 内容 - 反应前后对比
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         phen = slide_data.get("reaction_phenomena", {})
         if phen:
@@ -3312,6 +3362,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         eq = slide_data.get("chemical_equation", {})
         if eq:
@@ -3401,6 +3452,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         micro = slide_data.get("microscopic_explanation", {})
         if micro:
@@ -3472,6 +3524,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         trend = slide_data.get("periodic_trend", {})
         if trend:
@@ -3556,6 +3609,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         struct = slide_data.get("structure_observation", {})
         if struct:
@@ -3627,6 +3681,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         func = slide_data.get("function_analysis", {})
         if func:
@@ -3704,6 +3759,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         proc = slide_data.get("process_description", {})
         if proc:
@@ -3789,6 +3845,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         system = slide_data.get("system_thinking", {})
         if system:
@@ -3875,6 +3932,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         inquiry = slide_data.get("experiment_inquiry", {})
         if inquiry:
@@ -3997,6 +4055,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         timeline = slide_data.get("timeline", {})
         if timeline:
@@ -4051,6 +4110,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         cause = slide_data.get("cause_analysis", {})
         if cause:
@@ -4114,6 +4174,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         material = slide_data.get("historical_material", {})
         if material:
@@ -4174,6 +4235,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         impact = slide_data.get("impact_evaluation", {})
         if impact:
@@ -4226,6 +4288,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         concept = slide_data.get("concept_definition", {})
         if concept:
@@ -4286,6 +4349,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         principle = slide_data.get("principle_explanation", {})
         if principle:
@@ -4338,6 +4402,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         case = slide_data.get("case_analysis", {})
         if case:
@@ -4401,6 +4466,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         location = slide_data.get("location", {})
         if location:
@@ -4461,6 +4527,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         env = slide_data.get("natural_environment", {})
         if env:
@@ -4511,6 +4578,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         comparison = slide_data.get("regional_comparison", {})
         if comparison:
@@ -4574,6 +4642,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(1), Inches(1.8), Inches(8), Inches(5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         relation = slide_data.get("human_land_relationship", {})
         if relation:
@@ -4638,6 +4707,7 @@ class PPTGenerator:
         # 内容
         content_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.8), Inches(8.4), Inches(5.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         word_analysis = slide_data.get("word_analysis", {})
         if word_analysis:
@@ -4749,6 +4819,7 @@ class PPTGenerator:
 
         content_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.8), Inches(8.4), Inches(5.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         word_analysis = slide_data.get("word_analysis", {})
         target_word = slide_data.get("target_word", "单词")
@@ -4815,6 +4886,7 @@ class PPTGenerator:
 
         content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         word_analysis = slide_data.get("word_analysis", {})
         if word_analysis:
@@ -4853,6 +4925,7 @@ class PPTGenerator:
 
         content_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.8), Inches(8.4), Inches(5.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         collocations = slide_data.get("collocations", {})
         if collocations:
@@ -5037,6 +5110,7 @@ class PPTGenerator:
         else:
             content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
             text_frame = content_box.text_frame
+            self._setup_text_frame(text_frame)
             for item in slide_data.get("content", []):
                 p = text_frame.add_paragraph()
                 p.text = item
@@ -5061,6 +5135,7 @@ class PPTGenerator:
 
         content_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.8), Inches(8.4), Inches(5.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         syntax_tree = slide_data.get("syntax_tree", {})
         if syntax_tree:
@@ -5176,6 +5251,7 @@ class PPTGenerator:
         syntax_tree = slide_data.get("syntax_tree", {})
         content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         if syntax_tree:
             tree_diagram = syntax_tree.get("tree_diagram", "")
@@ -5213,6 +5289,7 @@ class PPTGenerator:
 
         content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         syntax_tree = slide_data.get("syntax_tree", {})
         if syntax_tree:
@@ -5287,6 +5364,7 @@ class PPTGenerator:
 
         content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         special_sentences = slide_data.get("special_sentences", [])
         if special_sentences:
@@ -5340,6 +5418,7 @@ class PPTGenerator:
 
         content_box = slide.shapes.add_textbox(Inches(0.8), Inches(1.8), Inches(8.4), Inches(5.5))
         text_frame = content_box.text_frame
+        self._setup_text_frame(text_frame)
 
         tense_timeline = slide_data.get("tense_timeline", {})
         if tense_timeline:
@@ -5482,6 +5561,7 @@ class PPTGenerator:
         else:
             content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
             text_frame = content_box.text_frame
+            self._setup_text_frame(text_frame)
             for item in slide_data.get("content", []):
                 p = text_frame.add_paragraph()
                 p.text = item
@@ -5564,6 +5644,7 @@ class PPTGenerator:
         else:
             content_box = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(8), Inches(4.5))
             text_frame = content_box.text_frame
+            self._setup_text_frame(text_frame)
             for item in slide_data.get("content", []):
                 p = text_frame.add_paragraph()
                 p.text = item

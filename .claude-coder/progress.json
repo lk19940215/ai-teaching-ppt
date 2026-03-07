@@ -96,6 +96,24 @@
       "taskId": "feat-063",
       "statusAfter": "done",
       "notes": "feat-063 图片/PDF 上传流程测试完成。\n\n完成工作:\n1. 修复 paddlepaddle 依赖：安装 paddlepaddle==3.0.0\n2. 修复 PaddleOCR 3.x API 兼容性：更新 ocr.py 使用 predict() 方法\n3. 修复 OCR API 响应字段：upload.py 返回 cleaned_text 匹配前端期望\n4. 测试报告写入 record/upload_test.md\n\n关键修复:\n- backend/app/services/ocr.py: 适配 PaddleOCR 3.x 新 API\n- backend/app/api/upload.py: 添加文本清洗，返回 cleaned_text\n\n验证结果:\n- 场景 1（图片→OCR）：后端 API 验证通过\n- 场景 2（图片→生成）：核心链路验证通过  \n- 场景 3/4（PDF 流程）：代码审查确认\n\n注意:\n- 端到端生成测试因 SSE 连接超时未完全验证，但 OCR 核心链路已通过命令行测试确认\n- 后端服务运行在 8000 端口，状态 healthy\n\n相关文件:\n- record/upload_test.md (测试报告)\n- backend/app/services/ocr.py (OCR 服务适配)\n- backend/app/api/upload.py (API 响应修复)"
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-07T12:25:44.135Z",
+      "result": "success",
+      "cost": 2.457196,
+      "taskId": "feat-069",
+      "statusAfter": "done",
+      "notes": "feat-069 完成：删除了 upload.py 中的冗余 /process/ocr 路由（返回 text 字段），保留 process.py 中的完整版本（返回 cleaned_text、original_text、metrics、keywords 字段）。前端 upload/page.tsx 第 386 行期望 cleaned_text 字段，现在响应格式统一。\\n\\n问题背景：\\n- upload.py 和 process.py 中都有 /api/v1/process/ocr 路由\\n- upload.py 返回 {\\"
+    },
+    {
+      "session": 2,
+      "timestamp": "2026-03-07T12:36:19.513Z",
+      "result": "success",
+      "cost": null,
+      "taskId": "feat-070",
+      "statusAfter": "done",
+      "notes": "完成 feat-070 图片二次上传修复：\n\n**问题分析**：\n- handleFileSelect 和 handleDrop 函数在选择文件后未清空 input.value\n- 导致用户删除已选文件后，再次选择同一文件时 onChange 事件不会触发\n\n**修复内容**：\n1. handleFileSelect 函数：在设置文件后添加 e.target.value = '' 清空 input\n2. handleDrop 函数：添加代码清空对应的 input 元素（通过 getElementById）\n3. 同时处理图片和 PDF 两种上传类型\n\n**验证**：\n- 类型检查通过 (pnpm tsc --noEmit)\n- 代码逻辑审查通过\n\n**给下一会话的提醒**：\n- 当前任务：feat-070 已完成\n- 下一优先任务：feat-071（PPT 文本溢出修复）\n- 服务状态：后端 8000 端口、前端 3000 端口运行中（连续模式，保持服务）"
     }
   ]
 }
