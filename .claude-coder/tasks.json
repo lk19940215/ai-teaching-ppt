@@ -813,7 +813,7 @@
         "【记录】降级流程日志，写入 record/degradation-test.md",
         "【预算】Smart Snapshot： enabled→disabled→upload→验证降级，共 3 次"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-088"
       ]
