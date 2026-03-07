@@ -635,7 +635,7 @@
         "性能测试：10页 <2s，50页 <5s，100页 <10s",
         "验证：PPT Preview 性能达标"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-083"
       ]

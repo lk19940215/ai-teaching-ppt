@@ -56,6 +56,14 @@
       "expected": "1, 合并页面可访问且包含标题",
       "last_result": "pass",
       "last_run_session": 3
+    },
+    {
+      "id": "test-feat088-perf",
+      "feature_id": "feat-088",
+      "verify": "cd frontend && pnpm tsc --noEmit",
+      "expected": "TypeScript 编译无错误，虚拟滚动/离屏缓存/懒加载代码已实现",
+      "last_result": "pass",
+      "last_run_session": 5
     }
   ]
 }

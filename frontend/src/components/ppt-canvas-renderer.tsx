@@ -2,6 +2,59 @@
 
 import * as React from "react"
 
+// 离屏 Canvas 缓存池（LRU 缓存，feat-088 性能优化）
+const MAX_CACHE_SIZE = 20 // 最多缓存 20 个页面
+const canvasCache = new Map<string, HTMLCanvasElement>()
+const cacheAccessOrder: string[] = [] // 访问顺序队列
+
+/**
+ * LRU 缓存：获取缓存的 Canvas
+ */
+function getCachedCanvas(key: string): HTMLCanvasElement | null {
+  const cached = canvasCache.get(key)
+  if (cached) {
+    // 更新访问顺序
+    const idx = cacheAccessOrder.indexOf(key)
+    if (idx > -1) {
+      cacheAccessOrder.splice(idx, 1)
+    }
+    cacheAccessOrder.push(key)
+    return cached
+  }
+  return null
+}
+
+/**
+ * LRU 缓存：设置缓存
+ */
+function setCachedCanvas(key: string, canvas: HTMLCanvasElement) {
+  // 如果已存在，先移除旧顺序
+  const idx = cacheAccessOrder.indexOf(key)
+  if (idx > -1) {
+    cacheAccessOrder.splice(idx, 1)
+  }
+
+  // 添加新缓存
+  cacheAccessOrder.push(key)
+  canvasCache.set(key, canvas)
+
+  // 如果超过缓存上限，移除最旧的
+  if (canvasCache.size > MAX_CACHE_SIZE) {
+    const oldestKey = cacheAccessOrder.shift()
+    if (oldestKey) {
+      canvasCache.delete(oldestKey)
+    }
+  }
+}
+
+/**
+ * 清除缓存（用于内存清理）
+ */
+export function clearCanvasCache() {
+  canvasCache.clear()
+  cacheAccessOrder.length = 0
+}
+
 // 增强的 PPT 页面数据结构（与后端 parse-enhanced 返回结构对应）
 export interface EnhancedPptPageData {
   index: number
@@ -98,15 +151,41 @@ export function PptCanvasRenderer({
   quality = 1.0,
 }: PptCanvasRendererProps) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
+  const containerRef = React.useRef<HTMLDivElement>(null)
   const [isLoaded, setIsLoaded] = React.useState(false)
-
-  // 离屏 Canvas 缓存
-  const offscreenCanvasRef = React.useRef<HTMLCanvasElement | null>(null)
-  const cacheKeyRef = React.useRef<string>('')
+  const [isInCache, setIsInCache] = React.useState(false)
+  const [isVisible, setIsVisible] = React.useState(false)
 
   // 计算缩放比例（添加默认 layout 防止出错）
   const layout = pageData.layout || { width: 960, height: 540 }
   const scale = Math.min(width / layout.width, height / layout.height) * quality
+
+  // 生成缓存键
+  const cacheKey = `page-${pageData.index}-w${width}-h${height}-q${quality}`
+
+  // IntersectionObserver：图片懒加载（feat-088）
+  React.useEffect(() => {
+    if (!containerRef.current) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true)
+            observer.disconnect()
+          }
+        })
+      },
+      {
+        rootMargin: '200px', // 提前 200px 开始加载
+        threshold: 0.01
+      }
+    )
+
+    observer.observe(containerRef.current)
+
+    return () => observer.disconnect()
+  }, [])
 
   // 渲染单个文本运行
   const renderTextRun = (
@@ -197,7 +276,7 @@ export function PptCanvasRenderer({
     }
   }
 
-  // 渲染图片
+  // 渲染图片（懒加载版本）
   const renderImageShape = (
     ctx: CanvasRenderingContext2D,
     shape: any,
@@ -205,6 +284,9 @@ export function PptCanvasRenderer({
     offsetY: number
   ) => {
     if (!shape.image_base64) return
+
+    // 懒加载：不可见时不加载图片
+    if (!isVisible) return
 
     const x = shape.position.x * scale + offsetX
     const y = shape.position.y * scale + offsetY
@@ -214,6 +296,8 @@ export function PptCanvasRenderer({
     const img = new Image()
     img.onload = () => {
       ctx.drawImage(img, x, y, w, h)
+      // 图片加载完成后重新渲染整个 Canvas（可选）
+      setIsLoaded(true)
     }
     img.src = shape.image_base64
   }
@@ -324,6 +408,21 @@ export function PptCanvasRenderer({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    // 检查缓存
+    const cachedCanvas = getCachedCanvas(cacheKey)
+    if (cachedCanvas) {
+      // 使用缓存渲染
+      ctx.drawImage(cachedCanvas, 0, 0)
+      setIsInCache(true)
+      setIsLoaded(true)
+
+      // 绘制选中边框（如果需要）
+      if (isSelected) {
+        drawSelectionBorder(ctx, width, height)
+      }
+      return
+    }
+
     // 清空画布
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
@@ -334,6 +433,16 @@ export function PptCanvasRenderer({
     // 绘制白色背景
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, width, height)
+
+    // 不可见时只绘制背景和占位符
+    if (!isVisible) {
+      // 绘制占位符文本
+      ctx.fillStyle = '#999999'
+      ctx.font = '14px Microsoft YaHei, sans-serif'
+      ctx.textAlign = 'center'
+      ctx.fillText('加载中...', width / 2, height / 2)
+      return
+    }
 
     // 按顺序渲染所有形状
     for (const shape of pageData.shapes || []) {
@@ -358,52 +467,30 @@ export function PptCanvasRenderer({
       drawSelectionBorder(ctx, width, height)
     }
 
+    // 保存到缓存（创建离屏 Canvas）
+    const offscreen = document.createElement('canvas')
+    offscreen.width = width
+    offscreen.height = height
+    const offscreenCtx = offscreen.getContext('2d')
+    if (offscreenCtx) {
+      offscreenCtx.drawImage(canvas, 0, 0)
+      setCachedCanvas(cacheKey, offscreen)
+    }
+
+    setIsInCache(false)
     setIsLoaded(true)
   }
 
   // 组件挂载和更新时渲染
   React.useEffect(() => {
-    // 生成缓存键
-    const cacheKey = `${pageData.index}_${width}_${height}_${isSelected}_${quality}`
-
-    // 检查缓存
-    if (cacheKeyRef.current === cacheKey && offscreenCanvasRef.current) {
-      // 使用缓存
-      const canvas = canvasRef.current
-      const offscreen = offscreenCanvasRef.current
-      if (canvas) {
-        const ctx = canvas.getContext('2d')
-        if (ctx) {
-          ctx.drawImage(offscreen, 0, 0)
-          setIsLoaded(true)
-          return
-        }
-      }
-    }
-
-    // 更新缓存键
-    cacheKeyRef.current = cacheKey
-
-    // 渲染到 Canvas
     renderToCanvas()
+  }, [pageData, width, height, isSelected, quality, isVisible])
 
-    // 保存到离屏 Canvas（用于缓存）
-    const offscreen = document.createElement('canvas')
-    offscreen.width = width
-    offscreen.height = height
-    const offscreenCtx = offscreen.getContext('2d')
-    const mainCanvas = canvasRef.current
-    if (offscreenCtx && mainCanvas) {
-      const mainCtx = mainCanvas.getContext('2d')
-      if (mainCtx) {
-        offscreenCtx.drawImage(mainCanvas, 0, 0)
-        offscreenCanvasRef.current = offscreen
-      }
-    }
-  }, [pageData, width, height, isSelected, quality])
+  // 组件卸载时可选清理（不需要，LRU 会自动管理）
 
   return (
     <div
+      ref={containerRef}
       className="relative"
       style={{ width: `${width}px`, height: `${height}px` }}
       onClick={onClick}
@@ -417,8 +504,8 @@ export function PptCanvasRenderer({
         } ${isSelected ? 'ring-2 ring-indigo-500' : ''}`}
       />
 
-      {/* 加载状态 */}
-      {!isLoaded && (
+      {/* 加载状态（仅在无缓存时显示） */}
+      {!isLoaded && !isInCache && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
           <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
@@ -428,6 +515,13 @@ export function PptCanvasRenderer({
       <div className="absolute bottom-1 left-1 bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded">
         P{pageData.index + 1}
       </div>
+
+      {/* 缓存命中指示器（开发调试用，可移除） */}
+      {isInCache && process.env.NODE_ENV === 'development' && (
+        <div className="absolute top-1 right-1 bg-green-500 text-white text-[8px] px-1 py-0.5 rounded opacity-70">
+          缓存
+        </div>
+      )}
     </div>
   )
 }

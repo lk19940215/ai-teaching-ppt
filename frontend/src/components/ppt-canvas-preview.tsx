@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useState } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/ppt-canvas-renderer"
@@ -35,10 +35,16 @@ interface PptCanvasPreviewProps {
   onPageChange?: (page: number) => void
   // 使用 Canvas 渲染（默认 true）
   useCanvas?: boolean
+  // 启用虚拟滚动（默认 true，50 页以上自动启用）
+  enableVirtualScroll?: boolean
 }
 
 // 每页显示的缩略图数量
 const THUMBNAILS_PER_PAGE = 6
+
+// 虚拟滚动配置
+const VIRTUAL_SCROLL_THRESHOLD = 12 // 超过 12 页启用虚拟滚动
+const RENDER_AHEAD = 3 // 预渲染前方 3 个缩略图
 
 /**
  * PPT Canvas 预览组件（feat-084）
@@ -61,8 +67,15 @@ export function PptCanvasPreview({
   currentPage = 1,
   onPageChange,
   useCanvas = true,
+  enableVirtualScroll = true,
 }: PptCanvasPreviewProps) {
   const [internalCurrentPage, setInternalCurrentPage] = useState(1)
+  // 虚拟滚动：滚动容器引用
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  // 虚拟滚动：当前滚动位置
+  const [scrollTop, setScrollTop] = useState(0)
+  // 虚拟滚动：缩略图高度（含间距）
+  const thumbnailHeight = 180 // 估算每个缩略图的高度（像素）
 
   // 使用外部控制的页码或内部状态
   const currentPg = onPageChange ? currentPage : internalCurrentPage
@@ -74,6 +87,34 @@ export function PptCanvasPreview({
   const startIndex = (currentPg - 1) * THUMBNAILS_PER_PAGE
   const endIndex = Math.min(startIndex + THUMBNAILS_PER_PAGE, pages.length)
   const currentPageThumbnails = pages.slice(startIndex, endIndex)
+
+  // 虚拟滚动：计算可见范围
+  const visibleRange = useMemo(() => {
+    if (!enableVirtualScroll || pages.length <= VIRTUAL_SCROLL_THRESHOLD) {
+      return { start: 0, end: pages.length }
+    }
+
+    // 容器可见高度
+    const containerHeight = scrollContainerRef.current?.clientHeight || 600
+    // 可见区域能显示的缩略图数量
+    const visibleCount = Math.ceil(containerHeight / thumbnailHeight) + RENDER_AHEAD
+    // 当前滚动位置对应的起始索引
+    const start = Math.floor(scrollTop / thumbnailHeight)
+    // 结束索引（多渲染 RENDER_AHEAD 个）
+    const end = Math.min(start + visibleCount, pages.length)
+
+    return {
+      start: Math.max(0, start - RENDER_AHEAD),
+      end: Math.min(end, pages.length)
+    }
+  }, [scrollTop, pages.length, enableVirtualScroll])
+
+  // 虚拟滚动：处理滚动事件
+  const handleScroll = React.useCallback(() => {
+    if (scrollContainerRef.current) {
+      setScrollTop(scrollContainerRef.current.scrollTop)
+    }
+  }, [])
 
   // 转换为基础数据（用于兼容）
   const convertToEnhanced = (page: PptPageData | EnhancedPptPageData, pageIndex: number): EnhancedPptPageData => {
@@ -200,6 +241,39 @@ export function PptCanvasPreview({
     )
   }
 
+  // 渲染虚拟滚动缩略图列表（只渲染可见区域）
+  const renderVirtualScrollList = () => {
+    const { start, end } = visibleRange
+    const visiblePages = pages.slice(start, end)
+    // 每行 3 个缩略图，计算总行数
+    const thumbnailsPerRow = 3
+    const totalRows = Math.ceil(pages.length / thumbnailsPerRow)
+    const rowHeight = thumbnailHeight
+    const totalHeight = totalRows * rowHeight
+
+    return (
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="overflow-y-auto"
+        style={{ height: '600px', maxHeight: '600px' }}
+      >
+        <div style={{ height: `${totalHeight}px`, position: 'relative' }}>
+          <div style={{
+            position: 'absolute',
+            top: `${Math.floor(start / thumbnailsPerRow) * rowHeight}px`,
+            left: 0,
+            right: 0
+          }}>
+            <div className="grid grid-cols-3 gap-3">
+              {visiblePages.map(page => renderCanvasThumbnail(page))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // 渲染 CSS 缩略图（ fallback）
   const renderCssThumbnail = (page: PptPageData) => {
     const isSelected = selectedPages.includes(page.index)
@@ -264,8 +338,9 @@ export function PptCanvasPreview({
           </svg>
           <p className="mt-2 text-sm text-gray-500">上传 PPT 文件后显示分页预览</p>
         </div>
+      ) : enableVirtualScroll && pages.length > VIRTUAL_SCROLL_THRESHOLD ? (
+        renderVirtualScrollList()
       ) : (
-        /* 缩略图网格 */
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
           {currentPageThumbnails.map(page =>
             useCanvas ? renderCanvasThumbnail(page) : renderCssThumbnail(page as PptPageData)
@@ -273,8 +348,8 @@ export function PptCanvasPreview({
         </div>
       )}
 
-      {/* 分页导航 */}
-      {pages.length > 0 && (
+      {/* 分页导航（虚拟滚动模式下隐藏） */}
+      {pages.length > 0 && !(enableVirtualScroll && pages.length > VIRTUAL_SCROLL_THRESHOLD) && (
         <div className="flex items-center justify-between pt-4 border-t">
           <Button
             variant="outline"
