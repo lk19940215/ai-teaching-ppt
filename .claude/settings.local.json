@@ -17,7 +17,8 @@
       "Bash(tasklist:*)",
       "Bash(powershell:*)",
       "Bash(kill:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

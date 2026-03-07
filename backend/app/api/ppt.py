@@ -696,13 +696,19 @@ async def merge_ppts(
 @router.post("/ppt/parse")
 async def parse_ppt(
     file: UploadFile = File(..., description="要解析的 PPTX 文件"),
+    extract_enhanced: bool = Form(False, description="是否提取增强元数据（图片、表格、样式等）"),
+    max_image_size: int = Form(512, description="图片最大尺寸（宽度/高度），用于控制Base64大小"),
 ):
     """
     解析 PPTX 文件，提取每页的内容用于前端预览
     Args:
         file: PPTX 文件
+        extract_enhanced: 是否提取增强元数据（图片、表格、样式等）
+        max_image_size: 图片最大尺寸（宽度/高度），用于控制Base64大小
     Returns:
-        JSON 格式：{ pages: [{ index, title, content, shapes }] }
+        JSON 格式：
+        基础模式：{ pages: [{ index, title, content, shapes }] }
+        增强模式：{ pages: [{ index, title, content: [{type, text, font, position}], shapes, layout }] }
     """
     try:
         # 验证文件类型
@@ -722,27 +728,179 @@ async def parse_ppt(
             # 解析 PPTX
             from pptx import Presentation
             from pptx.enum.shapes import MSO_SHAPE_TYPE
+            from pptx.enum.text import MSO_AUTO_SHAPE_TYPE
+            from pptx.dml.color import RGBColor
+            import base64
+            from io import BytesIO
+            from PIL import Image
 
             prs = Presentation(temp_path)
             pages: List[Dict[str, Any]] = []
 
+            # 提取单个文本运行的样式信息
+            def extract_text_run_style(run):
+                """提取文本运行的样式信息"""
+                font_info = {}
+                if hasattr(run, 'font'):
+                    font = run.font
+                    if font.name:
+                        font_info['name'] = font.name
+                    if font.size:
+                        font_info['size'] = font.size.pt  # 转换为磅值
+                    if font.bold is not None:
+                        font_info['bold'] = font.bold
+                    if font.italic is not None:
+                        font_info['italic'] = font.italic
+                    if font.underline is not None:
+                        font_info['underline'] = font.underline
+                    if font.color and hasattr(font.color, 'rgb') and font.color.rgb:
+                        # 转换 RGBColor 为十六进制字符串
+                        rgb = font.color.rgb
+                        font_info['color'] = f"#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}"
+                return font_info
+
+            # 压缩并转换图片为 Base64
+            def image_to_base64(image_bytes: bytes, max_size: int = 512) -> str:
+                """将图片压缩并转换为 Base64"""
+                try:
+                    img = Image.open(BytesIO(image_bytes))
+
+                    # 如果图片过大，进行缩放
+                    if img.width > max_size or img.height > max_size:
+                        img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+
+                    # 转换为 RGB（如果需要）
+                    if img.mode in ('RGBA', 'P', 'LA'):
+                        img = img.convert('RGB')
+
+                    # 保存为 JPEG 并压缩
+                    output = BytesIO()
+                    img.save(output, format='JPEG', quality=85, optimize=True)
+                    output.seek(0)
+
+                    # 转换为 Base64
+                    base64_str = base64.b64encode(output.getvalue()).decode('utf-8')
+                    return f"data:image/jpeg;base64,{base64_str}"
+                except Exception as e:
+                    logger.warning(f"图片压缩失败：{e}")
+                    return None
+
+            # 解析单个形状
+            def parse_shape(shape, slide_width: int, slide_height: int):
+                """解析单个形状，提取详细信息"""
+                shape_info = {
+                    'type': 'unknown',
+                    'name': shape.name if hasattr(shape, 'name') else '',
+                    'position': {
+                        'x': shape.left.pt if hasattr(shape, 'left') and shape.left else 0,
+                        'y': shape.top.pt if hasattr(shape, 'top') and shape.top else 0,
+                        'width': shape.width.pt if hasattr(shape, 'width') and shape.width else 0,
+                        'height': shape.height.pt if hasattr(shape, 'height') and shape.height else 0
+                    }
+                }
+
+                # 提取形状类型
+                if hasattr(shape, 'shape_type'):
+                    shape_type = shape.shape_type
+                    if shape_type == MSO_SHAPE_TYPE.PICTURE:
+                        shape_info['type'] = 'picture'
+                    elif shape_type == MSO_SHAPE_TYPE.TABLE:
+                        shape_info['type'] = 'table'
+                    elif shape_type == MSO_SHAPE_TYPE.TEXT_BOX:
+                        shape_info['type'] = 'text_box'
+                    elif shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE:
+                        shape_info['type'] = 'auto_shape'
+                        if hasattr(shape, 'auto_shape_type'):
+                            shape_info['auto_shape_type'] = str(shape.auto_shape_type)
+                    elif shape_type == MSO_SHAPE_TYPE.PLACEHOLDER:
+                        shape_info['type'] = 'placeholder'
+                    else:
+                        shape_info['type'] = str(shape_type)
+
+                # 提取文本内容（增强模式）
+                if extract_enhanced and hasattr(shape, 'has_text_frame') and shape.has_text_frame:
+                    paragraphs = []
+                    for paragraph in shape.text_frame.paragraphs:
+                        runs = []
+                        for run in paragraph.runs:
+                            run_info = {
+                                'text': run.text,
+                                'font': extract_text_run_style(run)
+                            }
+                            runs.append(run_info)
+
+                        if runs:
+                            paragraphs.append({
+                                'runs': runs,
+                                'alignment': str(paragraph.alignment) if hasattr(paragraph, 'alignment') else 'left'
+                            })
+
+                    if paragraphs:
+                        shape_info['text_content'] = paragraphs
+
+                # 提取图片（增强模式）
+                if extract_enhanced and hasattr(shape, 'shape_type') and shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
+                    try:
+                        image = shape.image
+                        image_bytes = image.blob
+                        base64_str = image_to_base64(image_bytes, max_image_size)
+                        if base64_str:
+                            shape_info['image_base64'] = base64_str
+                            shape_info['image_format'] = image.ext
+                    except Exception as e:
+                        logger.warning(f"提取图片失败：{e}")
+
+                # 提取表格（增强模式）
+                if extract_enhanced and hasattr(shape, 'has_table') and shape.has_table:
+                    try:
+                        table_data = []
+                        for row in shape.table.rows:
+                            row_data = []
+                            for cell in row.cells:
+                                cell_text = ''
+                                if hasattr(cell, 'text_frame'):
+                                    for paragraph in cell.text_frame.paragraphs:
+                                        cell_text += paragraph.text + '\n'
+                                row_data.append(cell_text.strip())
+                            table_data.append(row_data)
+                        shape_info['table_data'] = table_data
+                    except Exception as e:
+                        logger.warning(f"提取表格失败：{e}")
+
+                # 计算相对位置（百分比）
+                if slide_width > 0 and slide_height > 0:
+                    shape_info['position_relative'] = {
+                        'x': round((shape_info['position']['x'] / slide_width) * 100, 2),
+                        'y': round((shape_info['position']['y'] / slide_height) * 100, 2),
+                        'width': round((shape_info['position']['width'] / slide_width) * 100, 2),
+                        'height': round((shape_info['position']['height'] / slide_height) * 100, 2)
+                    }
+
+                return shape_info
+
             for slide_idx, slide in enumerate(prs.slides):
+                # 获取页面尺寸
+                slide_width = prs.slide_width.pt if hasattr(prs, 'slide_width') else 960
+                slide_height = prs.slide_height.pt if hasattr(prs, 'slide_height') else 540
+
                 page_data: Dict[str, Any] = {
-                    "index": slide_idx + 1,  # 从 1 开始计数
-                    "title": "",
-                    "content": [],
-                    "shapes": []
+                    'index': slide_idx + 1,  # 从 1 开始计数
+                    'title': '',
+                    'content': [],
+                    'shapes': [],
+                    'layout': {
+                        'width': slide_width,
+                        'height': slide_height
+                    }
                 }
 
                 # 提取形状信息
                 for shape in slide.shapes:
-                    shape_info: Dict[str, Any] = {
-                        "type": str(shape.shape_type) if hasattr(shape, "shape_type") else "unknown",
-                        "name": shape.name if hasattr(shape, "name") else ""
-                    }
+                    shape_info = parse_shape(shape, slide_width, slide_height)
+                    page_data['shapes'].append(shape_info)
 
-                    # 提取文本框内容
-                    if hasattr(shape, "has_text_frame") and shape.has_text_frame:
+                    # 提取标题和内容（基础模式保持兼容）
+                    if hasattr(shape, 'has_text_frame') and shape.has_text_frame:
                         text_content = ""
                         for paragraph in shape.text_frame.paragraphs:
                             para_text = paragraph.text.strip()
@@ -751,21 +909,29 @@ async def parse_ppt(
 
                         if text_content.strip():
                             # 第一个文本框通常作为标题（通过形状名称判断）
-                            if not page_data["title"] and ("Title" in shape_info["name"] or shape_info["type"].startswith("PLACEHOLDER")):
-                                page_data["title"] = text_content.strip()
+                            if not page_data['title'] and ('Title' in shape_info['name'] or shape_info['type'] == 'placeholder'):
+                                page_data['title'] = text_content.strip()
                             else:
-                                page_data["content"].append(text_content.strip())
-
-                    # 记录形状类型
-                    page_data["shapes"].append(shape_info)
+                                # 基础模式：仅文本
+                                if not extract_enhanced:
+                                    page_data['content'].append(text_content.strip())
+                                # 增强模式：包含样式和位置
+                                else:
+                                    page_data['content'].append({
+                                        'type': 'text',
+                                        'text': text_content.strip(),
+                                        'position': shape_info['position'],
+                                        'font': shape_info.get('text_content', [{}])[0].get('runs', [{}])[0].get('font', {}) if shape_info.get('text_content') else {}
+                                    })
 
                 pages.append(page_data)
 
             return JSONResponse(content={
-                "success": True,
-                "file_name": file.filename,
-                "total_pages": len(pages),
-                "pages": pages
+                'success': True,
+                'file_name': file.filename,
+                'total_pages': len(pages),
+                'enhanced': extract_enhanced,
+                'pages': pages
             })
 
         finally:
@@ -779,7 +945,7 @@ async def parse_ppt(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"PPT 解析失败：{e}")
+        logger.error(f"PPT 解析失败：{e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"PPT 解析失败：{str(e)}")
 
 

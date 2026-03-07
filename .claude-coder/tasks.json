@@ -1,7 +1,7 @@
 {
   "project": "ai-teaching-ppt",
   "created_at": "2026-03-02",
-  "last_updated": "2026-03-07",
+  "last_updated": "2026-03-08",
   "completed_milestones": [
     {
       "id": "milestone-1",
@@ -468,6 +468,412 @@
       "depends_on": [
         "feat-074",
         "feat-077"
+      ]
+    },
+    {
+      "id": "feat-082",
+      "category": "backend",
+      "priority": 82,
+      "description": "增强 PPT 解析端点：返回图片、表格、样式等元数据",
+      "steps": [
+        "在 /api/v1/ppt/parse 端点添加 extract_enhanced 参数",
+        "提取文本样式（字体、颜色、大小、粗体、斜体、下划线）",
+        "提取图片并转换为 Base64（含压缩）",
+        "提取表格结构和数据",
+        "提取形状位置信息（绝对位置和相对百分比）",
+        "提取页面布局信息（宽度、高度）",
+        "验证：curl -F 'file=@test.pptx' -F 'extract_enhanced=true' http://localhost:8000/api/v1/ppt/parse"
+      ],
+      "status": "done",
+      "depends_on": []
+    },
+    {
+      "id": "feat-083",
+      "category": "frontend",
+      "priority": 83,
+      "description": "Canvas PPT 渲染组件：实现 PPT 页面真实效果预览",
+      "steps": [
+        "创建 PptCanvasRenderer 组件：使用 Canvas API 渲染 PPT 内容",
+        "实现文本渲染：支持字体、颜色、大小、粗体、斜体、下划线、对齐",
+        "实现图片渲染：支持 Base64 图片显示",
+        "实现表格渲染：绘制表格边框和单元格内容",
+        "实现离屏 Canvas 缓存优化性能",
+        "创建 PptCanvasPreview 组件：缩略图网格布局，支持点击选择",
+        "验证：pnpm tsc --noEmit 无错误；/merge 页面显示 Canvas 预览"
+      ],
+      "status": "done",
+      "depends_on": []
+    },
+    {
+      "id": "feat-084",
+      "category": "frontend",
+      "priority": 84,
+      "description": "重构 PPT 合并页面：集成 Canvas 预览组件",
+      "steps": [
+        "修改 merge/page.tsx，替换 PptPreview 为 PptCanvasPreview",
+        "保持提示语编辑功能与 Canvas 预览联动",
+        "保持页面选择和多选功能",
+        "验证：pnpm tsc --noEmit 无错误；页面正常显示 Canvas 预览"
+      ],
+      "status": "done",
+      "depends_on": [
+        "feat-082",
+        "feat-083"
+      ]
+    },
+    {
+      "id": "feat-085",
+      "category": "testing",
+      "priority": 85,
+      "description": "Playwright 端到端测试：编写 merge 页面测试脚本",
+      "steps": [
+        "编写 merge-page.test.ts 测试文件",
+        "测试页面加载和导航",
+        "测试 PPT 文件上传（单个和两个）",
+        "测试 Canvas 预览显示",
+        "测试页面选择和提示语面板联动",
+        "测试错误处理（未上传文件点击合并）",
+        "测试重置功能"
+      ],
+      "status": "done",
+      "depends_on": []
+    },
+    {
+      "id": "feat-086",
+      "category": "testing",
+      "priority": 86,
+      "description": "准备 PPT 测试文件集：用于端到端测试",
+      "steps": [
+        "创建 backend/tests/fixtures 目录",
+        "准备 ppt_a.pptx：5页，基础教学课件",
+        "准备 ppt_b.pptx：5页，补充内容",
+        "准备 small_ppt.pptx：2页，小型测试",
+        "准备 text_only.pptx：5页，纯文本测试",
+        "验证：curl -F 'file=@ppt_a.pptx' http://localhost:8000/api/v1/ppt/parse"
+      ],
+      "status": "done",
+      "depends_on": []
+    },
+    {
+      "id": "feat-079",
+      "category": "testing",
+      "priority": 79,
+      "description": "Playwright MCP文件上传限制调研：验证浏览器文件上传能力",
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md",
+        "【环境】启动浏览器，确认 storage-state 加载成功",
+        "【P0】使用 browser_file_upload 上传测试文件，验证绝对路径可用性",
+        "【P0】验证文件必须实际存在（检查后端 20MB 限制）",
+        "【P0】验证 PPTX 文件格式支持",
+        "【记录】结果写入 record/playwright-upload-test.md",
+        "【预算】每个文件 1 次 snapshot，共 3-4 次"
+      ],
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-080",
+      "category": "testing",
+      "priority": 80,
+      "description": "Canvas渲染PPT真实效果可行性调研：验证渲染库和技术方案",
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md",
+        "【调研】PptxRender (2025)：性能、文件大小、TypeScript 支持",
+        "【调研】pptxjs：基础功能支持、复杂格式兼容性",
+        "【调研】自研解析器+Canvas：开发成本、完全定制能力",
+        "【调研】后端解析+前端渲染：网络依赖、离线可用性",
+        "【结论】确定采用混合方案（PptxRender + 后端辅助）",
+        "【预算】文档调研不消耗 snapshot"
+      ],
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-081",
+      "category": "backend",
+      "priority": 81,
+      "description": "现有PPT解析和渲染能力检测：评估当前实现能力边界",
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md",
+        "【检测】后端 /api/v1/ppt/parse：提取页面标题、内容、形状类型",
+        "【检测】前端 PptPreview：CSS 渲染效果、图片支持、样式支持",
+        "【检测】PPT 合并后端 API：merge 和 smart-merge 端点",
+        "【结论】生成检测报告：已实现能力 + 需要增强的能力",
+        "【记录】结果写入 record/ppt-capability-detection.md",
+        "【预算】每个端点 1 次 curl，不消耗 snapshot"
+      ],
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-087",
+      "category": "frontend",
+      "priority": 87,
+      "description": "集成PptxRender库：实现前端PPT真实渲染",
+      "steps": [
+        "安装 pptx-render 或 pptxjs-next 库",
+        "创建 Canvas 渲染器组件，解析 PPTX 并渲染到 Canvas",
+        "实现文本渲染（富文本、样式），图片渲染（Base64），表格渲染",
+        "处理渲染失败情况：降级到后端解析简化版",
+        "验证：/merge 页面 PPT A/B 显示真实渲染效果",
+        "预算：每个测试 PPT 1 次 snapshot"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-080"
+      ]
+    },
+    {
+      "id": "feat-088",
+      "category": "frontend",
+      "priority": 88,
+      "description": "性能优化：虚拟滚动、离屏缓存、懒加载",
+      "steps": [
+        "实现虚拟滚动：只渲染可视区域页面",
+        "实现离屏 Canvas 缓存：预渲染常用页面",
+        "实现图片懒加载：滚动到可视区域再加载",
+        "性能测试：10页 <2s，50页 <5s，100页 <10s",
+        "验证：PPT Preview 性能达标"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-083"
+      ]
+    },
+    {
+      "id": "feat-089",
+      "category": "frontend",
+      "priority": 89,
+      "description": "Canvas预览组件优化：交互体验改进",
+      "steps": [
+        "添加页面高亮效果：选中页显示选中边框",
+        "添加多选支持：Shift/Ctrl 点击多选",
+        "添加右键菜单：复制/删除/跳转等操作",
+        "优化响应速度：Web Worker 处理复杂渲染",
+        "验证：交互流畅，无卡顿"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-083"
+      ]
+    },
+    {
+      "id": "feat-090",
+      "category": "frontend",
+      "priority": 90,
+      "description": "重构PPT合并页面布局：集成Canvas预览",
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md",
+        "【前端】修改 merge/page.tsx：替换 PptPreview 为 PptCanvasPreview",
+        "【前端】保持提示语编辑功能与 Canvas 预览联动",
+        "【前端】调整布局：左侧 Canvas 预览 + 右侧提示语面板",
+        "【P0测试】上传 PPT A/B → Canvas 渲染正常 → 选择页面 → 提示语面板联动",
+        "【记录】测试结果写入 record/merge-canvas-test.md",
+        "【预算】Smart Snapshot：导航→上传→验证渲染→选择→验证联动，共 3 次"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-083",
+        "feat-084"
+      ]
+    },
+    {
+      "id": "feat-091",
+      "category": "frontend",
+      "priority": 91,
+      "description": "保持提示语编辑功能与Canvas预览联动",
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md",
+        "【功能】点击 Canvas 预览页面 → 右侧提示语面板定位到对应输入框",
+        "【功能】右侧提示语输入时 → 左侧 Canvas 高亮对应页面",
+        "【功能】页面 selection 变化 → 提示语面板同步更新",
+        "【P0测试】Playwright MCP 验证联动效果",
+        "【记录】测试结果写入 record/prompt-editor联动-test.md",
+        "【预算】Smart Snapshot：点击页面→验证面板→输入→验证高亮，共 3 次"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-084",
+        "feat-077"
+      ]
+    },
+    {
+      "id": "feat-092",
+      "category": "frontend",
+      "priority": 92,
+      "description": "Canvas预览多选支持： Shift/Ctrl 多选",
+      "steps": [
+        "【功能】Shift+点击：选择连续页面范围",
+        "【功能】Ctrl+点击：添加/取消单个页面选择",
+        "【功能】多选后：提示语面板显示所有选中页面",
+        "【P1测试】Playwright MCP 验证多选功能",
+        "【记录】测试结果写入 record/canvas-multiselect-test.md",
+        "【预算】Smart Snapshot：Shift选择→验证→Ctrl选择→验证，共 3 次"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-089"
+      ]
+    },
+    {
+      "id": "feat-093",
+      "category": "testing",
+      "priority": 93,
+      "description": "Playwright端到端测试：文件上传+Canvas渲染+合并",
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md",
+        "【环境】curl http://localhost:8000/health 确认后端服务正常",
+        "【P0】Playwright MCP 访问 /merge 页面，snapshot 确认页面加载",
+        "【P0】使用 browser_file_upload 上传 ppt_a.pptx（绝对路径）",
+        "【P0】使用 browser_file_upload 上传 ppt_b.pptx（绝对路径）",
+        "【P0】使用 browser_wait_for 等待 Canvas 渲染完成",
+        "【P0】browser_snapshot 验证 Canvas 正确显示文本、图片、表格",
+        "【P0】点击选择页面，验证右侧提示语面板联动",
+        "【P0】输入提示语，点击'开始智能合并'，等待 SSE 进度完成",
+        "【P0】验证下载链接生成，下载合并后的 PPT",
+        "【记录】测试结果写入 record/e2e-merge-canvas-test.md",
+        "【预算】Smart Snapshot： navigate→fileupload×2→wait→snapshot×2→select→merge→download，共 5 次"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-085",
+        "feat-086"
+      ]
+    },
+    {
+      "id": "feat-094",
+      "category": "testing",
+      "priority": 94,
+      "description": "Canvas渲染性能测试：100页渲染时间、内存占用",
+      "steps": [
+        "【准备】创建 100 页 PPT 测试文件",
+        "【P0】使用 device.tracing.start() 开始性能追踪",
+        "【P0】上传 100 页 PPT，记录加载时间",
+        "【P0】验证 100 页渲染时间 <10秒",
+        "【P0】验证内存占用 <50MB",
+        "【P0】使用 device.tracing.stop() 导出 tracing",
+        "【记录】性能数据写入 record/performance-test.md",
+        "【预算】Smart Snapshot： upload→wait→snapshot（性能数据）→tracing-stop，共 3 次"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-087"
+      ]
+    },
+    {
+      "id": "feat-095",
+      "category": "testing",
+      "priority": 95,
+      "description": "兼容性测试：Chrome、Firefox、Safari浏览器",
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md",
+        "【环境】确认后端服务正常",
+        "【P2 Chrome】访问 /merge，Canvas 渲染正常",
+        "【P2 Firefox】访问 /merge，Canvas 渲染正常",
+        "【P2 Safari】访问 /merge，Canvas 渲染正常",
+        "【记录】各浏览器渲染效果截图，写入 record/compatibility-test.md",
+        "【预算】每个浏览器 2 次 snapshot（导航→渲染验证），共 6 次"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-087"
+      ]
+    },
+    {
+      "id": "feat-096",
+      "category": "testing",
+      "priority": 96,
+      "description": "功能测试：各种PPT格式（文本、图片、表格、混合）",
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md",
+        "【环境】curl http://localhost:8000/health",
+        "【P0 文本】上传 text_only.pptx，Canvas 显示文本内容",
+        "【P0 图片】上传含图片的 PPT，Canvas 正确显示图片",
+        "【P0 表格】上传含表格的 PPT，Canvas 正确显示表格",
+        "【P0 混合】上传复杂 PPT，Canvas 正确显示布局和层级",
+        "【记录】各格式渲染结果截图，写入 record/format-test.md",
+        "【预算】每种格式 2 次 snapshot（上传→渲染验证），共 8 次"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-086"
+      ]
+    },
+    {
+      "id": "feat-097",
+      "category": "frontend",
+      "priority": 97,
+      "description": "降级机制实现：后端辅助解析",
+      "steps": [
+        "【功能】前端 Canvas 渲染失败时，自动调用 /api/v1/ppt/parse?extract_enhanced=false",
+        "【功能】后端返回简化版 JSON（仅文本和位置）",
+        "【功能】前端渲染简化版 Canvas（仅文本）",
+        "【功能】显示降级警告提示",
+        "【P1测试】强制关闭 Canvas 功能，验证降级正常",
+        "【记录】降级流程日志，写入 record/degradation-test.md",
+        "【预算】Smart Snapshot： enabled→disabled→upload→验证降级，共 3 次"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-088"
+      ]
+    },
+    {
+      "id": "feat-098",
+      "category": "frontend",
+      "priority": 98,
+      "description": "错误处理和用户提示：完整错误反馈机制",
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md",
+        "【P0 错误 1】文件不存在/格式错误：显示明确错误提示",
+        "【P0 错误 2】Canvas 不支持：显示降级提示",
+        "【P0 错误 3】加载超时：显示重试按钮",
+        "【P1 错误 4】部分格式不兼容：显示警告提示",
+        "【P1 错误 5】内存不足：显示清理建议",
+        "【记录】错误处理策略，写入 record/error-handling-canvas-test.md",
+        "【预算】每个错误场景 1 次 snapshot（触发→验证错误提示），共 5 次"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-083"
+      ]
+    },
+    {
+      "id": "feat-099",
+      "category": "docs",
+      "priority": 99,
+      "description": "文档和用户指南：Canvas 预览功能说明",
+      "steps": [
+        "【文档】在 README.md 新增 Canvas 预览章节",
+        "【文档】说明 Canvas 渲染支持的格式（文本/图片/表格）",
+        "【文档】说明 Canvas 预览与 CSS 预览的区别",
+        "【文档】说明 Canvas 渲染性能优化策略",
+        "【文档】说明降级机制和兼容性",
+        "【文档】在 merge 页面添加功能介绍",
+        "【记录】文档路径：docs/canvas-preview.md",
+        "【预算】文档编写不消耗 snapshot"
+      ],
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-100",
+      "category": "backend",
+      "priority": 100,
+      "description": "性能调优和发布准备：PPT 解析性能优化",
+      "steps": [
+        "【优化】后端解析 PPTX 时添加超时保护（5秒/100页）",
+        "【优化】图片 Base64 压缩优化（默认 512px，可配置）",
+        "【优化】添加解析缓存机制（相同文件不重复解析）",
+        "【优化】添加内存使用监控，超过阈值自动降级",
+        "【测试】性能测试：100页 PPT 解析时间 <5秒",
+        "【发布】检查所有依赖库版本，确保稳定",
+        "【记录】性能测试结果，写入 record/performance-final-test.md",
+        "【预算】Smart Snapshot： upload→解析→snapshot（时间）→验证结果，共 3 次"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-082"
       ]
     }
   ]

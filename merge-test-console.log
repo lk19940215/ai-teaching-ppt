@@ -1,0 +1,7 @@
+Total messages: 3 (Errors: 2, Warnings: 0)
+Returning 2 messages for level "error"
+
+[ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:8000/api/v1/ppt/parse:0
+[ERROR] 解析 PPT A 失败: Error: PPT 解析失败
+    at parsePptFile (webpack-internal:///(app-pages-browser)/./src/app/merge/page.tsx:270:19)
+    at async MergePage.useEffect.loadPptA (webpack-internal:///(app-pages-browser)/./src/app/merge/page.tsx:286:39) @ webpack-internal:///(app-pages-browser)/./node_modules/.pnpm/next@15.5.12_@playwright+te_0f50b1ea7caf900926a909176af48c3e/node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js:56

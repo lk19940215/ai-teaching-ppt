@@ -5,7 +5,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { apiBaseUrl } from '@/lib/api'
-import PptPreview, { type PptPageData } from '@/components/ppt-preview'
+import PptCanvasPreview, { type PptPageData } from '@/components/ppt-canvas-preview'
 import PromptEditor from '@/components/prompt-editor'
 
 // PPT 文件上传区域属性
@@ -438,7 +438,7 @@ export default function MergePage() {
           />
 
           {/* PPT A 预览组件 */}
-          <PptPreview
+          <PptCanvasPreview
             label="PPT A 预览"
             pages={pptAPages}
             isLoading={isLoadingA}
@@ -447,7 +447,7 @@ export default function MergePage() {
           />
 
           {/* PPT B 预览组件 */}
-          <PptPreview
+          <PptCanvasPreview
             label="PPT B 预览"
             pages={pptBPages}
             isLoading={isLoadingB}
