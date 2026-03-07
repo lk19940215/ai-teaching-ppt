@@ -438,22 +438,48 @@ export default function MergePage() {
             disabled={isGenerating}
           />
 
-          {/* PPT A 预览组件 */}
+          {/* PPT A 预览组件（feat-089: 支持右键菜单） */}
           <PptCanvasPreview
             label="PPT A 预览"
             pages={pptAPages}
             isLoading={isLoadingA}
             selectedPages={selectedPagesA}
             onSelectionChange={handleSelectionChangeA}
+            pptSource="A"
+            onJumpToPage={(source, pageIndex) => {
+              // 跳转查看：滚动到对应页面
+              console.log('跳转到 PPT', source, '页面', pageIndex)
+              // TODO: 实现跳转逻辑（如需要）
+            }}
+            onCopyPage={(source, pageIndex) => {
+              // 复制页面：将页面复制到另一个 PPT
+              console.log('复制 PPT', source, '页面', pageIndex)
+              // TODO: 实现复制逻辑（如需要）
+            }}
+            onDeletePage={(source, pageIndex) => {
+              // 删除页面：从列表中移除
+              console.log('删除 PPT', source, '页面', pageIndex)
+              // TODO: 实现删除逻辑（如需要）
+            }}
           />
 
-          {/* PPT B 预览组件 */}
+          {/* PPT B 预览组件（feat-089: 支持右键菜单） */}
           <PptCanvasPreview
             label="PPT B 预览"
             pages={pptBPages}
             isLoading={isLoadingB}
             selectedPages={selectedPagesB}
             onSelectionChange={handleSelectionChangeB}
+            pptSource="B"
+            onJumpToPage={(source, pageIndex) => {
+              console.log('跳转到 PPT', source, '页面', pageIndex)
+            }}
+            onCopyPage={(source, pageIndex) => {
+              console.log('复制 PPT', source, '页面', pageIndex)
+            }}
+            onDeletePage={(source, pageIndex) => {
+              console.log('删除 PPT', source, '页面', pageIndex)
+            }}
           />
         </div>
 

@@ -652,7 +652,7 @@
         "优化响应速度：Web Worker 处理复杂渲染",
         "验证：交互流畅，无卡顿"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-083"
       ]

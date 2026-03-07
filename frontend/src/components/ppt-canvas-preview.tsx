@@ -37,6 +37,14 @@ interface PptCanvasPreviewProps {
   useCanvas?: boolean
   // 启用虚拟滚动（默认 true，50 页以上自动启用）
   enableVirtualScroll?: boolean
+  // PPT 来源标识（用于右键菜单操作）
+  pptSource?: 'A' | 'B'
+  // 跳转到指定页面回调（用于右键菜单）
+  onJumpToPage?: (source: 'A' | 'B', pageIndex: number) => void
+  // 复制页面回调（用于右键菜单）
+  onCopyPage?: (source: 'A' | 'B', pageIndex: number) => void
+  // 删除页面回调（用于右键菜单）
+  onDeletePage?: (source: 'A' | 'B', pageIndex: number) => void
 }
 
 // 每页显示的缩略图数量
@@ -68,6 +76,10 @@ export function PptCanvasPreview({
   onPageChange,
   useCanvas = true,
   enableVirtualScroll = true,
+  pptSource,
+  onJumpToPage,
+  onCopyPage,
+  onDeletePage,
 }: PptCanvasPreviewProps) {
   const [internalCurrentPage, setInternalCurrentPage] = useState(1)
   // 虚拟滚动：滚动容器引用
@@ -76,6 +88,20 @@ export function PptCanvasPreview({
   const [scrollTop, setScrollTop] = useState(0)
   // 虚拟滚动：缩略图高度（含间距）
   const thumbnailHeight = 180 // 估算每个缩略图的高度（像素）
+
+  // feat-089: 右键菜单状态
+  const [contextMenu, setContextMenu] = useState<{
+    visible: boolean
+    x: number
+    y: number
+    pageIndex: number
+  }>({ visible: false, x: 0, y: 0, pageIndex: 0 })
+
+  // feat-089: 记录上次点击的页面索引（用于 Shift 多选）
+  const lastClickedIndex = useRef<number | null>(null)
+
+  // feat-089: 性能优化 - 防抖滚动更新
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // 使用外部控制的页码或内部状态
   const currentPg = onPageChange ? currentPage : internalCurrentPage
@@ -109,11 +135,17 @@ export function PptCanvasPreview({
     }
   }, [scrollTop, pages.length, enableVirtualScroll])
 
-  // 虚拟滚动：处理滚动事件
+  // 虚拟滚动：处理滚动事件（feat-089: 防抖优化）
   const handleScroll = React.useCallback(() => {
-    if (scrollContainerRef.current) {
-      setScrollTop(scrollContainerRef.current.scrollTop)
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current)
     }
+
+    scrollTimeoutRef.current = setTimeout(() => {
+      if (scrollContainerRef.current) {
+        setScrollTop(scrollContainerRef.current.scrollTop)
+      }
+    }, 50) // 50ms 防抖
   }, [])
 
   // 转换为基础数据（用于兼容）
@@ -157,17 +189,100 @@ export function PptCanvasPreview({
     }
   }
 
-  // 处理页面点击选择
-  const handlePageClick = (pageIndex: number) => {
+  // 处理页面点击选择（feat-089: 支持 Shift/Ctrl 多选）
+  const handlePageClick = (pageIndex: number, event?: React.MouseEvent) => {
     if (disableSelection) return
+    if (!onSelectionChange) return
 
-    if (onSelectionChange) {
+    const nativeEvent = event?.nativeEvent || event
+
+    // 如果按下 Shift 键，选择连续范围
+    if (event?.shiftKey && lastClickedIndex.current !== null) {
+      const start = lastClickedIndex.current
+      const end = pageIndex
+      const rangeStart = Math.min(start, end)
+      const rangeEnd = Math.max(start, end)
+
+      // 生成连续范围
+      const range = []
+      for (let i = rangeStart; i <= rangeEnd; i++) {
+        if (!selectedPages.includes(i)) {
+          range.push(i)
+        }
+      }
+      onSelectionChange([...selectedPages, ...range])
+      lastClickedIndex.current = pageIndex
+      return
+    }
+
+    // 如果按下 Ctrl/Cmd 键，切换单个页面选择状态
+    if (event?.ctrlKey || event?.metaKey) {
       const newSelection = selectedPages.includes(pageIndex)
         ? selectedPages.filter(p => p !== pageIndex)
         : [...selectedPages, pageIndex]
       onSelectionChange(newSelection)
+      lastClickedIndex.current = pageIndex
+      return
     }
+
+    // 普通点击：单选
+    onSelectionChange([pageIndex])
+    lastClickedIndex.current = pageIndex
   }
+
+  // feat-089: 处理右键菜单
+  const handleContextMenu = (event: React.MouseEvent, pageIndex: number) => {
+    event.preventDefault()
+    if (disableSelection) return
+
+    setContextMenu({
+      visible: true,
+      x: event.clientX,
+      y: event.clientY,
+      pageIndex
+    })
+  }
+
+  // feat-089: 关闭右键菜单
+  const closeContextMenu = () => {
+    setContextMenu(prev => ({ ...prev, visible: false }))
+  }
+
+  // feat-089: 处理右键菜单操作
+  const handleMenuAction = (action: 'jump' | 'copy' | 'delete') => {
+    const { pageIndex } = contextMenu
+    if (!pptSource) return
+
+    switch (action) {
+      case 'jump':
+        onJumpToPage?.(pptSource, pageIndex)
+        break
+      case 'copy':
+        onCopyPage?.(pptSource, pageIndex)
+        break
+      case 'delete':
+        onDeletePage?.(pptSource, pageIndex)
+        break
+    }
+    closeContextMenu()
+  }
+
+  // 点击其他地方关闭右键菜单
+  React.useEffect(() => {
+    if (!contextMenu.visible) return
+    const handleClick = () => closeContextMenu()
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }, [contextMenu.visible])
+
+  // feat-089: 组件卸载时清理定时器
+  React.useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+    }
+  }, [])
 
   // 处理上一页
   const handlePrevPage = () => {
@@ -210,7 +325,7 @@ export function PptCanvasPreview({
     return icons[(index - 1) % icons.length]
   }
 
-  // 渲染 Canvas 缩略图
+  // 渲染 Canvas 缩略图（feat-089: 支持右键菜单）
   const renderCanvasThumbnail = (page: PptPageData | EnhancedPptPageData) => {
     const enhancedPage = convertToEnhanced(page, page.index)
     const isSelected = selectedPages.includes(page.index)
@@ -218,11 +333,12 @@ export function PptCanvasPreview({
     return (
       <div
         key={page.index}
-        onClick={() => handlePageClick(page.index)}
+        onClick={(e) => handlePageClick(page.index, e)}
+        onContextMenu={(e) => handleContextMenu(e, page.index)}
         className={cn(
-          "flex-shrink-0 w-full aspect-[4/3] rounded-lg overflow-hidden border-2 transition-all duration-200 relative cursor-pointer",
+          "flex-shrink-0 w-full aspect-[4/3] rounded-lg overflow-hidden border-2 transition-all duration-200 relative cursor-pointer group",
           isSelected
-            ? "border-indigo-500 ring-2 ring-indigo-200 shadow-md"
+            ? "border-indigo-500 ring-2 ring-indigo-200 shadow-md bg-indigo-50/30"
             : "border-gray-200 hover:border-gray-300",
           disableSelection ? "cursor-default" : "hover:shadow-sm"
         )}
@@ -237,6 +353,18 @@ export function PptCanvasPreview({
           onClick={() => handlePageClick(page.index)}
           quality={0.8}
         />
+        {/* feat-089: 选中指示器 */}
+        {isSelected && (
+          <div className="absolute top-1 right-1 w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center">
+            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+          </div>
+        )}
+        {/* feat-089: 悬停提示 */}
+        {!disableSelection && (
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors pointer-events-none" />
+        )}
       </div>
     )
   }
@@ -382,6 +510,46 @@ export function PptCanvasPreview({
           <span className="font-mono ml-1">
             {selectedPages.map(p => `P${p + 1}`).join(", ")}
           </span>
+        </div>
+      )}
+
+      {/* feat-089: 右键菜单 */}
+      {contextMenu.visible && pptSource && (
+        <div
+          className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[160px]"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+        >
+          <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-100">
+            页面 {contextMenu.pageIndex + 1}
+          </div>
+          <button
+            onClick={() => handleMenuAction('jump')}
+            className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            跳转查看
+          </button>
+          <button
+            onClick={() => handleMenuAction('copy')}
+            className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            复制页面
+          </button>
+          <button
+            onClick={() => handleMenuAction('delete')}
+            className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            删除页面
+          </button>
         </div>
       )}
     </div>
