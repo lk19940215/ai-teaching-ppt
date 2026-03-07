@@ -365,6 +365,109 @@
         "feat-069",
         "feat-071"
       ]
+    },
+    {
+      "id": "feat-073",
+      "category": "backend",
+      "priority": 73,
+      "description": "PPT 解析预览 API：提取每页内容用于前端预览",
+      "steps": [
+        "在 backend/app/api/ppt.py 新增 POST /api/v1/ppt/parse 端点",
+        "解析 PPTX 文件，提取每页的标题、文本大纲、形状类型列表",
+        "返回 JSON 格式：{ pages: [{ index, title, content, shapes }] }",
+        "验证：curl -F 'file=@test.pptx' http://localhost:8000/api/v1/ppt/parse → 返回页面列表 JSON"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-072"
+      ]
+    },
+    {
+      "id": "feat-074",
+      "category": "backend",
+      "priority": 74,
+      "description": "智能合并 API：根据页面级提示语调用 LLM 合并 PPT",
+      "steps": [
+        "在 backend/app/api/ppt.py 新增 POST /api/v1/ppt/smart-merge 端点",
+        "接收参数：file_a, file_b, page_prompts (dict), global_prompt, api_key, provider",
+        "调用 LLM 解析提示语，生成合并策略 JSON",
+        "根据策略调用 ppt_generator.py 的智能合并方法",
+        "验证：curl 发送智能合并请求 → 返回合并后的 PPT 下载链接"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-073"
+      ]
+    },
+    {
+      "id": "feat-075",
+      "category": "frontend",
+      "priority": 75,
+      "description": "智能合并页面基础框架：创建 /merge 独立页面",
+      "steps": [
+        "创建 frontend/src/app/merge/page.tsx 独立页面",
+        "实现左右布局：左侧（上下两个 PPT 预览区）+ 右侧（提示语汇总面板）",
+        "添加 A/B PPT 文件上传区域（各支持单个 PPTX 文件）",
+        "添加页面导航入口（Header 组件新增链接）",
+        "验证：pnpm tsc --noEmit 无错误；访问 /merge 页面显示基础布局"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-073"
+      ]
+    },
+    {
+      "id": "feat-076",
+      "category": "frontend",
+      "priority": 76,
+      "description": "PPT 预览组件：A/B PPT 分页预览和页面选择",
+      "steps": [
+        "创建 PptPreview 组件：接收 pageData 数组，渲染每页内容（简化版：标题+文本大纲）",
+        "实现分页导航：上一页/下一页按钮 + 页码指示器",
+        "实现页面点击选择：选中页高亮显示，支持多选",
+        "集成到 merge/page.tsx 的 A/B 预览区域",
+        "验证：上传 PPT → 显示分页预览 → 点击页面可选中 → 高亮状态正确切换"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-075"
+      ]
+    },
+    {
+      "id": "feat-077",
+      "category": "frontend",
+      "priority": 77,
+      "description": "提示语编辑面板：页面级提示语 + 总提示语管理",
+      "steps": [
+        "创建 PromptEditor 组件：显示已选中页面的列表，每页配输入框",
+        "实现提示语输入：支持为每页添加/编辑提示语（如 '保留标题，正文与 B PPT 第 8 页合并'）",
+        "添加总提示语输入区域：对整体合并策略的说明",
+        "实现提示语实时预览：右侧面板显示所有提示语汇总",
+        "验证：选中多页 → 输入各页提示语 → 右侧面板正确显示汇总"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-076"
+      ]
+    },
+    {
+      "id": "feat-078",
+      "category": "fullstack",
+      "priority": 78,
+      "description": "智能合并生成流程：集成前后端完成端到端合并",
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md",
+        "【前端】实现智能合并按钮：收集所有提示语，调用 /api/v1/ppt/smart-merge",
+        "【前端】添加 SSE 进度反馈（复用 generate-stream 模式）",
+        "【前端】实现合并结果预览和下载",
+        "【P0 测试】Playwright MCP：上传 A/B PPT → 选择页面 → 输入提示语 → 生成 → 下载验证",
+        "验证：完整流程走通，合并后的 PPT 符合提示语要求"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-074",
+        "feat-077"
+      ]
     }
   ]
 }
