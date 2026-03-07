@@ -794,7 +794,7 @@
         "【记录】各格式渲染结果截图，写入 record/format-test.md",
         "【预算】每种格式 2 次 snapshot（上传→渲染验证），共 8 次"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-086"
       ]
