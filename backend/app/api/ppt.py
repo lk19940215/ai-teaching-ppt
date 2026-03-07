@@ -728,7 +728,10 @@ async def parse_ppt(
             # 解析 PPTX
             from pptx import Presentation
             from pptx.enum.shapes import MSO_SHAPE_TYPE
-            from pptx.enum.text import MSO_AUTO_SHAPE_TYPE
+            try:
+                from pptx.enum.text import MSO_AUTO_SHAPE_TYPE
+            except ImportError:
+                MSO_AUTO_SHAPE_TYPE = None  # 旧版本 python-pptx 可能没有此枚举
             from pptx.dml.color import RGBColor
             import base64
             from io import BytesIO
@@ -1344,6 +1347,8 @@ B 页面：
 
 请根据以上信息，生成合并策略 JSON。"""
 
+                logger.info(f"准备调用 LLM, provider={provider}, temperature={temperature}, max_tokens={max_tokens}")
+
                 llm_service = get_llm_service(
                     provider=provider,
                     api_key=api_key,
@@ -1351,10 +1356,17 @@ B 页面：
                     max_tokens=max_tokens
                 )
 
-                strategy_response = llm_service.chat([
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ])
+                logger.info(f"LLM 服务初始化完成，调用 chat 方法...")
+
+                try:
+                    strategy_response = llm_service.chat([
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ])
+                    logger.info(f"LLM 响应成功，长度={len(strategy_response) if strategy_response else 0}")
+                except Exception as e:
+                    logger.error(f"LLM chat 方法抛出异常：{type(e).__name__}: {e}")
+                    raise
 
                 try:
                     merge_strategy = json.loads(strategy_response)
@@ -1362,10 +1374,16 @@ B 页面：
                     logger.error(f"LLM 返回的策略 JSON 解析失败：{strategy_response[:500]}")
                     from ..services.llm import LLMService
                     fix_service = LLMService()
-                    fixed_json = fix_service._fix_json(strategy_response)
+                    # 先提取 JSON（处理 markdown 代码块），再修复格式
+                    extracted_json = fix_service._extract_json_from_response(strategy_response)
+                    logger.info(f"提取后的 JSON: {extracted_json[:200]}...")
+                    fixed_json = fix_service._fix_json(extracted_json)
+                    logger.info(f"修复后的 JSON: {fixed_json[:200]}...")
                     try:
                         merge_strategy = json.loads(fixed_json)
-                    except:
+                        logger.info("JSON 修复并解析成功")
+                    except Exception as fix_e:
+                        logger.error(f"JSON 修复失败：{fix_e}")
                         raise HTTPException(status_code=500, detail=f"LLM 生成的策略 JSON 格式错误：{e}")
 
                 logger.info(f"LLM 生成的合并策略：{json.dumps(merge_strategy, ensure_ascii=False)}")
@@ -1430,11 +1448,16 @@ B 页面：
                 "message": "LLM 调用超时，请稍后重试"
             })
         except Exception as e:
-            logger.error(f"智能合并失败：{e}")
+            logger.error(f"智能合并失败：{type(e).__name__} - {e}")
+            logger.error(f"Exception details: hasattr detail={hasattr(e, 'detail')}, detail value={getattr(e, 'detail', 'N/A')}")
+            logger.error(f"str(e)={str(e)}, repr(e)={repr(e)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            error_msg = getattr(e, 'detail', None) if hasattr(e, 'detail') else str(e)
             await progress_queue.put({
                 "stage": "error",
                 "progress": 0,
-                "message": f"智能合并失败：{str(e)}"
+                "message": f"智能合并失败：{error_msg or type(e).__name__}"
             })
         finally:
             await progress_queue.put(None)

@@ -734,7 +734,7 @@
         "【记录】测试结果写入 record/e2e-merge-canvas-test.md",
         "【预算】Smart Snapshot： navigate→fileupload×2→wait→snapshot×2→select→merge→download，共 5 次"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-085",
         "feat-086"

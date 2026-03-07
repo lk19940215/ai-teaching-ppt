@@ -72,6 +72,14 @@
       "expected": "联动功能正常：点击 Canvas 页面后提示语面板自动滚动并聚焦到对应输入框；输入提示语时 Canvas 保持选中状态",
       "last_result": "pass",
       "last_run_session": 8
+    },
+    {
+      "id": "test-feat093-merge-e2e",
+      "feature_id": "feat-093",
+      "verify": "python -c \"import requests, json; r=requests.post('http://localhost:8003/api/v1/ppt/smart-merge-stream', files={'file_a': ('ppt_a.pptx', open('backend/tests/fixtures/ppt_a.pptx','rb')), 'file_b': ('ppt_b.pptx', open('backend/tests/fixtures/ppt_b.pptx','rb'))}, data={'page_prompts': json.dumps({'a_pages': {'2': 'test'}, 'b_pages': {}}), 'global_prompt': 'test', 'api_key': 'sk-test', 'provider': 'deepseek', 'title': 'test'}); print('complete' in r.text)\"",
+      "expected": "HTTP 200, SSE 流返回 complete 事件，包含下载链接",
+      "last_result": "pass",
+      "last_run_session": 10
     }
   ]
 }
