@@ -354,13 +354,13 @@
       "priority": 72,
       "description": "PPT 合并生成功能：支持上传多个 PPT 合并生成新课件",
       "steps": [
-        "【后端】实现 PPT 内容解析服务（使用 python-pptx 读取文本和结构）",
-        "【后端】新增 /api/v1/upload/pptx 上传接口",
-        "【后端】实现内容合并提示词，指导 LLM 整合多 PPT 内容",
-        "【前端】upload/page.tsx 添加 'pptx' 上传类型和多文件选择",
-        "验证：上传 2 个 PPT→输入合并提示词→生成新 PPT"
+        "【后端】在 ppt_generator.py 新增 merge_ppts 方法和辅助方法",
+        "【后端】在 ppt.py 新增 POST /api/v1/ppt/merge 端点，支持上传 2-10 个 PPTX 文件",
+        "【前端】upload/page.tsx 添加 'ppt_merge' 上传类型和 UI",
+        "【前端】实现多文件上传管理和合并 API 调用",
+        "验证：上传 2 个 PPT→调用合并 API→下载合并后的 PPT"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-069",
         "feat-071"
