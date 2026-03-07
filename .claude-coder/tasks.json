@@ -428,7 +428,7 @@
         "集成到 merge/page.tsx 的 A/B 预览区域",
         "验证：上传 PPT → 显示分页预览 → 点击页面可选中 → 高亮状态正确切换"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-075"
       ]

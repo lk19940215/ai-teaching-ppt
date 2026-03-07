@@ -1,0 +1,10 @@
+INFO:     Will watch for changes in these directories: ['E:\\Code\\ai-teaching-ppt\\backend']
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [20396] using WatchFiles
+[33mChecking connectivity to the model hosters, this may take a while. To bypass this check, set `PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK` to `True`.[0m
+INFO:     Started server process [20436]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:4773 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4825 - "GET /api/v1/ppt/parse HTTP/1.1" 405 Method Not Allowed
+INFO:     127.0.0.1:4852 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK

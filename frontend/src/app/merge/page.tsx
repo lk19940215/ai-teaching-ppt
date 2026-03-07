@@ -1,10 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { apiBaseUrl } from '@/lib/api'
+import PptPreview, { type PptPageData } from '@/components/ppt-preview'
 
 // PPT 文件上传区域属性
 interface PptUploadAreaProps {
@@ -126,11 +127,24 @@ function PptUploadArea({ label, file, onFileSelect, disabled = false }: PptUploa
 /**
  * 智能合并页面 - 基础框架
  * feat-075：创建 /merge 独立页面
+ * feat-076：集成 PPT 预览组件
  */
 export default function MergePage() {
   // A/B PPT 文件状态
   const [pptA, setPptA] = useState<File | null>(null)
   const [pptB, setPptB] = useState<File | null>(null)
+
+  // A/B PPT 页面数据（用于预览）
+  const [pptAPages, setPptAPages] = useState<PptPageData[]>([])
+  const [pptBPages, setPptBPages] = useState<PptPageData[]>([])
+
+  // A/B PPT 加载状态
+  const [isLoadingA, setIsLoadingA] = useState(false)
+  const [isLoadingB, setIsLoadingB] = useState(false)
+
+  // A/B PPT 选中的页面索引
+  const [selectedPagesA, setSelectedPagesA] = useState<number[]>([])
+  const [selectedPagesB, setSelectedPagesB] = useState<number[]>([])
 
   // 提示语状态（预留，feat-077 实现）
   const [pagePrompts, setPagePrompts] = useState<Record<number, string>>({})
@@ -140,6 +154,81 @@ export default function MergePage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
+
+  // 解析 PPT 文件获取页面数据
+  const parsePptFile = async (file: File): Promise<PptPageData[]> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await fetch(`${apiBaseUrl}/api/v1/ppt/parse`, {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      throw new Error('PPT 解析失败')
+    }
+
+    const result = await response.json()
+    return result.pages || []
+  }
+
+  // 监听 PPT A 文件变化，自动解析
+  useEffect(() => {
+    if (!pptA) {
+      setPptAPages([])
+      return
+    }
+
+    const loadPptA = async () => {
+      setIsLoadingA(true)
+      try {
+        const pages = await parsePptFile(pptA)
+        setPptAPages(pages)
+        setSelectedPagesA([]) // 重置选择
+      } catch (err) {
+        console.error('解析 PPT A 失败:', err)
+        setError('解析 PPT A 失败，请重试')
+      } finally {
+        setIsLoadingA(false)
+      }
+    }
+
+    loadPptA()
+  }, [pptA])
+
+  // 监听 PPT B 文件变化，自动解析
+  useEffect(() => {
+    if (!pptB) {
+      setPptBPages([])
+      return
+    }
+
+    const loadPptB = async () => {
+      setIsLoadingB(true)
+      try {
+        const pages = await parsePptFile(pptB)
+        setPptBPages(pages)
+        setSelectedPagesB([]) // 重置选择
+      } catch (err) {
+        console.error('解析 PPT B 失败:', err)
+        setError('解析 PPT B 失败，请重试')
+      } finally {
+        setIsLoadingB(false)
+      }
+    }
+
+    loadPptB()
+  }, [pptB])
+
+  // 处理页面选择变化（用于后续提示语编辑）
+  const handleSelectionChangeA = (selected: number[]) => {
+    setSelectedPagesA(selected)
+  }
+
+  const handleSelectionChangeB = (selected: number[]) => {
+    setSelectedPagesB(selected)
+  }
 
   // 处理合并生成（预留，feat-078 实现）
   const handleMerge = async () => {
@@ -164,6 +253,10 @@ export default function MergePage() {
   const handleReset = () => {
     setPptA(null)
     setPptB(null)
+    setPptAPages([])
+    setPptBPages([])
+    setSelectedPagesA([])
+    setSelectedPagesB([])
     setPagePrompts({})
     setGlobalPrompt("")
     setError(null)
@@ -231,20 +324,23 @@ export default function MergePage() {
             disabled={isGenerating}
           />
 
-          {/* TODO: feat-076 实现 PPT 分页预览组件 */}
-          <div className="border rounded-lg p-6 bg-white">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              PPT 预览
-            </h3>
-            <div className="text-center text-gray-500 py-8">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              <p className="mt-2 text-sm">上传 PPT 文件后显示分页预览</p>
-              <p className="text-xs text-gray-400 mt-1">（feat-076 实现）</p>
-            </div>
-          </div>
+          {/* PPT A 预览组件 */}
+          <PptPreview
+            label="PPT A 预览"
+            pages={pptAPages}
+            isLoading={isLoadingA}
+            selectedPages={selectedPagesA}
+            onSelectionChange={handleSelectionChangeA}
+          />
+
+          {/* PPT B 预览组件 */}
+          <PptPreview
+            label="PPT B 预览"
+            pages={pptBPages}
+            isLoading={isLoadingB}
+            selectedPages={selectedPagesB}
+            onSelectionChange={handleSelectionChangeB}
+          />
         </div>
 
         {/* 右侧：提示语编辑面板 */}
@@ -253,6 +349,23 @@ export default function MergePage() {
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               合并提示语
             </h3>
+
+            {/* 已选页面提示（feat-076） */}
+            {(selectedPagesA.length > 0 || selectedPagesB.length > 0) && (
+              <div className="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded">
+                <p className="text-sm font-medium text-indigo-900 mb-2">已选择页面：</p>
+                {selectedPagesA.length > 0 && (
+                  <p className="text-xs text-indigo-700">
+                    PPT A: {selectedPagesA.map(p => `P${p + 1}`).join(", ")}
+                  </p>
+                )}
+                {selectedPagesB.length > 0 && (
+                  <p className="text-xs text-indigo-700">
+                    PPT B: {selectedPagesB.map(p => `P${p + 1}`).join(", ")}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* 页面级提示语列表（预留） */}
             <div className="mb-4">
