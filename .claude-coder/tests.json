@@ -120,6 +120,14 @@
       "expected": "场景 1: 显示'API Key 未配置'提示; 场景 2: 保存成功，生成成功 (后端可能使用 fallback); 场景 3: 空输入时按钮禁用",
       "last_result": "pass",
       "last_run_session": 3
+    },
+    {
+      "id": "test-feat105-history",
+      "feature_id": "feat-105",
+      "verify": "echo 'Playwright MCP: /history 页面 -> 搜索框输入关键词过滤 -> 年级/学科下拉筛选 -> 删除按钮 + 确认对话框 -> 列表刷新'",
+      "expected": "历史记录页面筛选功能正常（搜索框、年级、学科下拉），删除功能正常（确认对话框弹出，删除后列表刷新），重新生成按钮点击后变为'生成中...'状态",
+      "last_result": "pass",
+      "last_run_session": 5
     }
   ]
 }

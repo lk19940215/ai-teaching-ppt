@@ -186,7 +186,7 @@
         "【P1】browser_handle_dialog accept=true",
         "【记录】测试结果写入 record/test-105-history.md"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     },
     {
