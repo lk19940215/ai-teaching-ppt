@@ -476,10 +476,11 @@
         "【验证】登录第三方 LLM 服务后台，确认对应 request_id 的调用记录",
         "【记录】保存日志截图和第三方服务调用记录到 record/merge-llm-verify-20260308.md"
       ],
-      "status": "pending",
+      "status": "failed",
       "depends_on": [
         "feat-303"
-      ]
+      ],
+      "notes": "测试失败原因：uvicorn 进程网络访问异常。症状：前端显示'LLM API 错误：Connection error'，但直接 Python 脚本调用 DeepSeek API 成功。诊断：1) API Key 有效（Python 脚本测试通过，tokens used: 16）；2) 后端服务运行正常（健康检查通过）；3) SSE 流能收到前两个阶段事件（10% uploading, 25% parsing）；4) LLM 调用阶段失败（calling_llm, 50%）。可能根因：多个 uvicorn --reload 进程（PID: 17784, 9272, 18184, 14384, 2028, 17752）导致网络状态异常，这些进程无法被 npx kill-port 或 taskkill 完全停止。下一步：需要彻底停止所有 uvicorn 进程并冷启动单个实例。测试报告：record/merge-llm-verify-20260309.md"
     },
     {
       "id": "feat-308",

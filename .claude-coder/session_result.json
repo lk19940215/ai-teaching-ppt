@@ -2,5 +2,5 @@
   "session_result": "success",
   "status_before": "done",
   "status_after": "done",
-  "notes": "Session 5 状态确认完成。执行 6 步流程：1) 读取 project_profile.json、tasks.json、session_result.json、tests.json、requirements.md 恢复上下文；2) 环境健康检查：后端 http://localhost:8000/health 返回 {\"status\":\"healthy\"}，前端 http://localhost:3000 正常响应；3) 任务状态确认：所有 14 个任务均已完成（pending 任务数=0），无新任务需要执行；4) 增量实现：无（无 pending 任务）；5) 测试验证：无（无新任务需要测试）；6) 收尾：写入 session_result.json。当前项目状态稳定，所有已编排任务已完成，等待新需求输入。"
+  "notes": "追加了 3 个任务（feat-307, feat-308, feat-309）：1) feat-307 验证 AI 真实调用（第三方服务记录+日志增强），使用 test_rule.md 多轮 browser_wait_for 策略；2) feat-308 验证提示词优化效果（对比无提示语/保留废弃指令/模板场景）；3) feat-309 多学科边界测试（数学/语文/大文件）。所有任务使用结构化标签【规则】【环境】【P0/P1】【验证】【记录】，符合 Playwright MCP Smart Snapshot 和多阶段等待策略。"
 }
