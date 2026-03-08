@@ -167,8 +167,9 @@
         "【P1】browser_snapshot 验证识别文本",
         "【记录】测试结果写入 record/test-104-image-upload.md"
       ],
-      "status": "pending",
-      "depends_on": []
+      "status": "failed",
+      "depends_on": [],
+      "notes": "图片上传和 OCR 识别功能正常，但 SSE 流式 PPT 生成卡住（进度 40%）。后端 API 直接调用挂起，需调试 backend/app/api/ppt.py 中的 generate_full_ppt_stream_get 函数。详见 record/test-104-image-upload.md"
     },
     {
       "id": "feat-105",
