@@ -2,7 +2,7 @@
   "project": "ai-teaching-ppt",
   "created_at": "2026-03-02",
   "last_updated": "2026-03-08",
-  "next_task_priority": 207,
+  "next_task_priority": 210,
   "completed_milestones": [
     {
       "id": "milestone-1",
@@ -193,6 +193,185 @@
       "status": "done",
       "depends_on": [],
       "notes": "修复完成。问题根源：某些 PPTX 文件（如 LLM 生成的文件）包含无效的 XML 命名空间声明 `xmlns:ns2=\"%s\"`，其中 `%s` 是字符串占位符而非有效 URI，导致 lxml 解析失败。修复方案：在 parse_ppt() 中添加 `_fix_invalid_namespaces()` 函数，解压 PPTX 后扫描所有 XML 文件，将无效命名空间替换为有效的占位符 URI `http://schemas.openxmlformats.org/presentationml/2006/placeholder`，然后重新打包。测试验证：问题文件 `三角形的面积_0dc28a00.pptx` 现在可以成功解析，返回 9 页内容。"
+    }
+  ],
+  "features": [
+    {
+      "id": "feat-201",
+      "category": "feature",
+      "priority": 201,
+      "description": "P0 NPM 包调研：Canvas 渲染 PPT 最真实预览",
+      "steps": [
+        "【调研】评估 npm 包：pptx-preview、PptxViewJS、@kandiforge/pptx-renderer",
+        "【结论】PptxViewJS 最适合（Canvas渲染、MIT、TypeScript、内置翻页）",
+        "【阻塞】npm install 超时（网络问题），暂时跳过",
+        "【替代】使用现有 Canvas 渲染器实现单页预览模式"
+      ],
+      "status": "done",
+      "depends_on": [],
+      "notes": "调研完成。推荐 PptxViewJS (Canvas渲染, MIT, 内置翻页, 520 周下载) 或 pptx-preview (HTML渲染, 8.4K 周下载)。因网络问题未安装，后续网络好时再集成。"
+    },
+    {
+      "id": "feat-202",
+      "category": "feature",
+      "priority": 202,
+      "description": "P0 单页预览组件重构：默认渲染一页 + 左右翻页 + 底部缩略图条",
+      "steps": [
+        "【重构】PptCanvasPreview 组件改为单页模式",
+        "【实现】主预览区：800x450 完整渲染当前页",
+        "【实现】左右箭头按钮 + 键盘 ← → 快捷键",
+        "【实现】页码指示器：第 X 页 / 共 Y 页",
+        "【实现】底部缩略图条：水平滚动 + 活跃/选中标记",
+        "【实现】点击大图可选中/取消选中当前页",
+        "【实现】选中按钮 + 勾选标记",
+        "【集成】/merge 页面 PPT A/B 均使用新预览组件"
+      ],
+      "status": "done",
+      "depends_on": ["feat-201"]
+    },
+    {
+      "id": "feat-203",
+      "category": "feature",
+      "priority": 203,
+      "description": "P0 提示词编辑器结构化重构：每页「保留」+「废弃」两个可选字段",
+      "steps": [
+        "【设计】新数据结构 StructuredPagePrompt: { keep, discard }",
+        "【重构】PromptEditor 每个选中页面显示两个输入框",
+        "【UI】绿色边框「保留」+ 红色边框「废弃」",
+        "【后端】修改提示词格式传递（结构化 JSON）",
+        "【提示词】system_prompt 增加保留/废弃指令处理规则"
+      ],
+      "status": "done",
+      "depends_on": []
+    },
+    {
+      "id": "feat-204",
+      "category": "feature",
+      "priority": 204,
+      "description": "P1 系统提示词模板面板：5 个预设合并策略模板",
+      "steps": [
+        "【实现】5 个模板：保留A结构、保留B结构、取精华、顺序拼接、风格统一",
+        "【UI】PromptEditor 顶部可展开/收起的模板面板",
+        "【交互】点击模板自动填充到全局提示语",
+        "【样式】卡片式布局：图标 + 名称 + 简短描述"
+      ],
+      "status": "done",
+      "depends_on": []
+    },
+    {
+      "id": "feat-205",
+      "category": "feature",
+      "priority": 205,
+      "description": "P0 后端 AI 合并流程大优化：增强提示词 + 策略验证 + thinking 状态",
+      "steps": [
+        "【优化】system_prompt：添加角色定义、能力说明、输出格式示例",
+        "【优化】支持 rewrite action（重写内容）",
+        "【优化】user_prompt：结构化呈现保留/废弃指令",
+        "【增强】策略验证：校验页码范围、action 有效性",
+        "【增强】merge_rationale 字段记录 AI 思路",
+        "【日志】LLM 调用耗时、token 详细日志",
+        "【SSE】thinking 状态推送（AI 分析中...）"
+      ],
+      "status": "done",
+      "depends_on": ["feat-203"]
+    },
+    {
+      "id": "feat-206",
+      "category": "optimization",
+      "priority": 206,
+      "description": "P1 SSE 心跳机制：每 3 秒心跳 + 脉冲动画进度条，防自动化工具超时",
+      "steps": [
+        "【后端】sse_generator 添加 3 秒心跳（asyncio.wait_for + TimeoutError）",
+        "【后端】心跳事件格式：{type: 'heartbeat', timestamp: ...}",
+        "【前端】心跳事件过滤（不影响 UI）",
+        "【前端】进度条脉冲动画（shimmer gradient）",
+        "【前端】AI 工作状态指示器（绿色脉冲点）",
+        "【覆盖】所有 3 个 SSE 端点自动获得心跳能力"
+      ],
+      "status": "done",
+      "depends_on": []
+    },
+    {
+      "id": "feat-115",
+      "category": "bugfix",
+      "priority": 115,
+      "description": "P0 XML 解析错误：处理无效 XML 命名空间导致的 PPT 解析失败",
+      "steps": [
+        "【诊断】查看 question.md 中的错误详情",
+        "【修复】parse_ppt() 中增强 XML 异常捕获",
+        "【修复】尝试 lxml 容错模式解析",
+        "【修复】提供友好错误提示而非 500",
+        "【测试】上传问题 PPT 验证错误处理"
+      ],
+      "status": "done",
+      "depends_on": [],
+      "notes": "修复完成。问题根源：某些 PPTX 文件（如 LLM 生成的文件）包含无效的 XML 命名空间声明 `xmlns:ns2=\"%s\"`，其中 `%s` 是字符串占位符而非有效 URI，导致 lxml 解析失败。修复方案：在 parse_ppt() 中添加 `_fix_invalid_namespaces()` 函数，解压 PPTX 后扫描所有 XML 文件，将无效命名空间替换为有效的占位符 URI `http://schemas.openxmlformats.org/presentationml/2006/placeholder`，然后重新打包。测试验证：问题文件 `三角形的面积_0dc28a00.pptx` 现在可以成功解析，返回 9 页内容。"
+    },
+    {
+      "id": "feat-207",
+      "category": "feature",
+      "priority": 207,
+      "description": "P0 AI 合并真调用验证：检查日志确认 LLM 是否真实调用",
+      "steps": [
+        "【环境】启动后端：cd backend && uvicorn app.main:app --reload --port 8000",
+        "【环境】清空日志：rm backend/logs/*.log（如有）",
+        "【P0】浏览器访问 http://localhost:3000/merge，snapshot 确认页面加载",
+        "【P0】上传两个测试 PPT（test_ppt_b.pptx），snapshot 确认预览正确",
+        "【P0】点击合并按钮，使用 browser_wait_for text='📚 正在解析 PPT 内容...' timeout=10000",
+        "【P0】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
+        "【P0】browser_wait_for text='🔧 正在执行智能合并...' timeout=60000",
+        "【P0】browser_wait_for text='✅ 合并完成！' timeout=60000",
+        "【P0】snapshot 验证下载链接出现",
+        "【验证】查看后端日志：grep -E '(anthropic|openai|调用耗时|tokens)' backend/logs/*.log，确认包含 LLM 调用记录"
+      ],
+      "status": "pending",
+      "depends_on": ["feat-205"],
+      "notes": "核心验证点：后端日志中必须包含 '调用耗时'、'input_tokens'、'output_tokens' 等字段，且调用时间 > 1秒。如果没有这些记录，说明 LLM 调用可能被模拟或跳过。"
+    },
+    {
+      "id": "feat-208",
+      "category": "frontend",
+      "priority": 208,
+      "description": "P0 集成 PptxViewJS Canvas 渲染：替换 /merge 预览组件",
+      "steps": [
+        "【安装】cd frontend && pnpm add pptxviewjs（如仍超时则记录问题）",
+        "【实现】创建新组件 PptxViewJSRenderer：封装 PptxViewJS 初始化、加载、翻页",
+        "【集成】/merge 页面的 PPT A/B 预览区替换为 PptxViewJSRenderer",
+        "【实现】左右翻页按钮调用 PptxViewJS 内置 API",
+        "【实现】底部缩略图条展示所有页面（使用 PptxViewJS 提供的缩略图）",
+        "【测试】npm run dev 后访问 /merge，上传 PPT 验证 Canvas 渲染效果"
+      ],
+      "status": "pending",
+      "depends_on": ["feat-201"],
+      "notes": "PptxViewJS 优势：Canvas 原生渲染（更真实）、内置翻页 API、TypeScript 支持。如果安装失败，记录具体错误供后续排查。"
+    },
+    {
+      "id": "feat-209",
+      "category": "fullstack",
+      "priority": 209,
+      "description": "P0 Playwright /merge 全流程测试：多轮 browser_wait_for 验证",
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md 第五节（多轮 browser_wait_for 策略）",
+        "【环境】curl http://localhost:8000/health && curl http://localhost:3000（失败则停止）",
+        "【P0】browser_navigate http://localhost:3000/merge",
+        "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
+        "【P0】snapshot 定位 PPT A 上传按钮",
+        "【P0】browser_file_upload paths=['E:/Code/ai-teaching-ppt/uploads/generate/test_ppt_b.pptx']",
+        "【P0】browser_wait_for text='共 3 页' timeout=10000",
+        "【P0】browser_file_upload paths=['E:/Code/ai-teaching-ppt/uploads/generate/test_ppt_b.pptx']",
+        "【P0】browser_wait_for text='共 3 页' timeout=10000",
+        "【P0】browser_click ref=[合并按钮ref]",
+        "【P0】browser_wait_for text='📚 正在解析 PPT 内容...' timeout=10000（阶段1：解析）",
+        "【P0】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000（阶段2：AI）",
+        "【P0】browser_wait_for text='🔧 正在执行智能合并...' timeout=60000（阶段3：合并）",
+        "【P0】browser_wait_for text='✅ 合并完成！' timeout=60000（阶段4：完成）",
+        "【P0】snapshot 验证下载链接 + 策略摘要出现",
+        "【P1】browser_console_messages level='error' 检查有无错误",
+        "【记录】测试结果写入 record/merge-e2e-20260308.md"
+      ],
+      "status": "pending",
+      "depends_on": ["feat-205", "feat-206"],
+      "notes": "严格按照测试规则的多轮等待策略：4 个阶段，总耗时 ~190 秒。browser_wait_for 内部有 30 秒限制，必须分阶段等待进度文本，不能单次设置 timeout=180000。"
     }
   ]
 }
