@@ -419,11 +419,11 @@
         "【P1】browser_console_messages level='error' (检查是否有下载错误)",
         "【记录】下载功能验证结果写入 record/test-102-blob-download.md"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-102-multi-scenarios"
       ],
-      "notes": "验证优化后的 blob 下载方式是否正常工作，检查文件格式是否正确。"
+      "notes": "验证通过：blob 下载正常工作，下载的文件为有效 PPTX 格式 (33.3KB, 9 页)，无控制台错误。详见 record/test-102-blob-download.md"
     }
   ]
 }

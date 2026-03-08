@@ -128,6 +128,14 @@
       "expected": "历史记录页面筛选功能正常（搜索框、年级、学科下拉），删除功能正常（确认对话框弹出，删除后列表刷新），重新生成按钮点击后变为'生成中...'状态",
       "last_result": "pass",
       "last_run_session": 1
+    },
+    {
+      "id": "test-feat102-blob-download",
+      "feature_id": "feat-102-blob-download",
+      "verify": "echo 'Playwright MCP: /merge 上传 ppt_a.pptx + ppt_b.pptx -> 填写提示语 -> 合并 -> 点击下载 -> 验证 smart_merged_*.pptx 文件格式有效'",
+      "expected": "blob 下载正常，文件格式为有效 PPTX（可用 python-pptx 打开），文件大小>0KB，无控制台错误",
+      "last_result": "pass",
+      "last_run_session": 2
     }
   ]
 }
