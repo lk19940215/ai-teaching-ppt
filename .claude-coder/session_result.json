@@ -1,6 +1,5 @@
 {
   "session_result": "success",
-  "status_before": "in_progress",
+  "status_before": "pending",
   "status_after": "done",
-  "notes": "完成 feat-095 兼容性测试：\n1. Chromium (Chrome) 测试通过：5 个 Canvas 全部渲染正常 (300x169, alpha=255)\n2. Firefox: 环境限制（Playwright MCP 未配置 Firefox channel），已更新测试报告提供手动测试指南\n3. Safari: 平台限制（仅 macOS 支持），已更新测试报告提供手动测试指南\n4. 更新 record/compatibility-test.md 包含详细测试结果和手动测试指南\n5. 新增截图 record/chromium-compatibility-test.png\n\n技术说明：Canvas 使用标准 Canvas 2D API，在所有现代浏览器中均有良好支持，Firefox/Safari 理论上应能正常工作。\n\n下个会话可继续执行优先级 97 之后的任务。"
-}
+  "notes": "完成 feat-101 P0 核心流程完整测试：\n\n**测试通过项**:\n1. 环境确认 - 后端/前端服务健康检查通过\n2. 导航到生成页面 - 布局正确\n3. 输入测试内容 - \"三角形面积公式：底乘以高除以 2\"\n4. 参数配置 - 年级=小学五年级、学科=数学、风格=活泼趣味\n5. PPT 生成 - SSE 流式推送正常，生成 16 页 PPT\n6. 预览验证 - 16 页缩略图正确显示\n7. 下载功能 - PPTX 文件成功下载\n8. 历史记录 - 记录保存并显示在历史页面\n\n**测试输出**:\n- 测试报告：record/test-101-core-flow.md\n- tests.json 新增 feat-101 验证记录\n- Git 提交：9f62b07\n\n**注意事项**:\n1. 前端 EventSource 进度显示可能卡在 20%，但实际生成正常进行（后端日志确认）\n2. 建议使用 Python requests 测试 SSE API 更可靠\n3. 服务保持运行状态（连续模式），下一个 session 可直接使用\n\n**下一个任务建议**: feat-102 (P0 /merge 页面完整流程测试)"
