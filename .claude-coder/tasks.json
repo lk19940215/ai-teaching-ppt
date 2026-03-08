@@ -233,7 +233,7 @@
         "【P0】browser_snapshot 验证预览",
         "【记录】测试结果和实际耗时写入 record/test-101-long-wait.md"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     },
     {
