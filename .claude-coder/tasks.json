@@ -377,7 +377,7 @@
         "【测试】grep -E \"(LLM.*provider|tokens|耗时)\" backend/logs/uvicorn.log | tail -5",
         "【验证】日志显示非零 token 使用和 10-60s 耗时"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     },
     {
