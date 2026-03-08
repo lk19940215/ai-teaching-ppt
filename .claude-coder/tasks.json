@@ -2,7 +2,7 @@
   "project": "ai-teaching-ppt",
   "created_at": "2026-03-02",
   "last_updated": "2026-03-08",
-  "next_task_priority": 305,
+  "next_task_priority": 306,
   "completed_milestones": [
     {
       "id": "milestone-1",
@@ -272,7 +272,7 @@
         "【修复】提供友好错误提示而非 500",
         "【测试】上传问题 PPT 验证错误处理"
       ],
-      "status": "done",
+      "status": "completed",
       "depends_on": [],
       "notes": "修复完成。问题根源：某些 PPTX 文件（如 LLM 生成的文件）包含无效的 XML 命名空间声明 `xmlns:ns2=\"%s\"`，其中 `%s` 是字符串占位符而非有效 URI，导致 lxml 解析失败。修复方案：在 parse_ppt() 中添加 `_fix_invalid_namespaces()` 函数，解压 PPTX 后扫描所有 XML 文件，将无效命名空间替换为有效的占位符 URI `http://schemas.openxmlformats.org/presentationml/2006/placeholder`，然后重新打包。测试验证：问题文件 `三角形的面积_0dc28a00.pptx` 现在可以成功解析，返回 9 页内容。"
     },
@@ -293,7 +293,7 @@
         "【P0】snapshot 验证下载链接出现",
         "【验证】查看后端日志：grep -E '(anthropic|openai|调用耗时|tokens)' backend/logs/*.log，确认包含 LLM 调用记录"
       ],
-      "status": "done",
+      "status": "completed",
       "depends_on": [
         "feat-205"
       ],
@@ -342,7 +342,7 @@
         "【P1】browser_console_messages level='error' 检查有无错误",
         "【记录】测试结果写入 record/merge-e2e-20260308.md"
       ],
-      "status": "done",
+      "status": "completed",
       "depends_on": [
         "feat-205",
         "feat-206"
@@ -420,7 +420,7 @@
         "【添加】feat-301/302/303 三个新任务",
         "【验证】python -c \"import json; f=json.load(open('.claude-coder/tasks.json')); print(len([x for x in f['features'] if x['status']=='pending']))\""
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-301",
         "feat-303"

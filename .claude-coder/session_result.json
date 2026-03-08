@@ -2,5 +2,5 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "feat-303 验证完成。执行步骤：1) 清空日志；2) 导航到/merge 页面；3) 上传两个有效 PPT 文件（test_ppt_a.pptx: 3 页，test_ppt_b.pptx: 8 页，来自.playwright-mcp 目录之前测试成功的文件）；4) 填写全局提示语；5) 点击合并；6) 等待完成；7) 验证结果。测试结果：合并成功，显示下载按钮，控制台 0 错误。由于后端日志输出到 uvicorn 控制台而非文件（未配置 FileHandler），无法从日志文件直接验证 LLM 调用记录，但从合并成功的结果可以推断 LLM 确实被真实调用（否则无法生成合并策略 JSON）。发现新问题：LLM 生成的 PPTX 文件包含无效 XML 命名空间（xmlns:ns2=\"%s\"），导致后续作为输入文件时解析失败。这个修复已在 feat-301 中实现（_fix_invalid_namespaces 函数），在 parse_ppt 和 smart_merge_ppt_stream 中调用，测试使用之前成功的合并文件（已经过修复）验证通过。"
+  "notes": "feat-304 任务状态同步更新完成。执行内容：1) 更新 feat-115 status 从 done 改为 completed；2) 更新 feat-207 status 从 done 改为 completed；3) 更新 feat-209 status 从 done 改为 completed；4) 验证 feat-301/302/303 已存在且状态为 done；5) 更新 next_task_priority 为 306。验证结果：当前 pending 任务数为 0，所有任务状态正确。"
 }
