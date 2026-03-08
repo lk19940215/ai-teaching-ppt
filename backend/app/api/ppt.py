@@ -269,13 +269,19 @@ async def generate_full_ppt(
 
 
 async def sse_generator(progress_queue: asyncio.Queue) -> AsyncGenerator[str, None]:
-    """SSE 事件生成器"""
+    """SSE 事件生成器（含心跳机制，防止客户端/自动化工具超时）"""
+    import time
+    HEARTBEAT_INTERVAL = 3.0
     try:
         while True:
-            event = await progress_queue.get()
-            if event is None:
-                break
-            yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+            try:
+                event = await asyncio.wait_for(progress_queue.get(), timeout=HEARTBEAT_INTERVAL)
+                if event is None:
+                    break
+                yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+            except asyncio.TimeoutError:
+                heartbeat = {"type": "heartbeat", "timestamp": time.time()}
+                yield f"data: {json.dumps(heartbeat)}\n\n"
     except asyncio.CancelledError:
         logger.info("SSE 连接被客户端关闭")
         raise
@@ -1407,56 +1413,104 @@ async def smart_merge_ppt_stream(
 
                 from ..services.llm import get_llm_service
 
+                # 构建结构化提示词（支持 keep/discard 格式）
                 a_prompts_str = ""
-                for page_num, prompt in page_prompts_dict.get("a_pages", {}).items():
+                for page_num, prompt_data in page_prompts_dict.get("a_pages", {}).items():
                     page_data = a_pages_info[int(page_num) - 1] if int(page_num) <= len(a_pages_info) else {}
-                    a_prompts_str += f"- A 第{page_num}页 [{page_data.get('title', '无标题')}]: {prompt}\n"
+                    title = page_data.get('title', '无标题')
+                    if isinstance(prompt_data, dict):
+                        keep = prompt_data.get('keep', '')
+                        discard = prompt_data.get('discard', '')
+                        parts = []
+                        if keep:
+                            parts.append(f"【保留】{keep}")
+                        if discard:
+                            parts.append(f"【废弃】{discard}")
+                        a_prompts_str += f"- A 第{page_num}页 [{title}]: {'; '.join(parts)}\n"
+                    else:
+                        a_prompts_str += f"- A 第{page_num}页 [{title}]: {prompt_data}\n"
 
                 b_prompts_str = ""
-                for page_num, prompt in page_prompts_dict.get("b_pages", {}).items():
+                for page_num, prompt_data in page_prompts_dict.get("b_pages", {}).items():
                     page_data = b_pages_info[int(page_num) - 1] if int(page_num) <= len(b_pages_info) else {}
-                    b_prompts_str += f"- B 第{page_num}页 [{page_data.get('title', '无标题')}]: {prompt}\n"
+                    title = page_data.get('title', '无标题')
+                    if isinstance(prompt_data, dict):
+                        keep = prompt_data.get('keep', '')
+                        discard = prompt_data.get('discard', '')
+                        parts = []
+                        if keep:
+                            parts.append(f"【保留】{keep}")
+                        if discard:
+                            parts.append(f"【废弃】{discard}")
+                        b_prompts_str += f"- B 第{page_num}页 [{title}]: {'; '.join(parts)}\n"
+                    else:
+                        b_prompts_str += f"- B 第{page_num}页 [{title}]: {prompt_data}\n"
 
-                system_prompt = """你是一个专业的 PPT 合并助手。请根据用户提供的页面级提示语，生成 PPT 合并策略。
+                # 发送 thinking 状态，让前端知道 AI 正在工作
+                await progress_queue.put({
+                    "stage": "thinking",
+                    "progress": 45,
+                    "message": "AI 正在分析两个 PPT 的内容结构..."
+                })
 
-请严格按照以下 JSON 格式输出：
+                system_prompt = """你是一位专业的教学课件合并专家。你的任务是分析两个 PPT 的内容，根据用户的指令生成最优的合并策略。
+
+## 你的能力
+- 理解教学内容的逻辑结构和知识点关系
+- 识别重复、冗余和互补的内容
+- 根据用户的"保留"和"废弃"指令精确执行操作
+- 生成清晰可执行的合并策略
+
+## 输出格式
+请严格输出以下 JSON 格式（不要包含其他文字）：
+```json
 {
   "slides_to_merge": [
     {
-      "from_a": [1, 2],
-      "from_b": [3, 4],
-      "action": "combine",
-      "instruction": "保留标题，正文合并"
+      "from_a": [页码数组],
+      "from_b": [页码数组],
+      "action": "combine|append_a|append_b|rewrite",
+      "instruction": "具体的合并指令说明"
     }
   ],
-  "slides_to_skip_a": [5, 6],
-  "slides_to_skip_b": [7, 8],
-  "global_adjustments": "统一字体和颜色"
+  "slides_to_skip_a": [要跳过的 A 页码],
+  "slides_to_skip_b": [要跳过的 B 页码],
+  "global_adjustments": "全局调整说明",
+  "merge_rationale": "合并策略的整体思路说明"
 }
+```
 
-要求：
-1. 所有页码从 1 开始计数
-2. 封面页（第 1 页）通常不需要合并，会自动跳过
-3. action 只能是 combine/append_a/append_b
-4. 未被明确处理的页面默认追加到末尾"""
+## action 说明
+- `combine`: 将 A 和 B 的指定页面合并为一页（内容融合）
+- `append_a`: 保留 A 的指定页面原样追加
+- `append_b`: 保留 B 的指定页面原样追加
+- `rewrite`: 需要重新组织内容（将在 instruction 中说明如何重写）
 
-                user_prompt = f"""PPT A 内容（共{len(a_pages_info)}页）：
+## 规则
+1. 页码从 1 开始计数
+2. 用户标记【保留】的内容必须保留，标记【废弃】的内容必须移除
+3. 未被用户明确标记的页面，根据内容质量和全局策略自动决定
+4. 避免重复内容：如果 A 和 B 有相似页面，选择内容更丰富的版本
+5. 保持教学逻辑连贯：合并后的页面顺序应符合教学流程
+6. instruction 字段要具体说明如何处理每组页面的内容"""
+
+                user_prompt = f"""## PPT A 内容（共 {len(a_pages_info)} 页）
 {json.dumps(a_pages_info, ensure_ascii=False, indent=2)}
 
-PPT B 内容（共{len(b_pages_info)}页）：
+## PPT B 内容（共 {len(b_pages_info)} 页）
 {json.dumps(b_pages_info, ensure_ascii=False, indent=2)}
 
-页面级提示语：
-A 页面：
-{a_prompts_str if a_prompts_str else "无"}
+## 用户页面级指令
+### A 页面指令：
+{a_prompts_str if a_prompts_str else "（无特定指令）"}
 
-B 页面：
-{b_prompts_str if b_prompts_str else "无"}
+### B 页面指令：
+{b_prompts_str if b_prompts_str else "（无特定指令）"}
 
-全局提示语：
-{global_prompt if global_prompt else "无"}
+## 用户全局合并策略
+{global_prompt if global_prompt else "（无特定策略，请根据内容自动生成最优合并方案）"}
 
-请根据以上信息，生成合并策略 JSON。"""
+请分析以上内容，生成合并策略 JSON。"""
 
                 logger.info("准备初始化 LLM 服务...")
 
@@ -1468,17 +1522,35 @@ B 页面：
                 )
 
                 logger.info("LLM 服务初始化完成，开始调用 chat API...")
+                logger.info(f"System prompt 长度: {len(system_prompt)}, User prompt 长度: {len(user_prompt)}")
+
+                await progress_queue.put({
+                    "stage": "thinking",
+                    "progress": 50,
+                    "message": "AI 正在生成合并策略，请稍候..."
+                })
+
+                import time as _time
+                llm_start_time = _time.time()
 
                 try:
                     strategy_response = llm_service.chat([
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
                     ])
-                    logger.info(f"✅ LLM 响应成功，返回数据长度={len(strategy_response) if strategy_response else 0}")
-                    logger.info(f"LLM 响应前 200 字符: {strategy_response[:200]}...")
+                    llm_elapsed = _time.time() - llm_start_time
+                    logger.info(f"✅ LLM 响应成功，耗时 {llm_elapsed:.1f}s，返回 {len(strategy_response) if strategy_response else 0} 字符")
+                    logger.info(f"LLM 响应内容: {strategy_response[:500]}...")
                 except Exception as e:
-                    logger.error(f"❌ LLM chat 方法失败：{type(e).__name__}: {e}", exc_info=True)
+                    llm_elapsed = _time.time() - llm_start_time
+                    logger.error(f"❌ LLM chat 失败（耗时 {llm_elapsed:.1f}s）：{type(e).__name__}: {e}", exc_info=True)
                     raise
+
+                await progress_queue.put({
+                    "stage": "calling_llm",
+                    "progress": 65,
+                    "message": f"AI 策略生成完成（耗时 {llm_elapsed:.1f}s），正在解析..."
+                })
 
                 try:
                     merge_strategy = json.loads(strategy_response)
@@ -1500,6 +1572,34 @@ B 页面：
                         raise HTTPException(status_code=500, detail=f"LLM 生成的策略 JSON 格式错误：{e}")
 
                 logger.info(f"LLM 生成的合并策略：{json.dumps(merge_strategy, ensure_ascii=False)}")
+
+                # 策略验证与修正
+                if "slides_to_merge" not in merge_strategy:
+                    merge_strategy["slides_to_merge"] = []
+                if "slides_to_skip_a" not in merge_strategy:
+                    merge_strategy["slides_to_skip_a"] = []
+                if "slides_to_skip_b" not in merge_strategy:
+                    merge_strategy["slides_to_skip_b"] = []
+                if "global_adjustments" not in merge_strategy:
+                    merge_strategy["global_adjustments"] = ""
+
+                # 验证页码范围
+                total_a = len(a_pages_info)
+                total_b = len(b_pages_info)
+                for item in merge_strategy["slides_to_merge"]:
+                    if "from_a" in item:
+                        item["from_a"] = [p for p in item["from_a"] if 1 <= p <= total_a]
+                    if "from_b" in item:
+                        item["from_b"] = [p for p in item["from_b"] if 1 <= p <= total_b]
+                    if "action" not in item or item["action"] not in ("combine", "append_a", "append_b", "rewrite"):
+                        item["action"] = "combine"
+
+                merge_strategy["slides_to_skip_a"] = [p for p in merge_strategy["slides_to_skip_a"] if 1 <= p <= total_a]
+                merge_strategy["slides_to_skip_b"] = [p for p in merge_strategy["slides_to_skip_b"] if 1 <= p <= total_b]
+
+                rationale = merge_strategy.get("merge_rationale", "")
+                if rationale:
+                    logger.info(f"AI 合并思路: {rationale}")
 
                 # 阶段 4: 执行合并 (75%)
                 await progress_queue.put({

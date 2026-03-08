@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { apiBaseUrl } from '@/lib/api'
 import PptCanvasPreview, { type PptPageData } from '@/components/ppt-canvas-preview'
-import PromptEditor from '@/components/prompt-editor'
-import { PptxjsRenderer, type PptxjsPageData as PptxjsParsedData } from '@/components/pptxjs-renderer'
+import PromptEditor, { type StructuredPagePrompt } from '@/components/prompt-editor'
 
 // PPT 文件上传区域属性
 interface PptUploadAreaProps {
@@ -182,8 +181,8 @@ export default function MergePage() {
   const [selectedPagesA, setSelectedPagesA] = useState<number[]>([])
   const [selectedPagesB, setSelectedPagesB] = useState<number[]>([])
 
-  // 提示语状态
-  const [pagePrompts, setPagePrompts] = useState<Record<string, string>>({})
+  // 提示语状态（结构化：保留/废弃）
+  const [pagePrompts, setPagePrompts] = useState<Record<string, StructuredPagePrompt>>({})
   const [globalPrompt, setGlobalPrompt] = useState("")
   // 聚焦状态：记录需要从 Canvas 点击后聚焦到哪个输入框
   const [focusPage, setFocusPage] = useState<{ pptSource: 'A' | 'B'; pageIndex: number } | null>(null)
@@ -446,19 +445,23 @@ export default function MergePage() {
     formData.append("file_a", pptA)
     formData.append("file_b", pptB)
 
-    // 转换 pagePrompts 格式：从 { "A-0": "提示语", "B-1": "提示语" } 转为 { "a_pages": { "1": "提示语" }, "b_pages": { "2": "提示语" } }
-    const formattedPrompts: { a_pages: Record<string, string>; b_pages: Record<string, string> } = {
+    // 转换结构化提示词格式：{ "A-0": { keep, discard } } → { a_pages: { "1": { keep, discard } }, b_pages: {...} }
+    const formattedPrompts: { a_pages: Record<string, any>; b_pages: Record<string, any> } = {
       a_pages: {},
       b_pages: {}
     }
     Object.entries(pagePrompts).forEach(([key, prompt]) => {
-      if (!prompt.trim()) return
+      if (!prompt.keep?.trim() && !prompt.discard?.trim()) return
       const [pptSource, pageIndex] = key.split("-")
       const pageNum = (parseInt(pageIndex) + 1).toString()
+      const structured = {
+        keep: prompt.keep?.trim() || "",
+        discard: prompt.discard?.trim() || ""
+      }
       if (pptSource === "A") {
-        formattedPrompts.a_pages[pageNum] = prompt
+        formattedPrompts.a_pages[pageNum] = structured
       } else {
-        formattedPrompts.b_pages[pageNum] = prompt
+        formattedPrompts.b_pages[pageNum] = structured
       }
     })
 
@@ -505,19 +508,24 @@ export default function MergePage() {
             try {
               const event = JSON.parse(dataStr)
 
+              // 心跳事件：仅更新活跃时间，不处理其他逻辑
+              if (event.type === "heartbeat") continue
+
               // 更新进度
-              if (event.progress) {
+              if (event.progress !== undefined) {
                 setProgress(event.progress)
               }
 
-              // 增强进度提示，明确 AI 介入
+              // 增强进度提示
               let enhancedMessage = event.message || ""
               if (event.stage === "parsing") {
                 enhancedMessage = "📚 正在解析 PPT 内容..."
               } else if (event.stage === "calling_llm") {
-                enhancedMessage = "🤖 正在调用 AI 生成合并策略..."
+                enhancedMessage = "🤖 AI 正在分析内容并生成合并策略..."
+              } else if (event.stage === "thinking") {
+                enhancedMessage = `🧠 ${event.message || 'AI 正在深度分析...'}`
               } else if (event.stage === "merging") {
-                enhancedMessage = "🔧 正在执行智能合并..."
+                enhancedMessage = "🔧 正在根据 AI 策略执行智能合并..."
               } else if (event.stage === "complete") {
                 enhancedMessage = "✅ 合并完成！"
               }
@@ -526,22 +534,18 @@ export default function MergePage() {
                 setProgressStatus(enhancedMessage)
               }
 
-              // 处理错误
               if (event.stage === "error") {
                 setError(event.message || "合并失败")
                 setIsGenerating(false)
                 return
               }
 
-              // 处理完成
               if (event.stage === "complete" && event.result) {
-                // 修复 URL 拼接：确保 download_url 以 / 开头
                 const downloadUrl = event.result.download_url.startsWith('/')
                   ? `${apiBaseUrl}${event.result.download_url}`
                   : `${apiBaseUrl}/${event.result.download_url}`
                 setDownloadUrl(downloadUrl)
                 setFileName(event.result.file_name)
-                console.log('[Merge] 下载准备完成:', { downloadUrl, fileName: event.result.file_name })
                 setIsGenerating(false)
               }
             } catch (e) {
@@ -682,7 +686,7 @@ export default function MergePage() {
             disabled={isGenerating}
           />
 
-          {/* PPT A 预览组件（feat-089: 支持右键菜单，feat-097: 降级模式） */}
+          {/* PPT A 单页预览 */}
           <PptCanvasPreview
             label="PPT A 预览"
             pages={fallbackModeA && fallbackDataA.length > 0 ? fallbackDataA : pptAPages}
@@ -701,24 +705,9 @@ export default function MergePage() {
             onRenderError={(error) => {
               handleRenderError('A', pptA, error.message)
             }}
-            onJumpToPage={(source, pageIndex) => {
-              // 跳转查看：滚动到对应页面
-              console.log('跳转到 PPT', source, '页面', pageIndex)
-              // TODO: 实现跳转逻辑（如需要）
-            }}
-            onCopyPage={(source, pageIndex) => {
-              // 复制页面：将页面复制到另一个 PPT
-              console.log('复制 PPT', source, '页面', pageIndex)
-              // TODO: 实现复制逻辑（如需要）
-            }}
-            onDeletePage={(source, pageIndex) => {
-              // 删除页面：从列表中移除
-              console.log('删除 PPT', source, '页面', pageIndex)
-              // TODO: 实现删除逻辑（如需要）
-            }}
           />
 
-          {/* PPT B 预览组件（feat-089: 支持右键菜单，feat-097: 降级模式） */}
+          {/* PPT B 单页预览 */}
           <PptCanvasPreview
             label="PPT B 预览"
             pages={fallbackModeB && fallbackDataB.length > 0 ? fallbackDataB : pptBPages}
@@ -736,15 +725,6 @@ export default function MergePage() {
             file={pptB}
             onRenderError={(error) => {
               handleRenderError('B', pptB, error.message)
-            }}
-            onJumpToPage={(source, pageIndex) => {
-              console.log('跳转到 PPT', source, '页面', pageIndex)
-            }}
-            onCopyPage={(source, pageIndex) => {
-              console.log('复制 PPT', source, '页面', pageIndex)
-            }}
-            onDeletePage={(source, pageIndex) => {
-              console.log('删除 PPT', source, '页面', pageIndex)
             }}
           />
         </div>
@@ -787,19 +767,28 @@ export default function MergePage() {
               focusPage={focusPage}
             />
 
-            {/* 进度反馈（feat-078） */}
+            {/* 进度反馈（脉冲动画防卡死感） */}
             {isGenerating && (
               <div className="mt-4 space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">{progressStatus}</span>
+                  <span className="text-gray-600 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+                    {progressStatus}
+                  </span>
                   <span className="font-medium text-indigo-600">{progress}%</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                   <div
-                    className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${progress}%` }}
+                    className="bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-500 h-2 rounded-full transition-all duration-500 relative"
+                    style={{ width: `${Math.max(progress, 5)}%`, backgroundSize: '200% 100%', animation: progress < 100 ? 'shimmer 2s infinite' : 'none' }}
                   />
                 </div>
+                <style jsx>{`
+                  @keyframes shimmer {
+                    0% { background-position: 200% 0; }
+                    100% { background-position: -200% 0; }
+                  }
+                `}</style>
               </div>
             )}
 

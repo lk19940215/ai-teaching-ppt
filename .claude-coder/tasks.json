@@ -2,505 +2,196 @@
   "project": "ai-teaching-ppt",
   "created_at": "2026-03-02",
   "last_updated": "2026-03-08",
-  "next_task_priority": 101,
+  "next_task_priority": 207,
   "completed_milestones": [
     {
       "id": "milestone-1",
       "name": "基础设施搭建",
-      "features": [
-        "feat-001",
-        "feat-002",
-        "feat-012",
-        "feat-013"
-      ],
+      "features": ["feat-001", "feat-002", "feat-012", "feat-013"],
       "summary": "后端 FastAPI 脚手架、前端 Next.js 项目、Docker 部署、SQLite 数据库初始化",
       "completed_at": "2026-03-02"
     },
     {
       "id": "milestone-2",
       "name": "核心生成流程",
-      "features": [
-        "feat-003",
-        "feat-004",
-        "feat-005",
-        "feat-006",
-        "feat-007"
-      ],
+      "features": ["feat-003", "feat-004", "feat-005", "feat-006", "feat-007"],
       "summary": "文件上传/OCR/PDF 解析、教学配置面板、LLM 内容生成、PPTX 文件生成、预览下载",
       "completed_at": "2026-03-02"
     },
     {
       "id": "milestone-3",
       "name": "学科增强与自适应",
-      "features": [
-        "feat-008",
-        "feat-009",
-        "feat-026",
-        "feat-027"
-      ],
+      "features": ["feat-008", "feat-009", "feat-026", "feat-027"],
       "summary": "英语专属页面、年级自适应风格、PPT 风格映射、K-12 年级扩展（含高中）",
       "completed_at": "2026-03-03"
     },
     {
       "id": "milestone-4",
       "name": "历史记录与 LLM 配置",
-      "features": [
-        "feat-010",
-        "feat-011",
-        "feat-020",
-        "feat-021"
-      ],
+      "features": ["feat-010", "feat-011", "feat-020", "feat-021"],
       "summary": "生成历史记录、LLM 服务商切换、温度/token 配置、参数格式排查",
       "completed_at": "2026-03-03"
     },
     {
       "id": "milestone-5",
       "name": "PPT 质量优化",
-      "features": [
-        "feat-015",
-        "feat-016",
-        "feat-017",
-        "feat-043"
-      ],
+      "features": ["feat-015", "feat-016", "feat-017", "feat-043"],
       "summary": "LLM 提示词优化、PPT 模板优化、动画效果注入、点击显示答案 OOXML 实现",
       "completed_at": "2026-03-04"
     },
     {
       "id": "milestone-6",
       "name": "学科深度优化",
-      "features": [
-        "feat-028",
-        "feat-029",
-        "feat-030",
-        "feat-031",
-        "feat-032",
-        "feat-033"
-      ],
+      "features": ["feat-028", "feat-029", "feat-030", "feat-031", "feat-032", "feat-033"],
       "summary": "提示词引擎架构、语文/数学/理科/文科/英语学科深度提示词与专属页面",
       "completed_at": "2026-03-04"
     },
     {
       "id": "milestone-7",
       "name": "教学设计科学化",
-      "features": [
-        "feat-034",
-        "feat-035",
-        "feat-036",
-        "feat-037",
-        "feat-038",
-        "feat-039",
-        "feat-040",
-        "feat-041"
-      ],
+      "features": ["feat-034", "feat-035", "feat-036", "feat-037", "feat-038", "feat-039", "feat-040", "feat-041"],
       "summary": "认知负荷优化、注意力节奏引擎、布鲁姆分类法、先行组织者、问题链元认知、情境创设、差异化教学、错题分析",
       "completed_at": "2026-03-05"
     },
     {
       "id": "milestone-8",
       "name": "前端优化与修复",
-      "features": [
-        "feat-014",
-        "feat-018",
-        "feat-019",
-        "feat-022",
-        "feat-024",
-        "feat-025",
-        "feat-051",
-        "feat-052",
-        "feat-053"
-      ],
+      "features": ["feat-014", "feat-018", "feat-019", "feat-022", "feat-024", "feat-025", "feat-051", "feat-052", "feat-053"],
       "summary": "Dark Mode 修复、交互动画、上传流程修复、API 环境变量化、默认年级调整、进度反馈优化、智能风格推荐",
       "completed_at": "2026-03-05"
     },
     {
       "id": "milestone-9",
       "name": "后端优化与修复",
-      "features": [
-        "feat-023",
-        "feat-045",
-        "feat-046",
-        "feat-047",
-        "feat-048",
-        "feat-049",
-        "feat-050",
-        "feat-054",
-        "feat-055"
-      ],
+      "features": ["feat-023", "feat-045", "feat-046", "feat-047", "feat-048", "feat-049", "feat-050", "feat-054", "feat-055"],
       "summary": "JSON 解析增强、Playwright 测试基础设施、E2E 测试（文字/图片/错误场景）、探索性测试、重试机制修复",
       "completed_at": "2026-03-06"
     },
     {
       "id": "milestone-10",
       "name": "SSE 流式反馈",
-      "features": [
-        "feat-042"
-      ],
+      "features": ["feat-042"],
       "summary": "SSE 流式生成进度推送，替换假进度条",
       "completed_at": "2026-03-05"
+    },
+    {
+      "id": "milestone-11",
+      "name": "/merge 基础测试与修复",
+      "features": ["feat-101", "feat-102", "feat-103", "feat-104", "feat-105", "feat-106", "feat-107", "feat-101-long-wait", "feat-104-retest", "feat-102-multi-scenarios", "feat-102-blob-download", "feat-113-merge-fix", "feat-113-merge-additional-tests"],
+      "summary": "核心流程测试、/merge 多场景测试、错误场景测试、图片上传 OCR、历史记录、LLM 配置、下载验证、合并修复",
+      "completed_at": "2026-03-08"
     }
   ],
   "features": [
     {
-      "id": "feat-101",
-      "category": "testing",
-      "priority": 101,
-      "description": "P0 核心流程完整测试：导航→输入→生成→预览→下载→历史",
+      "id": "feat-201",
+      "category": "feature",
+      "priority": 201,
+      "description": "P0 NPM 包调研：Canvas 渲染 PPT 最真实预览",
       "steps": [
-        "【环境】确认前端后端服务运行：curl http://localhost:8000/health",
-        "【P0】Playwright MCP: browser_navigate http://localhost:3000/upload",
-        "【P0】Playwright MCP: browser_wait_for timeout=10000 等待页面加载",
-        "【P0】Playwright MCP: browser_snapshot 验证生成页面布局",
-        "【P0】Playwright MCP: browser_type ref=[输入框ref] text='数学：三角形的面积公式及其应用' + submit=true",
-        "【P0】Playwright MCP: browser_select_option ref=[年级选择器ref] values=['5']",
-        "【P0】Playwright MCP: browser_select_option ref=[学科选择器ref] values=['math']",
-        "【P0】Playwright MCP: browser_select_option ref=[风格选择器ref] values=['simple']",
-        "【P0】Playwright MCP: browser_click ref=[生成按钮ref]",
-        "【P0】Playwright MCP: browser_wait_for text='PPT 预览' timeout=180000",
-        "【P0】Playwright MCP: browser_snapshot 验证预览页面和下载按钮",
-        "【P0】Playwright MCP: browser_click ref=[下载按钮ref] 验证下载触发",
-        "【P0】Playwright MCP: browser_snapshot 验证生成成功提示",
-        "【P0】Playwright MCP: browser_navigate http://localhost:3000/history",
-        "【P0】Playwright MCP: browser_wait_for text='生成历史记录' timeout=10000",
-        "【P0】Playwright MCP: browser_snapshot 验证历史记录列表出现新记录",
-        "【记录】测试结果详细写入 record/test-101-core-flow.md"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-102",
-      "category": "testing",
-      "priority": 102,
-      "description": "P0 /merge 页面完整流程：导航→上传A→Canvas渲染→上传B→选择→提示语→合并",
-      "steps": [
-        "【环境】确认服务运行：curl http://localhost:8000/health",
-        "【P0】Playwright MCP: browser_navigate http://localhost:3000/merge",
-        "【P0】Playwright MCP: browser_wait_for timeout=10000",
-        "【P0】Playwright MCP: browser_snapshot 验证页面加载",
-        "【P0】Playwright MCP: browser_click ref=[PPT A 上传区域ref]",
-        "【P0】Playwright MCP: browser_file_upload paths=['E:\\\\Code\\\\ai-teaching-ppt\\\\backend\\\\tests\\\\fixtures\\\\ppt_a.pptx']",
-        "【P0】Playwright MCP: browser_wait_for text='共 5 页' timeout=10000",
-        "【P0】Playwright MCP: browser_snapshot 验证 Canvas 缩略图渲染正常",
-        "【P0】Playwright MCP: browser_evaluate 验证 document.querySelectorAll('canvas').length === 5",
-        "【P0】Playwright MCP: browser_click ref=[PPT B 上传区域ref]",
-        "【P0】Playwright MCP: browser_file_upload paths=['E:\\\\Code\\\\ai-teaching-ppt\\\\backend\\\\tests\\\\fixtures\\\\ppt_b.pptx']",
-        "【P0】Playwright MCP: browser_wait_for text='共 5 页' timeout=10000",
-        "【P0】Playwright MCP: browser_snapshot 验证 PPT B 渲染",
-        "【P0】Playwright MCP: browser_click ref=[Canvas 第2页ref] 选择页面",
-        "【P0】Playwright MCP: browser_wait_for text='已选择页面' timeout=3000",
-        "【P0】Playwright MCP: browser_snapshot 验证提示语面板高亮对应输入框",
-        "【记录】测试结果详细写入 record/test-102-merge-flow.md"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-103",
-      "category": "testing",
-      "priority": 103,
-      "description": "P0 错误场景测试：API Key 缺失/无效、空输入、超大文件",
-      "steps": [
-        "【环境】确认服务运行",
-        "【P0 场景1】清除 localStorage：browser_evaluate('localStorage.clear()')",
-        "【P0】browser_navigate http://localhost:3000/upload",
-        "【P0】browser_wait_for timeout=10000",
-        "【P0】验证页面显示配置提示（或生成按钮 disabled）",
-        "【P0 场景2】browser_navigate http://localhost:3000/settings",
-        "【P0】browser_type ref=[API Key 输入框ref] text='invalid-key-123'",
-        "【P0】browser_click ref=[保存按钮ref]",
-        "【P0】browser_snapshot 验证保存成功提示",
-        "【P0】browser_navigate http://localhost:3000/upload",
-        "【P0】输入测试内容并点击生成",
-        "【P0】browser_wait_for text='401' 或 '无效' timeout=30000",
-        "【记录】测试结果写入 record/test-103-error-scenarios.md"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-104",
-      "category": "testing",
-      "priority": 104,
-      "description": "P1 图片上传测试：图片→OCR→内容显示→生成",
-      "steps": [
-        "【P1】准备测试图片（含文字的截图）",
-        "【P1】browser_navigate http://localhost:3000/upload",
-        "【P1】browser_click ref=[图片上传按钮ref]",
-        "【P1】browser_file_upload paths=['测试图片路径']",
-        "【P1】browser_wait_for text='OCR 识别完成' timeout=30000",
-        "【P1】browser_snapshot 验证识别文本",
-        "【记录】测试结果写入 record/test-104-image-upload.md"
+        "【调研】评估 npm 包：pptx-preview、PptxViewJS、@kandiforge/pptx-renderer",
+        "【结论】PptxViewJS 最适合（Canvas渲染、MIT、TypeScript、内置翻页）",
+        "【阻塞】npm install 超时（网络问题），暂时跳过",
+        "【替代】使用现有 Canvas 渲染器实现单页预览模式"
       ],
       "status": "done",
       "depends_on": [],
-      "notes": "已修复。图片上传、OCR 识别、SSE 生成功能均正常。curl 测试验证 SSE API 返回完整进度 (10%→30%→60%→85%→100%)。修复内容：backend/app/api/ppt.py 中 asyncio.sleep(0) 确保后台任务被调度。详见 session_result.json。"
+      "notes": "调研完成。推荐 PptxViewJS (Canvas渲染, MIT, 内置翻页, 520 周下载) 或 pptx-preview (HTML渲染, 8.4K 周下载)。因网络问题未安装，后续网络好时再集成。"
     },
     {
-      "id": "feat-105",
-      "category": "testing",
-      "priority": 105,
-      "description": "P1 历史记录功能测试：筛选→删除→重新生成",
+      "id": "feat-202",
+      "category": "feature",
+      "priority": 202,
+      "description": "P0 单页预览组件重构：默认渲染一页 + 左右翻页 + 底部缩略图条",
       "steps": [
-        "【P1】browser_navigate http://localhost:3000/history",
-        "【P1】browser_wait_for text='生成历史记录' timeout=10000",
-        "【P1】browser_type ref=[搜索框ref] text='测试' + submit=true",
-        "【P1】browser_select_option ref=[年级筛选器ref] values=['5']",
-        "【P1】browser_select_option ref=[学科筛选器ref] values=['math']",
-        "【P1】browser_click ref=[删除按钮ref]",
-        "【P1】browser_handle_dialog accept=true",
-        "【记录】测试结果写入 record/test-105-history.md"
+        "【重构】PptCanvasPreview 组件改为单页模式",
+        "【实现】主预览区：800x450 完整渲染当前页",
+        "【实现】左右箭头按钮 + 键盘 ← → 快捷键",
+        "【实现】页码指示器：第 X 页 / 共 Y 页",
+        "【实现】底部缩略图条：水平滚动 + 活跃/选中标记",
+        "【实现】点击大图可选中/取消选中当前页",
+        "【实现】选中按钮 + 勾选标记",
+        "【集成】/merge 页面 PPT A/B 均使用新预览组件"
+      ],
+      "status": "done",
+      "depends_on": ["feat-201"]
+    },
+    {
+      "id": "feat-203",
+      "category": "feature",
+      "priority": 203,
+      "description": "P0 提示词编辑器结构化重构：每页「保留」+「废弃」两个可选字段",
+      "steps": [
+        "【设计】新数据结构 StructuredPagePrompt: { keep, discard }",
+        "【重构】PromptEditor 每个选中页面显示两个输入框",
+        "【UI】绿色边框「保留」+ 红色边框「废弃」",
+        "【后端】修改提示词格式传递（结构化 JSON）",
+        "【提示词】system_prompt 增加保留/废弃指令处理规则"
       ],
       "status": "done",
       "depends_on": []
     },
     {
-      "id": "feat-106",
-      "category": "testing",
-      "priority": 106,
-      "description": "P1 LLM 配置页面测试：切换服务商→保存→测试连接",
+      "id": "feat-204",
+      "category": "feature",
+      "priority": 204,
+      "description": "P1 系统提示词模板面板：5 个预设合并策略模板",
       "steps": [
-        "【P1】browser_navigate http://localhost:3000/settings",
-        "【P1】browser_wait_for text='LLM 服务商配置' timeout=10000",
-        "【P1】browser_select_option ref=[服务商选择器ref] values=['openai']",
-        "【P1】browser_type ref=[API Key 输入框ref] text='sk-test'",
-        "【P1】browser_click ref=[保存配置按钮ref]",
-        "【记录】测试结果写入 record/test-106-settings.md"
+        "【实现】5 个模板：保留A结构、保留B结构、取精华、顺序拼接、风格统一",
+        "【UI】PromptEditor 顶部可展开/收起的模板面板",
+        "【交互】点击模板自动填充到全局提示语",
+        "【样式】卡片式布局：图标 + 名称 + 简短描述"
       ],
       "status": "done",
-      "depends_on": [],
-      "notes": "测试通过：1) 导航到设置页面成功；2) 切换服务商（DeepSeek→OpenAI）成功，自动填充默认 Base URL 和模型；3) 填写 API Key 并保存，显示'配置保存成功'，左侧列表新增配置记录；4) 测试连接按钮点击后显示'测试中...'状态，随后显示测试结果（无效 Key 显示超时错误，功能正常）"
+      "depends_on": []
     },
     {
-      "id": "feat-107",
+      "id": "feat-205",
+      "category": "feature",
+      "priority": 205,
+      "description": "P0 后端 AI 合并流程大优化：增强提示词 + 策略验证 + thinking 状态",
+      "steps": [
+        "【优化】system_prompt：添加角色定义、能力说明、输出格式示例",
+        "【优化】支持 rewrite action（重写内容）",
+        "【优化】user_prompt：结构化呈现保留/废弃指令",
+        "【增强】策略验证：校验页码范围、action 有效性",
+        "【增强】merge_rationale 字段记录 AI 思路",
+        "【日志】LLM 调用耗时、token 详细日志",
+        "【SSE】thinking 状态推送（AI 分析中...）"
+      ],
+      "status": "done",
+      "depends_on": ["feat-203"]
+    },
+    {
+      "id": "feat-206",
+      "category": "optimization",
+      "priority": 206,
+      "description": "P1 SSE 心跳机制：每 3 秒心跳 + 脉冲动画进度条，防自动化工具超时",
+      "steps": [
+        "【后端】sse_generator 添加 3 秒心跳（asyncio.wait_for + TimeoutError）",
+        "【后端】心跳事件格式：{type: 'heartbeat', timestamp: ...}",
+        "【前端】心跳事件过滤（不影响 UI）",
+        "【前端】进度条脉冲动画（shimmer gradient）",
+        "【前端】AI 工作状态指示器（绿色脉冲点）",
+        "【覆盖】所有 3 个 SSE 端点自动获得心跳能力"
+      ],
+      "status": "done",
+      "depends_on": []
+    },
+    {
+      "id": "feat-115",
       "category": "bugfix",
-      "priority": 107,
-      "description": "修复问题：后端服务端口配置错误",
+      "priority": 115,
+      "description": "P0 XML 解析错误：处理无效 XML 命名空间导致的 PPT 解析失败",
       "steps": [
-        "修复 frontend/.env.local: NEXT_PUBLIC_API_URL=8000"
+        "【诊断】查看 question.md 中的错误详情",
+        "【修复】parse_ppt() 中增强 XML 异常捕获",
+        "【修复】尝试 lxml 容错模式解析",
+        "【修复】提供友好错误提示而非 500",
+        "【测试】上传问题 PPT 验证错误处理"
       ],
-      "status": "done",
+      "status": "pending",
       "depends_on": []
-    },
-    {
-      "id": "feat-101-long-wait",
-      "category": "testing",
-      "priority": 108,
-      "description": "P0 核心流程长等待测试：验证 180 秒 timeout 有效性",
-      "steps": [
-        "【环境】curl http://localhost:8000/health",
-        "【P0】browser_navigate http://localhost:3000/upload",
-        "【P0】browser_type ref=[输入框ref] text='三角形的面积公式' + submit=true",
-        "【P0】browser_select_option ref=[年级选择器ref] values=['5']",
-        "【P0】browser_select_option ref=[学科选择器ref] values=['math']",
-        "【P0】browser_click ref=[生成按钮ref]",
-        "【P0】browser_wait_for text='PPT 预览' timeout=180000",
-        "【P0】browser_snapshot 验证预览",
-        "【记录】测试结果和实际耗时写入 record/test-101-long-wait.md"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-104-retest",
-      "category": "testing",
-      "priority": 109,
-      "description": "P1 图片上传测试：图片→OCR→生成 PPT（修正版）",
-      "steps": [
-        "【环境】curl http://localhost:8000/health",
-        "【P1】browser_navigate http://localhost:3000/upload",
-        "【P1】browser_snapshot 验证页面加载",
-        "【P1】browser_click ref=[图片上传按钮ref]",
-        "【P1】browser_file_upload paths=['record/test_image.png']",
-        "【P1】browser_wait_for text='已选择 1 张图片' timeout=10000",
-        "【P1】browser_select_option ref=[年级选择器ref] values=['5']",
-        "【P1】browser_select_option ref=[学科选择器ref] values=['math']",
-        "【P1】browser_click ref=[生成按钮ref]",
-        "【P1】browser_wait_for text='PPT 预览' timeout=180000",
-        "【P1】browser_snapshot 验证预览页面和下载按钮",
-        "【记录】测试结果写入 record/test-104-image-upload-v2.md"
-      ],
-      "status": "done",
-      "depends_on": [],
-      "notes": "测试通过：图片上传→OCR 识别→PPT 生成（16 页）→下载功能全部正常。问题修复：重启后端服务解决 SSE 卡在 40% 的问题。"
-    },
-    {
-      "id": "feat-102-multi-scenarios",
-      "category": "testing",
-      "priority": 111,
-      "description": "P0 /merge 多场景测试：多页面选择 + 多提示语组合",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md 了解多轮 browser_wait_for 策略",
-        "【环境】curl http://localhost:8000/health",
-        "【环境】验证两个测试 PPT 存在：backend/tests/fixtures/ppt_a.pptx, backend/tests/fixtures/ppt_b.pptx",
-        "【P0 场景1】browser_navigate http://localhost:3000/merge",
-        "【P0 场景1】browser_wait_for text='PPT 智能合并' timeout=10000",
-        "【P0 场景1】browser_snapshot 验证页面加载",
-        "【P0 场景1】browser_file_upload paths=['backend/tests/fixtures/ppt_a.pptx']",
-        "【P0 场景1】browser_wait_for text='共 5 页' timeout=10000",
-        "【P0 场景1】browser_file_upload paths=['backend/tests/fixtures/ppt_b.pptx']",
-        "【P0 场景1】browser_wait_for text='共 5 页' timeout=10000",
-        "【P0 场景1】browser_click ref=[PPT A 第1页缩略图ref] (索引0)",
-        "【P0 场景1】browser_wait_for text='已选择页面' timeout=3000",
-        "【P0 场景1】browser_type ref=[提示语输入框ref] text='保留 PPT A 标题，加入 PPT B 的示例'",
-        "【P0 场景1】browser_click ref=[合并按钮ref]",
-        "【P0 场景1】browser_wait_for text='📚 正在解析 PPT 内容...' timeout=10000 (阶段1：解析)",
-        "【P0 场景1】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000 (阶段2：AI 策略)",
-        "【P0 场景1】browser_wait_for text='🔧 正在执行智能合并...' timeout=60000 (阶段3：执行合并)",
-        "【P0 场景1】browser_wait_for text='✅ 合并完成！' timeout=60000 (阶段4：完成)",
-        "【P0 场景1】browser_snapshot 验证下载链接出现和文件名",
-        "【P0 场景1】browser_click ref=[下载按钮ref]",
-        "【P0 场景1】browser_wait_for timeout=5000 (等待下载完成)",
-        "【记录 场景1】测试结果和下载文件验证写入 record/test-102-scenario-1.md",
-        "【P0 场景2】browser_navigate http://localhost:3000/merge",
-        "【P0 场景2】browser_wait_for text='PPT 智能合并' timeout=10000",
-        "【P0 场景2】browser_file_upload paths=['backend/tests/fixtures/ppt_a.pptx']",
-        "【P0 场景2】browser_wait_for text='共 5 页' timeout=10000",
-        "【P0 场景2】browser_file_upload paths=['backend/tests/fixtures/ppt_b.pptx']",
-        "【P0 场景2】browser_wait_for text='共 5 页' timeout=10000",
-        "【P0 场景2】browser_click ref=[PPT A 第1页缩略图ref]",
-        "【P0 场景2】browser_click ref=[PPT A 第3页缩略图ref] (多选)",
-        "【P0 场景2】browser_wait_for text='已选择页面' timeout=3000",
-        "【P0 场景2】browser_type ref=[提示语输入框-第1页ref] text='简单合并内容'",
-        "【P0 场景2】browser_type ref=[提示语输入框-第3页ref] text='只合并图片部分'",
-        "【P0 场景2】browser_type ref=[全局提示语输入框ref] text='优先使用 PPT A 的结构'",
-        "【P0 场景2】browser_click ref=[合并按钮ref]",
-        "【P0 场景2】browser_wait_for text='📚 正在解析 PPT 内容...' timeout=10000",
-        "【P0 场景2】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
-        "【P0 场景2】browser_wait_for text='🔧 正在执行智能合并...' timeout=60000",
-        "【P0 场景2】browser_wait_for text='✅ 合并完成！' timeout=60000",
-        "【P0 场景2】browser_snapshot 验证下载链接",
-        "【记录 场景2】测试结果写入 record/test-102-scenario-2.md",
-        "【P0 场景3】browser_navigate http://localhost:3000/merge",
-        "【P0 场景3】browser_wait_for text='PPT 智能合并' timeout=10000",
-        "【P0 场景3】browser_file_upload paths=['backend/tests/fixtures/ppt_a.pptx']",
-        "【P0 场景3】browser_wait_for text='共 5 页' timeout=10000",
-        "【P0 场景3】browser_file_upload paths=['backend/tests/fixtures/ppt_b.pptx']",
-        "【P0 场景3】browser_wait_for text='共 5 页' timeout=10000",
-        "【P0 场景3】browser_click ref=[PPT B 第2页缩略图ref] (只选 B)",
-        "【P0 场景3】browser_wait_for text='已选择页面' timeout=3000",
-        "【P0 场景3】browser_type ref=[全局提示语输入框ref] text='空提示语测试'",
-        "【P0 场景3】browser_click ref=[合并按钮ref]",
-        "【P0 场景3】browser_wait_for text='📚 正在解析 PPT 内容...' timeout=10000",
-        "【P0 场景3】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
-        "【P0 场景3】browser_wait_for text='🔧 正在执行智能合并...' timeout=60000",
-        "【P0 场景3】browser_wait_for text='✅ 合并完成！' timeout=60000",
-        "【记录 场景3】测试结果和边界情况写入 record/test-102-scenario-3.md",
-        "【汇总】三个场景测试结果汇总写入 record/test-102-merge-multi-scenarios.md"
-      ],
-      "status": "done",
-      "depends_on": [],
-      "notes": "多场景测试：1) 单页面单提示语 2) 多页面多提示语 3) 空提示语边界测试。使用多轮 browser_wait_for 等待每个阶段完成，确保 AI 真正介入。每轮 timeout 合理分配：解析(10s) + AI 策略(60s) + 执行合并(60s) + 完成(60s) = 190s 总等待。"
-    },
-    {
-      "id": "feat-102-blob-download",
-      "category": "testing",
-      "priority": 112,
-      "description": "P1 /merge 文件下载验证：blob 下载方式 + 文件格式验证",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【环境】curl http://localhost:8000/health",
-        "【P1】browser_navigate http://localhost:3000/merge",
-        "【P1】browser_wait_for text='PPT 智能合并' timeout=10000",
-        "【P1】browser_file_upload paths=['backend/tests/fixtures/ppt_a.pptx']",
-        "【P1】browser_wait_for text='共 5 页' timeout=10000",
-        "【P1】browser_file_upload paths=['backend/tests/fixtures/ppt_b.pptx']",
-        "【P1】browser_wait_for text='共 5 页' timeout=10000",
-        "【P1】browser_type ref=[全局提示语输入框ref] text='测试 blob 下载方式'",
-        "【P1】browser_click ref=[合并按钮ref]",
-        "【P1】browser_wait_for text='📚 正在解析 PPT 内容...' timeout=10000",
-        "【P1】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
-        "【P1】browser_wait_for text='🔧 正在执行智能合并...' timeout=60000",
-        "【P1】browser_wait_for text='✅ 合并完成！' timeout=60000",
-        "【P1】browser_snapshot 验证下载按钮文本为 '📥 点击下载合并后的 PPT'",
-        "【P1】browser_click ref=[下载按钮ref] (触发 blob 下载)",
-        "【P1】browser_wait_for timeout=5000",
-        "【P1】验证下载的文件名格式：smart_merged_xxxxxx.pptx",
-        "【P1】验证文件大小 > 0KB",
-        "【P1】browser_console_messages level='error' (检查是否有下载错误)",
-        "【记录】下载功能验证结果写入 record/test-102-blob-download.md"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-102-multi-scenarios"
-      ],
-      "notes": "验证通过：blob 下载正常工作，下载的文件为有效 PPTX 格式 (33.3KB, 9 页)，无控制台错误。详见 record/test-102-blob-download.md"
-    },
-    {
-      "id": "feat-113-merge-fix",
-      "category": "bugfix",
-      "priority": 113,
-      "description": "修复 /merge 页面 500 错误和下载文件损坏问题",
-      "steps": [
-        "【诊断】查看后端日志，确认 500 错误的具体堆栈",
-        "【修复 1】backend/app/api/ppt.py: 增强 PPT 解析错误日志，添加内存使用率日志",
-        "【修复 2】frontend/src/app/merge/page.tsx: 修复下载 URL 拼接，添加 blob 验证日志",
-        "【修复 3】backend/app/main.py: 配置 PPTX MIME 类型",
-        "【修复 4】backend/app/services/ppt_generator.py: 验证文件保存完整性",
-        "【验证】手动测试 /merge 页面：上传 → 合并 → 下载 → 验证文件可打开",
-        "【记录】结果写入 record/test-113-merge-fix.md"
-      ],
-      "status": "done",
-      "depends_on": [],
-      "notes": "已修复：1) 添加内存使用率日志；2) 修复下载 URL 拼接；3) 配置 PPTX MIME 类型；4) 添加文件保存验证。测试通过，详见 record/test-113-merge-fix.md"
-    },
-    {
-      "id": "feat-113-merge-additional-tests",
-      "category": "testing",
-      "priority": 114,
-      "description": "P1 /merge 附加测试：多页面多提示语验证 + 下载文件完整性验证 + 内存日志验证",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md 了解多轮 browser_wait_for 策略",
-        "【环境】curl http://localhost:8000/health",
-        "【P1 场景1】多页面多提示语验证",
-        "【P1 场景1】browser_navigate http://localhost:3000/merge",
-        "【P1 场景1】browser_wait_for text='PPT 智能合并' timeout=10000",
-        "【P1 场景1】browser_file_upload paths=['backend/tests/fixtures/ppt_a.pptx']",
-        "【P1 场景1】browser_wait_for text='共 5 页' timeout=10000",
-        "【P1 场景1】browser_file_upload paths=['backend/tests/fixtures/ppt_b.pptx']",
-        "【P1 场景1】browser_wait_for text='共 5 页' timeout=10000",
-        "【P1 场景1】browser_click ref=[PPT A 第1页缩略图ref]",
-        "【P1 场景1】browser_click ref=[PPT A 第3页缩略图ref] (多选)",
-        "【P1 场景1】browser_wait_for text='已选择页面' timeout=3000",
-        "【P1 场景1】browser_type ref=[提示语输入框-第1页ref] text='简单合并内容'",
-        "【P1 场景1】browser_type ref=[提示语输入框-第3页ref] text='只合并图片部分'",
-        "【P1 场景1】browser_type ref=[全局提示语输入框ref] text='优先使用 PPT A 的结构'",
-        "【P1 场景1】browser_click ref=[合并按钮ref]",
-        "【P1 场景1】browser_wait_for text='📚 正在解析 PPT 内容...' timeout=10000",
-        "【P1 场景1】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
-        "【P1 场景1】browser_wait_for text='🔧 正在执行智能合并...' timeout=60000",
-        "【P1 场景1】browser_wait_for text='✅ 合并完成！' timeout=60000",
-        "【P1 场景1】browser_snapshot 验证下载链接",
-        "【P1 场景1】browser_click ref=[下载按钮ref]",
-        "【P1 场景1】browser_console_messages level='info' 验证下载诊断日志",
-        "【记录 场景1】结果写入 record/test-113-scenario-1.md",
-        "【P1 场景2】下载文件完整性验证",
-        "【P1 场景2】browser_navigate http://localhost:3000/merge",
-        "【P1 场景2】browser_wait_for text='PPT 智能合并' timeout=10000",
-        "【P1 场景2】browser_file_upload paths=['backend/tests/fixtures/ppt_a.pptx']",
-        "【P1 场景2】browser_wait_for text='共 5 页' timeout=10000",
-        "【P1 场景2】browser_file_upload paths=['backend/tests/fixtures/ppt_b.pptx']",
-        "【P1 场景2】browser_wait_for text='共 5 页' timeout=10000",
-        "【P1 场景2】browser_type ref=[全局提示语输入框ref] text='测试下载文件完整性'",
-        "【P1 场景2】browser_click ref=[合并按钮ref]",
-        "【P1 场景2】browser_wait_for text='📚 正在解析 PPT 内容...' timeout=10000",
-        "【P1 场景2】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
-        "【P1 场景2】browser_wait_for text='🔧 正在执行智能合并...' timeout=60000",
-        "【P1 场景2】browser_wait_for text='✅ 合并完成！' timeout=60000",
-        "【P1 场景2】browser_click ref=[下载按钮ref]",
-        "【P1 场景2】验证文件：python -c \"from pptx import Presentation; p=Presentation('uploads/generated/smart_merged_*.pptx'); print(f'{len(p.slides)} pages')\"",
-        "【P1 场景2】验证文件头：head -c 4 uploads/generated/smart_merged_*.pptx | xxd",
-        "【记录 场景2】结果写入 record/test-113-scenario-2.md",
-        "【P1 场景3】内存日志验证",
-        "【P1 场景3】执行场景1或场景2的合并流程",
-        "【P1 场景3】检查后端日志：tail -f backend/logs/app.log | grep 'PPT.*内存'",
-        "【记录 场景3】日志内容写入 record/test-113-scenario-3.md",
-        "【汇总】三个场景测试结果汇总写入 record/test-113-merge-additional-tests.md"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-113-merge-fix"
-      ],
-      "notes": "测试通过：1) 多页面多提示语验证 - 页面选择、提示语输入、SSE 合并流程正常；2) 下载文件完整性验证 - 文件有效 (34KB, 8 页), python-pptx 可打开；3) 内存日志验证 - 后端代码已实现内存监控 (85% 警告，95% 临界)，日志输出到控制台。详见 record/test-113-merge-additional-tests.md"
     }
   ]
 }

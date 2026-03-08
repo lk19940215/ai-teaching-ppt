@@ -2,5 +2,5 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "整合 /merge 已完成任务并新增测试任务。1) 新增 4 个测试用例到 tests.json: 500 错误修复验证、内存日志验证、下载诊断日志验证、文件完整性验证；2) 新增测试任务 feat-113-merge-additional-tests (priority: 114) 包含 3 个场景: 多页面多提示语验证、下载文件完整性验证、内存日志验证；3) 所有测试步骤参考 .claude-coder/test_rule.md 使用多轮 browser_wait_for 策略；4) 测试用例数量从 17 增加到 21。服务保持运行。"
+  "notes": "完成 feat-113-merge-additional-tests 任务。执行三个测试场景：1) 多页面多提示语验证 - Playwright MCP 测试通过，页面选择、提示语输入、SSE 合并流程正常，下载按钮正确显示；2) 下载文件完整性验证 - 下载文件 smart_merged_69867879.pptx (34KB, 8 页)，python-pptx 成功打开验证，Content-Type 正确；3) 内存日志验证 - 后端代码已实现 (backend/app/api/ppt.py:775-783)，内存监控阈值 85%/95%，日志输出到控制台。测试报告已写入 record/test-113-merge-additional-tests.md。环境状态：后端 (8000) 和前端 (3000) 服务运行正常。"
 }
