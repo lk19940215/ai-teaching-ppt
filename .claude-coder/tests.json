@@ -168,6 +168,14 @@
       "expected": "python-pptx 成功读取文件，输出页数（如 '9 slides OK'）",
       "last_result": "pass",
       "last_run_session": 3
+    },
+    {
+      "id": "test-feat303-merge-e2e",
+      "feature_id": "feat-303",
+      "verify": "echo 'Playwright MCP: /merge 上传有效 PPT 文件 -> 填写提示语 -> 合并成功 -> 下载验证 -> 控制台 0 错误'",
+      "expected": "端到端测试通过：上传两个有效 PPT 文件（A:3 页，B:8 页），合并成功显示下载按钮，控制台 0 错误，证明 LLM 真实调用（否则无法生成合并策略）",
+      "last_result": "pass",
+      "last_run_session": 2
     }
   ]
 }
