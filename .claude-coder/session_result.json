@@ -2,4 +2,5 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "完成 feat-101 P0 核心流程完整测试：\n\n**测试通过项**:\n1. 环境确认 - 后端/前端服务健康检查通过\n2. 导航到生成页面 - 布局正确\n3. 输入测试内容 - \"三角形面积公式：底乘以高除以 2\"\n4. 参数配置 - 年级=小学五年级、学科=数学、风格=活泼趣味\n5. PPT 生成 - SSE 流式推送正常，生成 16 页 PPT\n6. 预览验证 - 16 页缩略图正确显示\n7. 下载功能 - PPTX 文件成功下载\n8. 历史记录 - 记录保存并显示在历史页面\n\n**测试输出**:\n- 测试报告：record/test-101-core-flow.md\n- tests.json 新增 feat-101 验证记录\n- Git 提交：9f62b07\n\n**注意事项**:\n1. 前端 EventSource 进度显示可能卡在 20%，但实际生成正常进行（后端日志确认）\n2. 建议使用 Python requests 测试 SSE API 更可靠\n3. 服务保持运行状态（连续模式），下一个 session 可直接使用\n\n**下一个任务建议**: feat-102 (P0 /merge 页面完整流程测试)"
+  "notes": "完成 feat-102 P0 /merge 页面完整流程测试：\n\n**测试通过项**:\n1. 导航到合并页面 - 布局正确\n2. 上传 PPT A (ppt_a.pptx) - 5 页 Canvas 渲染正常\n3. 上传 PPT B (ppt_b.pptx) - 5 页 Canvas 渲染正常\n4. Canvas 验证 - 共 10 个 Canvas 元素\n5. 页面选择 - 点击 P2 缩略图，显示\"已选择 1 页：P2\"\n6. 提示语联动 - 提示语面板自动显示对应输入框并激活\n7. 智能合并 - SSE 流式生成，显示\"合并成功！\"\n8. 文件下载 - smart_merged_0cdd4407.pptx 成功下载\n\n**测试输出**:\n- 测试报告：record/test-102-merge-flow.md\n- tests.json 新增 feat-102 验证记录\n- Git 提交：b8ed8df\n\n**核心功能验证**:\n1. 文件上传：支持 .pptx 格式，上传后显示文件名和页数\n2. Canvas 预览：使用标准 Canvas 2D API，渲染正常\n3. 页面选择：点击缩略图可选择，状态实时更新\n4. 提示语联动：选择页面后提示语面板自动显示对应输入框\n5. SSE 合并：流式推送进度，合并成功后显示下载链接\n6. 文件下载：合并后的 PPTX 文件可正常下载\n\n**服务状态**: 保持运行（连续模式）\n\n**下一个任务建议**: feat-103 (P0 错误场景测试：API Key 缺失/无效、空输入、超大文件)"
+}
