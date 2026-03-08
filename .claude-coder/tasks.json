@@ -127,7 +127,7 @@
         "【P0】Playwright MCP: browser_snapshot 验证提示语面板高亮对应输入框",
         "【记录】测试结果详细写入 record/test-102-merge-flow.md"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     },
     {
