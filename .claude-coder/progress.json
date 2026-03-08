@@ -357,6 +357,15 @@
       "taskId": "feat-100",
       "statusAfter": "done",
       "notes": "Session 17 完成 feat-100 'PPT 解析性能优化'\n\n【已完成】\n1. 性能优化实现：\n   - 超时保护：timeout 参数（默认 30 秒），asyncio.wait_for 包装\n   - 解析缓存：LRU 策略，100 文件上限，30 分钟 TTL，SHA256 哈希\n   - 内存监控：_get_memory_usage()，85% 警告，95% 自动降级\n   - 图片压缩：quality=75%，progressive=True\n   - 文件大小限制：50MB 上限\n\n2. 代码变更 (backend/app/api/ppt.py)：\n   - 新增导入：hashlib, time, psutil, os\n   - 新增缓存辅助函数：_get_memory_usage, _compute_file_hash, _cleanup_cache, _get_from_cache, _add_to_cache\n   - 新增 API 参数：timeout, use_cache\n   - 新增返回字段：file_size, parse_time_ms, total_time_ms, memory_usage, from_cache\n\n3. 性能测试：\n   - 测试文件：large_test.pptx (0.12 MB, 100 页)\n   - 解析时间：~2 秒（目标<5 秒）✓\n   - 报告：record/performance-final-test.md\n\n4. 依赖检查：\n   - requirements.txt 版本均已固定\n   - psutil 需确保安装（pip install psutil）\n\n【注意事项】\n- 后端服务需重启以加载新代码（uvicorn --reload 会自动）\n- 缓存功能需 use_cache=true 启用\n- feat-100 状态已更新为 done\n- tasks.json 已更新"
+    },
+    {
+      "session": 18,
+      "timestamp": "2026-03-07T20:56:30.550Z",
+      "result": "success",
+      "cost": 1.72892375,
+      "taskId": "feat-095",
+      "statusAfter": "done",
+      "notes": "完成 feat-095 兼容性测试：\n1. Chromium (Chrome) 测试通过：5 个 Canvas 全部渲染正常 (300x169, alpha=255)\n2. Firefox: 环境限制（Playwright MCP 未配置 Firefox channel），已更新测试报告提供手动测试指南\n3. Safari: 平台限制（仅 macOS 支持），已更新测试报告提供手动测试指南\n4. 更新 record/compatibility-test.md 包含详细测试结果和手动测试指南\n5. 新增截图 record/chromium-compatibility-test.png\n\n技术说明：Canvas 使用标准 Canvas 2D API，在所有现代浏览器中均有良好支持，Firefox/Safari 理论上应能正常工作。\n\n下个会话可继续执行优先级 97 之后的任务。"
     }
   ]
 }

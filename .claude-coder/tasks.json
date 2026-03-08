@@ -2,879 +2,177 @@
   "project": "ai-teaching-ppt",
   "created_at": "2026-03-02",
   "last_updated": "2026-03-08",
+  "next_task_priority": 101,
   "completed_milestones": [
     {
       "id": "milestone-1",
       "name": "基础设施搭建",
-      "features": [
-        "feat-001",
-        "feat-002",
-        "feat-012",
-        "feat-013"
-      ],
+      "features": ["feat-001", "feat-002", "feat-012", "feat-013"],
       "summary": "后端 FastAPI 脚手架、前端 Next.js 项目、Docker 部署、SQLite 数据库初始化",
       "completed_at": "2026-03-02"
     },
     {
       "id": "milestone-2",
       "name": "核心生成流程",
-      "features": [
-        "feat-003",
-        "feat-004",
-        "feat-005",
-        "feat-006",
-        "feat-007"
-      ],
+      "features": ["feat-003", "feat-004", "feat-005", "feat-006", "feat-007"],
       "summary": "文件上传/OCR/PDF 解析、教学配置面板、LLM 内容生成、PPTX 文件生成、预览下载",
       "completed_at": "2026-03-02"
     },
     {
       "id": "milestone-3",
       "name": "学科增强与自适应",
-      "features": [
-        "feat-008",
-        "feat-009",
-        "feat-026",
-        "feat-027"
-      ],
+      "features": ["feat-008", "feat-009", "feat-026", "feat-027"],
       "summary": "英语专属页面、年级自适应风格、PPT 风格映射、K-12 年级扩展（含高中）",
       "completed_at": "2026-03-03"
     },
     {
       "id": "milestone-4",
       "name": "历史记录与 LLM 配置",
-      "features": [
-        "feat-010",
-        "feat-011",
-        "feat-020",
-        "feat-021"
-      ],
+      "features": ["feat-010", "feat-011", "feat-020", "feat-021"],
       "summary": "生成历史记录、LLM 服务商切换、温度/token 配置、参数格式排查",
       "completed_at": "2026-03-03"
     },
     {
       "id": "milestone-5",
       "name": "PPT 质量优化",
-      "features": [
-        "feat-015",
-        "feat-016",
-        "feat-017",
-        "feat-043"
-      ],
+      "features": ["feat-015", "feat-016", "feat-017", "feat-043"],
       "summary": "LLM 提示词优化、PPT 模板优化、动画效果注入、点击显示答案 OOXML 实现",
       "completed_at": "2026-03-04"
     },
     {
       "id": "milestone-6",
       "name": "学科深度优化",
-      "features": [
-        "feat-028",
-        "feat-029",
-        "feat-030",
-        "feat-031",
-        "feat-032",
-        "feat-033"
-      ],
+      "features": ["feat-028", "feat-029", "feat-030", "feat-031", "feat-032", "feat-033"],
       "summary": "提示词引擎架构、语文/数学/理科/文科/英语学科深度提示词与专属页面",
       "completed_at": "2026-03-04"
     },
     {
       "id": "milestone-7",
       "name": "教学设计科学化",
-      "features": [
-        "feat-034",
-        "feat-035",
-        "feat-036",
-        "feat-037",
-        "feat-038",
-        "feat-039",
-        "feat-040",
-        "feat-041"
-      ],
+      "features": ["feat-034", "feat-035", "feat-036", "feat-037", "feat-038", "feat-039", "feat-040", "feat-041"],
       "summary": "认知负荷优化、注意力节奏引擎、布鲁姆分类法、先行组织者、问题链元认知、情境创设、差异化教学、错题分析",
       "completed_at": "2026-03-05"
     },
     {
       "id": "milestone-8",
       "name": "前端优化与修复",
-      "features": [
-        "feat-014",
-        "feat-018",
-        "feat-019",
-        "feat-022",
-        "feat-024",
-        "feat-025",
-        "feat-051",
-        "feat-052",
-        "feat-053"
-      ],
+      "features": ["feat-014", "feat-018", "feat-019", "feat-022", "feat-024", "feat-025", "feat-051", "feat-052", "feat-053"],
       "summary": "Dark Mode 修复、交互动画、上传流程修复、API 环境变量化、默认年级调整、进度反馈优化、智能风格推荐",
       "completed_at": "2026-03-05"
     },
     {
       "id": "milestone-9",
       "name": "后端优化与修复",
-      "features": [
-        "feat-023",
-        "feat-045",
-        "feat-046",
-        "feat-047",
-        "feat-048",
-        "feat-049",
-        "feat-050",
-        "feat-054",
-        "feat-055"
-      ],
+      "features": ["feat-023", "feat-045", "feat-046", "feat-047", "feat-048", "feat-049", "feat-050", "feat-054", "feat-055"],
       "summary": "JSON 解析增强、Playwright 测试基础设施、E2E 测试（文字/图片/错误场景）、探索性测试、重试机制修复",
       "completed_at": "2026-03-06"
     },
     {
       "id": "milestone-10",
       "name": "SSE 流式反馈",
-      "features": [
-        "feat-042"
-      ],
+      "features": ["feat-042"],
       "summary": "SSE 流式生成进度推送，替换假进度条",
       "completed_at": "2026-03-05"
     }
   ],
   "features": [
     {
-      "id": "feat-060",
-      "category": "backend",
-      "priority": 60,
-      "description": "LLM 提供商审计：排查所有 LLM 服务商调用代码，确保参数传递正确",
-      "steps": [
-        "阅读 backend/app/services/llm.py，审计 DeepSeek/OpenAI/Claude/GLM 四种服务商的调用实现",
-        "检查 temperature、max_tokens、response_format 等参数是否正确传递",
-        "验证各服务商的 API 基础 URL 和请求头格式",
-        "检查错误处理和重试逻辑",
-        "修复发现的问题",
-        "验证：curl 测试各服务商 API 连接（如配置了有效 Key）"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-061",
-      "category": "fullstack",
-      "priority": 61,
-      "description": "核心生成流程完整测试：文字输入→生成 PPT→下载",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【环境】curl http://localhost:8000/health 确认后端服务正常",
-        "【P0】Playwright MCP 访问 /upload 页面，snapshot 确认页面加载",
-        "【P0】填写测试文本（数学：三角形的面积公式），snapshot 确认输入成功",
-        "【P0】选择年级=小学五年级、学科=数学、风格=简约清晰",
-        "【P0】点击生成，使用 browser_wait_for 等待 PPT 预览出现（timeout=300s）",
-        "【P0】验证下载 URL 有效，记录下载链接",
-        "【记录】测试结果写入 record/core_flow_test.md（使用 test_rule.md 模板）",
-        "【预算】Smart Snapshot 策略：导航→填写→点击→等待→验证，共 3-4 次 snapshot"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-062",
-      "category": "fullstack",
-      "priority": 62,
-      "description": "错误场景测试：验证 API Key 缺失、无效等错误处理",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【环境】curl http://localhost:8000/health 确认后端服务正常（失败则停止）",
-        "【P0 场景 1】Playwright MCP：空输入验证 - 不填写内容，验证生成按钮 disabled 或提交后显示提示",
-        "【P0 场景 2】Playwright MCP: API Key 缺失 - 清除 localStorage 后访问 /upload，验证显示配置提示",
-        "【P1 场景 3】Playwright MCP：无效 API Key - 输入错误格式 Key，验证后端返回 401/403 错误",
-        "【P1 场景 4】Playwright MCP：超长内容 - 输入 10000+ 字，验证后端拒绝（如有字数限制）",
-        "【记录】测试结果写入 record/error_handling_test.md（使用 test_rule.md 模板）",
-        "【预算】Token 消耗 >80% 时跳过低优先级场景，记录 session_result.json"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-061"
-      ]
-    },
-    {
-      "id": "feat-063",
-      "category": "fullstack",
-      "priority": 63,
-      "description": "图片/PDF 上传流程测试：验证 OCR 和 PDF 解析链路",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【准备】准备测试图片（含文字的教材截图）和 PDF 文件",
-        "【P1 场景 1】Playwright MCP：图片上传→OCR 识别→确认文本显示",
-        "【P1 场景 2】Playwright MCP: 图片上传→OCR→生成 PPT 完整流程",
-        "【P1 场景 3】Playwright MCP: PDF 上传→解析→确认文本显示",
-        "【P1 场景 4】Playwright MCP: PDF 上传→解析→生成 PPT 完整流程",
-        "【记录】测试结果写入 record/upload_test.md（使用 test_rule.md 模板）",
-        "【预算】每个场景 2-3 次 snapshot，合并操作减少消耗"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-061"
-      ]
-    },
-    {
-      "id": "feat-064",
-      "category": "frontend",
-      "priority": 64,
-      "description": "文本草稿自动保存：使用 localStorage 保存用户输入",
-      "steps": [
-        "在 upload/page.tsx 添加 useEffect 监听 textContent 变化",
-        "自动保存到 localStorage（防抖 500ms）",
-        "组件挂载时恢复草稿内容",
-        "生成成功后清除草稿",
-        "验证：输入文本→刷新→文本恢复；生成成功→刷新→文本清空"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-065",
-      "category": "backend",
-      "priority": 65,
-      "description": "多学科生成验证：确认各学科专属页面和提示词正确触发",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【P2 场景 1】语文学科：测试古诗内容，验证拼音标注、古诗鉴赏页面类型",
-        "【P2 场景 2】数学学科：测试公式内容，验证公式推导、例题讲解页面类型",
-        "【P2 场景 3】英语学科：测试单词内容，验证单词卡片、语法结构页面类型",
-        "【P2 场景 4】理科（物理/化学/生物）：验证实验探究页面类型",
-        "【记录】各学科生成结果写入 record/multi_subject_test.md",
-        "【预算】每个学科 1 次完整生成，共 4 次 snapshot"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-061"
-      ]
-    },
-    {
-      "id": "feat-066",
-      "category": "frontend",
-      "priority": 66,
-      "description": "放大预览模态框完善：实现 PPT 页面放大查看功能",
-      "steps": [
-        "当前 showPreviewModal 状态已定义但未实现 UI",
-        "创建模态框组件，展示当前预览页面的放大版本",
-        "支持键盘左右箭头翻页",
-        "支持 ESC 关闭模态框",
-        "验证：点击放大查看按钮→模态框弹出→可翻页→可关闭"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-067",
-      "category": "fullstack",
-      "priority": 67,
-      "description": "response_format 参数验证：验证各 LLM 提供商 JSON 输出模式",
-      "steps": [
-        "【后端】确认 llm.py 中 response_format 参数对所有提供商传递",
-        "【P1 场景 1】DeepSeek：配置有效 Key，生成 PPT，验证 JSON 解析成功",
-        "【P1 场景 2】OpenAI：配置有效 Key，生成 PPT，验证 JSON 解析成功",
-        "【P1 场景 3】GLM：配置有效 Key，生成 PPT，验证 JSON 解析成功",
-        "【P2 场景 4】Claude：配置有效 Key，生成 PPT，验证 JSON 解析成功（不依赖 response_format）",
-        "【记录】测试结果写入 record/response_format_test.md",
-        "【预算】每个提供商 1 次 snapshot，共 4-5 次"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-060"
-      ]
-    },
-    {
-      "id": "feat-068",
-      "category": "fullstack",
-      "priority": 68,
-      "description": "历史记录功能测试：验证保存、搜索、删除、重新生成",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【P1 场景 1】生成 PPT 后，验证历史记录列表出现新记录",
-        "【P1 场景 2】关键词搜索：输入标题关键词，验证筛选正确",
-        "【P1 场景 3】年级/学科筛选：选择筛选条件，验证列表正确",
-        "【P1 场景 4】删除功能：删除一条记录，验证列表更新",
-        "【P2 场景 5】重新生成：点击重新生成，验证调用后端 API（需 API Key）",
-        "【记录】测试结果写入 record/history_test.md",
-        "【预算】每个场景 1-2 次 snapshot"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-061"
-      ]
-    },
-    {
-      "id": "feat-069",
-      "category": "backend",
-      "priority": 69,
-      "description": "OCR API 响应格式统一：解决重复路由导致的字段不匹配问题",
-      "steps": [
-        "分析 upload.py 和 process.py 中的重复 OCR 路由（/api/v1/process/ocr）",
-        "删除 upload.py 中的冗余 /process/ocr 路由，保留 process.py 的完整版本",
-        "确认 process.py 返回 cleaned_text、original_text、metrics、keywords",
-        "前端 page.tsx 已使用 cleaned_text，无需修改",
-        "验证：curl -X POST http://localhost:8000/api/v1/process/ocr -H 'Content-Type: application/json' -d '{\"file_path\":\"test.jpg\"}' → 返回 cleaned_text"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-070",
-      "category": "frontend",
-      "priority": 70,
-      "description": "图片二次上传修复：解决同一文件无法重复选择的问题",
-      "steps": [
-        "分析 handleFileSelect 函数，确认 input.value 未清空导致 onChange 不触发",
-        "在 handleFileSelect 末尾添加 e.target.value = '' 清空 input",
-        "同样处理 handleDrop 中删除文件后的 input 重置",
-        "验证：上传图片→删除→再上传同一图片→onChange 触发"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-069"
-      ]
-    },
-    {
-      "id": "feat-071",
-      "category": "backend",
-      "priority": 71,
-      "description": "PPT 文本溢出修复：解决文字超出页面、不换行问题",
-      "steps": [
-        "审计 ppt_generator.py 中所有文本框，确认设置 word_wrap = True",
-        "检查文本框尺寸计算逻辑，确保留有边距",
-        "实现文本长度检测，超长内容自动截断或调整字号",
-        "添加 LLM 提示词约束，限制单页内容长度",
-        "验证：生成含长文本的 PPT，下载后打开检查无文字溢出"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-072",
-      "category": "fullstack",
-      "priority": 72,
-      "description": "PPT 合并生成功能：支持上传多个 PPT 合并生成新课件",
-      "steps": [
-        "【后端】在 ppt_generator.py 新增 merge_ppts 方法和辅助方法",
-        "【后端】在 ppt.py 新增 POST /api/v1/ppt/merge 端点，支持上传 2-10 个 PPTX 文件",
-        "【前端】upload/page.tsx 添加 'ppt_merge' 上传类型和 UI",
-        "【前端】实现多文件上传管理和合并 API 调用",
-        "验证：上传 2 个 PPT→调用合并 API→下载合并后的 PPT"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-069",
-        "feat-071"
-      ]
-    },
-    {
-      "id": "feat-073",
-      "category": "backend",
-      "priority": 73,
-      "description": "PPT 解析预览 API：提取每页内容用于前端预览",
-      "steps": [
-        "在 backend/app/api/ppt.py 新增 POST /api/v1/ppt/parse 端点",
-        "解析 PPTX 文件，提取每页的标题、文本大纲、形状类型列表",
-        "返回 JSON 格式：{ pages: [{ index, title, content, shapes }] }",
-        "验证：curl -F 'file=@test.pptx' http://localhost:8000/api/v1/ppt/parse → 返回页面列表 JSON"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-072"
-      ]
-    },
-    {
-      "id": "feat-074",
-      "category": "backend",
-      "priority": 74,
-      "description": "智能合并 API：根据页面级提示语调用 LLM 合并 PPT",
-      "steps": [
-        "在 backend/app/api/ppt.py 新增 POST /api/v1/ppt/smart-merge 端点",
-        "接收参数：file_a, file_b, page_prompts (dict), global_prompt, api_key, provider",
-        "调用 LLM 解析提示语，生成合并策略 JSON",
-        "根据策略调用 ppt_generator.py 的智能合并方法",
-        "验证：curl 发送智能合并请求 → 返回合并后的 PPT 下载链接"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-073"
-      ]
-    },
-    {
-      "id": "feat-075",
-      "category": "frontend",
-      "priority": 75,
-      "description": "智能合并页面基础框架：创建 /merge 独立页面",
-      "steps": [
-        "创建 frontend/src/app/merge/page.tsx 独立页面",
-        "实现左右布局：左侧（上下两个 PPT 预览区）+ 右侧（提示语汇总面板）",
-        "添加 A/B PPT 文件上传区域（各支持单个 PPTX 文件）",
-        "添加页面导航入口（Header 组件新增链接）",
-        "验证：pnpm tsc --noEmit 无错误；访问 /merge 页面显示基础布局"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-073"
-      ]
-    },
-    {
-      "id": "feat-076",
-      "category": "frontend",
-      "priority": 76,
-      "description": "PPT 预览组件：A/B PPT 分页预览和页面选择",
-      "steps": [
-        "创建 PptPreview 组件：接收 pageData 数组，渲染每页内容（简化版：标题+文本大纲）",
-        "实现分页导航：上一页/下一页按钮 + 页码指示器",
-        "实现页面点击选择：选中页高亮显示，支持多选",
-        "集成到 merge/page.tsx 的 A/B 预览区域",
-        "验证：上传 PPT → 显示分页预览 → 点击页面可选中 → 高亮状态正确切换"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-075"
-      ]
-    },
-    {
-      "id": "feat-077",
-      "category": "frontend",
-      "priority": 77,
-      "description": "提示语编辑面板：页面级提示语 + 总提示语管理",
-      "steps": [
-        "创建 PromptEditor 组件：显示已选中页面的列表，每页配输入框",
-        "实现提示语输入：支持为每页添加/编辑提示语（如 '保留标题，正文与 B PPT 第 8 页合并'）",
-        "添加总提示语输入区域：对整体合并策略的说明",
-        "实现提示语实时预览：右侧面板显示所有提示语汇总",
-        "验证：选中多页 → 输入各页提示语 → 右侧面板正确显示汇总"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-076"
-      ]
-    },
-    {
-      "id": "feat-078",
-      "category": "fullstack",
-      "priority": 78,
-      "description": "智能合并生成流程：集成前后端完成端到端合并",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【后端】添加 SSE 流式版本的 /ppt/smart-merge-stream 端点",
-        "【前端】实现 handleMerge 函数：收集提示语，调用 API",
-        "【前端】添加 SSE 进度反馈",
-        "【前端】实现结果展示和下载",
-        "【P0 测试】Playwright MCP 完整流程验证",
-        "验证：完整流程走通"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-074",
-        "feat-077"
-      ]
-    },
-    {
-      "id": "feat-082",
-      "category": "backend",
-      "priority": 82,
-      "description": "增强 PPT 解析端点：返回图片、表格、样式等元数据",
-      "steps": [
-        "在 /api/v1/ppt/parse 端点添加 extract_enhanced 参数",
-        "提取文本样式（字体、颜色、大小、粗体、斜体、下划线）",
-        "提取图片并转换为 Base64（含压缩）",
-        "提取表格结构和数据",
-        "提取形状位置信息（绝对位置和相对百分比）",
-        "提取页面布局信息（宽度、高度）",
-        "验证：curl -F 'file=@test.pptx' -F 'extract_enhanced=true' http://localhost:8000/api/v1/ppt/parse"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-083",
-      "category": "frontend",
-      "priority": 83,
-      "description": "Canvas PPT 渲染组件：实现 PPT 页面真实效果预览",
-      "steps": [
-        "创建 PptCanvasRenderer 组件：使用 Canvas API 渲染 PPT 内容",
-        "实现文本渲染：支持字体、颜色、大小、粗体、斜体、下划线、对齐",
-        "实现图片渲染：支持 Base64 图片显示",
-        "实现表格渲染：绘制表格边框和单元格内容",
-        "实现离屏 Canvas 缓存优化性能",
-        "创建 PptCanvasPreview 组件：缩略图网格布局，支持点击选择",
-        "验证：pnpm tsc --noEmit 无错误；/merge 页面显示 Canvas 预览"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-084",
-      "category": "frontend",
-      "priority": 84,
-      "description": "重构 PPT 合并页面：集成 Canvas 预览组件",
-      "steps": [
-        "修改 merge/page.tsx，替换 PptPreview 为 PptCanvasPreview",
-        "保持提示语编辑功能与 Canvas 预览联动",
-        "保持页面选择和多选功能",
-        "验证：pnpm tsc --noEmit 无错误；页面正常显示 Canvas 预览"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-082",
-        "feat-083"
-      ]
-    },
-    {
-      "id": "feat-085",
+      "id": "feat-101",
       "category": "testing",
-      "priority": 85,
-      "description": "Playwright 端到端测试：编写 merge 页面测试脚本",
+      "priority": 101,
+      "description": "P0 核心流程端到端测试：文字输入→生成 PPT→下载",
       "steps": [
-        "编写 merge-page.test.ts 测试文件",
-        "测试页面加载和导航",
-        "测试 PPT 文件上传（单个和两个）",
-        "测试 Canvas 预览显示",
-        "测试页面选择和提示语面板联动",
-        "测试错误处理（未上传文件点击合并）",
-        "测试重置功能"
+        "【环境】确认前端后端服务运行（curl http://localhost:8000/health）",
+        "【P0】Playwright MCP: browser_navigate http://localhost:3000/upload",
+        "【P0】Playwright MCP: browser_snapshot 确认页面加载",
+        "【P0】Playwright MCP: browser_type 输入文本（数学：三角形的面积公式）",
+        "【P0】Playwright MCP: 选择年级=小学五年级、学科=数学、风格=简约清晰",
+        "【P0】Playwright MCP: browser_click 生成按钮",
+        "【P0】Playwright MCP: browser_wait_for text=\"PPT 预览\" timeout=180000 等待生成完成",
+        "【P0】Playwright MCP: browser_snapshot 验证预览正常显示",
+        "【P0】验证下载链接有效",
+        "【记录】测试结果写入 record/test-101-core-flow.md"
+      ],
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-102",
+      "category": "testing",
+      "priority": 102,
+      "description": "P0 /merge 页面端到端测试：文件上传→Canvas渲染→智能合并",
+      "steps": [
+        "【环境】确认服务运行（curl http://localhost:8000/health）",
+        "【P0】Playwright MCP: browser_navigate http://localhost:3000/merge",
+        "【P0】Playwright MCP: browser_snapshot 确认页面加载",
+        "【P0】Playwright MCP: browser_click PPT A 上传区域",
+        "【P0】Playwright MCP: browser_file_upload backend/tests/fixtures/ppt_a.pptx",
+        "【P0】Playwright MCP: browser_wait_for text=\"共 5 页\" timeout=10000",
+        "【P0】Playwright MCP: browser_snapshot 验证 Canvas 渲染正常",
+        "【P0】Playwright MCP: browser_click PPT B 上传区域",
+        "【P0】Playwright MCP: browser_file_upload backend/tests/fixtures/ppt_b.pptx",
+        "【P0】Playwright MCP: browser_wait_for text=\"共 5 页\" timeout=10000",
+        "【P0】Playwright MCP: browser_snapshot 验证 PPT B 渲染正常",
+        "【P0】Playwright MCP: 点击 Canvas 选择页面",
+        "【P0】验证右侧提示语面板联动（输入框高亮/滚动）",
+        "【记录】测试结果写入 record/test-102-merge-flow.md"
+      ],
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-103",
+      "category": "testing",
+      "priority": 103,
+      "description": "P0 错误场景测试：API Key 缺失/无效处理",
+      "steps": [
+        "【环境】确认服务运行",
+        "【P0 场景1】清除 localStorage，访问 /upload，验证提示配置",
+        "【P0 场景2】输入无效 API Key，点击生成，验证 401 错误提示",
+        "【记录】测试结果写入 record/test-103-error-handling.md"
+      ],
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-104",
+      "category": "testing",
+      "priority": 104,
+      "description": "P1 图片上传测试：图片→OCR→生成流程",
+      "steps": [
+        "【P1】准备含文字的图片文件",
+        "【P1】Playwright MCP: 访问 /upload，上传图片",
+        "【P1】Playwright MCP: browser_wait_for OCR 完成",
+        "【P1】验证生成的 PPT 内容与图片文字匹配",
+        "【记录】测试结果写入 record/test-104-image-upload.md"
+      ],
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-105",
+      "category": "bugfix",
+      "priority": 105,
+      "description": "修复问题：后端服务在错误端口（8003→8000）",
+      "steps": [
+        "修复 frontend/.env.local: NEXT_PUBLIC_API_URL=8000",
+        "验证：访问 /merge，upload PPT，无 fetch 错误"
       ],
       "status": "done",
       "depends_on": []
     },
     {
-      "id": "feat-086",
-      "category": "testing",
-      "priority": 86,
-      "description": "准备 PPT 测试文件集：用于端到端测试",
+      "id": "feat-106",
+      "category": "cleanup",
+      "priority": 106,
+      "description": "清理任务列表：移除之前未实际验证的测试任务",
       "steps": [
-        "创建 backend/tests/fixtures 目录",
-        "准备 ppt_a.pptx：5页，基础教学课件",
-        "准备 ppt_b.pptx：5页，补充内容",
-        "准备 small_ppt.pptx：2页，小型测试",
-        "准备 text_only.pptx：5页，纯文本测试",
-        "验证：curl -F 'file=@ppt_a.pptx' http://localhost:8000/api/v1/ppt/parse"
+        "保留已完成的实际开发任务（feat-001~feat-100）",
+        "移除标记为 done 但未通过 Playwright MCP 浏览器测试的任务",
+        "保留新创建的测试任务（feat-101+）"
       ],
-      "status": "done",
+      "status": "pending",
       "depends_on": []
-    },
-    {
-      "id": "feat-079",
-      "category": "testing",
-      "priority": 79,
-      "description": "Playwright MCP文件上传限制调研：验证浏览器文件上传能力",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【环境】启动浏览器，确认 storage-state 加载成功",
-        "【P0】使用 browser_file_upload 上传测试文件，验证绝对路径可用性",
-        "【P0】验证文件必须实际存在（检查后端 20MB 限制）",
-        "【P0】验证 PPTX 文件格式支持",
-        "【记录】结果写入 record/playwright-upload-test.md",
-        "【预算】每个文件 1 次 snapshot，共 3-4 次"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-080",
-      "category": "testing",
-      "priority": 80,
-      "description": "Canvas渲染PPT真实效果可行性调研：验证渲染库和技术方案",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【调研】PptxRender (2025)：性能、文件大小、TypeScript 支持",
-        "【调研】pptxjs：基础功能支持、复杂格式兼容性",
-        "【调研】自研解析器+Canvas：开发成本、完全定制能力",
-        "【调研】后端解析+前端渲染：网络依赖、离线可用性",
-        "【结论】确定采用混合方案（PptxRender + 后端辅助）",
-        "【预算】文档调研不消耗 snapshot"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-081",
-      "category": "backend",
-      "priority": 81,
-      "description": "现有PPT解析和渲染能力检测：评估当前实现能力边界",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【检测】后端 /api/v1/ppt/parse：提取页面标题、内容、形状类型",
-        "【检测】前端 PptPreview：CSS 渲染效果、图片支持、样式支持",
-        "【检测】PPT 合并后端 API：merge 和 smart-merge 端点",
-        "【结论】生成检测报告：已实现能力 + 需要增强的能力",
-        "【记录】结果写入 record/ppt-capability-detection.md",
-        "【预算】每个端点 1 次 curl，不消耗 snapshot"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-087",
-      "category": "frontend",
-      "priority": 87,
-      "description": "集成PptxRender库：实现前端PPT真实渲染",
-      "steps": [
-        "安装 pptx-render 或 pptxjs-next 库",
-        "创建 Canvas 渲染器组件，解析 PPTX 并渲染到 Canvas",
-        "实现文本渲染（富文本、样式），图片渲染（Base64），表格渲染",
-        "处理渲染失败情况：降级到后端解析简化版",
-        "验证：/merge 页面 PPT A/B 显示真实渲染效果",
-        "预算：每个测试 PPT 1 次 snapshot"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-080"
-      ]
-    },
-    {
-      "id": "feat-088",
-      "category": "frontend",
-      "priority": 88,
-      "description": "性能优化：虚拟滚动、离屏缓存、懒加载",
-      "steps": [
-        "实现虚拟滚动：只渲染可视区域页面",
-        "实现离屏 Canvas 缓存：预渲染常用页面",
-        "实现图片懒加载：滚动到可视区域再加载",
-        "性能测试：10页 <2s，50页 <5s，100页 <10s",
-        "验证：PPT Preview 性能达标"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-083"
-      ]
-    },
-    {
-      "id": "feat-089",
-      "category": "frontend",
-      "priority": 89,
-      "description": "Canvas预览组件优化：交互体验改进",
-      "steps": [
-        "添加页面高亮效果：选中页显示选中边框",
-        "添加多选支持：Shift/Ctrl 点击多选",
-        "添加右键菜单：复制/删除/跳转等操作",
-        "优化响应速度：Web Worker 处理复杂渲染",
-        "验证：交互流畅，无卡顿"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-083"
-      ]
-    },
-    {
-      "id": "feat-090",
-      "category": "frontend",
-      "priority": 90,
-      "description": "重构PPT合并页面布局：集成Canvas预览",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【前端】修改 merge/page.tsx：替换 PptPreview 为 PptCanvasPreview",
-        "【前端】保持提示语编辑功能与 Canvas 预览联动",
-        "【前端】调整布局：左侧 Canvas 预览 + 右侧提示语面板",
-        "【P0测试】上传 PPT A/B → Canvas 渲染正常 → 选择页面 → 提示语面板联动",
-        "【记录】测试结果写入 record/merge-canvas-test.md",
-        "【预算】Smart Snapshot：导航→上传→验证渲染→选择→验证联动，共 3 次"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-083",
-        "feat-084"
-      ]
-    },
-    {
-      "id": "feat-091",
-      "category": "frontend",
-      "priority": 91,
-      "description": "保持提示语编辑功能与Canvas预览联动",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【功能】点击 Canvas 预览页面 → 右侧提示语面板定位到对应输入框",
-        "【功能】右侧提示语输入时 → 左侧 Canvas 高亮对应页面",
-        "【功能】页面 selection 变化 → 提示语面板同步更新",
-        "【P0测试】Playwright MCP 验证联动效果",
-        "【记录】测试结果写入 record/prompt-editor联动-test.md",
-        "【预算】Smart Snapshot：点击页面→验证面板→输入→验证高亮，共 3 次"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-084",
-        "feat-077"
-      ]
-    },
-    {
-      "id": "feat-092",
-      "category": "frontend",
-      "priority": 92,
-      "description": "Canvas预览多选支持： Shift/Ctrl 多选",
-      "steps": [
-        "【功能】Shift+点击：选择连续页面范围",
-        "【功能】Ctrl+点击：添加/取消单个页面选择",
-        "【功能】多选后：提示语面板显示所有选中页面",
-        "【P1测试】Playwright MCP 验证多选功能",
-        "【记录】测试结果写入 record/canvas-multiselect-test.md",
-        "【预算】Smart Snapshot：Shift选择→验证→Ctrl选择→验证，共 3 次"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-089"
-      ]
-    },
-    {
-      "id": "feat-093",
-      "category": "testing",
-      "priority": 93,
-      "description": "Playwright端到端测试：文件上传+Canvas渲染+合并",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【环境】curl http://localhost:8000/health 确认后端服务正常",
-        "【P0】Playwright MCP 访问 /merge 页面，snapshot 确认页面加载",
-        "【P0】使用 browser_file_upload 上传 ppt_a.pptx（绝对路径）",
-        "【P0】使用 browser_file_upload 上传 ppt_b.pptx（绝对路径）",
-        "【P0】使用 browser_wait_for 等待 Canvas 渲染完成",
-        "【P0】browser_snapshot 验证 Canvas 正确显示文本、图片、表格",
-        "【P0】点击选择页面，验证右侧提示语面板联动",
-        "【P0】输入提示语，点击'开始智能合并'，等待 SSE 进度完成",
-        "【P0】验证下载链接生成，下载合并后的 PPT",
-        "【记录】测试结果写入 record/e2e-merge-canvas-test.md",
-        "【预算】Smart Snapshot： navigate→fileupload×2→wait→snapshot×2→select→merge→download，共 5 次"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-085",
-        "feat-086"
-      ]
-    },
-    {
-      "id": "feat-094",
-      "category": "testing",
-      "priority": 94,
-      "description": "Canvas渲染性能测试：100页渲染时间、内存占用",
-      "steps": [
-        "【准备】创建 100 页 PPT 测试文件",
-        "【P0】使用 device.tracing.start() 开始性能追踪",
-        "【P0】上传 100 页 PPT，记录加载时间",
-        "【P0】验证 100 页渲染时间 <10秒",
-        "【P0】验证内存占用 <50MB",
-        "【P0】使用 device.tracing.stop() 导出 tracing",
-        "【记录】性能数据写入 record/performance-test.md",
-        "【预算】Smart Snapshot： upload→wait→snapshot（性能数据）→tracing-stop，共 3 次"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-087"
-      ]
-    },
-    {
-      "id": "feat-095",
-      "category": "testing",
-      "priority": 95,
-      "description": "兼容性测试：Chrome、Firefox、Safari浏览器",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【环境】确认后端服务正常",
-        "【P2 Chrome】访问 /merge，Canvas 渲染正常",
-        "【P2 Firefox】访问 /merge，Canvas 渲染正常",
-        "【P2 Safari】访问 /merge，Canvas 渲染正常",
-        "【记录】各浏览器渲染效果截图，写入 record/compatibility-test.md",
-        "【预算】每个浏览器 2 次 snapshot（导航→渲染验证），共 6 次"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-087"
-      ]
-    },
-    {
-      "id": "feat-096",
-      "category": "testing",
-      "priority": 96,
-      "description": "功能测试：各种PPT格式（文本、图片、表格、混合）",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【环境】curl http://localhost:8000/health",
-        "【P0 文本】上传 text_only.pptx，Canvas 显示文本内容",
-        "【P0 图片】上传含图片的 PPT，Canvas 正确显示图片",
-        "【P0 表格】上传含表格的 PPT，Canvas 正确显示表格",
-        "【P0 混合】上传复杂 PPT，Canvas 正确显示布局和层级",
-        "【记录】各格式渲染结果截图，写入 record/format-test.md",
-        "【预算】每种格式 2 次 snapshot（上传→渲染验证），共 8 次"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-086"
-      ]
-    },
-    {
-      "id": "feat-097",
-      "category": "frontend",
-      "priority": 97,
-      "description": "降级机制实现：后端辅助解析",
-      "steps": [
-        "【功能】前端 Canvas 渲染失败时，自动调用 /api/v1/ppt/parse?extract_enhanced=false",
-        "【功能】后端返回简化版 JSON（仅文本和位置）",
-        "【功能】前端渲染简化版 Canvas（仅文本）",
-        "【功能】显示降级警告提示",
-        "【P1测试】强制关闭 Canvas 功能，验证降级正常",
-        "【记录】降级流程日志，写入 record/degradation-test.md",
-        "【预算】Smart Snapshot： enabled→disabled→upload→验证降级，共 3 次"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-088"
-      ]
-    },
-    {
-      "id": "feat-098",
-      "category": "frontend",
-      "priority": 98,
-      "description": "错误处理和用户提示：完整错误反馈机制",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【P0 错误 1】文件不存在/格式错误：显示明确错误提示",
-        "【P0 错误 2】Canvas 不支持：显示降级提示",
-        "【P0 错误 3】加载超时：显示重试按钮",
-        "【P1 错误 4】部分格式不兼容：显示警告提示",
-        "【P1 错误 5】内存不足：显示清理建议",
-        "【记录】错误处理策略，写入 record/error-handling-canvas-test.md",
-        "【预算】每个错误场景 1 次 snapshot（触发→验证错误提示），共 5 次"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-083"
-      ]
-    },
-    {
-      "id": "feat-099",
-      "category": "docs",
-      "priority": 99,
-      "description": "文档和用户指南：Canvas 预览功能说明",
-      "steps": [
-        "【文档】在 README.md 新增 Canvas 预览章节",
-        "【文档】说明 Canvas 渲染支持的格式（文本/图片/表格）",
-        "【文档】说明 Canvas 预览与 CSS 预览的区别",
-        "【文档】说明 Canvas 渲染性能优化策略",
-        "【文档】说明降级机制和兼容性",
-        "【文档】在 merge 页面添加功能介绍",
-        "【记录】文档路径：docs/canvas-preview.md",
-        "【预算】文档编写不消耗 snapshot"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-100",
-      "category": "backend",
-      "priority": 100,
-      "description": "性能调优和发布准备：PPT 解析性能优化",
-      "steps": [
-        "【优化】后端解析 PPTX 时添加超时保护（5秒/100页）",
-        "【优化】图片 Base64 压缩优化（默认 512px，可配置）",
-        "【优化】添加解析缓存机制（相同文件不重复解析）",
-        "【优化】添加内存使用监控，超过阈值自动降级",
-        "【测试】性能测试：100页 PPT 解析时间 <5秒",
-        "【发布】检查所有依赖库版本，确保稳定",
-        "【记录】性能测试结果，写入 record/performance-final-test.md",
-        "【预算】Smart Snapshot： upload→解析→snapshot（时间）→验证结果，共 3 次"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-082"
-      ]
     }
   ]
 }

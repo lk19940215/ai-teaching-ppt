@@ -18,7 +18,8 @@
       "Bash(powershell:*)",
       "Bash(kill:*)",
       "Bash(lsof:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(cp:*)"
     ]
   }
 }
