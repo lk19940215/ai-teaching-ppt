@@ -136,6 +136,38 @@
       "expected": "blob 下载正常，文件格式为有效 PPTX（可用 python-pptx 打开），文件大小>0KB，无控制台错误",
       "last_result": "pass",
       "last_run_session": 2
+    },
+    {
+      "id": "test-feat113-merge-500-fix",
+      "feature_id": "feat-113-merge-fix",
+      "verify": "echo 'Playwright MCP: /merge 上传 ppt_a.pptx/ppt_b.pptx -> 查看后端日志 -> 验证内存使用率日志 -> 合并成功 -> 下载文件 -> PowerPoint 打开成功'",
+      "expected": "1) 后端日志显示内存使用率信息；2) 合并成功，无 500 错误；3) 下载的 PPTX 文件可用 PowerPoint 和 python-pptx 打开；4) 文件格式验证通过（34KB，9 页，PK 格式）",
+      "last_result": "pass",
+      "last_run_session": 3
+    },
+    {
+      "id": "test-feat113-merge-memory-logging",
+      "feature_id": "feat-113-merge-fix",
+      "verify": "tail -f backend/logs/app.log | grep 'PPT.*内存'",
+      "expected": "日志显示 'PPT 解析 - 内存使用率: XX.X% (警告阈值: 85%, 临界阈值: 95%)' 格式的详细内存信息",
+      "last_result": "pass",
+      "last_run_session": 3
+    },
+    {
+      "id": "test-feat113-merge-download-validation",
+      "feature_id": "feat-113-merge-fix",
+      "verify": "echo 'Playwright MCP: /merge 合并后点击下载 -> 控制台查看 [Download] 日志 -> 验证 Content-Type 和 Blob 信息'",
+      "expected": "控制台显示下载诊断日志：[Download] 开始下载、响应状态 200、Content-Type: application/vnd.openxmlformats...、Blob 大小>0",
+      "last_result": "pass",
+      "last_run_session": 3
+    },
+    {
+      "id": "test-feat113-merge-file-integrity",
+      "feature_id": "feat-113-merge-fix",
+      "verify": "python -c \"from pptx import Presentation; p=Presentation('uploads/generated/smart_merged_*.pptx'); print(f'{len(p.slides)} slides OK')\"",
+      "expected": "python-pptx 成功读取文件，输出页数（如 '9 slides OK'）",
+      "last_result": "pass",
+      "last_run_session": 3
     }
   ]
 }
