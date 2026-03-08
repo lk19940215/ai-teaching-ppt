@@ -202,8 +202,9 @@
         "【P1】browser_click ref=[保存配置按钮ref]",
         "【记录】测试结果写入 record/test-106-settings.md"
       ],
-      "status": "pending",
-      "depends_on": []
+      "status": "done",
+      "depends_on": [],
+      "notes": "测试通过：1) 导航到设置页面成功；2) 切换服务商（DeepSeek→OpenAI）成功，自动填充默认 Base URL 和模型；3) 填写 API Key 并保存，显示'配置保存成功'，左侧列表新增配置记录；4) 测试连接按钮点击后显示'测试中...'状态，随后显示测试结果（无效 Key 显示超时错误，功能正常）"
     },
     {
       "id": "feat-107",

@@ -1,0 +1,210 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - link "AI 教学 PPT 生成器" [ref=e6] [cursor=pointer]:
+          - /url: /
+        - navigation [ref=e7]:
+          - link "首页" [ref=e8] [cursor=pointer]:
+            - /url: /
+            - button "首页" [ref=e9]
+          - link "生成 PPT" [ref=e10] [cursor=pointer]:
+            - /url: /upload
+            - button "生成 PPT" [ref=e11]
+          - link "PPT 合并" [ref=e12] [cursor=pointer]:
+            - /url: /merge
+            - button "PPT 合并" [ref=e13]
+          - link "历史记录" [ref=e14] [cursor=pointer]:
+            - /url: /history
+            - button "历史记录" [ref=e15]
+          - link "设置" [ref=e16] [cursor=pointer]:
+            - /url: /settings
+            - button "设置" [ref=e17]
+    - main [ref=e18]:
+      - generic [ref=e19]:
+        - heading "生成历史记录" [level=1] [ref=e20]
+        - generic [ref=e21]:
+          - heading "搜索与筛选" [level=2] [ref=e22]
+          - generic [ref=e23]:
+            - generic [ref=e24]:
+              - generic [ref=e25]: 搜索关键词
+              - textbox "搜索关键词" [ref=e26]:
+                - /placeholder: 搜索 PPT 标题或章节名称...
+            - generic [ref=e27]:
+              - generic [ref=e28]: 年级筛选
+              - combobox "年级筛选" [ref=e29]:
+                - option "全部年级" [selected]
+                - option "小学一年级"
+                - option "小学二年级"
+                - option "小学三年级"
+                - option "小学四年级"
+                - option "小学五年级"
+                - option "小学六年级"
+                - option "初中一年级"
+                - option "初中二年级"
+                - option "初中三年级"
+                - option "高中一年级"
+                - option "高中二年级"
+                - option "高中三年级"
+            - generic [ref=e30]:
+              - generic [ref=e31]: 学科筛选
+              - combobox "学科筛选" [ref=e32]:
+                - option "全部学科" [selected]
+                - option "语文"
+                - option "数学"
+                - option "英语"
+                - option "科学"
+                - option "物理"
+                - option "化学"
+                - option "生物"
+                - option "历史"
+                - option "政治"
+                - option "地理"
+                - option "通用"
+          - generic [ref=e34]: 共 10 条记录
+        - generic [ref=e38]:
+          - generic [ref=e40]:
+            - generic [ref=e41]:
+              - generic [ref=e42]:
+                - generic [ref=e43]: 📖
+                - heading "三角形的面积" [level=3] [ref=e44]
+              - generic [ref=e45]:
+                - generic [ref=e46]: 小学五年级
+                - generic [ref=e47]: 数学
+                - generic [ref=e48]: 15页
+              - generic [ref=e49]: 🕐 2026/03/08 09:46
+            - generic [ref=e50]:
+              - button "下载 PPT" [ref=e51] [cursor=pointer]
+              - button "重新生成" [ref=e52] [cursor=pointer]
+              - button "删除" [ref=e53] [cursor=pointer]
+          - generic [ref=e55]:
+            - generic [ref=e56]:
+              - generic [ref=e57]:
+                - generic [ref=e58]: 📖
+                - heading "分数的加法" [level=3] [ref=e59]
+              - generic [ref=e60]:
+                - generic [ref=e61]: 小学五年级
+                - generic [ref=e62]: 数学
+                - generic [ref=e63]: 15页
+              - generic [ref=e64]: 🕐 2026/03/08 09:43
+            - generic [ref=e65]:
+              - button "下载 PPT" [ref=e66] [cursor=pointer]
+              - button "重新生成" [ref=e67] [cursor=pointer]
+              - button "删除" [ref=e68] [cursor=pointer]
+          - generic [ref=e70]:
+            - generic [ref=e71]:
+              - generic [ref=e72]:
+                - generic [ref=e73]: 📖
+                - heading "三角形的面积" [level=3] [ref=e74]
+              - generic [ref=e75]:
+                - generic [ref=e76]: 小学五年级
+                - generic [ref=e77]: 数学
+                - generic [ref=e78]: 15页
+              - generic [ref=e79]: 🕐 2026/03/08 09:39
+            - generic [ref=e80]:
+              - button "下载 PPT" [ref=e81] [cursor=pointer]
+              - button "重新生成" [ref=e82] [cursor=pointer]
+              - button "删除" [ref=e83] [cursor=pointer]
+          - generic [ref=e85]:
+            - generic [ref=e86]:
+              - generic [ref=e87]:
+                - generic [ref=e88]: 📖
+                - heading "三角形的面积公式及其应用" [level=3] [ref=e89]
+              - generic [ref=e90]:
+                - generic [ref=e91]: 小学五年级
+                - generic [ref=e92]: 数学
+                - generic [ref=e93]: 15页
+              - generic [ref=e94]: 🕐 2026/03/08 09:36
+            - generic [ref=e95]:
+              - button "下载 PPT" [ref=e96] [cursor=pointer]
+              - button "重新生成" [ref=e97] [cursor=pointer]
+              - button "删除" [ref=e98] [cursor=pointer]
+          - generic [ref=e100]:
+            - generic [ref=e101]:
+              - generic [ref=e102]:
+                - generic [ref=e103]: 📖
+                - heading "三角形的面积" [level=3] [ref=e104]
+              - generic [ref=e105]:
+                - generic [ref=e106]: 小学五年级
+                - generic [ref=e107]: 数学
+                - generic [ref=e108]: 15页
+              - generic [ref=e109]: 🕐 2026/03/08 09:33
+            - generic [ref=e110]:
+              - button "下载 PPT" [ref=e111] [cursor=pointer]
+              - button "重新生成" [ref=e112] [cursor=pointer]
+              - button "删除" [ref=e113] [cursor=pointer]
+          - generic [ref=e115]:
+            - generic [ref=e116]:
+              - generic [ref=e117]:
+                - generic [ref=e118]: 📖
+                - heading "三角形的面积公式及其应用" [level=3] [ref=e119]
+              - generic [ref=e120]:
+                - generic [ref=e121]: 小学五年级
+                - generic [ref=e122]: 数学
+                - generic [ref=e123]: 15页
+              - generic [ref=e124]: 🕐 2026/03/08 09:20
+            - generic [ref=e125]:
+              - button "下载 PPT" [ref=e126] [cursor=pointer]
+              - button "重新生成" [ref=e127] [cursor=pointer]
+              - button "删除" [ref=e128] [cursor=pointer]
+          - generic [ref=e130]:
+            - generic [ref=e131]:
+              - generic [ref=e132]:
+                - generic [ref=e133]: 📖
+                - heading "三角形的面积" [level=3] [ref=e134]
+              - generic [ref=e135]:
+                - generic [ref=e136]: 小学五年级
+                - generic [ref=e137]: 数学
+                - generic [ref=e138]: 15页
+              - generic [ref=e139]: 🕐 2026/03/08 09:18
+            - generic [ref=e140]:
+              - button "下载 PPT" [ref=e141] [cursor=pointer]
+              - button "重新生成" [ref=e142] [cursor=pointer]
+              - button "删除" [ref=e143] [cursor=pointer]
+          - generic [ref=e145]:
+            - generic [ref=e146]:
+              - generic [ref=e147]:
+                - generic [ref=e148]: 📖
+                - heading "三角形的面积" [level=3] [ref=e149]
+              - generic [ref=e150]:
+                - generic [ref=e151]: 小学五年级
+                - generic [ref=e152]: 数学
+                - generic [ref=e153]: 15页
+              - generic [ref=e154]: 🕐 2026/03/08 09:15
+            - generic [ref=e155]:
+              - button "下载 PPT" [ref=e156] [cursor=pointer]
+              - button "重新生成" [ref=e157] [cursor=pointer]
+              - button "删除" [ref=e158] [cursor=pointer]
+          - generic [ref=e160]:
+            - generic [ref=e161]:
+              - generic [ref=e162]:
+                - generic [ref=e163]: 📖
+                - heading "三角形的面积" [level=3] [ref=e164]
+              - generic [ref=e165]:
+                - generic [ref=e166]: 小学五年级
+                - generic [ref=e167]: 数学
+                - generic [ref=e168]: 15页
+              - generic [ref=e169]: 🕐 2026/03/08 09:13
+            - generic [ref=e170]:
+              - button "下载 PPT" [ref=e171] [cursor=pointer]
+              - button "重新生成" [ref=e172] [cursor=pointer]
+              - button "删除" [ref=e173] [cursor=pointer]
+          - generic [ref=e175]:
+            - generic [ref=e176]:
+              - generic [ref=e177]:
+                - generic [ref=e178]: 📖
+                - heading "三角形的面积" [level=3] [ref=e179]
+              - generic [ref=e180]:
+                - generic [ref=e181]: 小学五年级
+                - generic [ref=e182]: 数学
+                - generic [ref=e183]: 15页
+              - generic [ref=e184]: 🕐 2026/03/08 08:59
+            - generic [ref=e185]:
+              - button "下载 PPT" [ref=e186] [cursor=pointer]
+              - button "重新生成" [ref=e187] [cursor=pointer]
+              - button "删除" [ref=e188] [cursor=pointer]
+    - contentinfo [ref=e36]:
+      - paragraph [ref=e37]: © 2026 AI 教学 PPT 生成器 - 助力教师高效备课
+  - button "Open Next.js Dev Tools" [ref=e194] [cursor=pointer]:
+    - img [ref=e195]
+  - alert [ref=e198]
