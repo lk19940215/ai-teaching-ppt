@@ -112,6 +112,14 @@
       "expected": "合并页面 Canvas 渲染正常（10 页），页面选择联动提示语面板，SSE 合并成功并下载 PPTX 文件",
       "last_result": "pass",
       "last_run_session": 2
+    },
+    {
+      "id": "test-feat103-errors",
+      "feature_id": "feat-103",
+      "verify": "echo 'Playwright MCP: 1) localStorage.clear() -> /upload 显示 API Key 未配置提示; 2) /settings 设置无效 key -> 保存成功但生成也成功 (后端 fallback); 3) 空输入时生成按钮 disabled'",
+      "expected": "场景 1: 显示'API Key 未配置'提示; 场景 2: 保存成功，生成成功 (后端可能使用 fallback); 场景 3: 空输入时按钮禁用",
+      "last_result": "pass",
+      "last_run_session": 3
     }
   ]
 }

@@ -366,6 +366,15 @@
       "taskId": "feat-095",
       "statusAfter": "done",
       "notes": "完成 feat-095 兼容性测试：\n1. Chromium (Chrome) 测试通过：5 个 Canvas 全部渲染正常 (300x169, alpha=255)\n2. Firefox: 环境限制（Playwright MCP 未配置 Firefox channel），已更新测试报告提供手动测试指南\n3. Safari: 平台限制（仅 macOS 支持），已更新测试报告提供手动测试指南\n4. 更新 record/compatibility-test.md 包含详细测试结果和手动测试指南\n5. 新增截图 record/chromium-compatibility-test.png\n\n技术说明：Canvas 使用标准 Canvas 2D API，在所有现代浏览器中均有良好支持，Firefox/Safari 理论上应能正常工作。\n\n下个会话可继续执行优先级 97 之后的任务。"
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-08T00:55:00.840Z",
+      "result": "success",
+      "cost": null,
+      "taskId": "feat-101",
+      "statusAfter": "done",
+      "notes": "完成 feat-102 P0 /merge 页面完整流程测试：\n\n**测试通过项**:\n1. 导航到合并页面 - 布局正确\n2. 上传 PPT A (ppt_a.pptx) - 5 页 Canvas 渲染正常\n3. 上传 PPT B (ppt_b.pptx) - 5 页 Canvas 渲染正常\n4. Canvas 验证 - 共 10 个 Canvas 元素\n5. 页面选择 - 点击 P2 缩略图，显示\"已选择 1 页：P2\"\n6. 提示语联动 - 提示语面板自动显示对应输入框并激活\n7. 智能合并 - SSE 流式生成，显示\"合并成功！\"\n8. 文件下载 - smart_merged_0cdd4407.pptx 成功下载\n\n**测试输出**:\n- 测试报告：record/test-102-merge-flow.md\n- tests.json 新增 feat-102 验证记录\n- Git 提交：b8ed8df\n\n**核心功能验证**:\n1. 文件上传：支持 .pptx 格式，上传后显示文件名和页数\n2. Canvas 预览：使用标准 Canvas 2D API，渲染正常\n3. 页面选择：点击缩略图可选择，状态实时更新\n4. 提示语联动：选择页面后提示语面板自动显示对应输入框\n5. SSE 合并：流式推送进度，合并成功后显示下载链接\n6. 文件下载：合并后的 PPTX 文件可正常下载\n\n**服务状态**: 保持运行（连续模式）\n\n**下一个任务建议**: feat-103 (P0 错误场景测试：API Key 缺失/无效、空输入、超大文件)"
     }
   ]
 }
