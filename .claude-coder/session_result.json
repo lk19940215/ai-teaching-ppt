@@ -2,5 +2,5 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "feat-209 任务完成。执行步骤：1) 发现 3000 端口被错误服务占用，使用 npx kill-port 清理后重启前端；2) Playwright MCP 导航到/merge 页面；3) 上传 PPT A (test_ppt_b.pptx, 3 页) 和 PPT B (test_parse.pptx, 3 页)；4) 填写全局提示语'保留 A 的标题，正文内容合并，取两者精华'；5) 点击合并按钮；6) 合并成功（速度快，约 2-3 秒）；7) 下载 smart_merged_f16122be.pptx (34KB)；8) python-pptx 验证 3 页 OK；9) 控制台 0 错误。测试报告已写入 record/merge-e2e-20260308.md。注意：本次合并速度较快，未经过所有 4 个阶段的等待（解析→AI→合并→完成），建议在 LLM 调用较慢时补充测试多轮 browser_wait_for 策略。服务状态：前端 http://localhost:3000，后端 http://localhost:8000/health 均正常运行。"
+  "notes": "feat-301 任务完成。修改内容：1) 移除快速预检代码（第 830-847 行），直接执行全面扫描和修复；2) 修改正则表达式支持所有 ns%d 变体（ns1, ns2, ns3...）；3) 添加日志记录修复文件数和命名空间数量，只在有修复时输出。测试验证：问题文件 三角形的面积_0dc28a00.pptx 成功解析，返回 9 页内容，无 XML 异常。git commit: c8b670a。"
 }

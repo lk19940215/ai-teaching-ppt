@@ -1294,7 +1294,7 @@ B 页面：
                 max_tokens=max_tokens
             )
 
-            strategy_response = llm_service.chat([
+            strategy_response, usage_info = llm_service.chat_with_usage([
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ])
@@ -1313,6 +1313,10 @@ B 页面：
                 except:
                     raise HTTPException(status_code=500, detail=f"LLM 生成的策略 JSON 格式错误：{e}")
 
+            logger.info(f"✅ LLM 响应成功 - provider={provider}, model={llm_service.model}")
+            logger.info(f"   Tokens 使用：prompt={usage_info['prompt_tokens']}, completion={usage_info['completion_tokens']}, total={usage_info['total_tokens']}")
+            logger.info(f"   Request ID: {usage_info['request_id']}")
+            logger.info(f"   Finish reason: {usage_info['finish_reason']}")
             logger.info(f"LLM 生成的合并策略：{json.dumps(merge_strategy, ensure_ascii=False)}")
 
             # 步骤 3: 执行智能合并
@@ -1606,12 +1610,17 @@ async def smart_merge_ppt_stream(
                 llm_start_time = _time.time()
 
                 try:
-                    strategy_response = llm_service.chat([
+                    strategy_response, usage_info = llm_service.chat_with_usage([
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
                     ])
                     llm_elapsed = _time.time() - llm_start_time
-                    logger.info(f"✅ LLM 响应成功，耗时 {llm_elapsed:.1f}s，返回 {len(strategy_response) if strategy_response else 0} 字符")
+                    logger.info(f"✅ LLM 响应成功 - provider={provider}, model={llm_service.model}")
+                    logger.info(f"   Tokens 使用：prompt={usage_info['prompt_tokens']}, completion={usage_info['completion_tokens']}, total={usage_info['total_tokens']}")
+                    logger.info(f"   Request ID: {usage_info['request_id']}")
+                    logger.info(f"   Finish reason: {usage_info['finish_reason']}")
+                    logger.info(f"   API 调用耗时：{llm_elapsed:.1f}s")
+                    logger.info(f"   返回字符数：{len(strategy_response) if strategy_response else 0}")
                     logger.info(f"LLM 响应内容: {strategy_response[:500]}...")
                 except Exception as e:
                     llm_elapsed = _time.time() - llm_start_time
