@@ -1493,7 +1493,7 @@ async def smart_merge_ppt_stream(
                 a_prompts_str = ""
                 for page_num, prompt_data in page_prompts_dict.get("a_pages", {}).items():
                     page_data = a_pages_info[int(page_num) - 1] if int(page_num) <= len(a_pages_info) else {}
-                    title = page_data.get('title', '无标题')
+                    page_title = page_data.get('title', '无标题')
                     if isinstance(prompt_data, dict):
                         keep = prompt_data.get('keep', '')
                         discard = prompt_data.get('discard', '')
@@ -1502,14 +1502,14 @@ async def smart_merge_ppt_stream(
                             parts.append(f"【保留】{keep}")
                         if discard:
                             parts.append(f"【废弃】{discard}")
-                        a_prompts_str += f"- A 第{page_num}页 [{title}]: {'; '.join(parts)}\n"
+                        a_prompts_str += f"- A 第{page_num}页 [{page_title}]: {'; '.join(parts)}\n"
                     else:
-                        a_prompts_str += f"- A 第{page_num}页 [{title}]: {prompt_data}\n"
+                        a_prompts_str += f"- A 第{page_num}页 [{page_title}]: {prompt_data}\n"
 
                 b_prompts_str = ""
                 for page_num, prompt_data in page_prompts_dict.get("b_pages", {}).items():
                     page_data = b_pages_info[int(page_num) - 1] if int(page_num) <= len(b_pages_info) else {}
-                    title = page_data.get('title', '无标题')
+                    page_title = page_data.get('title', '无标题')
                     if isinstance(prompt_data, dict):
                         keep = prompt_data.get('keep', '')
                         discard = prompt_data.get('discard', '')
@@ -1518,9 +1518,9 @@ async def smart_merge_ppt_stream(
                             parts.append(f"【保留】{keep}")
                         if discard:
                             parts.append(f"【废弃】{discard}")
-                        b_prompts_str += f"- B 第{page_num}页 [{title}]: {'; '.join(parts)}\n"
+                        b_prompts_str += f"- B 第{page_num}页 [{page_title}]: {'; '.join(parts)}\n"
                     else:
-                        b_prompts_str += f"- B 第{page_num}页 [{title}]: {prompt_data}\n"
+                        b_prompts_str += f"- B 第{page_num}页 [{page_title}]: {prompt_data}\n"
 
                 # 发送 thinking 状态，让前端知道 AI 正在工作
                 await progress_queue.put({

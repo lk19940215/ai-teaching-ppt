@@ -519,6 +519,15 @@
       "taskId": "feat-301",
       "statusAfter": "done",
       "notes": "feat-301 任务完成。修改内容：1) 移除快速预检代码（第 830-847 行），直接执行全面扫描和修复；2) 修改正则表达式支持所有 ns%d 变体（ns1, ns2, ns3...）；3) 添加日志记录修复文件数和命名空间数量，只在有修复时输出。测试验证：问题文件 三角形的面积_0dc28a00.pptx 成功解析，返回 9 页内容，无 XML 异常。git commit: c8b670a。"
+    },
+    {
+      "session": 2,
+      "timestamp": "2026-03-08T13:38:12.146Z",
+      "result": "success",
+      "cost": 1.7019285000000002,
+      "taskId": "feat-302",
+      "statusAfter": "done",
+      "notes": "feat-302 任务完成。实现内容：1) 修改 smart_merge_ppt_stream() 和 smart_merge_ppts() 两个智能合并接口，使用 chat_with_usage 替代 chat 获取详细 token 信息；2) 添加完整 LLM 调用日志：provider、model、prompt_tokens、completion_tokens、total_tokens、request_id、finish_reason、API 调用耗时。修改文件：backend/app/api/ppt.py（第 1297 行和第 1609 行）。验证：python -m py_compile 通过，git commit: 87db59d。注意：日志输出需要实际调用合并 API 才能在后端日志中看到，下次测试时可以执行 feat-303 进行真实调用验证。"
     }
   ]
 }
