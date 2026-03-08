@@ -1,6 +1,6 @@
 {
   "session_result": "success",
   "status_before": "pending",
-  "status_after": "done",
-  "notes": "feat-302 任务完成。实现内容：1) 修改 smart_merge_ppt_stream() 和 smart_merge_ppts() 两个智能合并接口，使用 chat_with_usage 替代 chat 获取详细 token 信息；2) 添加完整 LLM 调用日志：provider、model、prompt_tokens、completion_tokens、total_tokens、request_id、finish_reason、API 调用耗时。修改文件：backend/app/api/ppt.py（第 1297 行和第 1609 行）。验证：python -m py_compile 通过，git commit: 87db59d。注意：日志输出需要实际调用合并 API 才能在后端日志中看到，下次测试时可以执行 feat-303 进行真实调用验证。"
+  "status_after": "in_progress",
+  "notes": "feat-303 任务部分完成。已完成工作：1) 添加模块级_fix_invalid_namespaces() 函数（backend/app/api/ppt.py 第 77 行）修复 XML 命名空间问题；2) 在 smart_merge_ppt_stream() 中添加修复调用（第 1519-1520 行）。遇到的问题：后端服务--reload 没有正确重新加载修改后的代码，多个 uvicorn 进程残留导致端口占用，测试时仍然出现'xmlns:ns2: '%s' is not a valid URI'错误。下一步需要：完全停止所有 Python 进程后重新启动后端服务，然后重新测试合并功能。代码修改已保存并通过语法验证（python -m py_compile 通过）。"
 }

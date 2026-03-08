@@ -74,6 +74,74 @@ def _add_to_cache(file_hash: str, data: Dict[str, Any]):
     _cleanup_cache()
     _ppt_parse_cache[file_hash] = {"data": data, "timestamp": time.time()}
 
+def _fix_invalid_namespaces(file_path: Path) -> Path:
+    """修复 PPTX 文件中无效的 XML 命名空间声明，支持所有 ns%d 变体"""
+    import zipfile
+    import re
+    import shutil
+
+    # 创建临时目录解压
+    temp_dir = file_path.parent
+    fix_dir = temp_dir / f"fixed_{uuid.uuid4().hex}"
+    fix_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        # 解压 PPTX
+        with zipfile.ZipFile(file_path, 'r') as z:
+            z.extractall(fix_dir)
+
+        # 修复所有 XML 文件中的无效命名空间
+        # 使用通用正则匹配所有 xmlns:ns\d+="%s" 模式（支持 ns1, ns2, ns3... 所有变体）
+        ns_pattern = re.compile(r'xmlns:ns(\d+)="%s"')
+        # 匹配包含 { 的无效占位符模式
+        placeholder_pattern = re.compile(r'xmlns:([a-zA-Z0-9_]+)=["\']\{([^}]*)\}[^"\']*["\']')
+
+        fixed_count = 0
+        total_fixed = 0
+
+        for xml_file in fix_dir.rglob("*.xml"):
+            try:
+                content = xml_file.read_text(encoding='utf-8')
+                original_content = content
+
+                # 替换模式 1: xmlns:ns%d="%s"
+                content = ns_pattern.sub(r'xmlns:ns\1="http://schemas.openxmlformats.org/presentationml/2006/placeholder"', content)
+
+                # 替换模式 2: xmlns:x="{.*}" 等包含 { 的占位符
+                content = placeholder_pattern.sub(r'xmlns:\1="http://schemas.openxmlformats.org/presentationml/2006/\2"', content)
+
+                if content != original_content:
+                    xml_file.write_text(content, encoding='utf-8')
+                    fixed_count += 1
+                    logger.info(f"修复 XML 文件无效命名空间：{xml_file.relative_to(fix_dir)}")
+                    # 统计修复的命名空间数量
+                    total_fixed += len(ns_pattern.findall(original_content)) + len(placeholder_pattern.findall(original_content))
+
+            except Exception as e:
+                logger.warning(f"修复 XML 文件失败 {xml_file}: {e}")
+
+        # 重新打包为 PPTX
+        fixed_path = temp_dir / f"fixed_{uuid.uuid4().hex}_{file_path.name}"
+        with zipfile.ZipFile(fixed_path, 'w', zipfile.ZIP_DEFLATED) as z:
+            for root, dirs, files in os.walk(fix_dir):
+                for f in files:
+                    file_on_disk = Path(root) / f
+                    arcname = file_on_disk.relative_to(fix_dir)
+                    z.write(file_on_disk, arcname)
+
+        logger.info(f"PPTX 命名空间修复完成：{file_path.name} -> {fixed_path.name} (修复 {fixed_count} 个文件，共 {total_fixed} 处命名空间)")
+        return fixed_path
+
+    except Exception as e:
+        logger.error(f"修复 PPTX 命名空间失败：{e}")
+        return file_path
+    finally:
+        # 清理临时目录
+        try:
+            shutil.rmtree(fix_dir)
+        except Exception:
+            pass
+
 @router.post("/ppt/generate")
 async def generate_ppt(
     content: dict = Body(..., embed=True),
@@ -1445,6 +1513,11 @@ async def smart_merge_ppt_stream(
                     "message": "正在解析 PPT 内容..."
                 })
                 logger.info("智能合并阶段 2: 解析 PPT 内容 (25%)")
+
+                # 应用 XML 命名空间修复（与 /ppt/parse API 相同的修复逻辑）
+                logger.info(f"=== XML Namespace Fix Enabled for Merge ===")
+                temp_a = _fix_invalid_namespaces(temp_a)
+                temp_b = _fix_invalid_namespaces(temp_b)
 
                 from pptx import Presentation
 

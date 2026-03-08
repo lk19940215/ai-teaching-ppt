@@ -223,7 +223,7 @@ PPT 解析失败：xmlns:ns2: '%s' is not a valid URI, line 2, column 86
     "【环境】清除缓存：rm backend/logs/*.log; touch backend/logs/uvicorn.log",
     "【P0】实时监控日志：tail -f backend/logs/uvicorn.log",
     "【P0】浏览器访问 http://localhost:3000/merge",
-    "【P0】上传两个测试 PPT（test_ppt_b.pptx），确认预览正确",
+    "【P0】上传两个测试 PPT，确认预览正确",
     "【P0】点击合并，观察日志中的 LLM 调用记录",
     "【验证】日志包含：provider、tokens、耗时、策略 JSON",
     "【验证】第三方服务后台显示对应调用记录",

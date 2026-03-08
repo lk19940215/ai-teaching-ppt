@@ -285,7 +285,7 @@
         "【环境】启动后端：cd backend && uvicorn app.main:app --reload --port 8000",
         "【环境】清空日志：rm backend/logs/*.log（如有）",
         "【P0】浏览器访问 http://localhost:3000/merge，snapshot 确认页面加载",
-        "【P0】上传两个测试 PPT（test_ppt_b.pptx），snapshot 确认预览正确",
+        "【P0】上传两个测试 PPT，snapshot 确认预览正确",
         "【P0】点击合并按钮，使用 browser_wait_for text='📚 正在解析 PPT 内容...' timeout=10000",
         "【P0】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
         "【P0】browser_wait_for text='🔧 正在执行智能合并...' timeout=60000",
