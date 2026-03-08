@@ -1,6 +1,6 @@
 {
-  "session_result": "success",
-  "status_before": "done",
-  "status_after": "done",
-  "notes": "追加了 3 个任务（feat-307, feat-308, feat-309）：1) feat-307 验证 AI 真实调用（第三方服务记录+日志增强），使用 test_rule.md 多轮 browser_wait_for 策略；2) feat-308 验证提示词优化效果（对比无提示语/保留废弃指令/模板场景）；3) feat-309 多学科边界测试（数学/语文/大文件）。所有任务使用结构化标签【规则】【环境】【P0/P1】【验证】【记录】，符合 Playwright MCP Smart Snapshot 和多阶段等待策略。"
+  "session_result": "failed",
+  "status_before": "pending",
+  "status_after": "failed",
+  "notes": "feat-307 验证失败。问题：LLM API 调用返回 'Connection error'。诊断结果：1) API Key 有效（Python 脚本直接调用 DeepSeek 成功，tokens used: 16）；2) 后端服务运行正常（健康检查通过）；3) SSE 流能收到前两阶段事件（10% uploading, 25% parsing）；4) LLM 调用阶段失败（calling_llm, 50%）。根因：多个 uvicorn --reload 进程（PID: 17784, 9272, 18184, 14384, 2028, 17752）导致网络状态异常，这些进程无法被 npx kill-port 完全停止。测试报告：record/merge-llm-verify-20260309.md。下一步需要系统管理员协助彻底停止 uvicorn 进程并冷启动。"
 }
