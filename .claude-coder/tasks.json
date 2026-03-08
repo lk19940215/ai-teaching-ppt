@@ -190,8 +190,9 @@
         "【修复】提供友好错误提示而非 500",
         "【测试】上传问题 PPT 验证错误处理"
       ],
-      "status": "pending",
-      "depends_on": []
+      "status": "done",
+      "depends_on": [],
+      "notes": "修复完成。问题根源：某些 PPTX 文件（如 LLM 生成的文件）包含无效的 XML 命名空间声明 `xmlns:ns2=\"%s\"`，其中 `%s` 是字符串占位符而非有效 URI，导致 lxml 解析失败。修复方案：在 parse_ppt() 中添加 `_fix_invalid_namespaces()` 函数，解压 PPTX 后扫描所有 XML 文件，将无效命名空间替换为有效的占位符 URI `http://schemas.openxmlformats.org/presentationml/2006/placeholder`，然后重新打包。测试验证：问题文件 `三角形的面积_0dc28a00.pptx` 现在可以成功解析，返回 9 页内容。"
     }
   ]
 }

@@ -820,6 +820,75 @@ async def parse_ppt(
             async with aiofiles.open(temp_path, "wb") as f:
                 await f.write(content_bytes)
 
+            # 修复无效的 XML 命名空间（某些 PPTX 文件包含 xmlns:ns2="%s" 等无效 URI）
+            def _fix_invalid_namespaces(file_path: Path) -> Path:
+                """修复 PPTX 文件中无效的 XML 命名空间声明"""
+                import zipfile
+                import re
+                import shutil
+
+                # 检查是否需要修复（快速预检）
+                try:
+                    with zipfile.ZipFile(file_path, 'r') as z:
+                        for name in z.namelist():
+                            if name.endswith('.xml'):
+                                content = z.read(name)
+                                if b'xmlns:ns2="%s"' in content or b'xmlns:ns3="%s"' in content:
+                                    break
+                        else:
+                            return file_path  # 无需修复
+                except Exception:
+                    return file_path  # 检查失败，保持原文件
+
+                # 创建临时目录解压
+                fix_dir = temp_dir / f"fixed_{uuid.uuid4().hex}"
+                fix_dir.mkdir(parents=True, exist_ok=True)
+
+                try:
+                    # 解压 PPTX
+                    with zipfile.ZipFile(file_path, 'r') as z:
+                        z.extractall(fix_dir)
+
+                    # 修复所有 XML 文件中的无效命名空间
+                    # 将无效的 %s URI 替换为有效的占位符 URI
+                    ns_pattern = re.compile(r'xmlns:(ns\d+)="%s"')
+                    for xml_file in fix_dir.rglob("*.xml"):
+                        try:
+                            content = xml_file.read_text(encoding='utf-8')
+                            # 替换无效命名空间为有效的占位符 URI
+                            fixed_content = ns_pattern.sub(r'xmlns:\1="http://schemas.openxmlformats.org/presentationml/2006/placeholder"', content)
+                            if content != fixed_content:
+                                xml_file.write_text(fixed_content, encoding='utf-8')
+                                logger.info(f"修复 XML 文件无效命名空间：{xml_file.name}")
+                        except Exception as e:
+                            logger.warning(f"修复 XML 文件失败 {xml_file}: {e}")
+
+                    # 重新打包为 PPTX
+                    fixed_path = temp_dir / f"fixed_{uuid.uuid4().hex}_{file_path.name}"
+                    with zipfile.ZipFile(fixed_path, 'w', zipfile.ZIP_DEFLATED) as z:
+                        for root, dirs, files in os.walk(fix_dir):
+                            for f in files:
+                                file_on_disk = Path(root) / f
+                                arcname = file_on_disk.relative_to(fix_dir)
+                                z.write(file_on_disk, arcname)
+
+                    logger.info(f"PPTX 命名空间修复完成：{file_path.name} -> {fixed_path.name}")
+                    return fixed_path
+
+                except Exception as e:
+                    logger.error(f"修复 PPTX 命名空间失败：{e}")
+                    return file_path
+                finally:
+                    # 清理临时目录
+                    try:
+                        shutil.rmtree(fix_dir)
+                    except Exception:
+                        pass
+
+            # 应用命名空间修复
+            logger.info(f"=== XML Namespace Fix Enabled ===")
+            temp_path = _fix_invalid_namespaces(temp_path)
+
             # 解析 PPTX
             from pptx import Presentation
             from pptx.enum.shapes import MSO_SHAPE_TYPE
