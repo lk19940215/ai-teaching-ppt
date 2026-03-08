@@ -100,7 +100,7 @@
         "【P0】Playwright MCP: browser_snapshot 验证历史记录列表出现新记录",
         "【记录】测试结果详细写入 record/test-101-core-flow.md"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     },
     {

@@ -96,6 +96,14 @@
       "expected": "Canvas 预览组件正确渲染文本、表格、形状、混合格式",
       "last_result": "pass",
       "last_run_session": 13
+    },
+    {
+      "id": "test-feat101-core-flow",
+      "feature_id": "feat-101",
+      "verify": "python -c \"import requests; r=requests.get('http://localhost:8000/api/v1/ppt/generate-stream', params={'text_content': 'test', 'grade': '5', 'subject': 'math', 'slide_count': '3', 'provider': 'deepseek', 'api_key': 'sk-3e5ef69c9d5b4d269056db347aa4dd1d', 'style': 'simple', 'difficulty_level': 'unified', 'session_id': 'test'}); print('complete' in r.text)\"",
+      "expected": "HTTP 200, SSE 流返回 complete 事件，包含 PPT 内容和下载链接",
+      "last_result": "pass",
+      "last_run_session": 1
     }
   ]
 }
