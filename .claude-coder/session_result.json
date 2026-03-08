@@ -1,6 +1,6 @@
 {
   "session_result": "success",
-  "status_before": "in_progress",
-  "status_after": "done",
-  "notes": "完成 feat-104-retest P1 图片上传测试。测试通过：图片上传→OCR 识别→PPT 生成（16 页）→下载功能全部正常。遇到问题：进度卡在 40%（SSE 连接阻塞），修复方法：重启后端服务（npx kill-port 8000 后重新启动 uvicorn）。报告：record/test-104-image-upload-v2.md。下次任务：feat-102-enhanced P0 /merge 页面增强测试。"
+  "status_before": "done",
+  "status_after": "success",
+  "notes": "完成 /merge 页面优化实施和文档更新。修改内容：1) 前端优化：新增 handleDownload (fetch+blob) + 增强进度提示（🤖 调用 AI）；2) 后端优化：增强智能合并日志（5 阶段，✅ 标记）+ 统一阶段名称；3) 创建测试任务：feat-102-multi-scenarios (多场景) + feat-102-blob-download (下载验证)；4) 文档更新：.claude/CLAUDE.md (测试指南) + .claude-coder/test_rule.md (多轮 browser_wait_for 策略)。详细报告：record/merge-optimization-report.md。"
 }

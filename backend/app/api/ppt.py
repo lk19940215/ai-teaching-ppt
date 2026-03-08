@@ -1317,6 +1317,7 @@ async def smart_merge_ppt_stream(
                 "progress": 10,
                 "message": "正在上传 PPT 文件..."
             })
+            logger.info("智能合并阶段 1: 上传文件 (10%)")
 
             # 验证文件类型
             if not file_a.filename.lower().endswith(".pptx"):
@@ -1351,10 +1352,11 @@ async def smart_merge_ppt_stream(
 
                 # 阶段 2: 解析 PPT 内容 (25%)
                 await progress_queue.put({
-                    "stage": "parsing_ppt",
+                    "stage": "parsing",
                     "progress": 25,
                     "message": "正在解析 PPT 内容..."
                 })
+                logger.info("智能合并阶段 2: 解析 PPT 内容 (25%)")
 
                 from pptx import Presentation
 
@@ -1387,10 +1389,15 @@ async def smart_merge_ppt_stream(
 
                 # 阶段 3: 调用 LLM 生成策略 (50%)
                 await progress_queue.put({
-                    "stage": "generating_strategy",
+                    "stage": "calling_llm",
                     "progress": 50,
                     "message": "正在调用 AI 生成合并策略..."
                 })
+                logger.info("智能合并阶段 3: 调用 LLM 生成合并策略 (50%)")
+                logger.info(f"LLM 请求参数 - provider={provider}, temperature={temperature}, max_tokens={max_tokens}")
+                logger.info(f"PPT A 页面数: {len(a_pages_info)}, PPT B 页面数: {len(b_pages_info)}")
+                logger.info(f"页面提示语数量 - A: {len(page_prompts_dict.get('a_pages', {}))}, B: {len(page_prompts_dict.get('b_pages', {}))}")
+                logger.info(f"全局提示语: {global_prompt[:50] if global_prompt else '无'}")
 
                 from ..services.llm import get_llm_service
 
@@ -1445,7 +1452,7 @@ B 页面：
 
 请根据以上信息，生成合并策略 JSON。"""
 
-                logger.info(f"准备调用 LLM, provider={provider}, temperature={temperature}, max_tokens={max_tokens}")
+                logger.info("准备初始化 LLM 服务...")
 
                 llm_service = get_llm_service(
                     provider=provider,
@@ -1454,29 +1461,31 @@ B 页面：
                     max_tokens=max_tokens
                 )
 
-                logger.info(f"LLM 服务初始化完成，调用 chat 方法...")
+                logger.info("LLM 服务初始化完成，开始调用 chat API...")
 
                 try:
                     strategy_response = llm_service.chat([
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
                     ])
-                    logger.info(f"LLM 响应成功，长度={len(strategy_response) if strategy_response else 0}")
+                    logger.info(f"✅ LLM 响应成功，返回数据长度={len(strategy_response) if strategy_response else 0}")
+                    logger.info(f"LLM 响应前 200 字符: {strategy_response[:200]}...")
                 except Exception as e:
-                    logger.error(f"LLM chat 方法抛出异常：{type(e).__name__}: {e}")
+                    logger.error(f"❌ LLM chat 方法失败：{type(e).__name__}: {e}", exc_info=True)
                     raise
 
                 try:
                     merge_strategy = json.loads(strategy_response)
                 except json.JSONDecodeError as e:
-                    logger.error(f"LLM 返回的策略 JSON 解析失败：{strategy_response[:500]}")
+                    logger.error(f"❌ LLM 返回的策略 JSON 格式解析失败")
+                    logger.error(f"LLM 原始响应: {strategy_response[:500]}...")
                     from ..services.llm import LLMService
                     fix_service = LLMService()
                     # 先提取 JSON（处理 markdown 代码块），再修复格式
                     extracted_json = fix_service._extract_json_from_response(strategy_response)
-                    logger.info(f"提取后的 JSON: {extracted_json[:200]}...")
+                    logger.info(f"🔧 尝试提取 JSON: {extracted_json[:200]}...")
                     fixed_json = fix_service._fix_json(extracted_json)
-                    logger.info(f"修复后的 JSON: {fixed_json[:200]}...")
+                    logger.info(f"🔧 尝试修复 JSON: {fixed_json[:200]}...")
                     try:
                         merge_strategy = json.loads(fixed_json)
                         logger.info("JSON 修复并解析成功")
@@ -1488,10 +1497,12 @@ B 页面：
 
                 # 阶段 4: 执行合并 (75%)
                 await progress_queue.put({
-                    "stage": "merging_ppt",
+                    "stage": "merging",
                     "progress": 75,
-                    "message": "正在执行 PPT 合并..."
+                    "message": "正在执行智能合并..."
                 })
+                logger.info("智能合并阶段 4: 执行智能合并 (75%)")
+                logger.info(f"合并策略: {json.dumps(merge_strategy, ensure_ascii=False)}")
 
                 output_file_name = f"smart_merged_{uuid.uuid4().hex[:8]}.pptx"
                 output_path = settings.UPLOAD_DIR / "generated" / output_file_name
@@ -1505,6 +1516,8 @@ B 页面：
                     merge_strategy=merge_strategy,
                     title=title
                 )
+
+                logger.info(f"✅ 文件合并完成: {output_file_name}")
 
                 response_data = {
                     "success": True,
@@ -1522,6 +1535,7 @@ B 页面：
                     "message": "合并完成！",
                     "result": response_data
                 })
+                logger.info("✅ 智能合并完成 (100%)")
 
             finally:
                 for temp_path in ppt_paths:

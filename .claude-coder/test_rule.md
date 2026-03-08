@@ -95,57 +95,112 @@
 | 长等（AI 生成、文件处理） | `browser_wait_for` + 合理 timeout | ~5K |
 | 超长等（批量处理） | Shell 端 API 检查 + 最终 1 次 snapshot | ~5.5K |
 
-### SSE / 流式生成任务的等待策略（详细版）
+### SSE / 流式生成任务的等待策略（详细版 + 多轮 browser_wait_for）
 
-当测试涉及 AI 生成、文件转换、SSE 流式处理等需要较长时间的场景时，必须使用 `browser_wait_for` 并设置**足够长的 timeout**。
+当测试涉及 AI 生成、文件转换、SSE 流式处理等需要较长时间的场景时，必须使用 **多轮 `browser_wait_for`** 而非单次长超时，因为 `browser_wait_for` 工具内部有 **30 秒硬限制**。
 
-#### 1. 按操作类型设置 timeout
+#### 1. 问题分析：browser_wait_for 30秒限制
 
-| 操作类型 | 推荐 timeout | 说明 |
-|---------|------------|------|
-| 表单提交/普通 API | 10000 (10秒) | 短时同步操作 |
-| 图片上传 + OCR 识别 | 30000 (30秒) | 包含文件上传和文本识别 |
-| 文字输入 → 生成 PPT | 180000 (180秒) | 核心生成流程，LLM 调用 |
-| /merge 页面合并生成 | 180000 (180秒) | 智能合并，多轮 LLM 调用 |
-| 多文件批量处理 | 300000 (300秒) | 超长任务 |
+- **现象**：设置 `timeout=180000` (180秒) 但实际只等待约 30 秒就超时
+- **根因**：Playwright MCP 服务内部硬编码限制为 30 秒，即使参数设置更大也不会生效
+- **影响**：长时任务（如 PPT 生成、智能合并）可能被误判为失败
 
-#### 2. 完整测试步骤模板
+#### 2. 解决方案：多轮 browser_wait_for 策略
+
+将单次 180 秒等待拆分为多个阶段，每个阶段等待对应的进度文本出现：
+
+**/merge 页面智能合并示例**（共 4 阶段，总耗时 ~190 秒）：
 
 ```json
 {
   "steps": [
     "【环境】curl http://localhost:8000/health 确认服务正常",
     "【P0】browser_navigate http://localhost:3000/merge",
-    "【P0】browser_snapshot 验证页面加载",
-    "【P0】browser_file_upload paths=[PPT A 文件]",
+    "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
+    "【P0】browser_file_upload paths=[PPT A]",
     "【P0】browser_wait_for text='共 5 页' timeout=10000",
-    "【P0】browser_file_upload paths=[PPT B 文件]",
-    "【P0】browser_wait_for text='共 10 页' timeout=10000",
+    "【P0】browser_file_upload paths=[PPT B]",
+    "【P0】browser_wait_for text='共 5 页' timeout=10000",
     "【P0】browser_click ref=[合并按钮ref]",
-    "【P0】browser_wait_for text='合并成功' timeout=180000",  // 关键：等待完整流程
+
+    // 阶段 1: 解析 PPT (10%)
+    "【P0】browser_wait_for text='📚 正在解析 PPT 内容...' timeout=10000",
+
+    // 阶段 2: 调用 AI (50%)
+    "【P0】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
+
+    // 阶段 3: 执行合并 (75%)
+    "【P0】browser_wait_for text='🔧 正在执行智能合并...' timeout=60000",
+
+    // 阶段 4: 完成 (100%)
+    "【P0】browser_wait_for text='✅ 合并完成！' timeout=60000",
+
     "【P0】browser_snapshot 验证下载链接出现",
     "【记录】测试结果写入 record/"
   ]
 }
 ```
 
-#### 3. 等待策略最佳实践
+#### 3. 按操作类型设置多轮 timeout
 
-**✅ 正确做法：**
-- 触发生成操作后，立即使用 `browser_wait_for` 等待最终完成标志（如"预览"、"下载"、"成功"）
-- 设置的 timeout 必须覆盖最长可能的执行时间（180 秒）
-- 失败时才调用 `browser_console_messages` 分析，不提前跳转
+| 操作类型 | 阶段 1 (解析) | 阶段 2 (AI) | 阶段 3 (执行) | 阶段 4 (完成) | 总耗时 |
+|---------|--------------|------------|--------------|--------------|--------|
+| 文字输入 → 生成 PPT | 10s (分析内容) | 60s (生成大纲) | 60s (构建幻灯片) | 60s (添加动画) | ~190s |
+| /merge 智能合并 | 10s (解析 PPT) | 60s (AI 策略) | 60s (执行合并) | 60s (完成) | ~190s |
+| 图片上传 → OCR → 生成 | 10s (上传图片) | 20s (OCR 识别) | 60s (生成大纲) | 60s (构建幻灯片) | ~150s |
 
-**❌ 错误做法：**
-- 触发生成后等待几秒就跳转到其他验证
-- 直接调用后端 API 验证而不等待前端完整流程
-- 设置过短的 timeout（如 10-30 秒）导致误判失败
+#### 4. 多轮等待策略最佳实践
 
-#### 4. 特殊情况处理
+**✅ 正确做法**：
+- 触发生成操作后，使用 **多轮** `browser_wait_for` 等待每个阶段的进度文本
+- 每个阶段的 timeout 基于实际处理时间（解析 10s, AI 60s, 合并 60s）
+- 失败时能明确知道是哪个阶段出问题
+- 对齐后端 SSE 进度事件（10% → 50% → 75% → 100%）
 
-- **超时失败**：等待 180 秒后仍未完成，记录为失败，不重试
+**❌ 错误做法**：
+- 使用单次 `browser_wait_for text="成功" timeout=180000`（会被 30 秒限制截断）
+- 跳过中间阶段，只等待最终结果
+- 设置不合理的小 timeout（如 10-30 秒）
+
+#### 5. 替代方案：自定义轮询
+
+如果不想依赖进度文本，可以使用 `browser_run_code` 实现自定义轮询：
+
+```javascript
+// 在 Playwright 中执行
+await page.evaluate(async () => {
+  return new Promise((resolve) => {
+    const checkInterval = setInterval(() => {
+      const element = document.querySelector('[data-testid="merge-complete"]');
+      if (element && element.textContent.includes('合并成功')) {
+        clearInterval(checkInterval);
+        resolve(true);
+      }
+    }, 5000); // 每 5 秒检查一次
+
+    // 180 秒超时
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      resolve(false);
+    }, 180000);
+  });
+});
+```
+
+#### 6. 特殊情况处理
+
+- **某个阶段超时**：记录该阶段失败，不继续后续阶段
+- **进度文本不匹配**：检查前端代码是否使用了预期的文本
 - **网络错误**：等待过程中出现 401/500 等错误，立即停止该场景
-- **进度卡住**：等待 180 秒但进度无变化（如一直显示 40%），记录为失败
+- **进度卡住**：某个阶段长时间无响应（如一直显示 50%），记录为失败
+
+### 常见反模式
+
+- 每步 snapshot → 合并 2-3 操作后再 snapshot
+- 轮询 snapshot 等待长操作 → 改用 `browser_wait_for`
+- MCP 做 20+ 步 → 长流程用 Playwright CLI
+- 反复 navigate 同一页面 → 在同一页面完成
+- 失败后盲目重试 → 先 `browser_console_messages` 分析
 
 ### 常见反模式
 

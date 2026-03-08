@@ -149,3 +149,67 @@ For non-trivial tasks:
 4. validate with type check / compile / tests
 
 Minimize tool calls and avoid reading large files unless required.
+
+---
+
+## Testing Guidelines
+
+### Playwright MCP Waiting Strategy (Multi-stage `browser_wait_for`)
+
+For long-running tasks (SSE streaming, AI generation, file processing), use **multi-stage `browser_wait_for`** instead of single long timeout:
+
+```json
+{
+  "steps": [
+    "【环境】curl http://localhost:8000/health",
+    "【P0】browser_navigate http://localhost:3000/merge",
+    "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
+    "【P0】browser_file_upload paths=['PPT A']",
+    "【P0】browser_wait_for text='共 5 页' timeout=10000",
+    "【P0】browser_file_upload paths=['PPT B']",
+    "【P0】browser_wait_for text='共 5 页' timeout=10000",
+    "【P0】browser_click ref=[合并按钮ref]",
+    "【P0】browser_wait_for text='📚 正在解析 PPT 内容...' timeout=10000 (阶段1：解析)",
+    "【P0】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000 (阶段2：AI)",
+    "【P0】browser_wait_for text='🔧 正在执行智能合并...' timeout=60000 (阶段3：合并)",
+    "【P0】browser_wait_for text='✅ 合并完成！' timeout=60000 (阶段4：完成)",
+    "【P0】browser_snapshot 验证下载链接"
+  ]
+}
+```
+
+**Rationale**:
+- `browser_wait_for` has an internal 30s limit, but **multi-stage waiting works around this**
+- Each stage has realistic timeout based on actual processing time
+- Provides better visibility into where failures occur
+- Aligns with SSE progress events (10% → 50% → 75% → 100%)
+
+**Stage-specific timeouts**:
+- File upload/parse: 10s
+- LLM strategy generation: 60s (API call + response)
+- PPT merging: 60s
+- Final completion: 60s
+
+**Total**: ~190s coverage vs single 180s timeout
+
+---
+
+## Troubleshooting
+
+### Known Issues
+
+**SSE Progress Stuck at 40%**:
+- Symptom: Progress shows "正在连接生成服务..." and hangs
+- Root cause: Backend uvicorn process blocked on async queue
+- Fix: Restart backend service (`npx kill-port 8000` then restart uvicorn)
+
+**browser_wait_for Timeouts Early**:
+- Symptom: Set timeout=180000 but actual wait is ~30s
+- Root cause: Playwright MCP internal 30s hard limit
+- Workaround: Use multi-stage `browser_wait_for` as shown above
+- Alternative: Use `browser_run_code` with custom polling logic
+
+**Downloaded PPT Cannot Open**:
+- Symptom: File downloads but PowerPoint shows "文件损坏"
+- Root cause: Incorrect Content-Type or corrupted file write
+- Fix: Use `fetch + blob` download method instead of direct link

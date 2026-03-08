@@ -509,8 +509,21 @@ export default function MergePage() {
               if (event.progress) {
                 setProgress(event.progress)
               }
-              if (event.message) {
-                setProgressStatus(event.message)
+
+              // 增强进度提示，明确 AI 介入
+              let enhancedMessage = event.message || ""
+              if (event.stage === "parsing") {
+                enhancedMessage = "📚 正在解析 PPT 内容..."
+              } else if (event.stage === "calling_llm") {
+                enhancedMessage = "🤖 正在调用 AI 生成合并策略..."
+              } else if (event.stage === "merging") {
+                enhancedMessage = "🔧 正在执行智能合并..."
+              } else if (event.stage === "complete") {
+                enhancedMessage = "✅ 合并完成！"
+              }
+
+              if (enhancedMessage) {
+                setProgressStatus(enhancedMessage)
               }
 
               // 处理错误
@@ -537,6 +550,36 @@ export default function MergePage() {
       setError(err.message || "合并失败，请重试")
       setIsGenerating(false)
       setProgress(0)
+    }
+  }
+
+  // 处理下载（优化下载方式，使用 blob）
+  const handleDownload = async () => {
+    if (!downloadUrl) return
+
+    try {
+      const response = await fetch(downloadUrl)
+      if (!response.ok) {
+        throw new Error(`下载失败: HTTP ${response.status}`)
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName || `merged_${Date.now()}.pptx`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+
+      setTimeout(() => {
+        setDownloadUrl(null)
+        setFileName(null)
+      }, 3000)
+    } catch (err: any) {
+      console.error('下载失败:', err)
+      setError(`下载失败: ${err.message}`)
     }
   }
 
@@ -585,13 +628,12 @@ export default function MergePage() {
       {downloadUrl && (
         <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
           <p className="text-green-800 text-sm mb-2">合并成功！</p>
-          <a
-            href={downloadUrl}
-            className="text-indigo-600 hover:underline text-sm font-medium"
-            download
+          <Button
+            onClick={handleDownload}
+            className="text-sm font-medium"
           >
-            点击下载合并后的 PPT
-          </a>
+            📥 点击下载合并后的 PPT
+          </Button>
           <Button
             variant="outline"
             size="sm"
