@@ -496,11 +496,11 @@
         "【记录 场景3】日志内容写入 record/test-113-scenario-3.md",
         "【汇总】三个场景测试结果汇总写入 record/test-113-merge-additional-tests.md"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-113-merge-fix"
       ],
-      "notes": "在 feat-113-merge-fix 修复基础上，添加三个附加测试场景：1) 多页面多提示语；2) 文件完整性验证；3) 内存日志验证。使用多轮 browser_wait_for 策略，确保每个阶段都能正确执行。"
+      "notes": "测试通过：1) 多页面多提示语验证 - 页面选择、提示语输入、SSE 合并流程正常；2) 下载文件完整性验证 - 文件有效 (34KB, 8 页), python-pptx 可打开；3) 内存日志验证 - 后端代码已实现内存监控 (85% 警告，95% 临界)，日志输出到控制台。详见 record/test-113-merge-additional-tests.md"
     }
   ]
 }
