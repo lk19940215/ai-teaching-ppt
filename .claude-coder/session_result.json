@@ -2,5 +2,5 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "feat-102-blob-download 任务完成。测试验证：1) 导航到 /merge 页面成功；2) 上传 ppt_a.pptx 和 ppt_b.pptx 各 5 页，Canvas 渲染正常；3) 填写全局提示语'测试 blob 下载方式'并点击合并；4) SSE 流式进度正常（解析→AI 策略→执行→完成）；5) 下载按钮显示'📥 点击下载合并后的 PPT'；6) 点击下载触发 blob 下载，文件名 smart_merged_55d454bc.pptx (33.3KB, 9 页)；7) python-pptx 验证文件格式有效；8) 控制台无错误。测试报告已写入 record/test-102-blob-download.md，tests.json 新增验证记录。服务保持运行。"
+  "notes": "整合 /merge 已完成任务并新增测试任务。1) 新增 4 个测试用例到 tests.json: 500 错误修复验证、内存日志验证、下载诊断日志验证、文件完整性验证；2) 新增测试任务 feat-113-merge-additional-tests (priority: 114) 包含 3 个场景: 多页面多提示语验证、下载文件完整性验证、内存日志验证；3) 所有测试步骤参考 .claude-coder/test_rule.md 使用多轮 browser_wait_for 策略；4) 测试用例数量从 17 增加到 21。服务保持运行。"
 }
