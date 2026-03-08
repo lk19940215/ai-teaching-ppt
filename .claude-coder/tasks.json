@@ -342,12 +342,12 @@
         "【P1】browser_console_messages level='error' 检查有无错误",
         "【记录】测试结果写入 record/merge-e2e-20260308.md"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-205",
         "feat-206"
       ],
-      "notes": "严格按照测试规则的多轮等待策略：4 个阶段，总耗时 ~190 秒。browser_wait_for 内部有 30 秒限制，必须分阶段等待进度文本，不能单次设置 timeout=180000。"
+      "notes": "Playwright MCP 全流程测试通过。测试步骤：1) 导航到/merge 页面；2) 上传 PPT A (test_ppt_b.pptx, 3 页)；3) 上传 PPT B (test_parse.pptx, 3 页)；4) 填写全局提示语；5) 点击合并；6) 等待完成；7) 下载验证。结果：合并成功，下载 smart_merged_f16122be.pptx (34KB, 3 页)，python-pptx 验证通过，控制台 0 错误。测试报告：record/merge-e2e-20260308.md。"
     }
   ]
 }
