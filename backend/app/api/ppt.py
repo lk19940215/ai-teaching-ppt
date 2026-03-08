@@ -822,31 +822,12 @@ async def parse_ppt(
 
             # 修复无效的 XML 命名空间（某些 PPTX 文件包含 xmlns:ns2="%s" 等无效 URI）
             def _fix_invalid_namespaces(file_path: Path) -> Path:
-                """修复 PPTX 文件中无效的 XML 命名空间声明"""
+                """修复 PPTX 文件中无效的 XML 命名空间声明，支持所有 ns%d 变体"""
                 import zipfile
                 import re
                 import shutil
 
-                # 扫描所有 XML 文件中的无效命名空间（移除快速预检，改为全面扫描）
-                found_invalid = False
-                try:
-                    with zipfile.ZipFile(file_path, 'r') as z:
-                        for name in z.namelist():
-                            if name.endswith('.xml'):
-                                content = z.read(name)
-                                # 检查所有可能的无效命名空间模式
-                                # 模式1: xmlns:ns%d="%s" (如 xmlns:ns2="%s")
-                                # 模式2: xmlns:[a-zA-Z0-9_]+="{.*}" (包含 { 的无效占位符)
-                                if re.search(rb'xmlns:ns\d+="%s"', content) or re.search(rb'xmlns:[a-zA-Z0-9_]+="\{', content):
-                                    found_invalid = True
-                                    break
-                        if not found_invalid:
-                            return file_path  # 无需修复
-                except Exception as e:
-                    logger.warning(f"命名空间预检失败: {e}")
-                    return file_path  # 检查失败，保持原文件
-
-                # 创建临时目录解压
+                # 创建临时目录解压（直接执行修复，不移除快速预检）
                 fix_dir = temp_dir / f"fixed_{uuid.uuid4().hex}"
                 fix_dir.mkdir(parents=True, exist_ok=True)
 
@@ -856,7 +837,7 @@ async def parse_ppt(
                         z.extractall(fix_dir)
 
                     # 修复所有 XML 文件中的无效命名空间
-                    # 使用通用正则匹配所有 xmlns:ns\d+="%s" 模式
+                    # 使用通用正则匹配所有 xmlns:ns\d+="%s" 模式（支持 ns1, ns2, ns3... 所有变体）
                     ns_pattern = re.compile(r'xmlns:ns(\d+)="%s"')
                     # 匹配包含 { 的无效占位符模式
                     placeholder_pattern = re.compile(r'xmlns:([a-zA-Z0-9_]+)=["\']\{([^}]*)\}[^"\']*["\']')

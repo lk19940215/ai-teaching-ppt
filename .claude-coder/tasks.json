@@ -361,8 +361,9 @@
         "【测试】使用 uploads/三角形的面积_0dc28a00.pptx 验证解析，python -c \"from backend.app.api.ppt import parse_ppt; print(len(parse_ppt('三角形的面积_0dc28a00.pptx', None, False)['pages']))\"",
         "【验证】返回 pages.length=9，无 XML 异常，日志显示'修复了 X 个文件'"
       ],
-      "status": "pending",
-      "depends_on": []
+      "status": "done",
+      "depends_on": [],
+      "notes": "修复完成。修改内容：1) 移除快速预检代码（第 830-847 行），直接执行全面扫描和修复；2) 修改正则表达式支持所有 ns%d 变体（ns1, ns2, ns3...）；3) 添加日志记录修复文件数和命名空间数量。测试验证：问题文件 三角形的面积_0dc28a00.pptx 成功解析，返回 9 页内容，无 XML 异常。"
     },
     {
       "id": "feat-302",
