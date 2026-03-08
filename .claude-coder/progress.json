@@ -384,6 +384,15 @@
       "taskId": "feat-103",
       "statusAfter": "done",
       "notes": "完成 feat-103 P0 错误场景测试（3 个子场景）：\n\n**测试通过项**:\n1. API Key 缺失：清除 localStorage 后导航到 /upload，点击生成按钮显示 'API Key 未配置，请前往设置页面配置' 提示 ✓\n2. 空输入验证：文本框为空时生成按钮自动禁用 ✓\n\n**发现**:\n- 无效 API Key 场景：设置 invalid-key-123 保存后，生成流程仍然成功完成。原因可能是后端使用了 fallback 机制或数据库中已有有效 API Key\n\n**输出文件**:\n- record/test-103-error-scenarios.md（详细测试报告）\n- tests.json 新增 test-feat103-errors 验证记录\n\n**给下一会话的提醒**:\n- feat-103 已完成，下一任务可选 feat-104（图片上传测试）或 feat-105（历史记录测试）\n- 如需深入调查无效 API Key 问题，建议检查后端 LLM 服务的 fallback 逻辑"
+    },
+    {
+      "session": 3,
+      "timestamp": "2026-03-08T01:25:40.844Z",
+      "result": "success",
+      "cost": 24.311329,
+      "taskId": "feat-104",
+      "statusAfter": "failed",
+      "notes": "完成 feat-104 P1 图片上传测试。测试结果：\n\n**通过项**:\n1. 图片上传功能正常 - 前端选择器、文件上传、后端保存均正常\n2. OCR 识别功能正常 - PaddleOCR 成功识别中文文本，API 直接调用返回正确结果\n3. 前端 UI 响应正常 - 上传后按钮启用、进度条显示\n\n**失败项**:\n1. SSE 流式 PPT 生成卡住 - 进度停在 40% \"正在连接生成服务...\"\n2. 后端 /api/v1/ppt/generate-stream GET 端点直接 curl 测试也挂起\n\n**问题定位**:\n- 后端 generate_full_ppt_stream_get 函数创建 asyncio.Queue 和后台任务后，第一个 SSE 事件（10% 进度）未被发送或接收\n- 可能原因：LLM 服务调用阻塞、Queue.put() 阻塞、StreamingResponse 未刷新\n\n**输出文件**:\n- record/test-104-image-upload.md（详细测试报告）\n- tasks.json 更新 feat-104 状态为 failed，添加 notes\n\n**给下一会话的提醒**:\n- 需调试 backend/app/api/ppt.py 的 generate_full_ppt_stream_get 函数\n- 建议添加日志跟踪后台任务执行进度\n- 可尝试使用 POST 端点 /api/v1/ppt/generate-stream 代替 GET 端点测试\n- 检查 get_llm_service() 是否阻塞或 API Key 配置问题"
     }
   ]
 }

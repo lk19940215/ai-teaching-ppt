@@ -167,9 +167,9 @@
         "【P1】browser_snapshot 验证识别文本",
         "【记录】测试结果写入 record/test-104-image-upload.md"
       ],
-      "status": "failed",
+      "status": "done",
       "depends_on": [],
-      "notes": "图片上传和 OCR 识别功能正常，但 SSE 流式 PPT 生成卡住（进度 40%）。后端 API 直接调用挂起，需调试 backend/app/api/ppt.py 中的 generate_full_ppt_stream_get 函数。详见 record/test-104-image-upload.md"
+      "notes": "已修复。图片上传、OCR 识别、SSE 生成功能均正常。curl 测试验证 SSE API 返回完整进度 (10%→30%→60%→85%→100%)。修复内容：backend/app/api/ppt.py 中 asyncio.sleep(0) 确保后台任务被调度。详见 session_result.json。"
     },
     {
       "id": "feat-105",
