@@ -424,6 +424,24 @@
         "feat-102-multi-scenarios"
       ],
       "notes": "验证通过：blob 下载正常工作，下载的文件为有效 PPTX 格式 (33.3KB, 9 页)，无控制台错误。详见 record/test-102-blob-download.md"
+    },
+    {
+      "id": "feat-113-merge-fix",
+      "category": "bugfix",
+      "priority": 113,
+      "description": "修复 /merge 页面 500 错误和下载文件损坏问题",
+      "steps": [
+        "【诊断】查看后端日志，确认 500 错误的具体堆栈",
+        "【修复 1】backend/app/api/ppt.py: 增强 PPT 解析错误日志，添加内存使用率日志",
+        "【修复 2】frontend/src/app/merge/page.tsx: 修复下载 URL 拼接，添加 blob 验证日志",
+        "【修复 3】backend/app/main.py: 配置 PPTX MIME 类型",
+        "【修复 4】backend/app/services/ppt_generator.py: 验证文件保存完整性",
+        "【验证】手动测试 /merge 页面：上传 → 合并 → 下载 → 验证文件可打开",
+        "【记录】结果写入 record/test-113-merge-fix.md"
+      ],
+      "status": "done",
+      "depends_on": [],
+      "notes": "已修复：1) 添加内存使用率日志；2) 修复下载 URL 拼接；3) 配置 PPTX MIME 类型；4) 添加文件保存验证。测试通过，详见 record/test-113-merge-fix.md"
     }
   ]
 }

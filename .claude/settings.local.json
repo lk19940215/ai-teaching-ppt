@@ -23,7 +23,9 @@
       "Bash(python3:*)",
       "Bash(mv:*)",
       "Bash(git:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(xxd:*)",
+      "Bash(pnpm tsc:*)"
     ]
   }
 }

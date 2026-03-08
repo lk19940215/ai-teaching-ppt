@@ -2,5 +2,5 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "feat-102-multi-scenarios P0 /merge 多场景测试完成。3 个场景全部通过：1) 单页面单提示语：选择 PPT A 第 1 页，填写'保留 PPT A 标题，加入 PPT B 的示例'，合并成功，下载 smart_merged_443d6a1b.pptx (34KB)；2) 多页面多提示语：Ctrl+ 点击多选 PPT A P2+P3，分别填写'简单合并内容'和'只合并图片部分'，全局策略'优先使用 PPT A 的结构'，下载 smart_merged_a3a30645.pptx；3) 边界测试：只选 PPT B 第 2 页，填写'空提示语测试'，下载 smart_merged_19218cb0.pptx。关键发现：Ctrl 键支持多选页面；合并速度极快 (<1 秒) 未触发完整 SSE 进度显示（可能因测试文件简单）。测试报告已写入 record/test-102-merge-multi-scenarios.md。下个 session 可继续 feat-102-blob-download 任务。"
+  "notes": "feat-102-blob-download 任务完成。测试验证：1) 导航到 /merge 页面成功；2) 上传 ppt_a.pptx 和 ppt_b.pptx 各 5 页，Canvas 渲染正常；3) 填写全局提示语'测试 blob 下载方式'并点击合并；4) SSE 流式进度正常（解析→AI 策略→执行→完成）；5) 下载按钮显示'📥 点击下载合并后的 PPT'；6) 点击下载触发 blob 下载，文件名 smart_merged_55d454bc.pptx (33.3KB, 9 页)；7) python-pptx 验证文件格式有效；8) 控制台无错误。测试报告已写入 record/test-102-blob-download.md，tests.json 新增验证记录。服务保持运行。"
 }

@@ -771,10 +771,13 @@ async def parse_ppt(
     """
     try:
         start_time = time.time()
-        
+
         # 内存检查
         memory_usage = _get_memory_usage()
+        logger.info(f"PPT 解析 - 内存使用率: {memory_usage:.1%} (警告阈值: {_MEMORY_WARNING_THRESHOLD:.0%}, 临界阈值: {_MEMORY_CRITICAL_THRESHOLD:.0%})")
+
         if memory_usage > _MEMORY_CRITICAL_THRESHOLD:
+            logger.error(f"服务器内存紧张，拒绝解析请求: {memory_usage:.1%}")
             raise HTTPException(status_code=503, detail=f"服务器内存紧张 ({memory_usage:.1%})")
         if memory_usage > _MEMORY_WARNING_THRESHOLD:
             logger.warning(f"内存使用率较高：{memory_usage:.1%}，启用降级模式")
@@ -1046,7 +1049,10 @@ async def parse_ppt(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"PPT 解析失败：{e}", exc_info=True)
+        import traceback
+        logger.error(f"PPT 解析失败：{e}")
+        logger.error(f"Traceback:\n{traceback.format_exc()}")
+        logger.error(f"文件名: {file.filename if 'file' in locals() else 'N/A'}, 大小: {file_size if 'file_size' in locals() else 'N/A'}")
         raise HTTPException(status_code=500, detail=f"PPT 解析失败：{str(e)}")
 
 

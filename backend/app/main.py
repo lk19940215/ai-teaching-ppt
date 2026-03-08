@@ -4,10 +4,15 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 from pathlib import Path
 import logging
+import mimetypes
 from .config import settings
 from .api import upload, process, generate, ppt, history, config as config_router
 
 logger = logging.getLogger(__name__)
+
+# 配置 PPTX MIME 类型
+mimetypes.add_type('application/vnd.openxmlformats-officedocument.presentationml.presentation', '.pptx')
+mimetypes.add_type('application/vnd.openxmlformats-officedocument.presentationml.presentation', '.pptx', strict=True)
 
 app = FastAPI(
     title="AI 教学 PPT 生成器 API",

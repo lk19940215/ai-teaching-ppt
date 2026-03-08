@@ -535,8 +535,13 @@ export default function MergePage() {
 
               // 处理完成
               if (event.stage === "complete" && event.result) {
-                setDownloadUrl(`${apiBaseUrl}${event.result.download_url}`)
+                // 修复 URL 拼接：确保 download_url 以 / 开头
+                const downloadUrl = event.result.download_url.startsWith('/')
+                  ? `${apiBaseUrl}${event.result.download_url}`
+                  : `${apiBaseUrl}/${event.result.download_url}`
+                setDownloadUrl(downloadUrl)
                 setFileName(event.result.file_name)
+                console.log('[Merge] 下载准备完成:', { downloadUrl, fileName: event.result.file_name })
                 setIsGenerating(false)
               }
             } catch (e) {
@@ -558,17 +563,29 @@ export default function MergePage() {
     if (!downloadUrl) return
 
     try {
+      console.log('[Download] 开始下载:', downloadUrl)
+
       const response = await fetch(downloadUrl)
+      console.log('[Download] 响应状态:', response.status, 'Content-Type:', response.headers.get('content-type'))
+
       if (!response.ok) {
         throw new Error(`下载失败: HTTP ${response.status}`)
       }
 
       const blob = await response.blob()
+      console.log('[Download] Blob 信息:', { type: blob.type, size: blob.size })
+
+      // 验证 blob 类型和大小
+      if (!blob.type.includes('presentation') && blob.size === 0) {
+        console.error('[Download] 警告：下载的文件可能损坏或类型不正确')
+      }
+
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
       a.download = fileName || `merged_${Date.now()}.pptx`
       document.body.appendChild(a)
+      console.log('[Download] 触发下载:', a.download)
       a.click()
       document.body.removeChild(a)
       window.URL.revokeObjectURL(url)
@@ -578,7 +595,7 @@ export default function MergePage() {
         setFileName(null)
       }, 3000)
     } catch (err: any) {
-      console.error('下载失败:', err)
+      console.error('[Download] 下载失败:', err)
       setError(`下载失败: ${err.message}`)
     }
   }

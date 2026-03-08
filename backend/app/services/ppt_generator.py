@@ -6283,9 +6283,16 @@ class PPTGenerator:
 
             # 保存合并后的 PPT
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            merged_prs.save(output_path)
+            try:
+                merged_prs.save(output_path)
+                # 验证文件可以被正确读取
+                from pptx import Presentation
+                test_prs = Presentation(output_path)
+                logger.info(f"智能合并完成：{total_slides} 页幻灯片，文件验证成功 ({output_path.name})")
+            except Exception as save_error:
+                logger.error(f"文件保存或验证失败: {save_error}")
+                raise
 
-            logger.info(f"智能合并完成：{total_slides} 页幻灯片")
             return output_path
 
         except Exception as e:

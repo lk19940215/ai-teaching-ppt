@@ -1,6 +1,0 @@
-{
-  "session_result": "success",
-  "status_before": "pending",
-  "status_after": "done",
-  "notes": "完成 feat-102-enhanced P0 /merge 页面增强测试。测试步骤：1) 导航到/merge 页面；2) 上传 PPT A (ppt_a.pptx)，Canvas 渲染 5 页成功；3) 上传 PPT B (ppt_b.pptx)，Canvas 渲染 5 页成功；4) 点击 PPT A 第 2 页缩略图，页面选中并自动聚焦提示语输入框；5) 填写提示语'合并提示语测试 - 保留此页内容'；6) 点击合并按钮，SSE 流式推送进度；7) 显示'合并成功'及下载链接；8) curl 验证下载链接 HTTP 200，文件 34KB。所有步骤通过。测试报告：record/test-102-merge-flow-v2.md。下一个会话可继续执行其他测试任务。"
-}
