@@ -7,70 +7,134 @@
     {
       "id": "milestone-1",
       "name": "基础设施搭建",
-      "features": ["feat-001", "feat-002", "feat-012", "feat-013"],
+      "features": [
+        "feat-001",
+        "feat-002",
+        "feat-012",
+        "feat-013"
+      ],
       "summary": "后端 FastAPI 脚手架、前端 Next.js 项目、Docker 部署、SQLite 数据库初始化",
       "completed_at": "2026-03-02"
     },
     {
       "id": "milestone-2",
       "name": "核心生成流程",
-      "features": ["feat-003", "feat-004", "feat-005", "feat-006", "feat-007"],
+      "features": [
+        "feat-003",
+        "feat-004",
+        "feat-005",
+        "feat-006",
+        "feat-007"
+      ],
       "summary": "文件上传/OCR/PDF 解析、教学配置面板、LLM 内容生成、PPTX 文件生成、预览下载",
       "completed_at": "2026-03-02"
     },
     {
       "id": "milestone-3",
       "name": "学科增强与自适应",
-      "features": ["feat-008", "feat-009", "feat-026", "feat-027"],
+      "features": [
+        "feat-008",
+        "feat-009",
+        "feat-026",
+        "feat-027"
+      ],
       "summary": "英语专属页面、年级自适应风格、PPT 风格映射、K-12 年级扩展（含高中）",
       "completed_at": "2026-03-03"
     },
     {
       "id": "milestone-4",
       "name": "历史记录与 LLM 配置",
-      "features": ["feat-010", "feat-011", "feat-020", "feat-021"],
+      "features": [
+        "feat-010",
+        "feat-011",
+        "feat-020",
+        "feat-021"
+      ],
       "summary": "生成历史记录、LLM 服务商切换、温度/token 配置、参数格式排查",
       "completed_at": "2026-03-03"
     },
     {
       "id": "milestone-5",
       "name": "PPT 质量优化",
-      "features": ["feat-015", "feat-016", "feat-017", "feat-043"],
+      "features": [
+        "feat-015",
+        "feat-016",
+        "feat-017",
+        "feat-043"
+      ],
       "summary": "LLM 提示词优化、PPT 模板优化、动画效果注入、点击显示答案 OOXML 实现",
       "completed_at": "2026-03-04"
     },
     {
       "id": "milestone-6",
       "name": "学科深度优化",
-      "features": ["feat-028", "feat-029", "feat-030", "feat-031", "feat-032", "feat-033"],
+      "features": [
+        "feat-028",
+        "feat-029",
+        "feat-030",
+        "feat-031",
+        "feat-032",
+        "feat-033"
+      ],
       "summary": "提示词引擎架构、语文/数学/理科/文科/英语学科深度提示词与专属页面",
       "completed_at": "2026-03-04"
     },
     {
       "id": "milestone-7",
       "name": "教学设计科学化",
-      "features": ["feat-034", "feat-035", "feat-036", "feat-037", "feat-038", "feat-039", "feat-040", "feat-041"],
+      "features": [
+        "feat-034",
+        "feat-035",
+        "feat-036",
+        "feat-037",
+        "feat-038",
+        "feat-039",
+        "feat-040",
+        "feat-041"
+      ],
       "summary": "认知负荷优化、注意力节奏引擎、布鲁姆分类法、先行组织者、问题链元认知、情境创设、差异化教学、错题分析",
       "completed_at": "2026-03-05"
     },
     {
       "id": "milestone-8",
       "name": "前端优化与修复",
-      "features": ["feat-014", "feat-018", "feat-019", "feat-022", "feat-024", "feat-025", "feat-051", "feat-052", "feat-053"],
+      "features": [
+        "feat-014",
+        "feat-018",
+        "feat-019",
+        "feat-022",
+        "feat-024",
+        "feat-025",
+        "feat-051",
+        "feat-052",
+        "feat-053"
+      ],
       "summary": "Dark Mode 修复、交互动画、上传流程修复、API 环境变量化、默认年级调整、进度反馈优化、智能风格推荐",
       "completed_at": "2026-03-05"
     },
     {
       "id": "milestone-9",
       "name": "后端优化与修复",
-      "features": ["feat-023", "feat-045", "feat-046", "feat-047", "feat-048", "feat-049", "feat-050", "feat-054", "feat-055"],
+      "features": [
+        "feat-023",
+        "feat-045",
+        "feat-046",
+        "feat-047",
+        "feat-048",
+        "feat-049",
+        "feat-050",
+        "feat-054",
+        "feat-055"
+      ],
       "summary": "JSON 解析增强、Playwright 测试基础设施、E2E 测试（文字/图片/错误场景）、探索性测试、重试机制修复",
       "completed_at": "2026-03-06"
     },
     {
       "id": "milestone-10",
       "name": "SSE 流式反馈",
-      "features": ["feat-042"],
+      "features": [
+        "feat-042"
+      ],
       "summary": "SSE 流式生成进度推送，替换假进度条",
       "completed_at": "2026-03-05"
     }
@@ -323,7 +387,7 @@
         "【记录 场景3】测试结果和边界情况写入 record/test-102-scenario-3.md",
         "【汇总】三个场景测试结果汇总写入 record/test-102-merge-multi-scenarios.md"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [],
       "notes": "多场景测试：1) 单页面单提示语 2) 多页面多提示语 3) 空提示语边界测试。使用多轮 browser_wait_for 等待每个阶段完成，确保 AI 真正介入。每轮 timeout 合理分配：解析(10s) + AI 策略(60s) + 执行合并(60s) + 完成(60s) = 190s 总等待。"
     },
@@ -356,8 +420,10 @@
         "【记录】下载功能验证结果写入 record/test-102-blob-download.md"
       ],
       "status": "pending",
-      "depends_on": ["feat-102-multi-scenarios"],
+      "depends_on": [
+        "feat-102-multi-scenarios"
+      ],
       "notes": "验证优化后的 blob 下载方式是否正常工作，检查文件格式是否正确。"
-    },
+    }
   ]
 }
