@@ -827,17 +827,23 @@ async def parse_ppt(
                 import re
                 import shutil
 
-                # 检查是否需要修复（快速预检）
+                # 扫描所有 XML 文件中的无效命名空间（移除快速预检，改为全面扫描）
+                found_invalid = False
                 try:
                     with zipfile.ZipFile(file_path, 'r') as z:
                         for name in z.namelist():
                             if name.endswith('.xml'):
                                 content = z.read(name)
-                                if b'xmlns:ns2="%s"' in content or b'xmlns:ns3="%s"' in content:
+                                # 检查所有可能的无效命名空间模式
+                                # 模式1: xmlns:ns%d="%s" (如 xmlns:ns2="%s")
+                                # 模式2: xmlns:[a-zA-Z0-9_]+="{.*}" (包含 { 的无效占位符)
+                                if re.search(rb'xmlns:ns\d+="%s"', content) or re.search(rb'xmlns:[a-zA-Z0-9_]+="\{', content):
+                                    found_invalid = True
                                     break
-                        else:
+                        if not found_invalid:
                             return file_path  # 无需修复
-                except Exception:
+                except Exception as e:
+                    logger.warning(f"命名空间预检失败: {e}")
                     return file_path  # 检查失败，保持原文件
 
                 # 创建临时目录解压
@@ -850,16 +856,32 @@ async def parse_ppt(
                         z.extractall(fix_dir)
 
                     # 修复所有 XML 文件中的无效命名空间
-                    # 将无效的 %s URI 替换为有效的占位符 URI
-                    ns_pattern = re.compile(r'xmlns:(ns\d+)="%s"')
+                    # 使用通用正则匹配所有 xmlns:ns\d+="%s" 模式
+                    ns_pattern = re.compile(r'xmlns:ns(\d+)="%s"')
+                    # 匹配包含 { 的无效占位符模式
+                    placeholder_pattern = re.compile(r'xmlns:([a-zA-Z0-9_]+)=["\']\{([^}]*)\}[^"\']*["\']')
+
+                    fixed_count = 0
+                    total_fixed = 0
+
                     for xml_file in fix_dir.rglob("*.xml"):
                         try:
                             content = xml_file.read_text(encoding='utf-8')
-                            # 替换无效命名空间为有效的占位符 URI
-                            fixed_content = ns_pattern.sub(r'xmlns:\1="http://schemas.openxmlformats.org/presentationml/2006/placeholder"', content)
-                            if content != fixed_content:
-                                xml_file.write_text(fixed_content, encoding='utf-8')
-                                logger.info(f"修复 XML 文件无效命名空间：{xml_file.name}")
+                            original_content = content
+
+                            # 替换模式1: xmlns:ns%d="%s"
+                            content = ns_pattern.sub(r'xmlns:ns\1="http://schemas.openxmlformats.org/presentationml/2006/placeholder"', content)
+
+                            # 替换模式2: xmlns:x="{.*}" 等包含 { 的占位符
+                            content = placeholder_pattern.sub(r'xmlns:\1="http://schemas.openxmlformats.org/presentationml/2006/\2"', content)
+
+                            if content != original_content:
+                                xml_file.write_text(content, encoding='utf-8')
+                                fixed_count += 1
+                                logger.info(f"修复 XML 文件无效命名空间：{xml_file.relative_to(fix_dir)}")
+                                # 统计修复的命名空间数量
+                                total_fixed += len(ns_pattern.findall(original_content)) + len(placeholder_pattern.findall(original_content))
+
                         except Exception as e:
                             logger.warning(f"修复 XML 文件失败 {xml_file}: {e}")
 
@@ -872,7 +894,7 @@ async def parse_ppt(
                                 arcname = file_on_disk.relative_to(fix_dir)
                                 z.write(file_on_disk, arcname)
 
-                    logger.info(f"PPTX 命名空间修复完成：{file_path.name} -> {fixed_path.name}")
+                    logger.info(f"PPTX 命名空间修复完成：{file_path.name} -> {fixed_path.name} (修复 {fixed_count} 个文件, 共 {total_fixed} 处命名空间)")
                     return fixed_path
 
                 except Exception as e:

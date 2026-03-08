@@ -89,7 +89,56 @@ class LLMService:
 
         try:
             response = self.client.chat.completions.create(**chat_kwargs)
-            return response.choices[0].message.content
+            response_text = response.choices[0].message.content
+            return response_text
+        except OpenAITimeoutError as e:
+            logger.error(f"LLM 调用超时：{e}")
+            raise TimeoutError("LLM 调用超时") from e
+        except OpenAIAPIError as e:
+            logger.error(f"LLM API 错误：{e}")
+            raise RuntimeError(f"LLM API 错误：{e}") from e
+        except Exception as e:
+            logger.error(f"LLM 调用失败：{e}")
+            raise RuntimeError(f"LLM 调用失败：{e}") from e
+
+    def chat_with_usage(self, messages: List[Dict[str, str]], **kwargs) -> tuple[str, Dict[str, Any]]:
+        """
+        调用 LLM 对话接口（返回 usage 信息）
+        Args:
+            messages: 消息列表
+            **kwargs: 额外参数,支持 temperature, max_tokens, response_format 等
+        Returns:
+            tuple: (LLM 返回的文本, usage 信息字典)
+        """
+        if not self.client:
+            raise ValueError("LLM 客户端未初始化,请先配置 API Key")
+
+        # 构建基础参数,优先使用 kwargs,其次使用实例默认值
+        chat_kwargs = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": kwargs.get("temperature", self.temperature),
+            "max_tokens": kwargs.get("max_tokens", self.max_tokens),
+            "timeout": kwargs.get("timeout", 60)
+        }
+
+        # 设置 response_format 确保 JSON 输出（不支持的服务器会忽略此参数）
+        if kwargs.get("response_format"):
+            chat_kwargs["response_format"] = kwargs["response_format"]
+
+        try:
+            response = self.client.chat.completions.create(**chat_kwargs)
+            response_text = response.choices[0].message.content
+            usage = {
+                "prompt_tokens": getattr(response.usage, "prompt_tokens", 0) if response.usage else 0,
+                "completion_tokens": getattr(response.usage, "completion_tokens", 0) if response.usage else 0,
+                "total_tokens": getattr(response.usage, "total_tokens", 0) if response.usage else 0,
+                "provider": self.provider,
+                "model": self.model,
+                "request_id": getattr(response, "id", ""),
+                "finish_reason": response.choices[0].finish_reason if response.choices else ""
+            }
+            return response_text, usage
         except OpenAITimeoutError as e:
             logger.error(f"LLM 调用超时：{e}")
             raise TimeoutError("LLM 调用超时") from e
