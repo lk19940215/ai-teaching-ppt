@@ -38,8 +38,15 @@ globs: "**/tests/**, **/test-*, **/*.test.*, **/record/**"
 |---------|---------|
 | 导航/点击/填写 | 直接操作，不等待 |
 | 表单提交/API | `browser_wait_for` timeout=10s |
-| PPT 生成 | `browser_wait_for text="PPT 预览" timeout=180000` |
+| **PPT 生成** | `browser_wait_for text="PPT 预览" timeout=180000` |
+| **图片上传+OCR** | `browser_wait_for text="识别完成" timeout=30000` |
+| **/merge 合并** | `browser_wait_for text="合并成功" timeout=180000` |
 | 超时判定 | 180 秒无变化 = 失败 |
+
+**重要说明**：
+- PPT 生成类操作（文字输入、图片上传、PPT 合并）必须等待**完整流程完成**，不能提前跳转到 API 验证
+- timeout 设置必须覆盖最长执行时间，避免误判
+- 失败时先分析原因，不要修改测试让它通过
 
 ## 凭证
 

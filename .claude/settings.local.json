@@ -21,7 +21,8 @@
       "Bash(npx tsc:*)",
       "Bash(cp:*)",
       "Bash(python3:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(git:*)"
     ]
   }
 }

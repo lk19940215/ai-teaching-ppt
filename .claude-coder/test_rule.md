@@ -95,20 +95,57 @@
 | 长等（AI 生成、文件处理） | `browser_wait_for` + 合理 timeout | ~5K |
 | 超长等（批量处理） | Shell 端 API 检查 + 最终 1 次 snapshot | ~5.5K |
 
-### SSE / 流式生成任务的等待策略
+### SSE / 流式生成任务的等待策略（详细版）
 
-当操作涉及 AI 生成、文件转换、SSE 流式处理等需要较长时间的场景时，优先使用 `browser_wait_for` 而非轮询 snapshot：
+当测试涉及 AI 生成、文件转换、SSE 流式处理等需要较长时间的场景时，必须使用 `browser_wait_for` 并设置**足够长的 timeout**。
 
-| 步骤 | 工具 | 说明 |
-|------|------|------|
-| 触发操作 | `browser_click` | 点击"生成"/"提交"按钮 |
-| 等待完成 | `browser_wait_for` | 等待完成标志文本出现，设置合理 timeout |
-| 验证结果 | `browser_snapshot` | 确认结果/下载链接出现 |
+#### 1. 按操作类型设置 timeout
 
-**`browser_wait_for` 参数**：
-- `text`：完成标志文本（如"下载"、"完成"、"预览"）
-- `timeout`：根据操作实际预估耗时设置（如表单提交 10s、AI 生成 60-180s、批量处理更长）
-- 相比轮询 snapshot，Token 消耗从 ~60K+ 降至 ~5K
+| 操作类型 | 推荐 timeout | 说明 |
+|---------|------------|------|
+| 表单提交/普通 API | 10000 (10秒) | 短时同步操作 |
+| 图片上传 + OCR 识别 | 30000 (30秒) | 包含文件上传和文本识别 |
+| 文字输入 → 生成 PPT | 180000 (180秒) | 核心生成流程，LLM 调用 |
+| /merge 页面合并生成 | 180000 (180秒) | 智能合并，多轮 LLM 调用 |
+| 多文件批量处理 | 300000 (300秒) | 超长任务 |
+
+#### 2. 完整测试步骤模板
+
+```json
+{
+  "steps": [
+    "【环境】curl http://localhost:8000/health 确认服务正常",
+    "【P0】browser_navigate http://localhost:3000/merge",
+    "【P0】browser_snapshot 验证页面加载",
+    "【P0】browser_file_upload paths=[PPT A 文件]",
+    "【P0】browser_wait_for text='共 5 页' timeout=10000",
+    "【P0】browser_file_upload paths=[PPT B 文件]",
+    "【P0】browser_wait_for text='共 10 页' timeout=10000",
+    "【P0】browser_click ref=[合并按钮ref]",
+    "【P0】browser_wait_for text='合并成功' timeout=180000",  // 关键：等待完整流程
+    "【P0】browser_snapshot 验证下载链接出现",
+    "【记录】测试结果写入 record/"
+  ]
+}
+```
+
+#### 3. 等待策略最佳实践
+
+**✅ 正确做法：**
+- 触发生成操作后，立即使用 `browser_wait_for` 等待最终完成标志（如"预览"、"下载"、"成功"）
+- 设置的 timeout 必须覆盖最长可能的执行时间（180 秒）
+- 失败时才调用 `browser_console_messages` 分析，不提前跳转
+
+**❌ 错误做法：**
+- 触发生成后等待几秒就跳转到其他验证
+- 直接调用后端 API 验证而不等待前端完整流程
+- 设置过短的 timeout（如 10-30 秒）导致误判失败
+
+#### 4. 特殊情况处理
+
+- **超时失败**：等待 180 秒后仍未完成，记录为失败，不重试
+- **网络错误**：等待过程中出现 401/500 等错误，立即停止该场景
+- **进度卡住**：等待 180 秒但进度无变化（如一直显示 40%），记录为失败
 
 ### 常见反模式
 

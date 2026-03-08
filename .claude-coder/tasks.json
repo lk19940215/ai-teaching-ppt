@@ -216,6 +216,72 @@
       ],
       "status": "done",
       "depends_on": []
+    },
+    {
+      "id": "feat-101-long-wait",
+      "category": "testing",
+      "priority": 108,
+      "description": "P0 核心流程长等待测试：验证 180 秒 timeout 有效性",
+      "steps": [
+        "【环境】curl http://localhost:8000/health",
+        "【P0】browser_navigate http://localhost:3000/upload",
+        "【P0】browser_type ref=[输入框ref] text='三角形的面积公式' + submit=true",
+        "【P0】browser_select_option ref=[年级选择器ref] values=['5']",
+        "【P0】browser_select_option ref=[学科选择器ref] values=['math']",
+        "【P0】browser_click ref=[生成按钮ref]",
+        "【P0】browser_wait_for text='PPT 预览' timeout=180000",
+        "【P0】browser_snapshot 验证预览",
+        "【记录】测试结果和实际耗时写入 record/test-101-long-wait.md"
+      ],
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-104-retest",
+      "category": "testing",
+      "priority": 109,
+      "description": "P1 图片上传测试：图片→OCR→生成 PPT（修正版）",
+      "steps": [
+        "【环境】curl http://localhost:8000/health",
+        "【P1】browser_navigate http://localhost:3000/upload",
+        "【P1】browser_snapshot 验证页面加载",
+        "【P1】browser_click ref=[图片上传按钮ref]",
+        "【P1】browser_file_upload paths=['record/test_image.png']",
+        "【P1】browser_wait_for text='已选择 1 张图片' timeout=10000",
+        "【P1】browser_select_option ref=[年级选择器ref] values=['5']",
+        "【P1】browser_select_option ref=[学科选择器ref] values=['math']",
+        "【P1】browser_click ref=[生成按钮ref]",
+        "【P1】browser_wait_for text='PPT 预览' timeout=180000",
+        "【P1】browser_snapshot 验证预览页面和下载按钮",
+        "【记录】测试结果写入 record/test-104-image-upload-v2.md"
+      ],
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-102-enhanced",
+      "category": "testing",
+      "priority": 110,
+      "description": "P0 /merge 页面增强测试：完整等待生成流程",
+      "steps": [
+        "【环境】curl http://localhost:8000/health",
+        "【P0】browser_navigate http://localhost:3000/merge",
+        "【P0】browser_wait_for timeout=10000",
+        "【P0】browser_snapshot 验证页面加载",
+        "【P0】browser_file_upload paths=['backend/tests/fixtures/ppt_a.pptx']",
+        "【P0】browser_wait_for text='共 5 页' timeout=10000",
+        "【P0】browser_file_upload paths=['backend/tests/fixtures/ppt_b.pptx']",
+        "【P0】browser_wait_for text='共 10 页' timeout=10000",
+        "【P0】browser_click ref=[PPT A 第2页缩略图ref]",
+        "【P0】browser_wait_for text='已选择页面' timeout=3000",
+        "【P0】browser_type ref=[提示语输入框ref] text='合并提示语测试'",
+        "【P0】browser_click ref=[合并按钮ref]",
+        "【P0】browser_wait_for text='合并成功' timeout=180000",
+        "【P0】browser_snapshot 验证下载链接",
+        "【记录】测试结果写入 record/test-102-merge-flow-v2.md"
+      ],
+      "status": "pending",
+      "depends_on": []
     }
   ]
 }
