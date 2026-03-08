@@ -255,8 +255,9 @@
         "【P1】browser_snapshot 验证预览页面和下载按钮",
         "【记录】测试结果写入 record/test-104-image-upload-v2.md"
       ],
-      "status": "in_progress",
-      "depends_on": []
+      "status": "done",
+      "depends_on": [],
+      "notes": "测试通过：图片上传→OCR 识别→PPT 生成（16 页）→下载功能全部正常。问题修复：重启后端服务解决 SSE 卡在 40% 的问题。"
     },
     {
       "id": "feat-102-enhanced",
