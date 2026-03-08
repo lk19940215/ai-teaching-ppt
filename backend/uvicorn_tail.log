@@ -1,0 +1,300 @@
+﻿      "from_a": [2],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "保留A第2页[学习目标]"
+    },
+    {
+      "from_a": [3],
+      "from_b": [2],
+      "action": "combine",
+      "instruction": "先放置A第3页[课程大纲]，然后插入B第2页[物理定律]"
+    }
+  ],
+  "slides_to_skip_a": [1],
+  "slides_to_skip_b": [1],
+  "global_adjustments": "测试合并"
+}
+```
+智能合并失败：
+INFO:     127.0.0.1:1711 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1721 - "POST /api/v1/ppt/smart-merge-stream HTTP/1.1" 200 OK
+LLM 返回的策略 JSON 解析失败：```json
+{
+  "slides_to_merge": [
+    {
+      "from_a": [2],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "保留A第2页[学习目标]"
+    },
+    {
+      "from_a": [3],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "追加A第3页[课程大纲]"
+    },
+    {
+      "from_a": [],
+      "from_b": [2],
+      "action": "append_b",
+      "instruction": "在A第3页后插入B第2页[物理定律]"
+    },
+    {
+      "from_a": [4],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "追加A第4页[IMP
+智能合并失败：
+INFO:     127.0.0.1:1842 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1842 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1843 - "POST /api/v1/ppt/smart-merge-stream HTTP/1.1" 200 OK
+LLM 返回的策略 JSON 解析失败：```json
+{
+  "slides_to_merge": [
+    {
+      "from_a": [2],
+      "from_b": [2],
+      "action": "combine",
+      "instruction": "将PPT B的'物理定律'作为数学课程中的'学习目标'的补充内容，合并展示"
+    },
+    {
+      "from_a": [3],
+      "from_b": [3],
+      "action": "combine",
+      "instruction": "将PPT B的'重要公式'作为数学'课程大纲'的补充知识点，合并展示"
+    },
+    {
+      "from_a": [4],
+      "from_b": [4],
+      "action": "combine",
+      "instruction": "将PPT B的'实验步骤'作为数学'重点内容'的例题或应用案例，合并展示"
+    },
+    {
+      "from_a": [5],
+      "from_b":
+智能合并失败：
+INFO:     127.0.0.1:1909 - "POST /api/v1/ppt/smart-merge-stream HTTP/1.1" 200 OK
+LLM 返回的策略 JSON 解析失败：```json
+{
+  "slides_to_merge": [
+    {
+      "from_a": [1],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "保留PPT A的封面页"
+    },
+    {
+      "from_a": [2],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "保留PPT A的学习目标页"
+    },
+    {
+      "from_a": [3],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "保留PPT A的课程大纲页"
+    },
+    {
+      "from_a": [],
+      "from_b": [2],
+      "action": "append_b",
+      "instruction": "根据提示，将B第2页（物理定律
+智能合并失败：
+INFO:     127.0.0.1:2034 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2044 - "POST /api/v1/ppt/smart-merge-stream HTTP/1.1" 200 OK
+LLM 返回的策略 JSON 解析失败：```json
+{
+  "slides_to_merge": [
+    {
+      "from_a": [2],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "保留A第2页[学习目标]"
+    },
+    {
+      "from_a": [3],
+      "from_b": [2],
+      "action": "combine",
+      "instruction": "先放置A第3页[课程大纲]，然后插入B第2页[物理定律]"
+    }
+  ],
+  "slides_to_skip_a": [],
+  "slides_to_skip_b": [],
+  "global_adjustments": "测试合并"
+}
+```
+智能合并失败：
+INFO:     127.0.0.1:2117 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2126 - "POST /api/v1/ppt/smart-merge-stream HTTP/1.1" 200 OK
+LLM 返回的策略 JSON 解析失败：```json
+{
+  "slides_to_merge": [
+    {
+      "from_a": [2],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "保留A第2页[学习目标]"
+    },
+    {
+      "from_a": [3],
+      "from_b": [2],
+      "action": "combine",
+      "instruction": "先放置A第3页[课程大纲]，然后插入B第2页[物理定律]"
+    }
+  ],
+  "slides_to_skip_a": [1],
+  "slides_to_skip_b": [1],
+  "global_adjustments": "测试合并"
+}
+```
+智能合并失败：
+INFO:     127.0.0.1:2270 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2297 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2300 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2331 - "POST /api/v1/ppt/smart-merge-stream HTTP/1.1" 200 OK
+LLM 返回的策略 JSON 解析失败：```json
+{
+  "slides_to_merge": [
+    {
+      "from_a": [2],
+      "from_b": [2],
+      "action": "combine",
+      "instruction": "将PPT B的'物理定律'作为数学课程中的'学习目标'相关例题或应用示例插入，保留PPT A的标题和结构框架，将B的内容整合为补充案例或扩展阅读部分。"
+    },
+    {
+      "from_a": [3],
+      "from_b": [3],
+      "action": "combine",
+      "instruction": "将PPT B的'重要公式'作为数学'课程大纲'中相关章节（如函数、方程）的例题或实际应用公式进行插入，保持PPT A的大纲结构，将B内容整合为对应知识点的公式示例。"
+    },
+    {
+      "from_a": [4],
+      "from_b": [4],
+      "action": "combine",
+      "instruction": "将
+智能合并失败：
+INFO:     127.0.0.1:2382 - "POST /api/v1/ppt/smart-merge-stream HTTP/1.1" 200 OK
+LLM 返回的策略 JSON 解析失败：```json
+{
+  "slides_to_merge": [
+    {
+      "from_a": [2],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "保留A第2页[学习目标]"
+    },
+    {
+      "from_a": [3],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "追加A第3页[课程大纲]"
+    },
+    {
+      "from_a": [],
+      "from_b": [2],
+      "action": "append_b",
+      "instruction": "在A第3页后插入B第2页[物理定律]"
+    },
+    {
+      "from_a": [4, 5],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "追加A剩余页面
+智能合并失败：
+INFO:     127.0.0.1:2424 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2430 - "POST /api/v1/ppt/smart-merge-stream HTTP/1.1" 200 OK
+LLM 返回的策略 JSON 解析失败：```json
+{
+  "slides_to_merge": [
+    {
+      "from_a": [2],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "保留A第2页[学习目标]"
+    },
+    {
+      "from_a": [3],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "追加A第3页[课程大纲]"
+    },
+    {
+      "from_a": [],
+      "from_b": [2],
+      "action": "append_b",
+      "instruction": "在A第3页后插入B第2页[物理定律]"
+    },
+    {
+      "from_a": [4],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "追加A第4页[IMP
+智能合并失败：
+INFO:     127.0.0.1:2468 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2487 - "POST /api/v1/ppt/smart-merge-stream HTTP/1.1" 200 OK
+LLM 返回的策略 JSON 解析失败：```json
+{
+  "slides_to_merge": [
+    {
+      "from_a": [1],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "保留PPT A的封面页"
+    },
+    {
+      "from_a": [2],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "根据提示语保留A第2页[学习目标]"
+    },
+    {
+      "from_a": [3],
+      "from_b": [],
+      "action": "append_a",
+      "instruction": "保留A第3页[课程大纲]"
+    },
+    {
+      "from_a": [],
+      "from_b": [2],
+      "action": "append_b",
+      "instruction": "根据提示语，将B第2页[
+智能合并失败：
+INFO:     127.0.0.1:2635 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2930 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3539 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4861 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5083 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5086 - "GET /api/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:5286 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5700 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5910 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6252 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6349 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6778 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6818 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6820 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6822 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6826 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6909 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6911 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6952 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6955 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6958 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6960 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6963 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6970 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6976 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6978 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6982 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6984 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6994 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6997 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7005 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7034 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7036 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7044 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7058 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7060 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7236 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7435 - "GET /health HTTP/1.1" 200 OK

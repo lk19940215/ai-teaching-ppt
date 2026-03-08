@@ -686,7 +686,7 @@ export default function MergePage() {
             disabled={isGenerating}
           />
 
-          {/* PPT A 单页预览 */}
+          {/* PPT A 单页预览 - 使用 Canvas 渲染器（支持 PptxViewJS 降级） */}
           <PptCanvasPreview
             label="PPT A 预览"
             pages={fallbackModeA && fallbackDataA.length > 0 ? fallbackDataA : pptAPages}
@@ -707,7 +707,7 @@ export default function MergePage() {
             }}
           />
 
-          {/* PPT B 单页预览 */}
+          {/* PPT B 单页预览 - 使用 Canvas 渲染器（支持 PptxViewJS 降级） */}
           <PptCanvasPreview
             label="PPT B 预览"
             pages={fallbackModeB && fallbackDataB.length > 0 ? fallbackDataB : pptBPages}
