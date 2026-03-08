@@ -420,6 +420,15 @@
       "taskId": "feat-106",
       "statusAfter": "done",
       "notes": "完成 feat-106 P1 LLM 配置页面测试。\n\n**测试步骤**:\n1. 导航到 /settings 页面，配置加载成功（DeepSeek 已配置为默认）✅\n2. 切换服务商下拉框从 DeepSeek 到 OpenAI，自动填充 Base URL 和模型 ✅\n3. 填写 API Key(sk-test123456789) 并保存，显示'配置保存成功' ✅\n4. 点击测试连接按钮，显示'测试中...'→'连接测试超时，请检查网络' ✅\n\n**测试结果**:\n- 页面加载：PASS\n- 服务商切换：PASS（自动填充默认值）\n- 配置保存：PASS（左侧列表实时更新）\n- 测试连接：PASS（功能正常，无效 Key 返回超时错误属预期）\n\n**给下一会话的提醒**:\n- feat-106 已完成，7 个任务中 6 个 done，0 个 failed\n- 测试连接功能依赖网络和有效 API Key，使用测试 Key 会返回超时错误"
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-08T03:02:30.194Z",
+      "result": "success",
+      "cost": null,
+      "taskId": "feat-101-long-wait",
+      "statusAfter": "done",
+      "notes": "完成 feat-101-long-wait P0 核心流程长等待测试。测试通过：PPT 生成成功（16 页），下载功能正常，历史记录正常。问题：browser_wait_for 实际超时 30 秒而非 180 秒。修复：重启后端服务。报告：record/test-101-long-wait.md。下次：feat-104-retest 图片上传测试。"
     }
   ]
 }

@@ -255,7 +255,7 @@
         "【P1】browser_snapshot 验证预览页面和下载按钮",
         "【记录】测试结果写入 record/test-104-image-upload-v2.md"
       ],
-      "status": "pending",
+      "status": "in_progress",
       "depends_on": []
     },
     {
@@ -280,7 +280,7 @@
         "【P0】browser_snapshot 验证下载链接",
         "【记录】测试结果写入 record/test-102-merge-flow-v2.md"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     }
   ]
