@@ -770,7 +770,7 @@
       "priority": 147,
       "category": "test",
       "description": "P1 API 测试：结构化解析 / 版本操作 / 最终生成",
-      "status": "pending",
+      "status": "in_progress",
       "depends_on": [
         "feat-137",
         "feat-140",
@@ -807,7 +807,7 @@
       "priority": 148,
       "category": "test",
       "description": "P2 边界测试：复杂元素检测",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-137",
         "feat-144"
@@ -829,7 +829,8 @@
         "边界场景有明确提示",
         "不出现页面崩溃",
         "用户可继续操作"
-      ]
+      ],
+      "notes": "Session 14: 测试完成。1) 创建包含柱状图的测试 PPT (test_chart.pptx)；2) 后端 API 正确检测到第 2 页包含图表 (complex_element_slides: [2])；3) 前端 ComplexElementWarningCard 组件正确显示警告卡片 (标题/说明/页码按钮/提示)；4) 用户可通过按钮切换保留/跳过状态。验收标准全部达成。"
     }
   ]
 }

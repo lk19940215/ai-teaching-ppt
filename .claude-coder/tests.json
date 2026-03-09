@@ -225,5 +225,13 @@
       "last_result": "pass",
       "last_run_session": 13
     }
+    {
+      "id": "test-feat148-complex-elements",
+      "feature_id": "feat-148",
+      "verify": "echo 'Playwright MCP: /merge 上传 test_chart.pptx (包含图表) -> 验证复杂元素警告卡片显示'",
+      "expected": "复杂元素警告卡片显示：标题'PPT A 包含复杂元素（图表/SmartArt）'、说明文本、第 2 页按钮、提示'复杂元素页面无法进行 AI 内容级合并'",
+      "last_result": "pass",
+      "last_run_session": 14
+    }
   ]
 }

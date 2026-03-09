@@ -717,6 +717,15 @@
       "taskId": "feat-145",
       "statusAfter": "in_progress",
       "notes": "【Session 12 - feat-145 修复进展】【核心 Bug 修复】1) 修复前端 MergePlanPanel 组件 TypeError：添加空值检查，当 mergePlan 为 null 或 slide_plan 为空时显示 loading/降级 UI，避免 'Cannot read properties of undefined (reading 'map')' 崩溃；2) 修复 .env.local 配置：NEXT_PUBLIC_API_URL 从 8002 改为 8000（之前请求发送到旧后端实例）。【验证结果】前端 TypeScript 编译通过，页面不再崩溃，安全降级正常工作（显示'暂无合并方案数据'），控制台 0 错误。【遗留问题】后端 SSE 流响应可能卡住：curl 测试 API 返回 200 但前端未收到完整 SSE 事件，日志显示'无法解析响应体为有效 JSON'。需要下个 session 继续调试：1) 检查 LLM API 调用是否超时；2) 验证 SSE 流编码问题；3) 确认 content_merger.py 中 merge_full 方法是否正常返回。【下 session 提醒】后端代码未修改，重点调试 SSE 流处理和 LLM 调用超时问题。"
+    },
+    {
+      "session": 13,
+      "timestamp": "2026-03-09T20:28:16.468Z",
+      "result": "success",
+      "cost": null,
+      "taskId": "feat-146",
+      "statusAfter": "done",
+      "notes": "【Session 13 - feat-146 错误场景测试完成】【测试场景】1) LibreOffice 未安装：代码审查通过，/api/v1/ppt/convert-to-images API 已有完整错误处理（返回 503 + 安装指引）；2) 文件格式错误：发现 BadZipFile 异常未捕获 Bug，已修复（backend/app/api/ppt.py 添加 import zipfile 和第 1235-1241 行 BadZipFile 异常处理）。【Bug 修复】用户上传非 PPTX 格式文件时，后端从返回 500 'PPT 解析失败' 改为返回 400 '文件格式错误：xxx 不是有效的 PPTX 文件，请确保文件完整且未损坏'。【验收标准】错误提示清晰友好✓、不出现未捕获异常✓、用户可恢复操作✓。【测试报告】record/feat-146-error-scenario-test-report.md。【tests.json】新增 test-feat146-error-scenarios 验证记录。"
     }
   ]
 }
