@@ -690,6 +690,15 @@
       "taskId": "feat-145",
       "statusAfter": "failed",
       "notes": "【Session 9 - feat-145 测试执行】【完成步骤】1. 环境验证：后端正常 2. 页面加载正常 3. 双 PPT 上传成功 (22+17 页) 4. API Key 配置正确 5. 后端 API 验证通过【失败步骤】6. AI 融合请求失败 (Failed to fetch) - 前端 fetch 被阻止，后端 API 正常，CORS 配置正确，可能 SSE 流响应处理问题【下 session 提醒】1. 排查前端 fetch 配置 2. 检查 CORS 中间件顺序 3. 建议改用 API 测试验证后端功能"
+    },
+    {
+      "session": 10,
+      "timestamp": "2026-03-09T19:37:05.690Z",
+      "result": "success",
+      "cost": 4.510450499999998,
+      "taskId": "feat-145",
+      "statusAfter": "failed",
+      "notes": "【Session 10 - feat-145 测试执行】【根因分析】前端→后端 AI 融合请求持续失败（Failed to fetch/net::ERR_FAILED），但：1) 后端健康检查通过；2) CORS 预检返回 200；3) Python 直接调用后端 ContentMerger.process_single_page() 成功；4) 简单 POST 请求（无文件）能到达后端返回 422。推断问题出在 Playwright MCP 浏览器环境与后端之间的文件传输或 SSE 流响应处理，而非后端代码。【下 session 提醒】建议：1) 使用独立 Playwright CLI 测试脚本（而非 MCP 交互模式）；2) 或先验证版本化 API（/session/create、/version/create 等）；3) 或检查 Playwright MCP 配置中的文件上传限制。"
     }
   ]
 }

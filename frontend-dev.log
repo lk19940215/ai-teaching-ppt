@@ -53,3 +53,36 @@
  ✓ Compiled in 82ms (237 modules)
  ✓ Compiled in 115ms (237 modules)
  ✓ Compiled in 168ms (223 modules)
+ GET / 200 in 63ms
+ ✓ Compiled in 151ms (237 modules)
+ ✓ Compiled in 111ms (237 modules)
+ ✓ Compiled in 89ms (237 modules)
+ ✓ Compiled in 101ms (237 modules)
+ ✓ Compiled in 131ms (237 modules)
+ ✓ Compiled in 115ms (237 modules)
+ ✓ Compiled in 100ms (237 modules)
+ ✓ Compiled in 97ms (237 modules)
+ ○ Compiling /merge ...
+ ✓ Compiled /merge in 1217ms (758 modules)
+ GET /merge 200 in 1472ms
+ ✓ Compiled / in 124ms (368 modules)
+ GET / 200 in 331ms
+ ✓ Compiled /merge in 102ms (454 modules)
+ GET /merge 200 in 395ms
+ GET /merge 200 in 88ms
+ GET / 200 in 42ms
+ GET / 200 in 36ms
+ GET /merge 200 in 70ms
+ ○ Compiling /settings ...
+ ✓ Compiled /settings in 697ms (783 modules)
+ GET /settings 200 in 964ms
+ GET /merge 200 in 138ms
+ ✓ Compiled / in 155ms (461 modules)
+ GET / 200 in 306ms
+ GET /merge 200 in 105ms
+ GET /settings 200 in 79ms
+ GET /merge 200 in 80ms
+ GET /merge 200 in 72ms
+ GET / 200 in 37ms
+ GET /merge 200 in 78ms
+ GET /merge 200 in 79ms

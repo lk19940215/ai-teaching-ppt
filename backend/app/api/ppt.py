@@ -2051,6 +2051,7 @@ async def convert_ppt_to_images(
 
 
 # ==================== AI 内容融合引擎 API ====================
+# 修复：移除错误的 sse_generator 导入（它在 ppt.py 中定义，不在 ppt_generator.py 中）
 
 @router.post('/ppt/ai-merge')
 async def ai_merge_ppts(
@@ -2135,7 +2136,6 @@ async def ai_merge_ppts(
             await progress_queue.put(None)
     task = asyncio.create_task(merge_in_background())
     await asyncio.sleep(0)
-    from ..services.ppt_generator import sse_generator
     return StreamingResponse(sse_generator(progress_queue), media_type='text/event-stream', headers={'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'X-Accel-Buffering': 'no'})
 
 
