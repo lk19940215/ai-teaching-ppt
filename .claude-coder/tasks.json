@@ -569,7 +569,7 @@
       "priority": 141,
       "category": "frontend",
       "description": "P0 前端预览组件：版本化图片显示 + 历史查看",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-140"
       ],

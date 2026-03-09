@@ -1,6 +1,6 @@
 {
   "session_result": "success",
-  "status_before": "testing",
+  "status_before": "pending",
   "status_after": "done",
-  "notes": "feat-140 版本化预览 API 实现完成并标记为 done\n\n【实现内容】\n1. 数据模型（models/ppt_structure.py）：\n   - SlideVersion, SlideStatus, SlideState, DocumentState, SessionData\n\n2. 版本管理服务（services/version_manager.py）：\n   - VersionManager 类，管理会话/版本/页面状态\n   - 支持创建会话、创建版本、恢复版本、删除/恢复页面\n\n3. API 端点（api/ppt.py，6 个）：\n   - POST /session/create, POST /version/create, POST /version/restore\n   - POST /slide/toggle, GET /session/{id}, GET /session/{id}/history\n\n【验证状态】\n- Python 语法检查通过 ✓\n- Python 模块导入验证：6 个端点已注册 ✓\n- 代码已提交 ✓\n\n【说明】\n- uvicorn 测试遇到 Windows 进程管理问题（进程自动重启不加载新代码）\n- 但代码实现完整，语法验证通过，可标记为 done\n- 端到端测试可在 feat-145 统一进行\n\n【下一个会话】\n- 继续 feat-141 前端预览组件开发\n- feat-145 时统一进行端到端测试"
+  "notes": "feat-141 前端预览组件：版本化图片显示 + 历史查看 - 实现完成\n\n【实现内容】\n1. 新增组件：\n   - version-switcher.tsx: 版本切换器\n   - version-history-panel.tsx: 版本历史面板\n   - scroll-area.tsx: 滚动区域 UI 组件\n\n2. 修改组件：\n   - ppt-canvas-preview.tsx: 集成版本化功能\n\n3. 新增 API 调用模块：\n   - version-api.ts: 6 个 API 封装函数\n\n4. 后端 API 修正：\n   - ppt.py: 修正版本化 API 路径\n\n【验证状态】\n- TypeScript 编译通过 ✓\n- 后端 API 端点验证通过 ✓\n- 代码已 git commit ✓"
 }
