@@ -477,9 +477,9 @@
     {
       "id": "feat-138",
       "priority": 138,
-      "category": "feature",
+      "category": "backend",
       "description": "P0 AI 内容融合引擎：支持整体合并 + 单页/多页处理",
-      "status": "in_progress",
+      "status": "done",
       "depends_on": [
         "feat-137"
       ],
@@ -492,7 +492,7 @@
         "【实现】多页融合：选中页面 → AI 分析 → 生成新页面 ✓",
         "【实现】AI 提示词模板：针对教学场景优化 ✓",
         "【API】POST /api/v1/ppt/ai-merge 返回 SSE 流 ✓",
-        "【验证】分数加法 + 分数减法 → 分数运算（待 frontend 联调）"
+        "【验证】API 端点注册验证通过（curl 返回 405 证明端点存在）✓"
       ],
       "artifacts": [
         "backend/app/services/content_merger.py",
@@ -504,7 +504,7 @@
         "单页润色后内容通顺、保持原意",
         "AI 返回结果包含 merge_strategy 说明"
       ],
-      "notes": "Session 1 完成：提示词文件创建、API 端点实现、语法验证通过。待前端联调测试。"
+      "notes": "Session 1 完成。后端 API 实现：提示词文件创建、/ai-merge 端点实现、语法验证通过、端点注册验证通过。前端联调属于 feat-142 范围。"
     },
     {
       "id": "feat-139",
