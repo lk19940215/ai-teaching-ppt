@@ -22,3 +22,17 @@ INFO:     127.0.0.1:4125 - "POST /api/v1/ppt/generate-final HTTP/1.1" 404 Not Fo
 INFO:     127.0.0.1:4174 - "GET /health HTTP/1.1" 200 OK
 INFO:     127.0.0.1:4177 - "POST /api/v1/ppt/generate-final HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:4182 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10683 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10813 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10815 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10820 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10945 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10958 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10961 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10966 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10986 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10996 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10998 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:11020 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:11099 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:11102 - "POST /api/v1/ppt/parse HTTP/1.1" 200 OK
