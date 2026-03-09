@@ -2023,3 +2023,92 @@ async def convert_ppt_to_images(
         logger.error(f"PPT 转图片失败: {e}")
         raise HTTPException(status_code=500, detail=f"转换失败: {str(e)}")
 
+
+
+# ==================== AI 内容融合引擎 API ====================
+
+@router.post('/ppt/ai-merge')
+async def ai_merge_ppts(
+    file_a: UploadFile = File(..., description='PPT A 文件'),
+    file_b: UploadFile = File(..., description='PPT B 文件'),
+    merge_type: str = Form('full', description='合并类型'),
+    selected_pages_a: str = Form('', description='PPT A 选中页码'),
+    selected_pages_b: str = Form('', description='PPT B 选中页码'),
+    single_page_action: str = Form('polish', description='单页处理动作'),
+    single_page_index: int = Form(0, description='单页处理的页码'),
+    source_doc: str = Form('A', description='单页处理的源文档'),
+    custom_prompt: str = Form('', description='自定义合并提示语'),
+    provider: str = Form('deepseek', description='LLM 服务商'),
+    api_key: str = Form(..., description='API Key'),
+    temperature: float = Form(0.3, description='温度参数'),
+    max_tokens: int = Form(3000, description='最大输出 token'),
+):
+    import tempfile
+    import asyncio
+    progress_queue = asyncio.Queue()
+    async def merge_in_background():
+        temp_a = None
+        temp_b = None
+        try:
+            logger.info(f'开始 AI 内容融合：type={merge_type}')
+            await progress_queue.put({"stage": "analysis", "progress": 10, "message": "正在解析 PPT A 内容..."})
+            content_a = await file_a.read()
+            temp_dir_a = Path(tempfile.gettempdir()) / 'ppt_ai_merge'
+            temp_dir_a.mkdir(parents=True, exist_ok=True)
+            temp_a = temp_dir_a / f'{uuid.uuid4().hex}_{file_a.filename}'
+            async with aiofiles.open(temp_a, 'wb') as f:
+                await f.write(content_a)
+            from ..services.ppt_content_parser import parse_pptx_to_structure
+            doc_a = parse_pptx_to_structure(temp_a)
+            logger.info(f'PPT A 解析完成：{len(doc_a.get("slides", []))} 页')
+            await progress_queue.put({"stage": "analysis", "progress": 25, "message": "正在解析 PPT B 内容..."})
+            content_b = await file_b.read()
+            temp_dir_b = Path(tempfile.gettempdir()) / 'ppt_ai_merge'
+            temp_dir_b.mkdir(parents=True, exist_ok=True)
+            temp_b = temp_dir_b / f'{uuid.uuid4().hex}_{file_b.filename}'
+            async with aiofiles.open(temp_b, 'wb') as f:
+                await f.write(content_b)
+            doc_b = parse_pptx_to_structure(temp_b)
+            logger.info(f'PPT B 解析完成：{len(doc_b.get("slides", []))} 页')
+            await progress_queue.put({"stage": "thinking", "progress": 50, "message": "正在调用 AI 生成合并策略..."})
+            from ..services.content_merger import get_content_merger
+            merger = get_content_merger(provider=provider, api_key=api_key, temperature=temperature, max_tokens=max_tokens)
+            if merge_type == 'full':
+                plan = merger.merge_full(doc_a, doc_b, custom_prompt)
+                result = {'merge_type': 'full', 'plan': {'merge_strategy': plan.merge_strategy, 'summary': plan.summary, 'knowledge_points': plan.knowledge_points, 'slide_plan': [{'action': p.action.value, 'source': p.source, 'slide_index': p.slide_index, 'sources': p.sources, 'new_content': p.new_content, 'instruction': p.instruction, 'reason': p.reason} for p in plan.slide_plan]}}
+            elif merge_type == 'single':
+                source_doc_data = doc_a if source_doc == 'A' else doc_b
+                slides = source_doc_data.get('slides', [])
+                if single_page_index < 0 or single_page_index >= len(slides):
+                    raise ValueError(f'页码超出范围：{single_page_index}')
+                result = merger.process_single_page(slides[single_page_index], single_page_action, custom_prompt)
+                result['merge_type'] = 'single'
+            elif merge_type == 'partial':
+                pages_a_idx = [int(p.strip()) for p in selected_pages_a.split(',') if p.strip()] if selected_pages_a else []
+                pages_b_idx = [int(p.strip()) for p in selected_pages_b.split(',') if p.strip()] if selected_pages_b else []
+                slides_a, slides_b = doc_a.get('slides', []), doc_b.get('slides', [])
+                pages_a = [slides_a[i] for i in pages_a_idx if 0 <= i < len(slides_a)]
+                pages_b = [slides_b[i] for i in pages_b_idx if 0 <= i < len(slides_b)]
+                if not pages_a and not pages_b:
+                    raise ValueError('至少需要选择一个页面')
+                result = merger.merge_pages(pages_a, pages_b, custom_prompt)
+                result['merge_type'] = 'partial'
+            else:
+                raise ValueError(f'不支持的合并类型：{merge_type}')
+            await progress_queue.put({"stage": "complete", "progress": 100, "message": "AI 内容融合完成！", "result": result})
+        except ValueError as e:
+            logger.error(f'参数错误：{e}')
+            await progress_queue.put({"stage": "error", "progress": 0, "message": f'参数错误：{str(e)}'})
+        except Exception as e:
+            logger.error(f'AI 融合失败：{e}')
+            await progress_queue.put({"stage": "error", "progress": 0, "message": f'AI 融合失败：{str(e)}'})
+        finally:
+            for temp_path in [temp_a, temp_b]:
+                try:
+                    if temp_path and temp_path.exists(): temp_path.unlink()
+                except: pass
+            await progress_queue.put(None)
+    task = asyncio.create_task(merge_in_background())
+    await asyncio.sleep(0)
+    from ..services.ppt_generator import sse_generator
+    return StreamingResponse(sse_generator(progress_queue), media_type='text/event-stream', headers={'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'X-Accel-Buffering': 'no'})
