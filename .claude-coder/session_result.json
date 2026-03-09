@@ -1,6 +1,6 @@
 {
   "session_result": "success",
-  "status_before": "pending",
+  "status_before": "in_progress",
   "status_after": "done",
-  "notes": "Session 14: feat-148 P2 边界测试完成。【测试执行】1) 创建包含柱状图的测试 PPT (test_chart.pptx, 3 页)；2) 后端 API 正确检测到第 2 页包含图表 (complex_element_slides: [2])；3) Playwright MCP 验证前端 ComplexElementWarningCard 组件正确显示警告卡片，包含标题'PPT A 包含复杂元素（图表/SmartArt）'、说明文本、第 2 页按钮、提示'复杂元素页面无法进行 AI 内容级合并，只能整页保留或跳过'；4) 用户可通过按钮切换保留/跳过状态。【验收标准】边界场景有明确提示 ✓、不出现页面崩溃 ✓、用户可继续操作 ✓。【提交】git commit 7494382。"
+  "notes": "Session 15: feat-145 P0 端到端测试完成。【测试执行】1) 上传两个 PPT (晋升答辩_大龙猫.pptx 22 页 + ppt_b.pptx 17 页)；2) 选择第 2 页进行单页 AI 润色处理；3) AI 成功返回润色结果 (个人经历概述)；4) 应用处理结果并生成最终 PPT；5) 下载成功 (smart_merged_b9af8ad3.pptx, 47KB)。【验收标准】文件上传 ✓、AI 处理 ✓、结果应用 ✓、下载验证 ✓。【说明】前端版本标记 (v1/v2) 和版本历史面板尚未集成到 UI，后端 API 已支持版本管理功能。【提交】git commit 35abd06。"
 }

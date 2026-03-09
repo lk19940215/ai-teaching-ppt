@@ -224,7 +224,23 @@
       "expected": "HTTP 400, 返回 \"文件格式错误：fake.pptx 不是有效的 PPTX 文件\"",
       "last_result": "pass",
       "last_run_session": 13
-    }
+    },
+    {
+      "id": "test-feat147-api",
+      "feature_id": "feat-147",
+      "verify": "curl -s -X POST http://localhost:8000/api/v1/ppt/parse-structured -F 'file=@uploads/generated/晋升答辩_大龙猫.pptx' | python -c \"import sys,json; d=json.load(sys.stdin); print('document_id' in d and 'slides' in d and 'teaching_content' in str(d))\"",
+      "expected": "HTTP 200, 返回 document_id、slides 数组（含 teaching_content 字段）",
+      "last_result": "pass",
+      "last_run_session": 16
+    },
+    {
+      "id": "test-feat147-generate-final",
+      "feature_id": "feat-147",
+      "verify": "curl -s -X POST http://localhost:8000/api/v1/ppt/generate-final -H 'Content-Type: application/json' -d '{\"session_id\":\"invalid\",\"title\":\"test\"}' | grep -q '会话不存在' && echo PASS",
+      "expected": "HTTP 404, 返回 detail='会话不存在：xxx'，错误处理正确",
+      "last_result": "pass",
+      "last_run_session": 16
+    },
     {
       "id": "test-feat148-complex-elements",
       "feature_id": "feat-148",
