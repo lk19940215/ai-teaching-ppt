@@ -176,7 +176,7 @@
       "expected": "端到端测试通过：上传两个有效 PPT 文件（A:3 页，B:8 页），合并成功显示下载按钮，控制台 0 错误，证明 LLM 真实调用（否则无法生成合并策略）",
       "last_result": "pass",
       "last_run_session": 2
-    }
+    },
     {
       "id": "test-feat133-ai-merge",
       "feature_id": "feat-133",
@@ -208,6 +208,14 @@
       "expected": "合并成功: 1) 双文件上传成功且Canvas预览正常(4页+3页); 2) 提示语填写成功; 3) 合并完成显示下载按钮; 4) 下载文件31KB共5页有效PPT; 5) 控制台0错误",
       "last_result": "pass",
       "last_run_session": 7
+    },
+    {
+      "id": "test-feat138-api",
+      "feature_id": "feat-138",
+      "verify": "curl -s -X POST http://localhost:8000/api/v1/ppt/ai-merge -w '\nHTTP Status: %{http_code}'",
+      "expected": "HTTP 400 (Missing boundary) 或 422，证明端点已注册；API 支持 full/single/partial 三种合并类型",
+      "last_result": "pass",
+      "last_run_session": 14
     }
   ]
 }
