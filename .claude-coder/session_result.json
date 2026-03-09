@@ -1,6 +1,5 @@
 {
-  "session_result": "failed",
+  "session_result": "success",
   "status_before": "pending",
-  "status_after": "failed",
-  "notes": "feat-307 验证失败。问题：LLM API 调用返回 'Connection error'。诊断结果：1) API Key 有效（Python 脚本直接调用 DeepSeek 成功，tokens used: 16）；2) 后端服务运行正常（健康检查通过）；3) SSE 流能收到前两阶段事件（10% uploading, 25% parsing）；4) LLM 调用阶段失败（calling_llm, 50%）。根因：多个 uvicorn --reload 进程（PID: 17784, 9272, 18184, 14384, 2028, 17752）导致网络状态异常，这些进程无法被 npx kill-port 完全停止。测试报告：record/merge-llm-verify-20260309.md。下一步需要系统管理员协助彻底停止 uvicorn 进程并冷启动。"
-}
+  "status_after": "done",
+  "notes": "修复 XML 命名空间解析遗漏单引号的问题\n\n问题根因：\n- _fix_invalid_namespaces() 的正则表达式 r'xmlns:ns(\\d+)=\"%s\"' 只匹配双引号\n- 用户遇到错误 'xmlns:ns2: \\'%s\\' is not a valid URI' 说明 XML 使用了单引号\n- 修复逻辑遗漏了单引号情况\n\n修复方案：\n1. 正则改为 r'xmlns:ns(\\d+)=([\\'\"])%s\\2' 同时匹配单引号和双引号\n2. 添加 replace_ns 回调函数保持引号类型一致\n3. 同步修改模块级别函数（第95行）和 parse_ppt 内部局部函数（第921行）\n\n验证：\n- 语法检查通过\n- 两处代码同步修复\n\n给下个会话的提醒：\n- 需要启动后端服务测试上传解析功能\n- 可使用用户提供的包含单引号命名空间的 PPTX 文件验证"
