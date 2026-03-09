@@ -3,7 +3,7 @@
 PPT 转图片服务
 使用 LibreOffice headless 模式将 PPTX 每页转换为 PNG 图片
 
-设计文档: .claude-coder/plans/ppt-merge-technical-design.md#5-版本化管理设计
+设计文档：.claude-coder/plans/ppt-merge-technical-design.md#5-版本化管理设计
 """
 
 import os
@@ -11,6 +11,7 @@ import uuid
 import logging
 import subprocess
 import shutil
+import tempfile
 from pathlib import Path
 from typing import List, Optional, Tuple, Dict, Any
 from dataclasses import dataclass
@@ -99,7 +100,7 @@ class LibreOfficeDetector:
                     logger.info(f"从注册表找到 LibreOffice: {soffice_path}")
                     return soffice_path
             except Exception as e:
-                logger.debug(f"注册表检测失败: {e}")
+                logger.debug(f"注册表检测失败：{e}")
 
         logger.warning("未找到 LibreOffice 安装")
         return None
@@ -182,6 +183,7 @@ class PptToImageConverter:
     ) -> ConversionResult:
         """
         将 PPTX 转换为 PNG 图片
+        使用 python-pptx 逐页提取并转换为图片
 
         Args:
             pptx_path: PPTX 文件路径
@@ -201,82 +203,154 @@ class PptToImageConverter:
             return ConversionResult(
                 success=False,
                 images=[],
-                error=f"文件不存在: {pptx_path}"
+                error=f"文件不存在：{pptx_path}"
             )
-
-        # 创建输出目录
-        session_id = str(uuid.uuid4())[:8]
-        session_dir = self.output_dir / session_id
-        session_dir.mkdir(parents=True, exist_ok=True)
 
         try:
-            # 执行转换
-            logger.info(f"开始转换: {pptx_path.name} -> {session_dir}")
+            # 先用 python-pptx 获取总页数
+            from pptx import Presentation
+            prs = Presentation(pptx_path)
+            total_slides = len(prs.slides)
 
-            cmd = [
-                self.soffice_path,
-                "--headless",
-                "--convert-to", "png",
-                "--outdir", str(session_dir),
-                str(pptx_path)
-            ]
+            # 确定要转换的页码
+            if pages is not None:
+                slide_indices = [i for i in pages if i < total_slides]
+            else:
+                slide_indices = list(range(total_slides))
 
-            # 计算超时
-            timeout = min(
-                self.timeout_per_page * 50,  # 估算最多 50 页
-                self.MAX_TIMEOUT
-            )
+            logger.info(f"开始转换：{pptx_path.name} ({len(slide_indices)} 页) -> {self.output_dir}")
 
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-                cwd=str(session_dir)
-            )
+            # 创建输出目录
+            session_id = str(uuid.uuid4())[:8]
+            session_dir = self.output_dir / session_id
+            session_dir.mkdir(parents=True, exist_ok=True)
 
-            if result.returncode != 0:
-                error_msg = result.stderr or result.stdout or "未知错误"
-                logger.error(f"转换失败: {error_msg}")
-                return ConversionResult(
-                    success=False,
-                    images=[],
-                    error=f"转换失败: {error_msg}"
-                )
+            # 逐页转换
+            images = []
+            base_name = pptx_path.stem
 
-            # 收集生成的图片
-            images = self._collect_images(session_dir, pages)
+            for slide_idx in slide_indices:
+                try:
+                    # 创建临时单页 PPTX
+                    temp_pptx = session_dir / f"temp_slide_{slide_idx}.pptx"
+                    self._create_single_slide_pptx(prs, slide_idx, temp_pptx)
 
-            logger.info(f"转换成功: 生成 {len(images)} 张图片")
+                    # 转换单页
+                    cmd = [
+                        self.soffice_path,
+                        "--headless",
+                        "--convert-to", "png",
+                        "--outdir", str(session_dir),
+                        str(temp_pptx)
+                    ]
+
+                    result = subprocess.run(
+                        cmd,
+                        capture_output=True,
+                        text=True,
+                        timeout=self.timeout_per_page,
+                        cwd=str(session_dir)
+                    )
+
+                    # 清理临时 PPTX
+                    try:
+                        temp_pptx.unlink()
+                    except Exception:
+                        pass
+
+                    if result.returncode != 0:
+                        logger.warning(f"第 {slide_idx} 页转换失败：{result.stderr}")
+                        continue
+
+                    # 找到生成的 PNG 文件（LibreOffice 会添加随机后缀）
+                    png_pattern = f"temp_slide_{slide_idx}*.png"
+                    png_files = list(session_dir.glob(png_pattern))
+                    if not png_files:
+                        logger.warning(f"第 {slide_idx} 页未找到生成的 PNG 文件")
+                        continue
+
+                    png_file = png_files[0]
+                    # 重命名为最终文件名
+                    final_name = f"{base_name}_page_{slide_idx}.png"
+                    final_path = session_dir / final_name
+                    png_file.rename(final_path)
+
+                    images.append({
+                        "page": slide_idx,
+                        "url": f"/static/versions/{session_id}/{final_name}",
+                        "path": str(final_path),
+                        "width": 1920,
+                        "height": 1080
+                    })
+
+                except subprocess.TimeoutExpired:
+                    logger.warning(f"第 {slide_idx} 页转换超时")
+                    continue
+                except Exception as e:
+                    logger.warning(f"第 {slide_idx} 页转换异常：{e}")
+                    continue
+
+            logger.info(f"转换成功：生成 {len(images)}/{len(slide_indices)} 张图片")
             return ConversionResult(
                 success=True,
                 images=images
             )
 
-        except subprocess.TimeoutExpired:
-            logger.error("转换超时")
-            return ConversionResult(
-                success=False,
-                images=[],
-                error="转换超时，请检查文件大小或增加超时时间"
-            )
         except Exception as e:
-            logger.exception(f"转换异常: {e}")
+            logger.exception(f"转换异常：{e}")
             return ConversionResult(
                 success=False,
                 images=[],
-                error=f"转换异常: {str(e)}"
+                error=f"转换异常：{str(e)}"
             )
+
+    def _create_single_slide_pptx(
+        self,
+        source_prs: "Presentation",
+        slide_idx: int,
+        output_path: Path
+    ) -> None:
+        """
+        从源 PPTX 提取单页创建新的 PPTX 文件
+        使用简化的方法 - 只复制 slide 的 XML
+
+        Args:
+            source_prs: 源 PPTX 对象
+            slide_idx: 要提取的页码（0-indexed）
+            output_path: 输出路径
+        """
+        from pptx import Presentation
+        from pptx.oxml import parse_xml
+
+        # 创建新的 PPTX
+        new_prs = Presentation()
+
+        # 获取源幻灯片
+        source_slide = source_prs.slides[slide_idx]
+
+        # 删除默认的空白幻灯片（如果有）
+        if len(new_prs.slides) > 0:
+            new_prs.slides._sldIdLst.remove(new_prs.slides._sldIdLst[0])
+
+        # 复制源幻灯片的 XML
+        source_xml = source_slide._element.xml
+        new_slide_element = parse_xml(source_xml.encode('utf-8'))
+
+        # 添加到新 PPTX
+        new_prs.slides._sldIdLst.append(new_slide_element)
+
+        # 保存
+        new_prs.save(str(output_path))
 
     def _collect_images(
         self,
         session_dir: Path,
         pages: Optional[List[int]] = None
     ) -> List[Dict[str, Any]]:
-        """收集生成的图片"""
+        """收集生成的图片（备用方法：当直接转换多页 PPT 时）"""
         images = []
 
-        # LibreOffice 输出格式: filename.png, filename_2.png, filename_3.png, ...
+        # LibreOffice 输出格式：filename.png, filename_2.png, filename_3.png, ...
         png_files = sorted(session_dir.glob("*.png"))
 
         for idx, png_file in enumerate(png_files):
@@ -311,9 +385,7 @@ class PptToImageConverter:
         Returns:
             ConversionResult 转换结果
         """
-        # LibreOffice 不支持单页转换，需要转换全部然后筛选
-        result = self.convert(pptx_path, pages=[page_index])
-        return result
+        return self.convert(pptx_path, pages=[page_index])
 
 
 # 便捷函数

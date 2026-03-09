@@ -511,7 +511,7 @@
       "priority": 139,
       "category": "feature",
       "description": "P0 LibreOffice 转 PNG：每页生成预览图片",
-      "status": "pending",
+      "status": "done",
       "depends_on": [],
       "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#5-版本化管理设计",
       "steps": [
@@ -530,7 +530,8 @@
         "能检测 LibreOffice 是否安装",
         "转换成功率 > 95%",
         "图片分辨率支持 high/medium/low 三档"
-      ]
+      ],
+      "notes": "Session 2 完成。LibreOffice 已安装 (winget install)，ppt_to_image.py 实现逐页转换（python-pptx 提取单页 + LibreOffice 转换）。API 端点 /api/v1/ppt/convert-to-images 测试通过，22 页 PPT 全部转换为 PNG。"
     },
     {
       "id": "feat-140",
