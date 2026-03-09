@@ -627,6 +627,31 @@
       "taskId": "feat-134",
       "statusAfter": "done",
       "notes": "feat-134 P0 提示词优化效果验证完成。执行了3个场景的Playwright端到端测试:\n1) 场景1-无提示语基础测试: 上传4页PPT A和3页PPT B，不输入任何提示语直接合并 -> 成功生成6页PPT\n2) 场景2-保留/废弃指令测试: 为PPT A第2页设置keep='保留目录页结构'/discard='删除多余文字'，为PPT B第2页设置keep='保留小数乘法概念' -> 成功合并，页面级提示词工作正常\n3) 场景3-全局策略模板测试: 输入全局策略'优先保留A文件框架...按概念→例题→练习排序' -> 成功合并，全局提示词影响策略生成\n\n所有场景均成功生成有效PPTX文件，提示词编辑器(keep/discard格式)和全局策略功能工作正常。任务状态已更新为done。"
+    },
+    {
+      "type": "rollback",
+      "timestamp": "2026-03-09T10:26:10.943Z",
+      "reason": "校验失败",
+      "rollbackTo": "be8d3acc820e80110ced6f6f9297d217bcf8011e",
+      "success": true
+    },
+    {
+      "session": 6,
+      "timestamp": "2026-03-09T10:31:52.993Z",
+      "result": "success",
+      "cost": 3.503177000000001,
+      "taskId": "feat-136",
+      "statusAfter": "done",
+      "notes": "P0 端到端完整流程测试全部通过！\n\n测试场景：跨学科 PPT 合并（数学+语文）\n- PPT A: test_math.pptx（3页，小数加减法）\n- PPT B: test_chinese.pptx（8页，静夜思）\n- 提示语: 跨学科综合课件策略\n\n测试结果：\n1. 双文件上传成功，Canvas 预览正常渲染\n2. 合并提示语填写成功\n3. 开始合并按钮触发成功\n4. 合并流程完成，显示'合并成功！'\n5. 下载功能正常，HTTP 200\n6. 文件验证通过：有效的 PPTX，8 页幻灯片\n\n测试数据已清理（test_math.pptx, test_chinese.pptx）\n后台服务保持运行（连续模式）"
+    },
+    {
+      "session": 7,
+      "timestamp": "2026-03-09T10:37:51.658Z",
+      "result": "success",
+      "cost": 3.433185,
+      "taskId": "feat-136",
+      "statusAfter": "done",
+      "notes": "Session 7 - feat-136 P0 端到端完整流程测试全部通过！\n\n测试场景：跨学科 PPT 合并（数学+语文）\n- PPT A: test_ppt_a.pptx (4页)\n- PPT B: test_ppt_b.pptx (3页)\n- 提示语: 跨学科综合课件策略\n\n验证结果：\n✅ 1. 导航到 /merge 页面成功\n✅ 2. PPT A 上传成功（共4页），Canvas预览正常\n✅ 3. PPT B 上传成功（共3页），Canvas预览正常\n✅ 4. 提示语填写成功：'跨学科综合课件策略'\n✅ 5. 合并成功，显示'合并成功！'和下载按钮\n✅ 6. 下载文件 smart_merged_a3841a21.pptx (31KB，共5页)\n✅ 7. python-pptx 验证文件有效\n✅ 8. 控制台 0 错误\n\nAI 合并策略有效：原7页(4+3) → 合并后5页，说明AI进行了智能筛选和整合\n\n项目状态：22/22 tasks done (100%) - 所有功能全部完成！\n"
     }
   ]
 }
