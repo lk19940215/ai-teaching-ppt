@@ -110,3 +110,11 @@ hook 用法，用于在 Claude 执行特定操作时，触发通知。
 [触发通知的 hook 示例](https://code.claude.com/docs/zh-CN/hooks#notification)
 
 ```
+
+# 其它
+
+## 2026-03-09
+
+### 问题
+- playwright mcp与 playwright test/ cli 的对比
+    进过对比，发现 playwright mcp 的测试能力更强，适用于不稳定、复杂的测试场景。可以让AI自我发现问题。而其它测试工具，如 playwright test/ cli ，则更适用于确认性的场景。
