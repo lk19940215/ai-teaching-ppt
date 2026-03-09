@@ -1859,3 +1859,167 @@ async def smart_merge_ppt_stream(
         }
     )
 
+
+@router.post("/ppt/parse-structured")
+async def parse_ppt_structured(
+    file: UploadFile = File(..., description="要解析的 PPTX 文件"),
+    max_image_size: int = Form(512, description="图片最大尺寸（用于压缩）"),
+):
+    """
+    解析 PPTX 文件为中间结构（供 AI 消费）
+
+    返回结构化的中间数据，包含：
+    - 每页的元素列表（文本、图片、表格）
+    - 元素的位置、样式
+    - 教学语义（页面类型、教学角色）
+
+    设计文档: .claude-coder/plans/ppt-merge-technical-design.md#2-数据结构设计
+
+    Returns:
+        JSON 格式的中间结构
+    """
+    import tempfile
+
+    try:
+        # 验证文件类型
+        if not file.filename.lower().endswith(".pptx"):
+            raise HTTPException(status_code=400, detail="仅支持 .pptx 格式文件")
+
+        # 保存到临时文件
+        content_bytes = await file.read()
+        temp_dir = Path(tempfile.gettempdir()) / "ppt_parse_structured"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+        temp_path = temp_dir / f"{uuid.uuid4().hex}_{file.filename}"
+
+        async with aiofiles.open(temp_path, "wb") as f:
+            await f.write(content_bytes)
+
+        # 调用解析服务
+        from ..services.ppt_content_parser import parse_pptx_to_structure
+
+        result = parse_pptx_to_structure(temp_path, max_image_size=max_image_size)
+
+        # 清理临时文件
+        try:
+            temp_path.unlink()
+        except Exception:
+            pass
+
+        logger.info(f"结构化解析完成: {file.filename}, {len(result.get('slides', []))} 页")
+
+        return JSONResponse(content=result)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"结构化解析失败: {e}")
+        raise HTTPException(status_code=500, detail=f"解析失败: {str(e)}")
+
+
+@router.get("/ppt/libreoffice-status")
+async def get_libreoffice_status():
+    """
+    检查 LibreOffice 安装状态
+
+    Returns:
+        installed: 是否已安装
+        path: 安装路径（已安装时）
+        guide: 安装指引（未安装时）
+    """
+    from ..services.ppt_to_image import check_libreoffice
+
+    result = check_libreoffice()
+    return JSONResponse(content=result)
+
+
+@router.post("/ppt/convert-to-images")
+async def convert_ppt_to_images(
+    file: UploadFile = File(..., description="要转换的 PPTX 文件"),
+    resolution: str = Form("high", description="图片分辨率：high/medium/low"),
+    pages: str = Form("", description="指定页码，逗号分隔（可选，默认全部）"),
+):
+    """
+    将 PPTX 每页转换为 PNG 图片
+
+    使用 LibreOffice headless 模式实现 100% 真实渲染。
+
+    Args:
+        file: PPTX 文件
+        resolution: 图片分辨率 (high=1920x1080, medium=1280x720, low=640x360)
+        pages: 指定页码，如 "0,1,2"（可选）
+
+    Returns:
+        images: 图片列表 [{page, url, width, height}]
+
+    设计文档: .claude-coder/plans/ppt-merge-technical-design.md#5-版本化管理设计
+    """
+    import tempfile
+
+    try:
+        # 验证文件类型
+        if not file.filename.lower().endswith(".pptx"):
+            raise HTTPException(status_code=400, detail="仅支持 .pptx 格式文件")
+
+        # 解析页码
+        pages_list = None
+        if pages.strip():
+            try:
+                pages_list = [int(p.strip()) for p in pages.split(",")]
+            except ValueError:
+                raise HTTPException(status_code=400, detail="页码格式错误，应为逗号分隔的数字")
+
+        # 保存到临时文件
+        content_bytes = await file.read()
+        temp_dir = Path(tempfile.gettempdir()) / "ppt_to_image"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+        temp_path = temp_dir / f"{uuid.uuid4().hex}_{file.filename}"
+
+        async with aiofiles.open(temp_path, "wb") as f:
+            await f.write(content_bytes)
+
+        # 输出目录
+        output_dir = settings.UPLOAD_DIR / "versions"
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # 调用转换服务
+        from ..services.ppt_to_image import convert_pptx_to_images
+
+        result = convert_pptx_to_images(
+            pptx_path=temp_path,
+            output_dir=output_dir,
+            resolution=resolution,
+            pages=pages_list
+        )
+
+        # 清理临时文件
+        try:
+            temp_path.unlink()
+        except Exception:
+            pass
+
+        if not result["success"]:
+            # 检查是否是 LibreOffice 未安装
+            if "LibreOffice 未安装" in (result.get("error") or ""):
+                raise HTTPException(
+                    status_code=503,
+                    detail={
+                        "error": "LibreOffice 未安装",
+                        "guide": result.get("error", "")
+                    }
+                )
+            raise HTTPException(status_code=500, detail=result.get("error", "转换失败"))
+
+        logger.info(f"PPT 转图片完成: {file.filename}, {len(result['images'])} 页")
+
+        return JSONResponse(content={
+            "success": True,
+            "images": result["images"],
+            "total": len(result["images"])
+        })
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"PPT 转图片失败: {e}")
+        raise HTTPException(status_code=500, detail=f"转换失败: {str(e)}")
+

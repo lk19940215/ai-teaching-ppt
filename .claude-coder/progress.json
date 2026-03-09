@@ -603,55 +603,12 @@
     },
     {
       "session": 1,
-      "timestamp": "2026-03-09T09:06:42.253Z",
+      "timestamp": "2026-03-08T16:18:15.422Z",
       "result": "success",
-      "cost": 2.841901,
-      "taskId": "feat-116",
-      "statusAfter": "done",
-      "notes": "feat-116 完成：创建单进程启动脚本解决 uvicorn 多进程问题。\n\n交付物：\n1. backend/start.sh - 单进程生产模式（workers=1，无 reload）\n2. backend/start-dev.sh - 单进程开发模式（workers=1 + reload）\n3. backend/start.ps1 - Windows 单进程模式\n4. 更新 project_profile.json 服务配置\n\n测试验证：\n- Shell 脚本语法检查通过\n- Python 代码语法检查通过\n\n给下个会话的提醒：\n- 启动后端请使用 ./backend/start.sh（macOS/Linux）或 ./backend/start.ps1（Windows）\n- 当前待执行优先级最高任务：feat-133（P0 AI 真实调用验证）\n- 环境清理已完成，feat-133 可以正常执行"
-    },
-    {
-      "session": 2,
-      "timestamp": "2026-03-09T09:28:08.537Z",
-      "result": "success",
-      "cost": 9.529496999999997,
-      "taskId": "feat-133",
-      "statusAfter": "done",
-      "notes": "feat-133 P0 AI 真实调用验证完成。环境清理后完整流程测试通过：1) 单进程 uvicorn 启动成功；2) 上传 PPT A(3页) 和 PPT B(8页)；3) 合并流程正常执行；4) 生成文件 smart_merged_874f669d.pptx 有效（36KB，11页）；5) 代码确认 LLM 真实调用 llm_service.chat_with_usage()。Playwright MCP 使用 extension 模式，通过 JavaScript 注入 llm_config 解决 API Key 配置问题。"
-    },
-    {
-      "session": 3,
-      "timestamp": "2026-03-09T09:59:34.173Z",
-      "result": "success",
-      "cost": 14.399159000000004,
-      "taskId": "feat-134",
-      "statusAfter": "done",
-      "notes": "feat-134 P0 提示词优化效果验证完成。执行了3个场景的Playwright端到端测试:\n1) 场景1-无提示语基础测试: 上传4页PPT A和3页PPT B，不输入任何提示语直接合并 -> 成功生成6页PPT\n2) 场景2-保留/废弃指令测试: 为PPT A第2页设置keep='保留目录页结构'/discard='删除多余文字'，为PPT B第2页设置keep='保留小数乘法概念' -> 成功合并，页面级提示词工作正常\n3) 场景3-全局策略模板测试: 输入全局策略'优先保留A文件框架...按概念→例题→练习排序' -> 成功合并，全局提示词影响策略生成\n\n所有场景均成功生成有效PPTX文件，提示词编辑器(keep/discard格式)和全局策略功能工作正常。任务状态已更新为done。"
-    },
-    {
-      "type": "rollback",
-      "timestamp": "2026-03-09T10:26:10.943Z",
-      "reason": "校验失败",
-      "rollbackTo": "be8d3acc820e80110ced6f6f9297d217bcf8011e",
-      "success": true
-    },
-    {
-      "session": 6,
-      "timestamp": "2026-03-09T10:31:52.993Z",
-      "result": "success",
-      "cost": 3.503177000000001,
-      "taskId": "feat-136",
-      "statusAfter": "done",
-      "notes": "P0 端到端完整流程测试全部通过！\n\n测试场景：跨学科 PPT 合并（数学+语文）\n- PPT A: test_math.pptx（3页，小数加减法）\n- PPT B: test_chinese.pptx（8页，静夜思）\n- 提示语: 跨学科综合课件策略\n\n测试结果：\n1. 双文件上传成功，Canvas 预览正常渲染\n2. 合并提示语填写成功\n3. 开始合并按钮触发成功\n4. 合并流程完成，显示'合并成功！'\n5. 下载功能正常，HTTP 200\n6. 文件验证通过：有效的 PPTX，8 页幻灯片\n\n测试数据已清理（test_math.pptx, test_chinese.pptx）\n后台服务保持运行（连续模式）"
-    },
-    {
-      "session": 7,
-      "timestamp": "2026-03-09T10:37:51.658Z",
-      "result": "success",
-      "cost": 3.433185,
-      "taskId": "feat-136",
-      "statusAfter": "done",
-      "notes": "Session 7 - feat-136 P0 端到端完整流程测试全部通过！\n\n测试场景：跨学科 PPT 合并（数学+语文）\n- PPT A: test_ppt_a.pptx (4页)\n- PPT B: test_ppt_b.pptx (3页)\n- 提示语: 跨学科综合课件策略\n\n验证结果：\n✅ 1. 导航到 /merge 页面成功\n✅ 2. PPT A 上传成功（共4页），Canvas预览正常\n✅ 3. PPT B 上传成功（共3页），Canvas预览正常\n✅ 4. 提示语填写成功：'跨学科综合课件策略'\n✅ 5. 合并成功，显示'合并成功！'和下载按钮\n✅ 6. 下载文件 smart_merged_a3841a21.pptx (31KB，共5页)\n✅ 7. python-pptx 验证文件有效\n✅ 8. 控制台 0 错误\n\nAI 合并策略有效：原7页(4+3) → 合并后5页，说明AI进行了智能筛选和整合\n\n项目状态：22/22 tasks done (100%) - 所有功能全部完成！\n"
+      "cost": 7.193917250000002,
+      "taskId": "feat-307",
+      "statusAfter": "failed",
+      "notes": "feat-307 验证失败。问题：LLM API 调用返回 'Connection error'。诊断结果：1) API Key 有效（Python 脚本直接调用 DeepSeek 成功，tokens used: 16）；2) 后端服务运行正常（健康检查通过）；3) SSE 流能收到前两阶段事件（10% uploading, 25% parsing）；4) LLM 调用阶段失败（calling_llm, 50%）。根因：多个 uvicorn --reload 进程（PID: 17784, 9272, 18184, 14384, 2028, 17752）导致网络状态异常，这些进程无法被 npx kill-port 完全停止。测试报告：record/merge-llm-verify-20260309.md。下一步需要系统管理员协助彻底停止 uvicorn 进程并冷启动。"
     }
   ]
 }

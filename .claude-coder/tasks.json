@@ -2,7 +2,7 @@
   "project": "ai-teaching-ppt",
   "created_at": "2026-03-02",
   "last_updated": "2026-03-09",
-  "next_task_priority": 137,
+  "next_task_priority": 146,
   "priority_rules": {
     "001-099": "基础功能（已完成）",
     "100-149": "bugfix/maintenance - Bug 修复与维护",
@@ -14,86 +14,194 @@
     {
       "id": "milestone-1",
       "name": "基础设施搭建",
-      "features": ["feat-001", "feat-002", "feat-012", "feat-013"],
+      "features": [
+        "feat-001",
+        "feat-002",
+        "feat-012",
+        "feat-013"
+      ],
       "summary": "后端 FastAPI 脚手架、前端 Next.js 项目、Docker 部署、SQLite 数据库初始化",
       "completed_at": "2026-03-02"
     },
     {
       "id": "milestone-2",
       "name": "核心生成流程",
-      "features": ["feat-003", "feat-004", "feat-005", "feat-006", "feat-007"],
+      "features": [
+        "feat-003",
+        "feat-004",
+        "feat-005",
+        "feat-006",
+        "feat-007"
+      ],
       "summary": "文件上传/OCR/PDF 解析、教学配置面板、LLM 内容生成、PPTX 文件生成、预览下载",
       "completed_at": "2026-03-02"
     },
     {
       "id": "milestone-3",
       "name": "学科增强与自适应",
-      "features": ["feat-008", "feat-009", "feat-026", "feat-027"],
+      "features": [
+        "feat-008",
+        "feat-009",
+        "feat-026",
+        "feat-027"
+      ],
       "summary": "英语专属页面、年级自适应风格、PPT 风格映射、K-12 年级扩展（含高中）",
       "completed_at": "2026-03-03"
     },
     {
       "id": "milestone-4",
       "name": "历史记录与 LLM 配置",
-      "features": ["feat-010", "feat-011", "feat-020", "feat-021"],
+      "features": [
+        "feat-010",
+        "feat-011",
+        "feat-020",
+        "feat-021"
+      ],
       "summary": "生成历史记录、LLM 服务商切换、温度/token 配置、参数格式排查",
       "completed_at": "2026-03-03"
     },
     {
       "id": "milestone-5",
       "name": "PPT 质量优化",
-      "features": ["feat-015", "feat-016", "feat-017", "feat-043"],
+      "features": [
+        "feat-015",
+        "feat-016",
+        "feat-017",
+        "feat-043"
+      ],
       "summary": "LLM 提示词优化、PPT 模板优化、动画效果注入、点击显示答案 OOXML 实现",
       "completed_at": "2026-03-04"
     },
     {
       "id": "milestone-6",
       "name": "学科深度优化",
-      "features": ["feat-028", "feat-029", "feat-030", "feat-031", "feat-032", "feat-033"],
+      "features": [
+        "feat-028",
+        "feat-029",
+        "feat-030",
+        "feat-031",
+        "feat-032",
+        "feat-033"
+      ],
       "summary": "提示词引擎架构、语文/数学/理科/文科/英语学科深度提示词与专属页面",
       "completed_at": "2026-03-04"
     },
     {
       "id": "milestone-7",
       "name": "教学设计科学化",
-      "features": ["feat-034", "feat-035", "feat-036", "feat-037", "feat-038", "feat-039", "feat-040", "feat-041"],
+      "features": [
+        "feat-034",
+        "feat-035",
+        "feat-036",
+        "feat-037",
+        "feat-038",
+        "feat-039",
+        "feat-040",
+        "feat-041"
+      ],
       "summary": "认知负荷优化、注意力节奏引擎、布鲁姆分类法、先行组织者、问题链元认知、情境创设、差异化教学、错题分析",
       "completed_at": "2026-03-05"
     },
     {
       "id": "milestone-8",
       "name": "前端优化与修复",
-      "features": ["feat-014", "feat-018", "feat-019", "feat-022", "feat-024", "feat-025", "feat-051", "feat-052", "feat-053"],
+      "features": [
+        "feat-014",
+        "feat-018",
+        "feat-019",
+        "feat-022",
+        "feat-024",
+        "feat-025",
+        "feat-051",
+        "feat-052",
+        "feat-053"
+      ],
       "summary": "Dark Mode 修复、交互动画、上传流程修复、API 环境变量化、默认年级调整、进度反馈优化、智能风格推荐",
       "completed_at": "2026-03-05"
     },
     {
       "id": "milestone-9",
       "name": "后端优化与修复",
-      "features": ["feat-023", "feat-045", "feat-046", "feat-047", "feat-048", "feat-049", "feat-050", "feat-054", "feat-055"],
+      "features": [
+        "feat-023",
+        "feat-045",
+        "feat-046",
+        "feat-047",
+        "feat-048",
+        "feat-049",
+        "feat-050",
+        "feat-054",
+        "feat-055"
+      ],
       "summary": "JSON 解析增强、Playwright 测试基础设施、E2E 测试（文字/图片/错误场景）、探索性测试、重试机制修复",
       "completed_at": "2026-03-06"
     },
     {
       "id": "milestone-10",
       "name": "SSE 流式反馈",
-      "features": ["feat-042"],
+      "features": [
+        "feat-042"
+      ],
       "summary": "SSE 流式生成进度推送，替换假进度条",
       "completed_at": "2026-03-05"
     },
     {
       "id": "milestone-11",
       "name": "/merge 基础测试与修复",
-      "features": ["feat-101", "feat-102", "feat-103", "feat-104", "feat-105", "feat-106", "feat-107", "feat-101-long-wait", "feat-104-retest", "feat-102-multi-scenarios", "feat-102-blob-download", "feat-113-merge-fix", "feat-113-merge-additional-tests"],
+      "features": [
+        "feat-101",
+        "feat-102",
+        "feat-103",
+        "feat-104",
+        "feat-105",
+        "feat-106",
+        "feat-107",
+        "feat-101-long-wait",
+        "feat-104-retest",
+        "feat-102-multi-scenarios",
+        "feat-102-blob-download",
+        "feat-113-merge-fix",
+        "feat-113-merge-additional-tests"
+      ],
       "summary": "核心流程测试、/merge 多场景测试、错误场景测试、图片上传 OCR、历史记录、LLM 配置、下载验证、合并修复",
       "completed_at": "2026-03-08"
     },
     {
       "id": "milestone-12",
       "name": "/merge 增强 - Canvas 与提示词",
-      "features": ["feat-115", "feat-116", "feat-117", "feat-118", "feat-119", "feat-120", "feat-121", "feat-122", "feat-123", "feat-124", "feat-125", "feat-126"],
+      "features": [
+        "feat-115",
+        "feat-116",
+        "feat-117",
+        "feat-118",
+        "feat-119",
+        "feat-120",
+        "feat-121",
+        "feat-122",
+        "feat-123",
+        "feat-124",
+        "feat-125",
+        "feat-126"
+      ],
       "summary": "XML 解析修复、环境清理、Canvas 预览重构、提示词编辑器、AI 合并流程、SSE 心跳、Playwright 测试",
       "completed_at": "2026-03-09"
+    },
+    {
+      "id": "milestone-13",
+      "name": "AI 内容级合并：解析 → 融合 → 生成",
+      "features": [
+        "feat-137",
+        "feat-138",
+        "feat-139",
+        "feat-140",
+        "feat-141",
+        "feat-142",
+        "feat-143",
+        "feat-144",
+        "feat-145"
+      ],
+      "summary": "PPT 内容结构解析、AI 内容融合引擎、真实渲染预览、单页编辑、新 PPT 生成",
+      "status": "in_progress"
     }
   ],
   "features": [
@@ -114,7 +222,11 @@
       "status": "done",
       "depends_on": [],
       "notes": "已完成。创建单进程启动脚本，避免 uvicorn --reload 多进程导致的 SSE/网络异常。脚本语法检查通过。",
-      "artifacts": ["backend/start.sh", "backend/start-dev.sh", "backend/start.ps1"]
+      "artifacts": [
+        "backend/start.sh",
+        "backend/start-dev.sh",
+        "backend/start.ps1"
+      ]
     },
     {
       "id": "feat-117",
@@ -140,7 +252,9 @@
       "category": "feature",
       "description": "P0 单页预览组件重构：默认渲染一页 + 左右翻页 + 底部缩略图条",
       "status": "done",
-      "depends_on": ["feat-118"]
+      "depends_on": [
+        "feat-118"
+      ]
     },
     {
       "id": "feat-120",
@@ -164,7 +278,9 @@
       "category": "feature",
       "description": "P0 后端 AI 合并流程优化：增强提示词 + 策略验证 + thinking 状态",
       "status": "done",
-      "depends_on": ["feat-120"]
+      "depends_on": [
+        "feat-120"
+      ]
     },
     {
       "id": "feat-123",
@@ -180,7 +296,9 @@
       "category": "feature",
       "description": "P0 AI 合并真调用验证：检查日志确认 LLM 是否真实调用",
       "status": "done",
-      "depends_on": ["feat-122"]
+      "depends_on": [
+        "feat-122"
+      ]
     },
     {
       "id": "feat-125",
@@ -188,7 +306,9 @@
       "category": "frontend",
       "description": "P0 集成 PptxViewJS Canvas 渲染：替换 /merge 预览组件",
       "status": "done",
-      "depends_on": ["feat-118"]
+      "depends_on": [
+        "feat-118"
+      ]
     },
     {
       "id": "feat-126",
@@ -196,7 +316,10 @@
       "category": "fullstack",
       "description": "P0 Playwright /merge 全流程测试：多轮 browser_wait_for 验证",
       "status": "done",
-      "depends_on": ["feat-122", "feat-123"]
+      "depends_on": [
+        "feat-122",
+        "feat-123"
+      ]
     },
     {
       "id": "feat-127",
@@ -220,7 +343,9 @@
       "category": "test",
       "description": "P0 真实调用验证：清除缓存 + 第三方服务记录",
       "status": "done",
-      "depends_on": ["feat-128"]
+      "depends_on": [
+        "feat-128"
+      ]
     },
     {
       "id": "feat-130",
@@ -228,7 +353,10 @@
       "category": "maintenance",
       "description": "P1 任务状态同步更新",
       "status": "done",
-      "depends_on": ["feat-127", "feat-129"]
+      "depends_on": [
+        "feat-127",
+        "feat-129"
+      ]
     },
     {
       "id": "feat-131",
@@ -252,7 +380,9 @@
       "category": "test",
       "description": "P0 AI 真实调用验证：环境清理后重试完整流程",
       "status": "done",
-      "depends_on": ["feat-116"],
+      "depends_on": [
+        "feat-116"
+      ],
       "steps": [
         "【规则】阅读 .claude-coder/test_rule.md 第五节（多轮 browser_wait_for）",
         "【环境】执行 feat-116 环境清理，确保单 uvicorn 实例",
@@ -270,7 +400,11 @@
       "category": "test",
       "description": "P0 提示词优化效果验证：对比不同提示词的合并策略质量",
       "status": "done",
-      "depends_on": ["feat-133", "feat-122", "feat-121"],
+      "depends_on": [
+        "feat-133",
+        "feat-122",
+        "feat-121"
+      ],
       "steps": [
         "【P0-场景1】无提示语基础测试 - 通过",
         "【P0-场景2】使用保留/废弃指令 - 通过",
@@ -284,7 +418,9 @@
       "category": "test",
       "description": "P1 多学科边界场景测试：验证提示词鲁棒性",
       "status": "done",
-      "depends_on": ["feat-134"],
+      "depends_on": [
+        "feat-134"
+      ],
       "steps": [
         "【P1-场景1】数学学科",
         "【P1-场景2】语文学科",
@@ -297,13 +433,384 @@
       "category": "test",
       "description": "P0 端到端完整流程：上传 → AI 合并 → 下载 → 验证",
       "status": "done",
-      "depends_on": ["feat-133"],
+      "depends_on": [
+        "feat-133"
+      ],
       "steps": [
         "【P0】browser_navigate http://localhost:3000/merge",
         "【P0】上传 PPT A 和 PPT B",
         "【P0】填写全局提示语",
         "【P0】点击合并，等待完成",
         "【验证】下载文件有效，控制台无错误"
+      ]
+    },
+    {
+      "id": "feat-137",
+      "priority": 137,
+      "category": "feature",
+      "description": "P0 PPT 内容结构解析：生成中间数据结构供 AI 消费",
+      "status": "done",
+      "depends_on": [],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#2-数据结构设计",
+      "steps": [
+        "【设计】阅读技术方案 2.1-2.4，确认中间结构定义",
+        "【实现】创建 PptContentParser 类，定义 SlideData/ElementData 模型",
+        "【实现】解析文本元素：提取 text_content、style、position",
+        "【实现】解析图片元素：提取 base64、position、description",
+        "【实现】解析表格元素：提取 table_data（二维数组）",
+        "【实现】教学语义提取：识别 slide_type、teaching_role",
+        "【API】POST /api/v1/ppt/parse-structured 返回中间结构",
+        "【验证】用教学课件测试，JSON 结构能表达完整内容"
+      ],
+      "artifacts": [
+        "backend/app/services/ppt_content_parser.py",
+        "backend/app/models/ppt_structure.py",
+        "docs/ppt-structure.md"
+      ],
+      "acceptance_criteria": [
+        "能解析文本、图片、表格三种核心元素",
+        "输出的 JSON 结构包含 teaching_content 字段",
+        "复杂元素（SmartArt/图表）能检测并标记"
+      ],
+      "notes": "已完成。实测解析 22 页 PPT，提取 8 标题 + 55 正文 + 12 图片 + 3 表格。"
+    },
+    {
+      "id": "feat-138",
+      "priority": 138,
+      "category": "feature",
+      "description": "P0 AI 内容融合引擎：支持整体合并 + 单页/多页处理",
+      "status": "pending",
+      "depends_on": [
+        "feat-137"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#3-ai-融合策略",
+      "steps": [
+        "【设计】阅读技术方案 3.1-3.3，确认三种融合流程",
+        "【实现】创建 ContentMerger 类，定义 MergePlan 数据结构",
+        "【实现】整体合并：PPT A + B → AI 分析 → 生成 slide_plan",
+        "【实现】单页处理：polish/expand/rewrite/extract 四种 action",
+        "【实现】多页融合：选中页面 → AI 分析关系 → 生成新页面",
+        "【实现】AI 提示词模板：针对教学场景优化",
+        "【API】POST /api/v1/ppt/ai-merge 返回 SSE 流",
+        "【验证】分数加法 + 分数减法 → 分数运算"
+      ],
+      "artifacts": [
+        "backend/app/services/content_merger.py",
+        "backend/app/prompts/merge_prompts.py"
+      ],
+      "acceptance_criteria": [
+        "整体合并能生成合理的 slide_plan",
+        "单页润色后内容通顺、保持原意",
+        "AI 返回结果包含 merge_strategy 说明"
+      ]
+    },
+    {
+      "id": "feat-139",
+      "priority": 139,
+      "category": "feature",
+      "description": "P0 LibreOffice 转 PNG：每页生成预览图片",
+      "status": "pending",
+      "depends_on": [],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#5-版本化管理设计",
+      "steps": [
+        "【设计】阅读技术方案 5.1-5.7，确认版本化管理流程",
+        "【环境】Windows 安装 LibreOffice，记录默认路径",
+        "【实现】检测 LibreOffice 安装路径（注册表/常见目录）",
+        "【实现】soffice --headless --convert-to png 命令封装",
+        "【实现】子进程调用 + 超时控制（30秒/页）",
+        "【实现】输出目录：/static/versions/{session_id}/",
+        "【验证】教学课件转换效果与 WPS 一致"
+      ],
+      "artifacts": [
+        "backend/app/services/ppt_to_image.py"
+      ],
+      "acceptance_criteria": [
+        "能检测 LibreOffice 是否安装",
+        "转换成功率 > 95%",
+        "图片分辨率支持 high/medium/low 三档"
+      ]
+    },
+    {
+      "id": "feat-140",
+      "priority": 140,
+      "category": "backend",
+      "description": "P0 版本化预览 API：创建/恢复/切换版本",
+      "status": "pending",
+      "depends_on": [
+        "feat-139"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#5.3-版本操作-api",
+      "steps": [
+        "【设计】定义 SlideVersion 数据模型",
+        "【API】POST /api/v1/ppt/session/create 创建会话",
+        "【API】POST /api/v1/ppt/version/create 创建新版本",
+        "【API】POST /api/v1/ppt/version/restore 恢复历史版本",
+        "【API】POST /api/v1/ppt/slide/toggle 删除/恢复页面",
+        "【实现】版本图片存储策略",
+        "【验证】版本历史可查看、可恢复"
+      ],
+      "artifacts": [
+        "backend/app/api/v1/ppt.py"
+      ],
+      "acceptance_criteria": [
+        "每次 AI 操作生成新版本",
+        "用户可查看任意历史版本",
+        "删除的页面可恢复"
+      ]
+    },
+    {
+      "id": "feat-141",
+      "priority": 141,
+      "category": "frontend",
+      "description": "P0 前端预览组件：版本化图片显示 + 历史查看",
+      "status": "pending",
+      "depends_on": [
+        "feat-140"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#5.6-前端交互",
+      "steps": [
+        "【组件】PptVersionPreview 组件：缩略图网格 + 版本标记",
+        "【交互】点击版本标记 → 展示历史版本列表",
+        "【交互】选择历史版本 → 恢复到该版本",
+        "【交互】删除页面 → 标记删除但保留历史",
+        "【UI】版本徽章：v1、v2、v3...",
+        "【验证】用户能流畅操作版本"
+      ],
+      "artifacts": [
+        "frontend/src/components/ppt-version-preview.tsx"
+      ],
+      "acceptance_criteria": [
+        "显示当前版本缩略图",
+        "点击可查看历史版本",
+        "操作流畅，无明显延迟"
+      ]
+    },
+    {
+      "id": "feat-142",
+      "priority": 142,
+      "category": "frontend",
+      "description": "P0 AI 融合交互面板：展示方案 + 用户调整",
+      "status": "pending",
+      "depends_on": [
+        "feat-138",
+        "feat-141"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#6-前端交互设计",
+      "steps": [
+        "【设计】阅读技术方案 6.1-6.2，确认交互流程",
+        "【实现】融合方式选择：整体合并 / 选择页面融合 / 单页处理",
+        "【实现】AI 方案展示：slide_plan 列表 + 来源标注",
+        "【实现】用户调整：拖拽排序 / 删除页面 / 编辑内容",
+        "【实现】SSE 进度：实时显示 AI 分析进度",
+        "【实现】预览对比：调整前后对比展示",
+        "【验证】用户能理解 AI 方案并做出调整"
+      ],
+      "artifacts": [
+        "frontend/src/components/merge-panel.tsx"
+      ],
+      "acceptance_criteria": [
+        "AI 方案以可视化方式展示（不是纯 JSON）",
+        "用户调整后能实时预览",
+        "整体流程不超过 5 步操作"
+      ]
+    },
+    {
+      "id": "feat-143",
+      "priority": 143,
+      "category": "backend",
+      "description": "P0 新 PPT 生成：基于当前选择的版本输出",
+      "status": "pending",
+      "depends_on": [
+        "feat-138",
+        "feat-140"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#5.7-合并生成",
+      "steps": [
+        "【设计】定义最终合并请求结构",
+        "【实现】收集用户选择的版本：{ slide_index: version_id }",
+        "【实现】从源 PPT 提取对应页面",
+        "【实现】从版本数据重建 AI 修改的页面",
+        "【实现】样式统一：主题/字体/颜色一致性",
+        "【API】POST /api/v1/ppt/generate-final",
+        "【验证】生成的 PPT 与预览一致"
+      ],
+      "artifacts": [
+        "backend/app/services/ppt_generator.py"
+      ],
+      "acceptance_criteria": [
+        "生成的 PPT 与用户选择的版本一致",
+        "文件大小合理（< 10MB）",
+        "复杂元素页面完整保留"
+      ]
+    },
+    {
+      "id": "feat-144",
+      "priority": 144,
+      "category": "feature",
+      "description": "P0 复杂元素处理策略：SmartArt/图表的提示与处理",
+      "status": "pending",
+      "depends_on": [
+        "feat-137"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#6.3-复杂元素处理策略",
+      "steps": [
+        "【实现】detect_complex_elements() 函数",
+        "【检测】MSO_SHAPE_TYPE.CHART (图表)",
+        "【检测】MSO_SHAPE_TYPE.DIAGRAM (SmartArt)",
+        "【标记】在中间结构中添加 has_complex_elements 字段",
+        "【前端】检测到复杂元素时显示提示卡片",
+        "【交互】用户选择：整页保留 / 跳过该页",
+        "【验证】包含图表的课件能正确提示"
+      ],
+      "artifacts": [
+        "backend/app/services/complex_element_detector.py"
+      ],
+      "acceptance_criteria": [
+        "检测准确率 > 90%",
+        "提示文案清晰说明限制",
+        "用户能做出知情选择"
+      ]
+    },
+    {
+      "id": "feat-145",
+      "priority": 145,
+      "category": "test",
+      "description": "P0 端到端测试：版本化合并全流程",
+      "status": "pending",
+      "depends_on": [
+        "feat-143"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#1-需求概述",
+      "test_data": {
+        "ppt_a": "uploads/generated/晋升答辩_大龙猫.pptx",
+        "ppt_b": "uploads/generated/附件2：专业职级评定答辩报告模板.pptx"
+      },
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md 第五节（多轮 browser_wait_for）",
+        "【环境】curl http://localhost:8000/health 确认后端服务正常",
+        "【P0】browser_navigate http://localhost:3000/merge",
+        "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
+        "【P0】browser_file_upload paths=['E:\\Code\\ai-teaching-ppt\\uploads\\generated\\晋升答辩_大龙猫.pptx']",
+        "【P0】browser_wait_for text='共' timeout=10000",
+        "【P0】browser_file_upload paths=['E:\\Code\\ai-teaching-ppt\\uploads\\generated\\附件2：专业职级评定答辩报告模板.pptx']",
+        "【P0】browser_wait_for text='共' timeout=10000",
+        "【P0】browser_snapshot 验证两份 PPT 预览图片正确加载，版本标记 v1",
+        "【P0】browser_click ref=[第2页AI润色按钮]",
+        "【P0】browser_wait_for text='润色完成' timeout=60000",
+        "【P0】browser_snapshot 验证第2页版本标记变为 v2",
+        "【P0】browser_click ref=[第2页版本标记]",
+        "【P0】browser_snapshot 验证历史版本列表显示 v1、v2",
+        "【P0】browser_click ref=[恢复到v1按钮]",
+        "【P0】browser_snapshot 验证当前版本恢复为 v1",
+        "【P0】browser_click ref=[第3页删除按钮]",
+        "【P0】browser_snapshot 验证第3页标记为已删除",
+        "【P0】browser_click ref=[生成最终PPT按钮]",
+        "【P0】browser_wait_for text='生成完成' timeout=60000",
+        "【P0】browser_snapshot 验证下载链接出现",
+        "【验证】下载的 PPT 内容与用户选择的版本一致"
+      ],
+      "acceptance_criteria": [
+        "版本历史完整记录",
+        "恢复功能正常",
+        "最终 PPT 与预览一致"
+      ]
+    },
+    {
+      "id": "feat-146",
+      "priority": 146,
+      "category": "test",
+      "description": "P1 错误场景测试：LibreOffice 未安装 / 文件格式错误",
+      "status": "pending",
+      "depends_on": [
+        "feat-139"
+      ],
+      "design_doc": ".claude-coder/test_rule.md#三、Step-2-错误场景",
+      "test_data": {
+        "valid_ppt": "uploads/generated/晋升答辩_大龙猫.pptx"
+      },
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md 第三节（错误场景）",
+        "【P1-场景1】LibreOffice 未安装时上传 PPT",
+        "【P1】browser_navigate http://localhost:3000/merge",
+        "【P1】browser_file_upload paths=['E:\\Code\\ai-teaching-ppt\\uploads\\generated\\晋升答辩_大龙猫.pptx']",
+        "【P1】browser_wait_for text='LibreOffice 未安装' timeout=10000",
+        "【P1】browser_snapshot 验证显示安装指引",
+        "【P1-场景2】非 PPTX 文件伪装上传",
+        "【P1】创建一个空文件改名为 fake.pptx",
+        "【P1】browser_file_upload paths=[fake.pptx]",
+        "【P1】browser_wait_for text='文件格式错误' timeout=10000",
+        "【记录】错误场景测试结果"
+      ],
+      "acceptance_criteria": [
+        "错误提示清晰、友好",
+        "不出现未捕获的异常",
+        "用户可恢复操作"
+      ]
+    },
+    {
+      "id": "feat-147",
+      "priority": 147,
+      "category": "test",
+      "description": "P1 API 测试：结构化解析 / 版本操作 / 最终生成",
+      "status": "pending",
+      "depends_on": [
+        "feat-137",
+        "feat-140",
+        "feat-143"
+      ],
+      "design_doc": ".claude-coder/docs/ppt-structure.md",
+      "test_data": {
+        "test_ppt": "uploads/generated/晋升答辩_大龙猫.pptx"
+      },
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md 第八节（API测试模板）",
+        "【P1-API1】POST /api/v1/ppt/parse-structured",
+        "【P1】curl -X POST -F 'file=@E:\\Code\\ai-teaching-ppt\\uploads\\generated\\晋升答辩_大龙猫.pptx' http://localhost:8000/api/v1/ppt/parse-structured",
+        "【P1】验证返回 document_id 和 slides 数组",
+        "【P1】验证 teaching_content 字段存在",
+        "【P1-API2】POST /api/v1/ppt/session/create",
+        "【P1】验证返回 session_id",
+        "【P1-API3】POST /api/v1/ppt/version/create",
+        "【P1】创建新版本，验证返回 version 和 image_url",
+        "【P1-API4】POST /api/v1/ppt/version/restore",
+        "【P1】恢复到历史版本，验证 current_version 更新",
+        "【P1-API5】POST /api/v1/ppt/slide/toggle",
+        "【P1】删除/恢复页面，验证 status 变化",
+        "【记录】API 测试结果"
+      ],
+      "acceptance_criteria": [
+        "所有 API 返回正确格式",
+        "错误返回包含 detail 字段",
+        "响应时间 < 5 秒（非 AI 操作）"
+      ]
+    },
+    {
+      "id": "feat-148",
+      "priority": 148,
+      "category": "test",
+      "description": "P2 边界测试：复杂元素检测",
+      "status": "pending",
+      "depends_on": [
+        "feat-137",
+        "feat-144"
+      ],
+      "design_doc": ".claude-coder/test_rule.md#三、Step-2-错误场景",
+      "test_data": {
+        "test_ppt": "uploads/generated/晋升答辩_大龙猫.pptx"
+      },
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md 第三节（边界场景）",
+        "【P2-边界1】解析包含图表的 PPT",
+        "【P2】browser_navigate http://localhost:3000/merge",
+        "【P2】browser_file_upload paths=['E:\\Code\\ai-teaching-ppt\\uploads\\generated\\晋升答辩_大龙猫.pptx']",
+        "【P2】browser_wait_for text='复杂元素' timeout=10000",
+        "【P2】browser_snapshot 验证提示用户该页无法 AI 合并",
+        "【记录】边界测试结果"
+      ],
+      "acceptance_criteria": [
+        "边界场景有明确提示",
+        "不出现页面崩溃",
+        "用户可继续操作"
       ]
     }
   ]
