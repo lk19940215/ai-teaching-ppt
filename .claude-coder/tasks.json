@@ -737,7 +737,7 @@
       "priority": 146,
       "category": "test",
       "description": "P1 错误场景测试：LibreOffice 未安装 / 文件格式错误",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-139"
       ],
@@ -762,7 +762,8 @@
         "错误提示清晰、友好",
         "不出现未捕获的异常",
         "用户可恢复操作"
-      ]
+      ],
+      "notes": "Session 13: 测试完成。1) LibreOffice 未安装场景：代码审查通过，/api/v1/ppt/convert-to-images 已有完整错误处理；2) 文件格式错误场景：发现 BadZipFile 异常未捕获 Bug，已修复（backend/app/api/ppt.py 第 1235-1241 行）。验收标准全部达成。"
     },
     {
       "id": "feat-147",

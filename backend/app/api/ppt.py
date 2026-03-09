@@ -13,6 +13,7 @@ import hashlib
 import time
 import psutil
 import os
+import zipfile
 
 from ..services.ppt_generator import get_ppt_generator
 from ..config import settings
@@ -1231,6 +1232,13 @@ async def parse_ppt(
 
     except HTTPException:
         raise
+    except zipfile.BadZipFile as e:
+        # 文件格式错误（不是有效的 ZIP/PPTX 文件）
+        logger.warning(f"文件格式错误：{file.filename} - {e}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"文件格式错误：'{file.filename}' 不是有效的 PPTX 文件，请确保文件完整且未损坏"
+        )
     except Exception as e:
         import traceback
         logger.error(f"PPT 解析失败：{e}")

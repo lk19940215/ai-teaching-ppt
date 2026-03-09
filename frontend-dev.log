@@ -86,3 +86,7 @@
  GET / 200 in 37ms
  GET /merge 200 in 78ms
  GET /merge 200 in 79ms
+   Reload env: .env.local
+ ✓ Compiled in 426ms (783 modules)
+ GET /merge 200 in 87ms
+[?25h
