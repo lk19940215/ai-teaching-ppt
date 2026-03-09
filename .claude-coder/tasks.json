@@ -538,7 +538,7 @@
       "priority": 140,
       "category": "backend",
       "description": "P0 版本化预览 API：创建/恢复/切换版本",
-      "status": "pending",
+      "status": "testing",
       "depends_on": [
         "feat-139"
       ],
@@ -553,13 +553,16 @@
         "【验证】版本历史可查看、可恢复"
       ],
       "artifacts": [
-        "backend/app/api/v1/ppt.py"
+        "backend/app/models/ppt_structure.py (SlideVersion, SlideStatus, SlideState, DocumentState, SessionData)",
+        "backend/app/services/version_manager.py",
+        "backend/app/api/ppt.py (5 个新端点)"
       ],
       "acceptance_criteria": [
         "每次 AI 操作生成新版本",
         "用户可查看任意历史版本",
         "删除的页面可恢复"
-      ]
+      ],
+      "notes": "Session 3 完成代码实现。6 个 API 端点已注册（Python 模块验证通过），等待 uvicorn 重启后测试。"
     },
     {
       "id": "feat-141",

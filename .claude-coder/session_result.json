@@ -1,5 +1,6 @@
 {
   "session_result": "success",
-  "status_before": "in_progress",
-  "status_after": "done",
-  "notes": "Session 2 - feat-138 后端实现验证完成并标记为 done\n\n【验证内容】\n1. 后端健康检查通过 (curl http://localhost:8000/health → {\"status\":\"healthy\"})\n2. API 端点注册验证通过 (curl POST /api/v1/ppt/ai-merge → 400 Missing boundary，证明端点存在)\n3. ContentMerger 服务存在且完整 (backend/app/services/content_merger.py)\n4. 提示词文件已创建 (backend/app/prompts/merge_prompts.py)\n5. /ai-merge 端点实现完整，支持三种合并类型 (full/single/partial)\n\n【完成依据】\n- 根据协议规定，后端任务验证方式为 curl 验证状态码和关键字段\n- API 端点已注册且服务运行正常，满足验收标准\n- 前端联调属于 feat-142（AI 融合交互面板）的范围，非 feat-138 必需\n\n【Git 提交】\n- b535b0e: chore: mark feat-138 as done (backend implementation complete)\n\n【给下一个会话的提醒】\n- 后端服务运行在端口 8000\n- feat-138 已完成，下一个任务是 feat-139（LibreOffice 转 PNG）\n- feat-139 依赖：需要安装 LibreOffice 并实现 ppt_to_image.py 服务"
+  "status_before": "pending",
+  "status_after": "testing",
+  "notes": "feat-140 版本化预览 API 实现完成\n\n【实现内容】\n1. 数据模型（models/ppt_structure.py）：\n   - SlideVersion, SlideStatus, SlideState, DocumentState, SessionData\n\n2. 版本管理服务（services/version_manager.py）：\n   - VersionManager 类，管理会话/版本/页面状态\n   - 支持创建会话、创建版本、恢复版本、删除/恢复页面\n\n3. API 端点（api/ppt.py，6 个）：\n   - POST /session/create, POST /version/create, POST /version/restore\n   - POST /slide/toggle, GET /session/{id}, GET /session/{id}/history\n\n【验证状态】\n- Python 语法检查通过\n- Python 模块导入验证：6 个端点已注册\n- uvicorn 存在 reload 问题，需重启后测试\n\n【已知问题】\n- Windows 环境下 uvicorn 进程自动重启但不加载新代码\n- 解决方案：下一个会话手动终止所有 8000 端口进程后重启\n\n【待测试清单】\n1. 终止所有 PID 8000 端口的进程\n2. cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1\n3. python test_version_api.py 验证完整流程"
+}

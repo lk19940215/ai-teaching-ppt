@@ -157,3 +157,46 @@ def to_dict(data) -> Dict[str, Any]:
         return data.value
     else:
         return data
+
+
+# ============== 版本化管理数据模型 ==============
+
+@dataclass
+class SlideVersion:
+    """幻灯片版本"""
+    version: str  # v1, v2, v3...
+    image_url: str
+    created_at: str  # HH:MM:SS
+    operation: str  # 原始上传，AI 润色，AI 扩展，etc.
+    prompt: Optional[str] = None  # AI 操作提示语
+    source_pptx: Optional[str] = None  # 源 PPTX 路径（用于恢复）
+
+
+class SlideStatus(str, Enum):
+    """页面状态"""
+    ACTIVE = "active"
+    DELETED = "deleted"
+
+
+@dataclass
+class SlideState:
+    """幻灯片状态"""
+    current_version: Optional[str]  # 当前版本 v1/v2/...，deleted 时为 null
+    status: SlideStatus
+    versions: List[SlideVersion]
+
+
+@dataclass
+class DocumentState:
+    """文档状态"""
+    source_file: str
+    slides: Dict[int, SlideState]  # slide_index -> SlideState
+
+
+@dataclass
+class SessionData:
+    """会话数据"""
+    session_id: str
+    documents: Dict[str, DocumentState]  # document_id (ppt_a/ppt_b) -> DocumentState
+    created_at: str
+    last_updated: str

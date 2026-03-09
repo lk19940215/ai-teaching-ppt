@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Body, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, Body, UploadFile, File, Form, Query
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pathlib import Path
 from typing import Optional, AsyncGenerator, List, Dict, Any
@@ -2112,3 +2112,388 @@ async def ai_merge_ppts(
     await asyncio.sleep(0)
     from ..services.ppt_generator import sse_generator
     return StreamingResponse(sse_generator(progress_queue), media_type='text/event-stream', headers={'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'X-Accel-Buffering': 'no'})
+
+
+# ==================== 版本化管理 API ====================
+
+@router.post("/ppt/session/create")
+async def create_ppt_session(
+    files: Dict[str, UploadFile] = Body(..., description="上传的 PPT 文件", examples=[{"ppt_a": "file1.pptx", "ppt_b": "file2.pptx"}])
+):
+    """
+    创建 PPT 合并会话
+
+    Request Body:
+    {
+        "files": {
+            "ppt_a": <file>,
+            "ppt_b": <file>
+        }
+    }
+
+    Response:
+    {
+        "session_id": "abc12345",
+        "documents": {
+            "ppt_a": {"source_file": "...", "total_slides": 5},
+            "ppt_b": {"source_file": "...", "total_slides": 8}
+        }
+    }
+    """
+    import tempfile
+    from ..services.version_manager import get_version_manager
+
+    logger.info(f"创建 PPT 合并会话，文件数：{len(files)}")
+
+    if len(files) < 1:
+        raise HTTPException(status_code=400, detail="至少需要上传一个文件")
+
+    # 保存上传文件到临时目录
+    temp_files = {}
+    temp_dir = Path(tempfile.gettempdir()) / 'ppt_sessions'
+    temp_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        for doc_id, file in files.items():
+            if not file.filename.lower().endswith(('.pptx', '.ppt')):
+                raise HTTPException(status_code=400, detail=f"文件格式错误：{file.filename}，仅支持 .pptx 格式")
+
+            temp_path = temp_dir / f"{uuid.uuid4().hex}_{file.filename}"
+            content = await file.read()
+            async with aiofiles.open(temp_path, 'wb') as f:
+                await f.write(content)
+            temp_files[doc_id] = str(temp_path)
+
+        # 创建会话
+        version_manager = get_version_manager()
+        session = version_manager.create_session(temp_files)
+
+        # 返回简化信息
+        documents_info = {}
+        for doc_id, doc_state in session.documents.items():
+            documents_info[doc_id] = {
+                "source_file": doc_state.source_file,
+                "total_slides": len(doc_state.slides)
+            }
+
+        logger.info(f"会话创建成功：{session.session_id}")
+
+        return JSONResponse(content={
+            "session_id": session.session_id,
+            "documents": documents_info
+        })
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"创建会话失败：{e}")
+        raise HTTPException(status_code=500, detail=f"创建会话失败：{str(e)}")
+
+
+@router.post("/ppt/version/create")
+async def create_version(
+    session_id: str = Body(..., description="会话 ID"),
+    document_id: str = Body(..., description="文档 ID (ppt_a, ppt_b)"),
+    slide_index: int = Body(..., description="页码（0-indexed）"),
+    operation: str = Body(..., description="操作类型 (ai_polish, ai_expand, ai_rewrite, ai_extract)"),
+    prompt: Optional[str] = Body(None, description="AI 提示语"),
+    new_pptx: Optional[str] = Body(None, description="新生成的单页 PPTX 路径")
+):
+    """
+    创建新版本
+
+    Request:
+    {
+        "session_id": "abc12345",
+        "document_id": "ppt_a",
+        "slide_index": 1,
+        "operation": "ai_polish",
+        "prompt": "用更通俗的语言解释",
+        "new_pptx": "/path/to/new_slide.pptx" (可选)
+    }
+
+    Response:
+    {
+        "version": "v2",
+        "image_url": "/static/versions/abc12345/ppt_a_slide1_v2.png",
+        "created_at": "10:05:00"
+    }
+    """
+    from ..services.version_manager import get_version_manager
+
+    logger.info(f"创建版本：{document_id} slide {slide_index} ({operation})")
+
+    try:
+        version_manager = get_version_manager()
+
+        # 验证会话存在
+        session = version_manager.get_session(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail=f"会话不存在：{session_id}")
+
+        # 创建新版本
+        new_pptx_path = Path(new_pptx) if new_pptx else None
+        version = version_manager.create_version(
+            session_id=session_id,
+            document_id=document_id,
+            slide_index=slide_index,
+            operation=operation,
+            prompt=prompt,
+            new_pptx=new_pptx_path
+        )
+
+        return JSONResponse(content={
+            "version": version.version,
+            "image_url": version.image_url,
+            "created_at": version.created_at,
+            "operation": version.operation,
+            "prompt": version.prompt
+        })
+
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"创建版本失败：{e}")
+        raise HTTPException(status_code=500, detail=f"创建版本失败：{str(e)}")
+
+
+@router.post("/ppt/version/restore")
+async def restore_version(
+    session_id: str = Body(..., description="会话 ID"),
+    document_id: str = Body(..., description="文档 ID"),
+    slide_index: int = Body(..., description="页码"),
+    target_version: str = Body(..., description="目标版本号 (v1, v2, ...)")
+):
+    """
+    恢复历史版本
+
+    Request:
+    {
+        "session_id": "abc12345",
+        "document_id": "ppt_a",
+        "slide_index": 1,
+        "target_version": "v1"
+    }
+
+    Response:
+    {
+        "success": true,
+        "current_version": "v1"
+    }
+    """
+    from ..services.version_manager import get_version_manager
+
+    logger.info(f"恢复版本：{document_id} slide {slide_index} -> {target_version}")
+
+    try:
+        version_manager = get_version_manager()
+
+        # 验证会话存在
+        session = version_manager.get_session(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail=f"会话不存在：{session_id}")
+
+        # 恢复版本
+        version_manager.restore_version(
+            session_id=session_id,
+            document_id=document_id,
+            slide_index=slide_index,
+            target_version=target_version
+        )
+
+        return JSONResponse(content={
+            "success": True,
+            "current_version": target_version
+        })
+
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"恢复版本失败：{e}")
+        raise HTTPException(status_code=500, detail=f"恢复版本失败：{str(e)}")
+
+
+@router.post("/ppt/slide/toggle")
+async def toggle_slide_status(
+    session_id: str = Body(..., description="会话 ID"),
+    document_id: str = Body(..., description="文档 ID"),
+    slide_index: int = Body(..., description="页码"),
+    action: str = Body(..., description="操作：delete 或 restore")
+):
+    """
+    删除/恢复页面
+
+    Request:
+    {
+        "session_id": "abc12345",
+        "document_id": "ppt_a",
+        "slide_index": 2,
+        "action": "delete"
+    }
+
+    Response:
+    {
+        "success": true,
+        "status": "deleted"
+    }
+    """
+    from ..services.version_manager import get_version_manager, SlideStatus
+
+    logger.info(f"切换页面状态：{document_id} slide {slide_index} ({action})")
+
+    if action not in ["delete", "restore"]:
+        raise HTTPException(status_code=400, detail=f"无效操作：{action}，仅支持 delete/restore")
+
+    try:
+        version_manager = get_version_manager()
+
+        # 验证会话存在
+        session = version_manager.get_session(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail=f"会话不存在：{session_id}")
+
+        # 切换状态
+        status = version_manager.toggle_slide(
+            session_id=session_id,
+            document_id=document_id,
+            slide_index=slide_index,
+            action=action
+        )
+
+        return JSONResponse(content={
+            "success": True,
+            "status": status.value
+        })
+
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"切换页面状态失败：{e}")
+        raise HTTPException(status_code=500, detail=f"切换页面状态失败：{str(e)}")
+
+
+@router.get("/ppt/session/{session_id}")
+async def get_session_info(session_id: str):
+    """
+    获取会话详情（包含所有文档的完整版本历史）
+
+    Response:
+    {
+        "session_id": "abc12345",
+        "documents": {
+            "ppt_a": {
+                "source_file": "...",
+                "slides": {
+                    "0": {
+                        "current_version": "v1",
+                        "status": "active",
+                        "versions": [
+                            {"version": "v1", "image_url": "...", "operation": "原始上传"}
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    """
+    from ..services.version_manager import get_version_manager
+
+    try:
+        version_manager = get_version_manager()
+        session = version_manager.get_session(session_id)
+
+        if not session:
+            raise HTTPException(status_code=404, detail=f"会话不存在：{session_id}")
+
+        # 转换为可序列化的格式
+        def serialize_slide_state(slide_state):
+            return {
+                "current_version": slide_state.current_version,
+                "status": slide_state.status.value,
+                "versions": [
+                    {
+                        "version": v.version,
+                        "image_url": v.image_url,
+                        "created_at": v.created_at,
+                        "operation": v.operation,
+                        "prompt": v.prompt
+                    }
+                    for v in slide_state.versions
+                ]
+            }
+
+        documents = {}
+        for doc_id, doc_state in session.documents.items():
+            documents[doc_id] = {
+                "source_file": doc_state.source_file,
+                "slides": {
+                    str(idx): serialize_slide_state(slide)
+                    for idx, slide in doc_state.slides.items()
+                }
+            }
+
+        return JSONResponse(content={
+            "session_id": session.session_id,
+            "documents": documents
+        })
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"获取会话信息失败：{e}")
+        raise HTTPException(status_code=500, detail=f"获取会话信息失败：{str(e)}")
+
+
+@router.get("/ppt/session/{session_id}/history")
+async def get_slide_version_history(
+    session_id: str,
+    document_id: str = Query(..., description="文档 ID"),
+    slide_index: int = Query(..., description="页码")
+):
+    """
+    获取指定页面的版本历史
+
+    Response:
+    {
+        "versions": [
+            {"version": "v1", "image_url": "...", "operation": "原始上传"},
+            {"version": "v2", "image_url": "...", "operation": "ai_polish", "prompt": "..."}
+        ]
+    }
+    """
+    from ..services.version_manager import get_version_manager
+
+    try:
+        version_manager = get_version_manager()
+        versions = version_manager.get_version_history(session_id, document_id, slide_index)
+
+        if not versions:
+            # 检查是否是因为会话/页面不存在
+            session = version_manager.get_session(session_id)
+            if not session:
+                raise HTTPException(status_code=404, detail=f"会话不存在：{session_id}")
+
+        return JSONResponse(content={
+            "versions": [
+                {
+                    "version": v.version,
+                    "image_url": v.image_url,
+                    "created_at": v.created_at,
+                    "operation": v.operation,
+                    "prompt": v.prompt
+                }
+                for v in versions
+            ]
+        })
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"获取版本历史失败：{e}")
+        raise HTTPException(status_code=500, detail=f"获取版本历史失败：{str(e)}")
