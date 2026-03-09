@@ -696,6 +696,7 @@
       "depends_on": [
         "feat-143"
       ],
+      "notes": "Session 9: 完成步骤 1-5（环境验证、页面加载、双 PPT 上传成功）。步骤 6+ 失败：前端 AI 融合请求失败（Failed to fetch）。后端 API 验证正常（curl 测试通过），但前端 fetch 请求被阻止。可能原因：1) 浏览器 CORS 策略限制；2) SSE 流响应处理问题。API Key 已正确配置（localStorage 验证通过）。需要排查前端 fetch 配置或后端 CORS 中间件顺序。",
       "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#1-需求概述",
       "test_data": {
         "ppt_a": "uploads/generated/晋升答辩_大龙猫.pptx",

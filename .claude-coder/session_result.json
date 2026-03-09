@@ -1,6 +1,1 @@
-{
-  "session_result": "failed",
-  "status_before": "pending",
-  "status_after": "failed",
-  "notes": "【feat-145 测试执行】\n\n【完成步骤】\n1. 环境验证：后端服务正常 (curl /health 返回 healthy)\n2. 前端页面加载正常 (/merge 页面可访问)\n3. 双 PPT 上传成功：PPT A (22 页) + PPT B (17 页)，Canvas 预览正常\n4. API 端点验证：/api/v1/ppt/ai-merge 和 /api/v1/ppt/smart-merge-stream 均返回 200\n5. PPT 解析功能验证：parse_pptx_to_structure 正常解析 17 页 PPT\n6. ContentMerger 初始化验证：LLM 服务可正常加载\n\n【失败原因】\n1. LLM API 调用超时：使用 OpenAI provider 时，LLM 响应超时（可能是 API key 无效或网络问题）\n2. 后端返回 500 错误：ai-merge API 在处理文件上传时出现内部错误\n3. 前端 CORS 问题：浏览器中出现 \"Failed to fetch\" 错误\n\n【版本化功能状态】\n- 后端 API 已实现（/api/v1/session/create, /api/v1/version/create, /api/v1/version/restore）\n- 前端组件已实现（VersionSwitcher, VersionHistoryPanel 已集成到 ppt-canvas-preview.tsx）\n- 但 /merge 页面未调用 session/create API，sessionId 状态未赋值，版本化功能未完全激活\n\n【给下一个会话的建议】\n1. 检查后端 LLM 配置（API key 是否有效）\n2. 修复 ai-merge API 的 500 错误（可能是异常处理问题）\n3. 在 /merge 页面中添加 session 创建逻辑，激活版本化功能\n4. 使用有效的 LLM API key 重新测试完整流程"
-}
+{"session_result":"failed","status_before":"failed","status_after":"failed","notes":"【Session 9 - feat-145 测试执行】【完成步骤】1. 环境验证：后端正常 2. 页面加载正常 3. 双 PPT 上传成功 (22+17 页) 4. API Key 配置正确 5. 后端 API 验证通过【失败步骤】6. AI 融合请求失败 (Failed to fetch) - 前端 fetch 被阻止，后端 API 正常，CORS 配置正确，可能 SSE 流响应处理问题【下 session 提醒】1. 排查前端 fetch 配置 2. 检查 CORS 中间件顺序 3. 建议改用 API 测试验证后端功能"}
