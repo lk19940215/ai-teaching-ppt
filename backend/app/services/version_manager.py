@@ -150,7 +150,8 @@ class VersionManager:
         slide_index: int,
         operation: str,
         prompt: Optional[str] = None,
-        new_pptx: Optional[Path] = None
+        new_pptx: Optional[Path] = None,
+        content_snapshot: Optional[Dict[str, Any]] = None
     ) -> SlideVersion:
         """
         创建新版本
@@ -162,6 +163,7 @@ class VersionManager:
             operation: 操作类型 (ai_polish, ai_expand, ai_rewrite, ai_extract)
             prompt: AI 提示语
             new_pptx: 新生成的单页 PPTX 路径（用于转换新图片）
+            content_snapshot: AI 修改的内容快照（用于最终生成 PPT）
 
         Returns:
             SlideVersion 新版本数据
@@ -216,7 +218,8 @@ class VersionManager:
             image_url=image_url,
             created_at=now,
             operation=operation,
-            prompt=prompt
+            prompt=prompt,
+            content_snapshot=content_snapshot
         )
 
         # 添加到版本列表

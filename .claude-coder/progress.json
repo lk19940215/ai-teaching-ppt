@@ -636,6 +636,24 @@
       "taskId": "feat-141",
       "statusAfter": "done",
       "notes": "feat-141 前端预览组件：版本化图片显示 + 历史查看 - 实现完成\n\n【实现内容】\n1. 新增组件：\n   - version-switcher.tsx: 版本切换器\n   - version-history-panel.tsx: 版本历史面板\n   - scroll-area.tsx: 滚动区域 UI 组件\n\n2. 修改组件：\n   - ppt-canvas-preview.tsx: 集成版本化功能\n\n3. 新增 API 调用模块：\n   - version-api.ts: 6 个 API 封装函数\n\n4. 后端 API 修正：\n   - ppt.py: 修正版本化 API 路径\n\n【验证状态】\n- TypeScript 编译通过 ✓\n- 后端 API 端点验证通过 ✓\n- 代码已 git commit ✓"
+    },
+    {
+      "session": 4,
+      "timestamp": "2026-03-09T18:21:17.246Z",
+      "result": "success",
+      "cost": 1.2938829999999997,
+      "taskId": "feat-141",
+      "statusAfter": "done",
+      "notes": "feat-141 前端预览组件：版本化图片显示 + 历史查看 - 状态同步完成\\n\\n【背景】\\n上次会话 (Session 3) 已实现完整功能，但 tasks.json 中状态未更新为 done。\\n\\n【本次工作】\\n1. 确认实现文件存在且完整：\\n   - version-switcher.tsx: 版本切换器组件\\n   - version-history-panel.tsx: 版本历史面板组件\\n   - version-api.ts: API 调用模块\\n   - ppt-canvas-preview.tsx: 已集成版本化功能\\n   - scroll-area.tsx: 滚动区域 UI 组件\\n\\n2. 验证状态：\\n   - TypeScript 编译通过\\n   - 后端 API 端点验证通过（/api/v1/session/create, /api/v1/slide/toggle, /api/v1/version/restore）\\n\\n3. 更新任务状态：pending → in_progress → testing → done\\n\\n【验证结果】\\n- 前端代码编译通过 ✓\\n- 后端 API 端点注册验证通过 ✓\\n- 任务状态已同步 ✓\\n\\n【给下一个会话的提醒】\\n- feat-141 已标记为 done，可以开始 feat-142（AI 融合交互面板）\\n- feat-142 依赖 feat-141 和 feat-138，目前依赖已全部 done\\n- feat-142 需要实现 AI 融合交互面板：展示方案 + 用户调整\\n"
+    },
+    {
+      "session": 5,
+      "timestamp": "2026-03-09T18:33:08.844Z",
+      "result": "success",
+      "cost": 2.9800840000000006,
+      "taskId": "feat-142",
+      "statusAfter": "done",
+      "notes": "Session 5 (feat-142) AI 融合交互面板 - 展示方案 + 用户调整 ✓\n\n【实现内容】\n1. MergePlanPanel 组件增强：\n   - 拖拽排序：HTML5 DnD API，支持调整页面顺序\n   - 删除页面：带确认对话框，从合并方案移除\n   - 编辑内容：带对话框，可修改 AI 生成的新内容\n   - 操作提示：顶部显示操作说明横幅\n\n2. SSE 进度增强：\n   - 分阶段显示：parsing(15%)→calling_llm(30%)→thinking(50%)→merging(75%)→complete(100%)\n   - 阶段指示器：3 个阶段带图标和状态\n   - 进度条：实时百分比显示\n\n3. 新增 UI 组件：\n   - Badge: 知识点标签组件\n   - Dialog: 模态对话框（编辑/删除确认）\n   - 依赖：@radix-ui/react-dialog\n\n4. page.tsx 集成：\n   - aiMergeProgress 状态追踪进度\n   - handleDeletePage/EditPage/Reorder 回调\n   - adjustedPlan 保存用户调整后的计划\n\n【验证结果】\n- TypeScript 编译：pnpm tsc --noEmit ✓\n- 后端健康检查：curl /health ✓\n- API 端点注册：POST /ai-merge 返回 422（证明端点存在）✓\n\n【文件变更】\n- frontend/src/components/merge-plan-panel.tsx (增强)\n- frontend/src/app/merge/page.tsx (增强)\n- frontend/src/components/ui/badge.tsx (新增)\n- frontend/src/components/ui/dialog.tsx (新增)\n- frontend/package.json (添加 radix-ui 依赖)\n\n【注意事项】\n- 确认合并计划功能（调用后端生成 PPT）将在 feat-143 实现\n- 拖拽排序使用原生 HTML5 DnD，无需额外依赖\n- 删除操作仅从合并方案移除，不影响源 PPT\n\n【给下一个会话的提醒】\n- feat-142 已完成，可以开始 feat-143（新 PPT 生成：基于用户选择的版本输出）\n- feat-143 需要实现调用后端 API 生成最终 PPT 文件\n- 调整后的计划 (adjustedPlan) 已准备好传递给后端"
     }
   ]
 }

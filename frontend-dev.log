@@ -1,0 +1,55 @@
+
+> ai-teaching-ppt-frontend@0.1.0 dev E:\Code\ai-teaching-ppt\frontend
+> next dev
+
+   ▲ Next.js 15.5.12
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.31.205:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 9s
+ ○ Compiling / ...
+ ✓ Compiled / in 5.6s (605 modules)
+ GET / 200 in 6068ms
+ ✓ Compiled in 121ms (237 modules)
+ ✓ Compiled in 164ms (237 modules)
+ ✓ Compiled in 100ms (237 modules)
+ ✓ Compiled in 138ms (237 modules)
+ ✓ Compiled in 116ms (237 modules)
+ ✓ Compiled in 110ms (237 modules)
+ ✓ Compiled in 99ms (237 modules)
+ ✓ Compiled in 86ms (237 modules)
+ ✓ Compiled in 140ms (237 modules)
+ ✓ Compiled in 96ms (237 modules)
+ ✓ Compiled in 44ms (223 modules)
+ ✓ Compiled in 107ms (237 modules)
+ ✓ Compiled in 156ms (237 modules)
+ GET / 200 in 61ms
+ ✓ Compiled in 149ms (237 modules)
+ ✓ Compiled in 93ms (237 modules)
+ ✓ Compiled in 118ms (237 modules)
+ ✓ Compiled in 91ms (237 modules)
+ ✓ Compiled in 119ms (237 modules)
+ ✓ Compiled in 103ms (237 modules)
+ ✓ Compiled in 105ms (237 modules)
+ ✓ Compiled in 92ms (237 modules)
+ ✓ Compiled in 108ms (237 modules)
+ ✓ Compiled in 111ms (237 modules)
+ ✓ Compiled in 103ms (237 modules)
+ ✓ Compiled in 88ms (237 modules)
+ ✓ Compiled in 90ms (237 modules)
+ ✓ Compiled in 116ms (237 modules)
+ GET / 200 in 67ms
+ ✓ Compiled in 156ms (237 modules)
+ ✓ Compiled in 108ms (237 modules)
+ ✓ Compiled in 101ms (237 modules)
+ ✓ Compiled in 90ms (237 modules)
+ ✓ Compiled in 118ms (237 modules)
+ ✓ Compiled in 110ms (237 modules)
+ ✓ Compiled in 106ms (237 modules)
+ ✓ Compiled in 89ms (237 modules)
+ ✓ Compiled in 104ms (237 modules)
+ ✓ Compiled in 82ms (237 modules)
+ ✓ Compiled in 115ms (237 modules)
+ ✓ Compiled in 168ms (223 modules)

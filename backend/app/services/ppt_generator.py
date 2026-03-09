@@ -4,6 +4,7 @@ from pptx.enum.text import PP_ALIGN, MSO_ANCHOR, MSO_VERTICAL_ANCHOR
 from pptx.dml.color import RGBColor
 from pathlib import Path
 from typing import Dict, Any, List, Optional
+from io import BytesIO
 import logging
 import jieba
 
@@ -461,6 +462,115 @@ class PPTGenerator:
 
         # 注意：不设置 auto_size，因为它可能导致 XML 命名空间错误
         # 文本溢出问题主要通过 word_wrap 和 margins 解决
+
+    def _copy_slide_from_pptx(self, target_prs: Presentation, source_pptx_path: str, slide_index: int):
+        """
+        从源 PPTX 复制页面到目标 PPT
+
+        Args:
+            target_prs: 目标 PPT（Presentation 对象）
+            source_pptx_path: 源 PPTX 文件路径
+            slide_index: 源页码（0-indexed）
+        """
+        from pptx import Presentation as Prs
+
+        source_prs = Prs(source_pptx_path)
+        if slide_index >= len(source_prs.slides):
+            raise ValueError(f"页码超出范围：{slide_index} >= {len(source_prs.slides)}")
+
+        source_slide = source_prs.slides[slide_index]
+
+        # 使用 blank layout 创建新页面
+        blank_layout = target_prs.slide_layouts[6]  # 6 = Blank
+        target_slide = target_prs.slides.add_slide(blank_layout)
+
+        # 复制源页面的所有形状
+        for shape in source_slide.shapes:
+            if shape.shape_type == 14:  # MSO_SHAPE_TYPE.PICTURE
+                # 复制图片
+                try:
+                    img_bytes = shape.image.blob
+                    # 计算位置
+                    left = shape.left
+                    top = shape.top
+                    width = shape.width
+                    height = shape.height
+                    target_slide.shapes.add_picture(
+                        BytesIO(img_bytes), left, top, width, height
+                    )
+                except Exception as e:
+                    logger.warning(f"复制图片失败：{e}")
+            elif hasattr(shape, "text") and shape.text:
+                # 复制文本框
+                try:
+                    # 创建新文本框
+                    new_shape = target_slide.shapes.add_textbox(
+                        shape.left, shape.top, shape.width, shape.height
+                    )
+                    frame = new_shape.text_frame
+                    frame.clear()
+
+                    # 复制段落
+                    for i, para in enumerate(shape.text_frame.paragraphs):
+                        if i == 0:
+                            frame.paragraphs[0].text = para.text
+                        else:
+                            frame.add_paragraph().text = para.text
+                except Exception as e:
+                    logger.warning(f"复制文本框失败：{e}")
+
+        logger.info(f"成功复制页面 {slide_index} 从 {source_pptx_path}")
+
+    def _add_slide_from_snapshot(self, target_prs: Presentation, snapshot: Dict[str, Any], font_size: int):
+        """
+        从 content_snapshot 重建页面
+
+        Args:
+            target_prs: 目标 PPT
+            snapshot: AI 修改的内容快照（中间结构数据）
+            font_size: 正文字号
+        """
+        # 使用 blank layout
+        blank_layout = target_prs.slide_layouts[6]
+        slide = target_prs.slides.add_slide(blank_layout)
+
+        # 从 snapshot 中提取内容
+        title = snapshot.get("title", "")
+        elements = snapshot.get("elements", [])
+        main_points = snapshot.get("main_points", [])
+
+        y_position = Inches(0.5)
+
+        # 添加标题
+        if title:
+            title_shape = slide.shapes.add_textbox(Inches(0.5), y_position, Inches(9), Inches(1))
+            title_frame = title_shape.text_frame
+            title_frame.text = title
+            title_frame.paragraphs[0].font.size = Pt(font_size + 4)
+            title_frame.paragraphs[0].font.bold = True
+            y_position = Inches(1.5)
+
+        # 添加要点
+        for point in main_points:
+            para_shape = slide.shapes.add_textbox(Inches(0.5), y_position, Inches(9), Inches(0.8))
+            para_frame = para_shape.text_frame
+            para_frame.text = f"• {point}"
+            para_frame.paragraphs[0].font.size = Pt(font_size)
+            y_position += Inches(0.7)
+
+        # 添加其他元素
+        for elem in elements:
+            elem_type = elem.get("type", "text")
+            content = elem.get("content", "")
+
+            if elem_type in ("text_body", "list_item", "title"):
+                elem_shape = slide.shapes.add_textbox(Inches(0.5), y_position, Inches(9), Inches(0.6))
+                elem_frame = elem_shape.text_frame
+                elem_frame.text = content
+                elem_frame.paragraphs[0].font.size = Pt(font_size)
+                y_position += Inches(0.6)
+
+        logger.info(f"成功从 snapshot 重建页面")
 
     def generate(
         self,
@@ -6412,3 +6522,90 @@ def get_ppt_generator() -> PPTGenerator:
     if _ppt_generator_instance is None:
         _ppt_generator_instance = PPTGenerator()
     return _ppt_generator_instance
+
+
+def generate_ppt_from_versions(
+    merged_slides: List[Dict[str, Any]],
+    title: str,
+    grade: str = "6",
+    subject: str = "general",
+    style: str = "simple"
+) -> Path:
+    """
+    基于版本数据生成最终 PPT
+
+    Args:
+        merged_slides: 合并的页面列表，每项包含：
+            - source_pptx: 源 PPTX 路径
+            - slide_index: 页码（0-indexed）
+            - content_snapshot: AI 修改的内容快照（v2+ 版本）
+            - version: 版本号（v1, v2, ...）
+        title: 最终 PPT 标题
+        grade: 年级
+        subject: 学科
+        style: 风格
+
+    Returns:
+        生成的 PPT 文件路径
+
+    策略：
+    - v1 版本（原始上传）：从源 PPTX 复制页面
+    - v2+ 版本（AI 修改）：从 content_snapshot 重建页面
+    """
+    from pptx import Presentation
+    from uuid import uuid4
+
+    logger.info(f"生成最终 PPT: {len(merged_slides)} 页，title={title}")
+
+    # 创建空白 PPT
+    prs = Presentation()
+    prs.slide_width = Inches(10)
+    prs.slide_height = Inches(7.5)
+
+    # 获取样式配置
+    grade_style = PPTStyle.get_style(grade)
+    title_size = grade_style["title_size"]
+    content_size = grade_style["font_size"]
+
+    # 添加封面页
+    generator = get_ppt_generator()
+    generator._add_cover_slide(prs, title, title_size, grade_style["primary"], False)
+
+    # 处理每个页面
+    for slide_info in merged_slides:
+        source_pptx = slide_info["source_pptx"]
+        slide_index = slide_info["slide_index"]
+        content_snapshot = slide_info.get("content_snapshot")
+        version = slide_info.get("version", "v1")
+
+        try:
+            if content_snapshot:
+                # v2+ 版本：从 content_snapshot 重建页面
+                logger.info(f"从 content_snapshot 重建页面 {slide_index} ({version})")
+                generator._add_slide_from_snapshot(prs, content_snapshot, content_size)
+            else:
+                # v1 版本：从源 PPTX 复制页面
+                logger.info(f"从源 PPTX 复制页面 {slide_index} ({version})")
+                generator._copy_slide_from_pptx(prs, source_pptx, slide_index)
+        except Exception as e:
+            logger.warning(f"处理页面 {slide_index} 失败：{e}，使用占位页面")
+            # 使用占位页面
+            _add_placeholder_slide(prs, f"页面 {slide_index + 1} (版本 {version})", content_size)
+
+    # 保存文件
+    output_dir = Path("uploads/generated")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / f"final_{uuid4().hex[:8]}.pptx"
+
+    prs.save(output_path)
+    logger.info(f"最终 PPT 已保存：{output_path}")
+
+    return output_path
+
+
+def _add_placeholder_slide(prs: Presentation, text: str, font_size: int):
+    """添加占位页面（当页面复制失败时使用）"""
+    slide = prs.slides.add_slide(prs.slide_layouts[1])  # Title and Content
+    slide.shapes.title.text = "页面加载失败"
+    content = slide.placeholders[1]
+    content.text = text

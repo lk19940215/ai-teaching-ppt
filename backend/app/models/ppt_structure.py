@@ -170,6 +170,7 @@ class SlideVersion:
     operation: str  # 原始上传，AI 润色，AI 扩展，etc.
     prompt: Optional[str] = None  # AI 操作提示语
     source_pptx: Optional[str] = None  # 源 PPTX 路径（用于恢复）
+    content_snapshot: Optional[Dict[str, Any]] = None  # AI 修改的内容快照（用于最终生成）
 
 
 class SlideStatus(str, Enum):

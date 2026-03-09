@@ -2197,7 +2197,8 @@ async def create_version(
     slide_index: int = Body(..., description="页码（0-indexed）"),
     operation: str = Body(..., description="操作类型 (ai_polish, ai_expand, ai_rewrite, ai_extract)"),
     prompt: Optional[str] = Body(None, description="AI 提示语"),
-    new_pptx: Optional[str] = Body(None, description="新生成的单页 PPTX 路径")
+    new_pptx: Optional[str] = Body(None, description="新生成的单页 PPTX 路径"),
+    content_snapshot: Optional[Dict[str, Any]] = Body(None, description="AI 修改的内容快照（中间结构数据）")
 ):
     """
     创建新版本
@@ -2209,7 +2210,8 @@ async def create_version(
         "slide_index": 1,
         "operation": "ai_polish",
         "prompt": "用更通俗的语言解释",
-        "new_pptx": "/path/to/new_slide.pptx" (可选)
+        "new_pptx": "/path/to/new_slide.pptx" (可选),
+        "content_snapshot": {...} (可选，AI 修改的中间结构数据)
     }
 
     Response:
@@ -2239,7 +2241,8 @@ async def create_version(
             slide_index=slide_index,
             operation=operation,
             prompt=prompt,
-            new_pptx=new_pptx_path
+            new_pptx=new_pptx_path,
+            content_snapshot=content_snapshot
         )
 
         return JSONResponse(content={
@@ -2376,6 +2379,114 @@ async def toggle_slide_status(
     except Exception as e:
         logger.error(f"切换页面状态失败：{e}")
         raise HTTPException(status_code=500, detail=f"切换页面状态失败：{str(e)}")
+
+
+@router.post("/ppt/generate-final")
+async def generate_final_ppt(
+    session_id: str = Body(..., description="会话 ID"),
+    title: str = Body(..., description="最终 PPT 标题"),
+    grade: str = Body("6", description="年级"),
+    subject: str = Body("general", description="学科"),
+    style: str = Body("simple", description="风格")
+):
+    """
+    基于当前选择的版本生成最终 PPT
+
+    流程：
+    1. 获取会话数据，收集所有活跃页面的当前版本
+    2. 对于 v1 版本：从源 PPTX 直接复制页面
+    3. 对于 v2+ 版本：从 content_snapshot 内容快照重建页面
+    4. 生成统一样式的最终 PPT
+
+    Request:
+    {
+        "session_id": "abc12345",
+        "title": "合并后的课件标题",
+        "grade": "6",
+        "subject": "math",
+        "style": "simple"
+    }
+
+    Response:
+    {
+        "success": true,
+        "download_url": "/uploads/generated/final_xxx.pptx",
+        "file_name": "final_xxx.pptx",
+        "total_slides": 10
+    }
+    """
+    from ..services.version_manager import get_version_manager, SlideStatus
+    from pptx import Presentation
+    from io import BytesIO
+
+    logger.info(f"生成最终 PPT: session_id={session_id}, title={title}")
+
+    try:
+        version_manager = get_version_manager()
+        session = version_manager.get_session(session_id)
+
+        if not session:
+            raise HTTPException(status_code=404, detail=f"会话不存在：{session_id}")
+
+        # 收集所有活跃页面及其版本数据
+        merged_slides = []  # List of (source_pptx, slide_index, content_snapshot)
+
+        for doc_id, doc_state in session.documents.items():
+            source_pptx = doc_state.source_file
+            # 验证文件存在
+            if not Path(source_pptx).exists():
+                logger.warning(f"源文件不存在：{source_pptx}，跳过")
+                continue
+
+            for slide_index, slide_state in doc_state.slides.items():
+                if slide_state.status == SlideStatus.DELETED or not slide_state.current_version:
+                    continue  # 跳过已删除页面
+
+                # 查找当前版本的 content_snapshot
+                content_snapshot = None
+                for version in slide_state.versions:
+                    if version.version == slide_state.current_version:
+                        if version.content_snapshot:
+                            content_snapshot = version.content_snapshot
+                        break
+
+                merged_slides.append({
+                    "source_pptx": source_pptx,
+                    "slide_index": slide_index,
+                    "content_snapshot": content_snapshot,
+                    "version": slide_state.current_version
+                })
+
+        if not merged_slides:
+            raise HTTPException(status_code=400, detail="没有可生成的页面")
+
+        logger.info(f"收集到 {len(merged_slides)} 个页面用于生成最终 PPT")
+
+        # 生成最终 PPT
+        output_path = generate_ppt_from_versions(
+            merged_slides,
+            title=title,
+            grade=grade,
+            subject=subject,
+            style=style
+        )
+
+        file_name = output_path.name
+
+        logger.info(f"最终 PPT 生成成功：{file_name}")
+
+        return JSONResponse(content={
+            "success": True,
+            "download_url": f"/uploads/generated/{file_name}",
+            "file_name": file_name,
+            "total_slides": len(merged_slides)
+        })
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"生成最终 PPT 失败：{e}")
+        raise HTTPException(status_code=500, detail=f"生成最终 PPT 失败：{str(e)}")
 
 
 @router.get("/session/{session_id}")
