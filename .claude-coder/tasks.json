@@ -2,14 +2,13 @@
   "project": "ai-teaching-ppt",
   "created_at": "2026-03-02",
   "last_updated": "2026-03-09",
-  "next_task_priority": 115,
+  "next_task_priority": 137,
   "priority_rules": {
-    "100-149": "bugfix - Bug 修复",
-    "150-199": "maintenance - 维护任务",
-    "200-249": "feature - 新功能开发",
-    "250-299": "optimization - 性能优化",
-    "300-349": "test - 测试验证",
-    "350-399": "docs - 文档更新"
+    "001-099": "基础功能（已完成）",
+    "100-149": "bugfix/maintenance - Bug 修复与维护",
+    "150-199": "feature - 新功能开发",
+    "200-249": "optimization - 性能优化",
+    "250-299": "test - 测试验证"
   },
   "completed_milestones": [
     {
@@ -88,328 +87,223 @@
       "features": ["feat-101", "feat-102", "feat-103", "feat-104", "feat-105", "feat-106", "feat-107", "feat-101-long-wait", "feat-104-retest", "feat-102-multi-scenarios", "feat-102-blob-download", "feat-113-merge-fix", "feat-113-merge-additional-tests"],
       "summary": "核心流程测试、/merge 多场景测试、错误场景测试、图片上传 OCR、历史记录、LLM 配置、下载验证、合并修复",
       "completed_at": "2026-03-08"
+    },
+    {
+      "id": "milestone-12",
+      "name": "/merge 增强 - Canvas 与提示词",
+      "features": ["feat-115", "feat-116", "feat-117", "feat-118", "feat-119", "feat-120", "feat-121", "feat-122", "feat-123", "feat-124", "feat-125", "feat-126"],
+      "summary": "XML 解析修复、环境清理、Canvas 预览重构、提示词编辑器、AI 合并流程、SSE 心跳、Playwright 测试",
+      "completed_at": "2026-03-09"
     }
   ],
   "features": [
     {
       "id": "feat-115",
-      "category": "bugfix",
       "priority": 115,
+      "category": "bugfix",
       "description": "P0 XML 解析错误：处理无效 XML 命名空间导致的 PPT 解析失败",
-      "steps": [
-        "【诊断】查看错误详情：xmlns:ns2='%s' is not a valid URI",
-        "【修复】parse_ppt() 中添加 _fix_invalid_namespaces() 函数",
-        "【修复】支持所有 ns%d 变体 + 单引号/双引号",
-        "【测试】上传问题 PPT 验证解析成功"
-      ],
       "status": "done",
       "depends_on": [],
-      "notes": "修复完成。v2: 增加单引号支持（xmlns:ns2='%s'）。"
+      "notes": "修复完成。支持所有 ns%d 变体 + 单引号/双引号。"
     },
     {
-      "id": "feat-150",
+      "id": "feat-116",
+      "priority": 116,
       "category": "maintenance",
-      "priority": 150,
       "description": "P0 环境清理：解决 uvicorn 多进程导致网络异常问题",
-      "steps": [
-        "【诊断】ps aux | grep uvicorn 检查多进程",
-        "【清理】killall -9 uvicorn 或 kill -9 <PID>",
-        "【清理】lsof -i :8000 确认端口释放",
-        "【启动】cd backend && uvicorn app.main:app --port 8000（单个实例，不用 --reload）",
-        "【验证】curl http://localhost:8000/health 确认服务正常",
-        "【验证】测试 LLM 调用：curl -X POST http://localhost:8000/api/v1/generate/test"
-      ],
       "status": "pending",
       "depends_on": [],
-      "notes": "feat-307 失败的根因是 uvicorn 多进程网络异常，此任务优先解决环境问题。"
+      "notes": "feat-307 失败的根因是 uvicorn 多进程网络异常。"
     },
     {
-      "id": "feat-151",
+      "id": "feat-117",
+      "priority": 117,
       "category": "bugfix",
-      "priority": 151,
       "description": "P0 XML 单引号命名空间修复：支持 xmlns:ns2='%s' 格式",
-      "steps": [
-        "【问题】正则 r'xmlns:ns(\\d+)=\"%s\"' 只匹配双引号，遗漏单引号",
-        "【修复】改为 r'xmlns:ns(\\d+)=([\\'\"])%s\\2' 同时匹配",
-        "【测试】创建包含单引号命名空间的测试 PPTX 验证"
-      ],
       "status": "done",
       "depends_on": [],
-      "notes": "已修复。commit: 045138d"
+      "notes": "commit: 045138d"
     },
     {
-      "id": "feat-201",
+      "id": "feat-118",
+      "priority": 118,
       "category": "feature",
-      "priority": 201,
       "description": "P0 NPM 包调研：Canvas 渲染 PPT 最真实预览",
-      "steps": [
-        "【调研】评估 npm 包：pptx-preview、PptxViewJS、@kandiforge/pptx-renderer",
-        "【结论】PptxViewJS 最适合（Canvas渲染、MIT、TypeScript、内置翻页）"
-      ],
       "status": "done",
       "depends_on": [],
-      "notes": "调研完成。推荐 PptxViewJS。"
+      "notes": "推荐 PptxViewJS。"
     },
     {
-      "id": "feat-202",
+      "id": "feat-119",
+      "priority": 119,
       "category": "feature",
-      "priority": 202,
       "description": "P0 单页预览组件重构：默认渲染一页 + 左右翻页 + 底部缩略图条",
-      "steps": [
-        "【实现】主预览区：800x450 完整渲染当前页",
-        "【实现】左右箭头按钮 + 键盘 ← → 快捷键",
-        "【实现】页码指示器 + 底部缩略图条"
-      ],
       "status": "done",
-      "depends_on": ["feat-201"]
+      "depends_on": ["feat-118"]
     },
     {
-      "id": "feat-203",
+      "id": "feat-120",
+      "priority": 120,
       "category": "feature",
-      "priority": 203,
       "description": "P0 提示词编辑器结构化重构：每页「保留」+「废弃」两个可选字段",
-      "steps": [
-        "【设计】新数据结构 StructuredPagePrompt: { keep, discard }",
-        "【UI】绿色边框「保留」+ 红色边框「废弃」",
-        "【后端】修改提示词格式传递（结构化 JSON）"
-      ],
       "status": "done",
       "depends_on": []
     },
     {
-      "id": "feat-204",
+      "id": "feat-121",
+      "priority": 121,
       "category": "feature",
-      "priority": 204,
       "description": "P1 系统提示词模板面板：5 个预设合并策略模板",
-      "steps": [
-        "【实现】5 个模板：保留A结构、保留B结构、取精华、顺序拼接、风格统一",
-        "【UI】卡片式布局：图标 + 名称 + 简短描述"
-      ],
       "status": "done",
       "depends_on": []
     },
     {
-      "id": "feat-205",
+      "id": "feat-122",
+      "priority": 122,
       "category": "feature",
-      "priority": 205,
       "description": "P0 后端 AI 合并流程优化：增强提示词 + 策略验证 + thinking 状态",
-      "steps": [
-        "【优化】system_prompt：添加角色定义、能力说明、输出格式示例",
-        "【增强】策略验证：校验页码范围、action 有效性",
-        "【日志】LLM 调用耗时、token 详细日志"
-      ],
       "status": "done",
-      "depends_on": ["feat-203"]
+      "depends_on": ["feat-120"]
     },
     {
-      "id": "feat-206",
+      "id": "feat-123",
+      "priority": 123,
       "category": "optimization",
-      "priority": 206,
       "description": "P1 SSE 心跳机制：每 3 秒心跳 + 脉冲动画进度条",
-      "steps": [
-        "【后端】sse_generator 添加 3 秒心跳",
-        "【前端】进度条脉冲动画 + AI 工作状态指示器"
-      ],
       "status": "done",
       "depends_on": []
     },
     {
-      "id": "feat-207",
+      "id": "feat-124",
+      "priority": 124,
       "category": "feature",
-      "priority": 207,
       "description": "P0 AI 合并真调用验证：检查日志确认 LLM 是否真实调用",
-      "steps": [
-        "【环境】启动后端服务",
-        "【P0】上传两个测试 PPT，点击合并",
-        "【验证】后端日志确认 LLM 调用记录"
-      ],
       "status": "done",
-      "depends_on": ["feat-205"],
-      "notes": "验证完成。日志显示 LLM 返回的策略 JSON。"
+      "depends_on": ["feat-122"]
     },
     {
-      "id": "feat-208",
+      "id": "feat-125",
+      "priority": 125,
       "category": "frontend",
-      "priority": 208,
       "description": "P0 集成 PptxViewJS Canvas 渲染：替换 /merge 预览组件",
-      "steps": [
-        "【安装】pnpm add pptxviewjs chart.js",
-        "【实现】PptxViewJSRenderer + PptxViewJSPreview 组件",
-        "【修复】动态导入解决 SSR 问题"
-      ],
       "status": "done",
-      "depends_on": ["feat-201"]
+      "depends_on": ["feat-118"]
     },
     {
-      "id": "feat-209",
+      "id": "feat-126",
+      "priority": 126,
       "category": "fullstack",
-      "priority": 209,
       "description": "P0 Playwright /merge 全流程测试：多轮 browser_wait_for 验证",
-      "steps": [
-        "【P0】browser_navigate http://localhost:3000/merge",
-        "【P0】上传两个测试 PPT",
-        "【P0】点击合并，等待完成",
-        "【验证】下载链接出现，文件有效"
-      ],
       "status": "done",
-      "depends_on": ["feat-205", "feat-206"]
+      "depends_on": ["feat-122", "feat-123"]
     },
     {
-      "id": "feat-301",
+      "id": "feat-127",
+      "priority": 127,
       "category": "bugfix",
-      "priority": 301,
       "description": "P0 XML 命名空间通用修复：支持所有 ns%d 变体",
-      "steps": [
-        "【修复】正则表达式匹配 xmlns:ns\\d+=\"%s\"",
-        "【测试】使用问题文件验证解析"
-      ],
       "status": "done",
       "depends_on": []
     },
     {
-      "id": "feat-302",
+      "id": "feat-128",
+      "priority": 128,
       "category": "feature",
-      "priority": 302,
       "description": "P0 LLM 调用日志增强：记录真实 token 使用和耗时",
-      "steps": [
-        "【增强】记录 provider、model、tokens、耗时",
-        "【验证】日志显示非零 token 使用"
-      ],
       "status": "done",
       "depends_on": []
     },
     {
-      "id": "feat-303",
+      "id": "feat-129",
+      "priority": 129,
       "category": "test",
-      "priority": 303,
       "description": "P0 真实调用验证：清除缓存 + 第三方服务记录",
-      "steps": [
-        "【环境】清除缓存，启动服务",
-        "【P0】执行合并流程",
-        "【验证】日志 + 第三方服务后台记录"
-      ],
       "status": "done",
-      "depends_on": ["feat-302"]
+      "depends_on": ["feat-128"]
     },
     {
-      "id": "feat-304",
+      "id": "feat-130",
+      "priority": 130,
       "category": "maintenance",
-      "priority": 304,
       "description": "P1 任务状态同步更新",
-      "steps": ["【更新】同步 tasks.json 状态"],
       "status": "done",
-      "depends_on": ["feat-301", "feat-303"]
+      "depends_on": ["feat-127", "feat-129"]
     },
     {
-      "id": "feat-305",
+      "id": "feat-131",
+      "priority": 131,
       "category": "feature",
-      "priority": 305,
       "description": "P1 Canvas 预览增强：支持表格/形状/图片渲染优化",
-      "steps": [
-        "【增强】表格渲染样式",
-        "【增强】形状渲染支持更多类型",
-        "【增强】图片懒加载"
-      ],
       "status": "done",
       "depends_on": []
     },
     {
-      "id": "feat-306",
+      "id": "feat-132",
+      "priority": 132,
       "category": "frontend",
-      "priority": 306,
       "description": "P0 提示语编辑器与 Canvas 联动：点击 Canvas 页面自动聚焦对应提示语",
-      "steps": [
-        "【实现】Canvas 点击事件通知 PromptEditor",
-        "【实现】PromptEditor 自动滚动到对应输入框"
-      ],
       "status": "done",
       "depends_on": []
     },
     {
-      "id": "feat-310",
+      "id": "feat-133",
+      "priority": 133,
       "category": "test",
-      "priority": 310,
       "description": "P0 AI 真实调用验证：环境清理后重试完整流程",
+      "status": "pending",
+      "depends_on": ["feat-116"],
       "steps": [
         "【规则】阅读 .claude-coder/test_rule.md 第五节（多轮 browser_wait_for）",
-        "【环境】执行 feat-150 环境清理，确保单 uvicorn 实例",
-        "【环境】curl http://localhost:8000/health 确认服务正常",
+        "【环境】执行 feat-116 环境清理，确保单 uvicorn 实例",
         "【P0】browser_navigate http://localhost:3000/merge",
-        "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
-        "【P0】browser_file_upload paths=['backend/tests/fixtures/ppt_a.pptx']（或本地测试文件）",
-        "【P0】browser_wait_for text='共' timeout=10000（等待页数显示）",
-        "【P0】browser_file_upload paths=['backend/tests/fixtures/ppt_b.pptx']",
-        "【P0】browser_wait_for text='共' timeout=10000",
-        "【P0】browser_click ref=[合并按钮]",
-        "【P0】browser_wait_for text='📚 正在解析 PPT 内容...' timeout=10000（阶段1：解析）",
-        "【P0】browser_wait_for text='🤖 AI 正在分析' timeout=60000（阶段2：AI 调用）",
-        "【P0】browser_wait_for text='🔧 正在执行智能合并' timeout=60000（阶段3：合并）",
-        "【P0】browser_wait_for text='✅ 合并完成' timeout=60000（阶段4：完成）",
-        "【验证】browser_snapshot 验证下载链接出现",
-        "【验证】browser_console_messages level='error' 确认无错误",
-        "【验证】下载文件并用 python-pptx 验证有效性",
-        "【记录】测试结果写入 record/merge-ai-verify-{date}.md"
-      ],
-      "status": "pending",
-      "depends_on": ["feat-150"],
-      "notes": "此任务替代失败的 feat-307，优先解决环境问题后再验证 AI 调用。"
+        "【P0】上传两个测试 PPT",
+        "【P0】browser_wait_for text='📚 正在解析 PPT 内容...' timeout=10000",
+        "【P0】browser_wait_for text='🤖 AI 正在分析' timeout=60000",
+        "【P0】browser_wait_for text='✅ 合并完成' timeout=60000",
+        "【验证】下载链接出现，文件有效"
+      ]
     },
     {
-      "id": "feat-311",
+      "id": "feat-134",
+      "priority": 134,
       "category": "test",
-      "priority": 311,
       "description": "P0 提示词优化效果验证：对比不同提示词的合并策略质量",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【前置】确保 feat-310 已通过",
-        "【P0-场景1】无提示语基础测试：上传两份测试 PPT，不填提示语，点击合并，记录策略摘要",
-        "【P0-场景2】使用保留/废弃指令：选中 A 第 2 页填'【保留】核心定义'，选中 B 第 5 页填'【废弃】过时案例'，点击合并",
-        "【P0-场景3】全局策略模板：点击'保留A结构'模板，填写'融入 B 的三个新例题'，点击合并",
-        "【验证】对比三次生成的策略 JSON：检查是否正确处理保留/废弃指令",
-        "【验证】下载文件验证：python -c \"from pptx import Presentation; p=Presentation('路径'); print(f'页数:{len(p.slides)}')\"",
-        "【记录】保存对比结果到 record/merge-prompt-optimization-{date}.md"
-      ],
       "status": "pending",
-      "depends_on": ["feat-310", "feat-205", "feat-204"]
+      "depends_on": ["feat-133", "feat-122", "feat-121"],
+      "steps": [
+        "【P0-场景1】无提示语基础测试",
+        "【P0-场景2】使用保留/废弃指令",
+        "【P0-场景3】全局策略模板",
+        "【验证】对比策略 JSON，检查保留/废弃指令处理"
+      ]
     },
     {
-      "id": "feat-312",
+      "id": "feat-135",
+      "priority": 135,
       "category": "test",
-      "priority": 312,
       "description": "P1 多学科边界场景测试：验证提示词鲁棒性",
-      "steps": [
-        "【前置】确保 feat-311 已通过",
-        "【P1-场景1】数学学科：上传数学 PPT，全局提示语'保留 A 的公式推导，融入 B 的图形解释'",
-        "【P1-场景2】语文学科：上传语文课文分析和写作指导两个 PPT，全局提示语'保留课文分析结构，融合写作技巧'",
-        "【P1-场景3】边界测试：上传 10+ 页的 PPT，填写复杂保留/废弃指令，验证处理能力",
-        "【验证】每个场景检查：1) 策略合理 2) 无 console error 3) 下载文件可用",
-        "【记录】保存测试结果到 record/merge-boundary-tests-{date}.md"
-      ],
       "status": "pending",
-      "depends_on": ["feat-311"]
+      "depends_on": ["feat-134"],
+      "steps": [
+        "【P1-场景1】数学学科",
+        "【P1-场景2】语文学科",
+        "【P1-场景3】边界测试：10+ 页 PPT"
+      ]
     },
     {
-      "id": "feat-313",
+      "id": "feat-136",
+      "priority": 136,
       "category": "test",
-      "priority": 313,
       "description": "P0 端到端完整流程：上传 → AI 合并 → 下载 → 验证",
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md 第五节（多轮等待）",
-        "【前置】确保环境正常（feat-150）",
-        "【P0】browser_navigate http://localhost:3000/merge",
-        "【P0】上传 PPT A（使用现有测试文件）",
-        "【P0】上传 PPT B",
-        "【P0】填写全局提示语：'智能合并两份课件，保留核心教学内容'",
-        "【P0】点击合并按钮",
-        "【P0】browser_wait_for 多轮等待各阶段完成",
-        "【P0】browser_click ref=[下载按钮]",
-        "【验证】下载文件大小 > 0，python-pptx 可打开",
-        "【验证】页数合理（如 A+B 的部分页数）",
-        "【验证】控制台无错误",
-        "【记录】测试报告写入 record/merge-e2e-complete-{date}.md"
-      ],
       "status": "pending",
-      "depends_on": ["feat-310"]
+      "depends_on": ["feat-133"],
+      "steps": [
+        "【P0】browser_navigate http://localhost:3000/merge",
+        "【P0】上传 PPT A 和 PPT B",
+        "【P0】填写全局提示语",
+        "【P0】点击合并，等待完成",
+        "【验证】下载文件有效，控制台无错误"
+      ]
     }
   ]
 }
