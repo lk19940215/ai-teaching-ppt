@@ -2,4 +2,4 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "修复 XML 命名空间解析遗漏单引号的问题\n\n问题根因：\n- _fix_invalid_namespaces() 的正则表达式 r'xmlns:ns(\\d+)=\"%s\"' 只匹配双引号\n- 用户遇到错误 'xmlns:ns2: \\'%s\\' is not a valid URI' 说明 XML 使用了单引号\n- 修复逻辑遗漏了单引号情况\n\n修复方案：\n1. 正则改为 r'xmlns:ns(\\d+)=([\\'\"])%s\\2' 同时匹配单引号和双引号\n2. 添加 replace_ns 回调函数保持引号类型一致\n3. 同步修改模块级别函数（第95行）和 parse_ppt 内部局部函数（第921行）\n\n验证：\n- 语法检查通过\n- 两处代码同步修复\n\n给下个会话的提醒：\n- 需要启动后端服务测试上传解析功能\n- 可使用用户提供的包含单引号命名空间的 PPTX 文件验证"
+  "notes": "优化 tasks.json 结构和任务规划\n\n完成内容：\n1. 修复 priority 编号问题：添加 priority_rules 说明\n2. 新增 feat-150 (环境清理) 解决 uvicorn 多进程网络异常\n3. 新增 feat-151 (XML 单引号修复) 记录已完成修复\n4. 新增 feat-310/311/312/313 测试任务替代 feat-307/308/309\n5. 精简已完成任务的 steps 描述\n\nPriority 规则：\n- 100-149: bugfix\n- 150-199: maintenance\n- 200-249: feature\n- 250-299: optimization\n- 300-349: test\n\n当前待执行任务：\n- feat-150: P0 环境清理（解决 uvicorn 多进程问题）\n- feat-310: P0 AI 真实调用验证\n- feat-311: P0 提示词优化效果验证\n- feat-312: P1 多学科边界场景测试\n- feat-313: P0 端到端完整流程\n\n给下个会话的提醒：\n- 优先执行 feat-150 环境清理\n- 后端服务需要冷启动（killall uvicorn 后重新启动）\n- 测试文件路径需要根据实际环境调整"
