@@ -1,0 +1,138 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - link "AI 教学 PPT 生成器" [ref=e6] [cursor=pointer]:
+          - /url: /
+        - navigation [ref=e7]:
+          - link "首页" [ref=e8] [cursor=pointer]:
+            - /url: /
+            - button "首页" [ref=e9]
+          - link "生成 PPT" [ref=e10] [cursor=pointer]:
+            - /url: /upload
+            - button "生成 PPT" [ref=e11]
+          - link "PPT 合并" [ref=e12] [cursor=pointer]:
+            - /url: /merge
+            - button "PPT 合并" [ref=e13]
+          - link "历史记录" [ref=e14] [cursor=pointer]:
+            - /url: /history
+            - button "历史记录" [ref=e15]
+          - link "设置" [ref=e16] [cursor=pointer]:
+            - /url: /settings
+            - button "设置" [ref=e17]
+    - main [ref=e18]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - heading "PPT 智能合并" [level=1] [ref=e21]
+          - paragraph [ref=e22]: 上传两个 PPT 文件，通过 AI 提示语指导，智能合并生成新的教学课件
+        - generic [ref=e191]:
+          - paragraph [ref=e192]: 合并成功！
+          - button "📥 点击下载合并后的 PPT" [ref=e193] [cursor=pointer]
+          - button "重新合并" [ref=e194] [cursor=pointer]
+        - generic [ref=e23]:
+          - generic [ref=e24]:
+            - generic [ref=e25]:
+              - generic [ref=e26]: PPT A（基础课件）
+              - generic [ref=e27]:
+                - generic [ref=e83]:
+                  - img [ref=e84]
+                  - generic [ref=e86]: test_ppt_a.pptx
+                - button "删除" [ref=e87] [cursor=pointer]
+            - generic [ref=e34]:
+              - generic [ref=e35]: PPT B（补充内容）
+              - generic [ref=e36]:
+                - generic [ref=e141]:
+                  - img [ref=e142]
+                  - generic [ref=e144]: test_ppt_b.pptx
+                - button "删除" [ref=e145] [cursor=pointer]
+            - generic [ref=e43]:
+              - generic [ref=e44]:
+                - heading "PPT A 预览" [level=3] [ref=e45]
+                - generic [ref=e89]: 共 4 页
+              - generic [ref=e90]:
+                - generic [ref=e92] [cursor=pointer]:
+                  - generic [ref=e94]: P2
+                  - generic [ref=e95]: 缓存
+                - button [disabled] [ref=e96]:
+                  - img [ref=e97]
+                - button [ref=e99] [cursor=pointer]:
+                  - img [ref=e100]
+              - generic [ref=e102]:
+                - generic [ref=e103]: 第 1 页 / 共 4 页
+                - button "选择此页" [ref=e104] [cursor=pointer]
+              - generic [ref=e106]:
+                - generic [ref=e107] [cursor=pointer]:
+                  - generic [ref=e108]:
+                    - generic [ref=e110]: P2
+                    - generic [ref=e111]: 缓存
+                  - generic [ref=e112]: P2
+                - generic [ref=e113] [cursor=pointer]:
+                  - generic [ref=e114]:
+                    - generic [ref=e116]: P3
+                    - generic [ref=e117]: 缓存
+                  - generic [ref=e118]: P3
+                - generic [ref=e119] [cursor=pointer]:
+                  - generic [ref=e120]:
+                    - generic [ref=e122]: P4
+                    - generic [ref=e123]: 缓存
+                  - generic [ref=e124]: P4
+                - generic [ref=e125] [cursor=pointer]:
+                  - generic [ref=e126]:
+                    - generic [ref=e128]: P5
+                    - generic [ref=e129]: 缓存
+                  - generic [ref=e130]: P5
+            - generic [ref=e51]:
+              - generic [ref=e52]:
+                - heading "PPT B 预览" [level=3] [ref=e53]
+                - generic [ref=e147]: 共 3 页
+              - generic [ref=e148]:
+                - generic [ref=e150] [cursor=pointer]:
+                  - generic [ref=e152]: P2
+                  - generic [ref=e153]: 缓存
+                - button [disabled] [ref=e154]:
+                  - img [ref=e155]
+                - button [ref=e157] [cursor=pointer]:
+                  - img [ref=e158]
+              - generic [ref=e160]:
+                - generic [ref=e161]: 第 1 页 / 共 3 页
+                - button "选择此页" [ref=e162] [cursor=pointer]
+              - generic [ref=e164]:
+                - generic [ref=e165] [cursor=pointer]:
+                  - generic [ref=e166]:
+                    - generic [ref=e168]: P2
+                    - generic [ref=e169]: 缓存
+                  - generic [ref=e170]: P2
+                - generic [ref=e171] [cursor=pointer]:
+                  - generic [ref=e172]:
+                    - generic [ref=e174]: P3
+                    - generic [ref=e175]: 缓存
+                  - generic [ref=e176]: P3
+                - generic [ref=e177] [cursor=pointer]:
+                  - generic [ref=e178]:
+                    - generic [ref=e180]: P4
+                    - generic [ref=e181]: 缓存
+                  - generic [ref=e182]: P4
+          - generic [ref=e60]:
+            - heading "合并提示语" [level=3] [ref=e61]
+            - generic [ref=e62]:
+              - generic [ref=e64]:
+                - generic [ref=e65]: 合并策略模板
+                - button "展开模板" [ref=e66] [cursor=pointer]
+              - generic [ref=e67]:
+                - generic [ref=e69]: 总体合并策略
+                - textbox "总体合并策略" [ref=e70]:
+                  - /placeholder: 选择上方模板或自行输入合并策略...
+                - paragraph [ref=e71]: 0 字
+              - generic [ref=e72]:
+                - generic [ref=e74]: 页面级提示语
+                - generic [ref=e75]:
+                  - img [ref=e76]
+                  - paragraph [ref=e78]: 在左侧选择页面后，可为每页设置保留/废弃指令
+            - generic [ref=e79]:
+              - button "开始智能合并" [ref=e183] [cursor=pointer]
+              - button "重置" [ref=e80] [cursor=pointer]
+    - contentinfo [ref=e81]:
+      - paragraph [ref=e82]: © 2026 AI 教学 PPT 生成器 - 助力教师高效备课
+  - button "Open Next.js Dev Tools" [ref=e136] [cursor=pointer]:
+    - img [ref=e137]
+  - alert [ref=e140]

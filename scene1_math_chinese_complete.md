@@ -1,0 +1,173 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - link "AI 教学 PPT 生成器" [ref=e6] [cursor=pointer]:
+          - /url: /
+        - navigation [ref=e7]:
+          - link "首页" [ref=e8] [cursor=pointer]:
+            - /url: /
+            - button "首页" [ref=e9]
+          - link "生成 PPT" [ref=e10] [cursor=pointer]:
+            - /url: /upload
+            - button "生成 PPT" [ref=e11]
+          - link "PPT 合并" [ref=e12] [cursor=pointer]:
+            - /url: /merge
+            - button "PPT 合并" [ref=e13]
+          - link "历史记录" [ref=e14] [cursor=pointer]:
+            - /url: /history
+            - button "历史记录" [ref=e15]
+          - link "设置" [ref=e16] [cursor=pointer]:
+            - /url: /settings
+            - button "设置" [ref=e17]
+    - main [ref=e18]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - heading "PPT 智能合并" [level=1] [ref=e21]
+          - paragraph [ref=e22]: 上传两个 PPT 文件，通过 AI 提示语指导，智能合并生成新的教学课件
+        - generic [ref=e220]:
+          - paragraph [ref=e221]: 合并成功！
+          - button "📥 点击下载合并后的 PPT" [ref=e222] [cursor=pointer]
+          - button "重新合并" [ref=e223] [cursor=pointer]
+        - generic [ref=e23]:
+          - generic [ref=e24]:
+            - generic [ref=e25]:
+              - generic [ref=e26]: PPT A（基础课件）
+              - generic [ref=e27]:
+                - generic [ref=e93]:
+                  - img [ref=e94]
+                  - generic [ref=e96]: 小数加减法_e4c125a7.pptx
+                - button "删除" [ref=e97] [cursor=pointer]
+            - generic [ref=e34]:
+              - generic [ref=e35]: PPT B（补充内容）
+              - generic [ref=e36]:
+                - generic [ref=e135]:
+                  - img [ref=e136]
+                  - generic [ref=e138]: 古诗《静夜思》鉴赏与学习_7c02f593.pptx
+                - button "删除" [ref=e139] [cursor=pointer]
+            - generic [ref=e43]:
+              - generic [ref=e44]:
+                - heading "PPT A 预览" [level=3] [ref=e45]
+                - generic [ref=e99]: 共 3 页
+              - generic [ref=e100]:
+                - generic [ref=e102] [cursor=pointer]:
+                  - generic [ref=e104]: P2
+                  - generic [ref=e105]: 缓存
+                - button [disabled] [ref=e106]:
+                  - img [ref=e107]
+                - button [ref=e109] [cursor=pointer]:
+                  - img [ref=e110]
+              - generic [ref=e112]:
+                - generic [ref=e113]: 第 1 页 / 共 3 页
+                - button "选择此页" [ref=e114] [cursor=pointer]
+              - generic [ref=e116]:
+                - generic [ref=e117] [cursor=pointer]:
+                  - generic [ref=e118]:
+                    - generic [ref=e120]: P2
+                    - generic [ref=e121]: 缓存
+                  - generic [ref=e122]: P2
+                - generic [ref=e123] [cursor=pointer]:
+                  - generic [ref=e124]:
+                    - generic [ref=e126]: P3
+                    - generic [ref=e127]: 缓存
+                  - generic [ref=e128]: P3
+                - generic [ref=e129] [cursor=pointer]:
+                  - generic [ref=e130]:
+                    - generic [ref=e132]: P4
+                    - generic [ref=e133]: 缓存
+                  - generic [ref=e134]: P4
+            - generic [ref=e51]:
+              - generic [ref=e52]:
+                - heading "PPT B 预览" [level=3] [ref=e53]
+                - generic [ref=e141]: 共 8 页
+              - generic [ref=e142]:
+                - generic [ref=e144] [cursor=pointer]:
+                  - generic [ref=e146]: P2
+                  - generic [ref=e147]: 缓存
+                - button [disabled] [ref=e148]:
+                  - img [ref=e149]
+                - button [ref=e151] [cursor=pointer]:
+                  - img [ref=e152]
+              - generic [ref=e154]:
+                - generic [ref=e155]: 第 1 页 / 共 8 页
+                - button "选择此页" [ref=e156] [cursor=pointer]
+              - generic [ref=e158]:
+                - generic [ref=e159] [cursor=pointer]:
+                  - generic [ref=e160]:
+                    - generic [ref=e162]: P2
+                    - generic [ref=e163]: 缓存
+                  - generic [ref=e164]: P2
+                - generic [ref=e165] [cursor=pointer]:
+                  - generic [ref=e166]:
+                    - generic [ref=e168]: P3
+                    - generic [ref=e169]: 缓存
+                  - generic [ref=e170]: P3
+                - generic [ref=e171] [cursor=pointer]:
+                  - generic [ref=e172]:
+                    - generic [ref=e174]: P4
+                    - generic [ref=e175]: 缓存
+                  - generic [ref=e176]: P4
+                - generic [ref=e177] [cursor=pointer]:
+                  - generic [ref=e178]:
+                    - generic [ref=e180]: P5
+                    - generic [ref=e181]: 缓存
+                  - generic [ref=e182]: P5
+                - generic [ref=e183] [cursor=pointer]:
+                  - generic [ref=e184]:
+                    - generic [ref=e186]: P6
+                    - generic [ref=e187]: 缓存
+                  - generic [ref=e188]: P6
+                - generic [ref=e189] [cursor=pointer]:
+                  - generic [ref=e190]:
+                    - generic [ref=e192]: P7
+                    - generic [ref=e193]: 缓存
+                  - generic [ref=e194]: P7
+                - generic [ref=e195] [cursor=pointer]:
+                  - generic [ref=e196]:
+                    - generic [ref=e198]: P8
+                    - generic [ref=e199]: 缓存
+                  - generic [ref=e200]: P8
+                - generic [ref=e201] [cursor=pointer]:
+                  - generic [ref=e202]:
+                    - generic [ref=e204]: P9
+                    - generic [ref=e205]: 缓存
+                  - generic [ref=e206]: P9
+          - generic [ref=e60]:
+            - heading "合并提示语" [level=3] [ref=e61]
+            - generic [ref=e62]:
+              - generic [ref=e64]:
+                - generic [ref=e65]: 合并策略模板
+                - button "展开模板" [ref=e66] [cursor=pointer]
+              - generic [ref=e67]:
+                - generic [ref=e68]:
+                  - generic [ref=e69]: 总体合并策略
+                  - button "清空" [ref=e208] [cursor=pointer]
+                - textbox "总体合并策略" [ref=e70]:
+                  - /placeholder: 选择上方模板或自行输入合并策略...
+                  - text: 将数学课件（小数加减法）与语文课件（古诗鉴赏）融合成一个跨学科的综合课件。要求：1）保留数学的趣味导入和核心知识点；2）保留古诗的文化背景和赏析内容；3）在过渡页中体现数学与文学的跨学科联系；4）目标受众是小学四年级学生，风格活泼生动。
+                - paragraph [ref=e71]: 118 字
+              - generic [ref=e72]:
+                - generic [ref=e74]: 页面级提示语
+                - generic [ref=e75]:
+                  - img [ref=e76]
+                  - paragraph [ref=e78]: 在左侧选择页面后，可为每页设置保留/废弃指令
+              - generic [ref=e209]:
+                - generic [ref=e210]: 提示语汇总
+                - generic [ref=e212]: 总体策略将数学课件（小数加减法）与语文课件（古诗鉴赏）融合成一个跨学科的综合课件。要求：1）保留数学的趣味导入和核心知识点；2）保留古诗的文化背景和赏析内容；3）在过渡页中体现数学与文学的跨学科联系；4）目标受众是小学四年级学生，风格活泼生动。
+            - generic [ref=e79]:
+              - button "开始智能合并" [ref=e207] [cursor=pointer]
+              - button "重置" [ref=e80] [cursor=pointer]
+    - contentinfo [ref=e81]:
+      - paragraph [ref=e82]: © 2026 AI 教学 PPT 生成器 - 助力教师高效备课
+  - generic [ref=e87] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e88]:
+      - img [ref=e89]
+    - generic [ref=e224]:
+      - button "Open issues overlay" [ref=e225]:
+        - generic [ref=e226]:
+          - generic [ref=e227]: "0"
+          - generic [ref=e228]: "1"
+        - generic [ref=e229]: Issue
+      - button "Collapse issues badge" [ref=e230]:
+        - img [ref=e231]
+  - alert [ref=e92]

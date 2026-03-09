@@ -600,6 +600,33 @@
       "taskId": "unknown",
       "statusAfter": "done",
       "notes": "Session 8 执行 6 步流程。1) 上下文恢复：读取 project_profile.json、tasks.json、tests.json、requirements.md，确认所有任务均为 done/completed 状态；2) 环境健康检查：后端 http://localhost:8000/health 返回{\"status\":\"healthy\"}，前端 http://localhost:3000 返回 200；3) 任务状态确认：tasks.json 中所有 33 个任务（feat-201~feat-306）均为 done/completed 状态，无 pending 任务；4) requirements.md 分析：文档中描述的 3 个问题（XML 解析、/merge 流程、AI 调用真实性）已在之前 session 中通过 feat-115/feat-301（XML 命名空间通用修复）、feat-207/feat-302/feat-303（LLM 调用日志增强和验证）解决；5) 测试验证：tests.json 中 22 条验证记录均为 pass 状态，curl 验证后端健康检查和配置 API 正常；6) 收尾：无代码变更（仅临时文件修改），不提交 git。当前项目状态稳定，所有已编排任务已完成且功能正常，等待新需求输入。"
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-09T09:06:42.253Z",
+      "result": "success",
+      "cost": 2.841901,
+      "taskId": "feat-116",
+      "statusAfter": "done",
+      "notes": "feat-116 完成：创建单进程启动脚本解决 uvicorn 多进程问题。\n\n交付物：\n1. backend/start.sh - 单进程生产模式（workers=1，无 reload）\n2. backend/start-dev.sh - 单进程开发模式（workers=1 + reload）\n3. backend/start.ps1 - Windows 单进程模式\n4. 更新 project_profile.json 服务配置\n\n测试验证：\n- Shell 脚本语法检查通过\n- Python 代码语法检查通过\n\n给下个会话的提醒：\n- 启动后端请使用 ./backend/start.sh（macOS/Linux）或 ./backend/start.ps1（Windows）\n- 当前待执行优先级最高任务：feat-133（P0 AI 真实调用验证）\n- 环境清理已完成，feat-133 可以正常执行"
+    },
+    {
+      "session": 2,
+      "timestamp": "2026-03-09T09:28:08.537Z",
+      "result": "success",
+      "cost": 9.529496999999997,
+      "taskId": "feat-133",
+      "statusAfter": "done",
+      "notes": "feat-133 P0 AI 真实调用验证完成。环境清理后完整流程测试通过：1) 单进程 uvicorn 启动成功；2) 上传 PPT A(3页) 和 PPT B(8页)；3) 合并流程正常执行；4) 生成文件 smart_merged_874f669d.pptx 有效（36KB，11页）；5) 代码确认 LLM 真实调用 llm_service.chat_with_usage()。Playwright MCP 使用 extension 模式，通过 JavaScript 注入 llm_config 解决 API Key 配置问题。"
+    },
+    {
+      "session": 3,
+      "timestamp": "2026-03-09T09:59:34.173Z",
+      "result": "success",
+      "cost": 14.399159000000004,
+      "taskId": "feat-134",
+      "statusAfter": "done",
+      "notes": "feat-134 P0 提示词优化效果验证完成。执行了3个场景的Playwright端到端测试:\n1) 场景1-无提示语基础测试: 上传4页PPT A和3页PPT B，不输入任何提示语直接合并 -> 成功生成6页PPT\n2) 场景2-保留/废弃指令测试: 为PPT A第2页设置keep='保留目录页结构'/discard='删除多余文字'，为PPT B第2页设置keep='保留小数乘法概念' -> 成功合并，页面级提示词工作正常\n3) 场景3-全局策略模板测试: 输入全局策略'优先保留A文件框架...按概念→例题→练习排序' -> 成功合并，全局提示词影响策略生成\n\n所有场景均成功生成有效PPTX文件，提示词编辑器(keep/discard格式)和全局策略功能工作正常。任务状态已更新为done。"
     }
   ]
 }

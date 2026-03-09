@@ -177,5 +177,29 @@
       "last_result": "pass",
       "last_run_session": 2
     }
+    {
+      "id": "test-feat133-ai-merge",
+      "feature_id": "feat-133",
+      "verify": "Playwright MCP: /merge 上传两个 PPT -> 点击合并 -> 等待完成 -> 验证下载文件",
+      "expected": "合并成功，下载的 PPTX 文件有效，共 11 页（3+8），AI 真实调用（代码确认）",
+      "last_result": "pass",
+      "last_run_session": 2
+    },
+    {
+      "id": "test-feat134-prompt-optimization",
+      "feature_id": "feat-134",
+      "verify": "Playwright MCP: 场景1) 无提示语合并; 场景2) 设置 keep/discard 指令后合并; 场景3) 输入全局策略后合并",
+      "expected": "三种场景均成功: 1) 基础合并生成6页; 2) 保留废弃指令生效; 3) 全局策略影响合并结果",
+      "last_result": "pass",
+      "last_run_session": 3
+    },
+    {
+      "id": "test-feat135-multi-subject",
+      "feature_id": "feat-135",
+      "verify": "Playwright MCP: 场景1) 数学+语文跨学科合并(小数加减法+古诗静夜思); 场景2) 复杂多层级提示语测试; 场景3) 空提示语边界测试",
+      "expected": "三种边界场景均成功: 1) 跨学科合并生成6页PPT; 2) 复杂提示语解析成功; 3) 空提示语系统默认策略生效，生成8页PPT",
+      "last_result": "pass",
+      "last_run_session": 4
+    }
   ]
 }
