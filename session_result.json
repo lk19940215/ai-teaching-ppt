@@ -1,6 +1,0 @@
-{
-  "session_result": "success",
-  "status_before": "10 tasks (10 done, 0 pending, 0 failed), max_priority=209",
-  "status_after": "14 tasks (10 done, 4 pending, 0 failed), max_priority=304",
-  "notes": "追加了 4 个任务：\n1. feat-301 (bugfix, P0): XML 命名空间通用修复，支持所有 ns%d 变体，修复现有 feat-115 未完全解决的问题，使用通用正则表达式匹配 xmlns:ns\\d+=\"%s\"，移除快速预检改为全面扫描，添加日志记录修复文件数，使用三角形的面积_0dc28a00.pptx 验证返回 9 页。\n2. feat-302 (feature, P0): LLM 调用日志增强，记录真实 token 使用和耗时，补充 feat-207 验证不足的问题，在 smart_merge_ppt_stream() 添加请求日志（provider/model/timestamp/tokens/request_id），通过日志验证非零 token 和 10-60s 耗时。\n3. feat-303 (test, P0): 真实调用验证测试，依赖 feat-302，清除缓存强制真实调用（禁用缓存、删除日志文件），使用 Playwright MCP 多轮 browser_wait_for 等待合并流程（解析→AI→合并→完成），验证日志包含 provider/tokens/耗时，检查第三方服务后台调用记录，更新测试报告并截图证据。\n4. feat-304 (maintenance, P1): 任务状态同步更新，依赖 feat-301 和 feat-303，将 feat-115/207/209 状态从 done 改为 completed，添加新任务验证。所有任务形成 DAG：303→302，304→301/303，无循环依赖。"
-}
