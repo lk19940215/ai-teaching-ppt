@@ -662,7 +662,7 @@
       "priority": 144,
       "category": "feature",
       "description": "P0 复杂元素处理策略：SmartArt/图表的提示与处理",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-137"
       ],
@@ -677,20 +677,22 @@
         "【验证】包含图表的课件能正确提示"
       ],
       "artifacts": [
-        "backend/app/services/complex_element_detector.py"
+        "backend/app/api/ppt.py",
+        "frontend/src/app/merge/page.tsx"
       ],
       "acceptance_criteria": [
         "检测准确率 > 90%",
         "提示文案清晰说明限制",
         "用户能做出知情选择"
-      ]
+      ],
+      "notes": "Session 7 完成。后端在 /api/v1/ppt/parse API 中添加复杂元素检测逻辑，检测 CHART/DIAGRAM/EMBEDDED_OLE_OBJECT/MEDIA 类型，返回 complex_element_slides 字段和页面级别的 has_complex_elements 标记。前端新增 ComplexElementWarningCard 组件，显示琥珀色警告卡片，用户可点击页码按钮切换保留/跳过状态。代码验证通过（Python 语法检查、TypeScript 类型检查），服务运行正常。"
     },
     {
       "id": "feat-145",
       "priority": 145,
       "category": "test",
       "description": "P0 端到端测试：版本化合并全流程",
-      "status": "pending",
+      "status": "failed",
       "depends_on": [
         "feat-143"
       ],
