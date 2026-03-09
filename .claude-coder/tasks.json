@@ -111,9 +111,10 @@
       "priority": 116,
       "category": "maintenance",
       "description": "P0 环境清理：解决 uvicorn 多进程导致网络异常问题",
-      "status": "pending",
+      "status": "done",
       "depends_on": [],
-      "notes": "feat-307 失败的根因是 uvicorn 多进程网络异常。"
+      "notes": "已完成。创建单进程启动脚本，避免 uvicorn --reload 多进程导致的 SSE/网络异常。脚本语法检查通过。",
+      "artifacts": ["backend/start.sh", "backend/start-dev.sh", "backend/start.ps1"]
     },
     {
       "id": "feat-117",

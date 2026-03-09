@@ -20,10 +20,11 @@
   "services": [
     {
       "name": "backend",
-      "command": "cd backend && uvicorn app.main:app --reload --port 8000",
+      "command": "cd backend && ./start.sh",
       "port": 8000,
       "health_check": "http://localhost:8000/health",
-      "cwd": "."
+      "cwd": ".",
+      "note": "使用单进程模式，解决 uvicorn --reload 多进程导致的 SSE/网络异常"
     },
     {
       "name": "frontend",
