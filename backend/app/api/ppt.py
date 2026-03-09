@@ -2116,7 +2116,7 @@ async def ai_merge_ppts(
 
 # ==================== 版本化管理 API ====================
 
-@router.post("/ppt/session/create")
+@router.post("/session/create")
 async def create_ppt_session(
     files: Dict[str, UploadFile] = Body(..., description="上传的 PPT 文件", examples=[{"ppt_a": "file1.pptx", "ppt_b": "file2.pptx"}])
 ):
@@ -2190,7 +2190,7 @@ async def create_ppt_session(
         raise HTTPException(status_code=500, detail=f"创建会话失败：{str(e)}")
 
 
-@router.post("/ppt/version/create")
+@router.post("/version/create")
 async def create_version(
     session_id: str = Body(..., description="会话 ID"),
     document_id: str = Body(..., description="文档 ID (ppt_a, ppt_b)"),
@@ -2259,7 +2259,7 @@ async def create_version(
         raise HTTPException(status_code=500, detail=f"创建版本失败：{str(e)}")
 
 
-@router.post("/ppt/version/restore")
+@router.post("/version/restore")
 async def restore_version(
     session_id: str = Body(..., description="会话 ID"),
     document_id: str = Body(..., description="文档 ID"),
@@ -2317,7 +2317,7 @@ async def restore_version(
         raise HTTPException(status_code=500, detail=f"恢复版本失败：{str(e)}")
 
 
-@router.post("/ppt/slide/toggle")
+@router.post("/slide/toggle")
 async def toggle_slide_status(
     session_id: str = Body(..., description="会话 ID"),
     document_id: str = Body(..., description="文档 ID"),
@@ -2378,7 +2378,7 @@ async def toggle_slide_status(
         raise HTTPException(status_code=500, detail=f"切换页面状态失败：{str(e)}")
 
 
-@router.get("/ppt/session/{session_id}")
+@router.get("/session/{session_id}")
 async def get_session_info(session_id: str):
     """
     获取会话详情（包含所有文档的完整版本历史）
@@ -2450,7 +2450,7 @@ async def get_session_info(session_id: str):
         raise HTTPException(status_code=500, detail=f"获取会话信息失败：{str(e)}")
 
 
-@router.get("/ppt/session/{session_id}/history")
+@router.get("/session/{session_id}/history")
 async def get_slide_version_history(
     session_id: str,
     document_id: str = Query(..., description="文档 ID"),
