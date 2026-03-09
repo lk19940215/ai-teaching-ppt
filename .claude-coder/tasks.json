@@ -692,11 +692,11 @@
       "priority": 145,
       "category": "test",
       "description": "P0 端到端测试：版本化合并全流程",
-      "status": "failed",
+      "status": "in_progress",
       "depends_on": [
         "feat-143"
       ],
-      "notes": "Session 9: 完成步骤 1-5（环境验证、页面加载、双 PPT 上传成功）。步骤 6+ 失败：前端 AI 融合请求失败（Failed to fetch）。后端 API 验证正常（curl 测试通过），但前端 fetch 请求被阻止。可能原因：1) 浏览器 CORS 策略限制；2) SSE 流响应处理问题。API Key 已正确配置（localStorage 验证通过）。需要排查前端 fetch 配置或后端 CORS 中间件顺序。",
+      "notes": "Session 12: 修复前端 Bug 完成。1) MergePlanPanel 组件添加空值检查，避免 TypeError 崩溃；2) 修复.env.local 配置（8002→8000）。前端 TypeScript 编译通过，页面不再崩溃，安全降级正常工作。遗留问题：后端 SSE 流响应可能卡住，LLM 调用超时需调试。commit: fab2af6",
       "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#1-需求概述",
       "test_data": {
         "ppt_a": "uploads/generated/晋升答辩_大龙猫.pptx",
