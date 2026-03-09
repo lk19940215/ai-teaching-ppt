@@ -28,6 +28,17 @@ interface FallbackPageData {
   shapes?: any[]
 }
 
+// feat-144: 复杂元素数据结构
+interface ComplexElementWarning {
+  has_complex_elements: boolean
+  complex_element_types?: string[]
+}
+
+interface PptPageDataWithComplex extends PptPageData {
+  has_complex_elements?: boolean
+  complex_element_types?: string[]
+}
+
 /**
  * PPT 上传区域组件（复用）
  */
@@ -156,6 +167,60 @@ function PptUploadArea({ label, file, onFileSelect, disabled = false }: PptUploa
   )
 }
 
+// feat-144: 复杂元素警告提示组件
+interface ComplexElementWarningCardProps {
+  source: 'A' | 'B'
+  complexElementSlides: number[]
+  totalPages: number
+  skippedSlides: number[]
+  onToggleSkip: (slideIndex: number) => void
+}
+
+function ComplexElementWarningCard({ source, complexElementSlides, totalPages, skippedSlides, onToggleSkip }: ComplexElementWarningCardProps) {
+  if (complexElementSlides.length === 0) return null
+
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+      <div className="flex items-start gap-3">
+        <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold text-amber-800">
+            PPT {source} 包含复杂元素（图表/SmartArt）
+          </h3>
+          <p className="text-xs text-amber-700 mt-1">
+            以下页面包含 AI 无法解析的复杂元素（图表、SmartArt 等），合并时将被整页保留：
+          </p>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {complexElementSlides.map((slideIndex) => {
+              const pageNum = slideIndex + 1
+              const isSkipped = skippedSlides.includes(slideIndex)
+              return (
+                <button
+                  key={slideIndex}
+                  onClick={() => onToggleSkip(slideIndex)}
+                  className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                    isSkipped
+                      ? 'bg-gray-300 text-gray-700 line-through'
+                      : 'bg-amber-200 text-amber-900 hover:bg-amber-300'
+                  }`}
+                  title={isSkipped ? '点击恢复保留' : '点击跳过此页'}
+                >
+                  第{pageNum}页 {isSkipped ? '×' : '✓'}
+                </button>
+              )
+            })}
+          </div>
+          <p className="text-xs text-amber-600 mt-2">
+            💡 提示：复杂元素页面无法进行 AI 内容级合并，只能整页保留或跳过
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /**
  * 智能合并页面 - 基础框架
  * feat-075：创建 /merge 独立页面
@@ -167,8 +232,8 @@ export default function MergePage() {
   const [pptB, setPptB] = useState<File | null>(null)
 
   // A/B PPT 页面数据（用于预览）
-  const [pptAPages, setPptAPages] = useState<PptPageData[]>([])
-  const [pptBPages, setPptBPages] = useState<PptPageData[]>([])
+  const [pptAPages, setPptAPages] = useState<PptPageDataWithComplex[]>([])
+  const [pptBPages, setPptBPages] = useState<PptPageDataWithComplex[]>([])
 
   // A/B PPT 加载状态
   const [isLoadingA, setIsLoadingA] = useState(false)
@@ -180,6 +245,13 @@ export default function MergePage() {
   // feat-097: A/B PPT 降级模式获取的数据
   const [fallbackDataA, setFallbackDataA] = useState<FallbackPageData[]>([])
   const [fallbackDataB, setFallbackDataB] = useState<FallbackPageData[]>([])
+
+  // feat-144: A/B PPT 复杂元素警告
+  const [complexElementSlidesA, setComplexElementSlidesA] = useState<number[]>([])
+  const [complexElementSlidesB, setComplexElementSlidesB] = useState<number[]>([])
+  // feat-144: 用户选择跳过的复杂元素页面（默认保留，用户可手动跳过）
+  const [skippedComplexSlidesA, setSkippedComplexSlidesA] = useState<number[]>([])
+  const [skippedComplexSlidesB, setSkippedComplexSlidesB] = useState<number[]>([])
 
   // A/B PPT 选中的页面索引
   const [selectedPagesA, setSelectedPagesA] = useState<number[]>([])
@@ -213,7 +285,7 @@ export default function MergePage() {
   } | null>(null)
 
   // 解析 PPT 文件获取页面数据
-  const parsePptFile = async (file: File): Promise<PptPageData[]> => {
+  const parsePptFile = async (file: File): Promise<PptPageDataWithComplex[]> => {
     // feat-098: 超时检测（30 秒）
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 30000)
@@ -265,13 +337,24 @@ export default function MergePage() {
         throw new Error(`PPT 文件 "${file.name}" 中没有检测到页面内容`)
       }
 
+      // feat-144: 提取复杂元素信息
+      const complexSlides = result.complex_element_slides || []
+      const complexPagesSet = new Set(complexSlides)
+
+      // 为包含复杂元素的页面添加标记
+      const pagesWithComplex = result.pages.map((page: PptPageData) => ({
+        ...page,
+        has_complex_elements: complexPagesSet.has(page.index),
+        complex_element_types: complexPagesSet.has(page.index) ? ['chart', 'diagram'] : undefined
+      }))
+
       // 记录到全局性能指标
       const win = window as any
       if (win.perfMetrics) {
         win.perfMetrics.apiEnd = performance.now()
       }
 
-      return result.pages || []
+      return pagesWithComplex
     } catch (err: any) {
       if (err.name === 'AbortError') {
         throw new Error('PPT 解析超时（30 秒），文件可能过大或网络连接不稳定，请重试')
@@ -348,6 +431,7 @@ export default function MergePage() {
   useEffect(() => {
     if (!pptA) {
       setPptAPages([])
+      setComplexElementSlidesA([])
       return
     }
 
@@ -356,6 +440,11 @@ export default function MergePage() {
       try {
         const pages = await parsePptFile(pptA)
         setPptAPages(pages)
+        // feat-144: 提取复杂元素页面索引（转换为 0-based）
+        const complexSlides = pages
+          .filter(p => p.has_complex_elements)
+          .map(p => p.index - 1)  // index is 1-based, convert to 0-based
+        setComplexElementSlidesA(complexSlides)
         setSelectedPagesA([]) // 重置选择
       } catch (err: any) {
         console.error('解析 PPT A 失败:', err)
@@ -374,6 +463,7 @@ export default function MergePage() {
   useEffect(() => {
     if (!pptB) {
       setPptBPages([])
+      setComplexElementSlidesB([])
       return
     }
 
@@ -382,6 +472,11 @@ export default function MergePage() {
       try {
         const pages = await parsePptFile(pptB)
         setPptBPages(pages)
+        // feat-144: 提取复杂元素页面索引（转换为 0-based）
+        const complexSlides = pages
+          .filter(p => p.has_complex_elements)
+          .map(p => p.index - 1)  // index is 1-based, convert to 0-based
+        setComplexElementSlidesB(complexSlides)
         setSelectedPagesB([]) // 重置选择
       } catch (err: any) {
         console.error('解析 PPT B 失败:', err)
@@ -865,6 +960,23 @@ export default function MergePage() {
     setAdjustedPlan(updatedPlan)
   }
 
+  // feat-144: 切换复杂元素页面跳过状态
+  const handleToggleSkipComplexSlide = (source: 'A' | 'B', slideIndex: number) => {
+    if (source === 'A') {
+      setSkippedComplexSlidesA(prev =>
+        prev.includes(slideIndex)
+          ? prev.filter(i => i !== slideIndex)
+          : [...prev, slideIndex]
+      )
+    } else {
+      setSkippedComplexSlidesB(prev =>
+        prev.includes(slideIndex)
+          ? prev.filter(i => i !== slideIndex)
+          : [...prev, slideIndex]
+      )
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-6">
       {/* 页面标题 */}
@@ -924,6 +1036,26 @@ export default function MergePage() {
             onFileSelect={setPptB}
             disabled={isGenerating}
           />
+
+          {/* feat-144: 复杂元素警告卡片 */}
+          {complexElementSlidesA.length > 0 && (
+            <ComplexElementWarningCard
+              source="A"
+              complexElementSlides={complexElementSlidesA}
+              totalPages={pptAPages.length}
+              skippedSlides={skippedComplexSlidesA}
+              onToggleSkip={(idx) => handleToggleSkipComplexSlide('A', idx)}
+            />
+          )}
+          {complexElementSlidesB.length > 0 && (
+            <ComplexElementWarningCard
+              source="B"
+              complexElementSlides={complexElementSlidesB}
+              totalPages={pptBPages.length}
+              skippedSlides={skippedComplexSlidesB}
+              onToggleSkip={(idx) => handleToggleSkipComplexSlide('B', idx)}
+            />
+          )}
 
           {/* PPT A 单页预览 - 使用 Canvas 渲染器（支持 PptxViewJS 降级） */}
           <PptCanvasPreview

@@ -1128,6 +1128,16 @@ async def parse_ppt(
 
                 return shape_info
 
+            # 复杂元素检测（图表、SmartArt 等）
+            COMPLEX_SHAPE_TYPES = {
+                MSO_SHAPE_TYPE.CHART,      # 图表
+                MSO_SHAPE_TYPE.DIAGRAM,    # SmartArt
+                MSO_SHAPE_TYPE.EMBEDDED_OLE_OBJECT,  # 嵌入对象
+                MSO_SHAPE_TYPE.MEDIA,      # 音视频
+            }
+
+            complex_element_slides: List[int] = []
+
             for slide_idx, slide in enumerate(prs.slides):
                 # 获取页面尺寸
                 slide_width = prs.slide_width.pt if hasattr(prs, 'slide_width') else 960
@@ -1144,8 +1154,15 @@ async def parse_ppt(
                     }
                 }
 
-                # 提取形状信息
+                # 检测复杂元素
+                has_complex_elements = False
+                complex_element_types: List[str] = []
+
                 for shape in slide.shapes:
+                    if hasattr(shape, 'shape_type') and shape.shape_type in COMPLEX_SHAPE_TYPES:
+                        has_complex_elements = True
+                        complex_element_types.append(str(shape.shape_type))
+
                     shape_info = parse_shape(shape, slide_width, slide_height)
                     page_data['shapes'].append(shape_info)
 
@@ -1174,6 +1191,13 @@ async def parse_ppt(
                                         'font': shape_info.get('text_content', [{}])[0].get('runs', [{}])[0].get('font', {}) if shape_info.get('text_content') else {}
                                     })
 
+                # 添加复杂元素标记
+                if has_complex_elements:
+                    page_data['has_complex_elements'] = True
+                    page_data['complex_element_types'] = list(set(complex_element_types))  # 去重
+                    complex_element_slides.append(slide_idx + 1)  # 记录页码（从 1 开始）
+                    logger.warning(f"第 {slide_idx + 1} 页包含复杂元素：{complex_element_types}")
+
                 pages.append(page_data)
 
             result = {
@@ -1183,6 +1207,7 @@ async def parse_ppt(
                 'total_pages': len(pages),
                 'enhanced': extract_enhanced,
                 'pages': pages,
+                'complex_element_slides': complex_element_slides,  # 包含复杂元素的页码列表
                 'parse_time_ms': int((time.time() - start_time) * 1000)
             }
             
