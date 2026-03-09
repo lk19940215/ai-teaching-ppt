@@ -91,8 +91,14 @@ def _fix_invalid_namespaces(file_path: Path) -> Path:
             z.extractall(fix_dir)
 
         # 修复所有 XML 文件中的无效命名空间
-        # 使用通用正则匹配所有 xmlns:ns\d+="%s" 模式（支持 ns1, ns2, ns3... 所有变体）
-        ns_pattern = re.compile(r'xmlns:ns(\d+)="%s"')
+        # 使用通用正则匹配所有 xmlns:ns\d+="%s" 或 xmlns:ns\d+='%s' 模式（支持单引号和双引号）
+        def replace_ns(match):
+            """替换命名空间，保持引号类型一致"""
+            ns_num = match.group(1)
+            quote = match.group(2)  # 捕获引号类型（单引号或双引号）
+            return f'xmlns:ns{ns_num}={quote}http://schemas.openxmlformats.org/presentationml/2006/placeholder{quote}'
+
+        ns_pattern = re.compile(r'xmlns:ns(\d+)=([\'"])%s\2')
         # 匹配包含 { 的无效占位符模式
         placeholder_pattern = re.compile(r'xmlns:([a-zA-Z0-9_]+)=["\']\{([^}]*)\}[^"\']*["\']')
 
@@ -104,8 +110,8 @@ def _fix_invalid_namespaces(file_path: Path) -> Path:
                 content = xml_file.read_text(encoding='utf-8')
                 original_content = content
 
-                # 替换模式 1: xmlns:ns%d="%s"
-                content = ns_pattern.sub(r'xmlns:ns\1="http://schemas.openxmlformats.org/presentationml/2006/placeholder"', content)
+                # 替换模式 1: xmlns:ns%d="%s" 或 xmlns:ns%d='%s'（支持单引号和双引号）
+                content = ns_pattern.sub(replace_ns, content)
 
                 # 替换模式 2: xmlns:x="{.*}" 等包含 { 的占位符
                 content = placeholder_pattern.sub(r'xmlns:\1="http://schemas.openxmlformats.org/presentationml/2006/\2"', content)
@@ -905,8 +911,14 @@ async def parse_ppt(
                         z.extractall(fix_dir)
 
                     # 修复所有 XML 文件中的无效命名空间
-                    # 使用通用正则匹配所有 xmlns:ns\d+="%s" 模式（支持 ns1, ns2, ns3... 所有变体）
-                    ns_pattern = re.compile(r'xmlns:ns(\d+)="%s"')
+                    # 使用通用正则匹配所有 xmlns:ns\d+="%s" 或 xmlns:ns\d+='%s' 模式（支持单引号和双引号）
+                    def replace_ns(match):
+                        """替换命名空间，保持引号类型一致"""
+                        ns_num = match.group(1)
+                        quote = match.group(2)  # 捕获引号类型（单引号或双引号）
+                        return f'xmlns:ns{ns_num}={quote}http://schemas.openxmlformats.org/presentationml/2006/placeholder{quote}'
+
+                    ns_pattern = re.compile(r'xmlns:ns(\d+)=([\'"])%s\2')
                     # 匹配包含 { 的无效占位符模式
                     placeholder_pattern = re.compile(r'xmlns:([a-zA-Z0-9_]+)=["\']\{([^}]*)\}[^"\']*["\']')
 
@@ -918,8 +930,8 @@ async def parse_ppt(
                             content = xml_file.read_text(encoding='utf-8')
                             original_content = content
 
-                            # 替换模式1: xmlns:ns%d="%s"
-                            content = ns_pattern.sub(r'xmlns:ns\1="http://schemas.openxmlformats.org/presentationml/2006/placeholder"', content)
+                            # 替换模式1: xmlns:ns%d="%s" 或 xmlns:ns%d='%s'（支持单引号和双引号）
+                            content = ns_pattern.sub(replace_ns, content)
 
                             # 替换模式2: xmlns:x="{.*}" 等包含 { 的占位符
                             content = placeholder_pattern.sub(r'xmlns:\1="http://schemas.openxmlformats.org/presentationml/2006/\2"', content)
