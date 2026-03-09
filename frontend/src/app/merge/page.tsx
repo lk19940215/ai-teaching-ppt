@@ -4,9 +4,13 @@ import * as React from "react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { apiBaseUrl } from '@/lib/api'
 import PptCanvasPreview, { type PptPageData } from '@/components/ppt-canvas-preview'
 import PromptEditor, { type StructuredPagePrompt } from '@/components/prompt-editor'
+import MergeModeSelector, { type MergeMode } from '@/components/merge-mode-selector'
+import MergePlanPanel from '@/components/merge-plan-panel'
+import type { MergePlan } from '@/types/merge-plan'
 
 // PPT 文件上传区域属性
 interface PptUploadAreaProps {
@@ -194,6 +198,19 @@ export default function MergePage() {
   const [fileName, setFileName] = useState<string | null>(null)
   const [progress, setProgress] = useState(0) // 生成进度 0-100
   const [progressStatus, setProgressStatus] = useState("") // 当前进度状态描述
+
+  // feat-142: AI 融合相关状态
+  const [mergeMode, setMergeMode] = useState<MergeMode>('full')
+  const [mergePlan, setMergePlan] = useState<MergePlan | null>(null)
+  const [adjustedPlan, setAdjustedPlan] = useState<MergePlan | null>(null)
+  const [isAiMerging, setIsAiMerging] = useState(false)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  // feat-142: AI 融合进度状态
+  const [aiMergeProgress, setAiMergeProgress] = useState<{
+    stage: string
+    message: string
+    percentage: number
+  } | null>(null)
 
   // 解析 PPT 文件获取页面数据
   const parsePptFile = async (file: File): Promise<PptPageData[]> => {
@@ -624,6 +641,228 @@ export default function MergePage() {
     setFallbackModeB(false)
     setFallbackDataA([])
     setFallbackDataB([])
+    // feat-142: 重置 AI 融合状态
+    setMergeMode('full')
+    setMergePlan(null)
+    setIsAiMerging(false)
+    setSessionId(null)
+  }
+
+  // feat-142: AI 内容融合处理
+  const handleAiMerge = async () => {
+    if (!pptA || !pptB) {
+      setError("请上传 A/B 两个 PPT 文件")
+      return
+    }
+
+    // 从 localStorage 获取 LLM 配置
+    const llmConfigStr = localStorage.getItem("llm_config")
+    if (!llmConfigStr) {
+      setError("请先在设置页配置 LLM API Key")
+      return
+    }
+
+    const llmConfig = JSON.parse(llmConfigStr)
+    if (!llmConfig.apiKey) {
+      setError("LLM API Key 未配置")
+      return
+    }
+
+    setIsAiMerging(true)
+    setError(null)
+    setMergePlan(null)
+    setAdjustedPlan(null)
+    setAiMergeProgress({
+      stage: 'parsing',
+      message: '正在解析 PPT 内容...',
+      percentage: 10
+    })
+
+    // 准备 FormData
+    const formData = new FormData()
+    formData.append("file_a", pptA)
+    formData.append("file_b", pptB)
+    formData.append("merge_type", mergeMode)
+    formData.append("provider", llmConfig.provider || "deepseek")
+    formData.append("api_key", llmConfig.apiKey)
+    formData.append("temperature", "0.3")
+    formData.append("max_tokens", "3000")
+
+    // 根据合并类型添加额外参数
+    if (mergeMode === 'partial') {
+      formData.append("selected_pages_a", selectedPagesA.join(','))
+      formData.append("selected_pages_b", selectedPagesB.join(','))
+      if (!selectedPagesA.length && !selectedPagesB.length) {
+        setError("选择页面融合模式需要至少选择一个页面")
+        setIsAiMerging(false)
+        setAiMergeProgress(null)
+        return
+      }
+    } else if (mergeMode === 'single') {
+      const singlePage = selectedPagesA[0] !== undefined ? selectedPagesA[0] : selectedPagesB[0]
+      if (singlePage === undefined) {
+        setError("单页处理模式需要选择一个页面")
+        setIsAiMerging(false)
+        setAiMergeProgress(null)
+        return
+      }
+      formData.append("single_page_index", singlePage.toString())
+      formData.append("single_page_action", "polish")
+      formData.append("source_doc", selectedPagesA[0] !== undefined ? 'A' : 'B')
+    }
+
+    // 添加自定义提示语
+    if (globalPrompt) {
+      formData.append("custom_prompt", globalPrompt)
+    }
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/ai-merge`, {
+        method: "POST",
+        body: formData
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: "请求失败" }))
+        throw new Error(errorData.detail || `HTTP ${response.status}`)
+      }
+
+      const reader = response.body?.getReader()
+      if (!reader) {
+        throw new Error("无法读取响应流")
+      }
+
+      const decoder = new TextDecoder()
+      let buffer = ""
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split("\n")
+        buffer = lines.pop() || ""
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const dataStr = line.slice(6)
+            try {
+              const event = JSON.parse(dataStr)
+
+              // 心跳事件跳过
+              if (event.type === "heartbeat") continue
+
+              // 更新进度（带阶段信息）
+              if (event.stage) {
+                const stageProgress: Record<string, number> = {
+                  'parsing': 15,
+                  'calling_llm': 30,
+                  'thinking': 50,
+                  'merging': 75,
+                  'complete': 100
+                }
+                setAiMergeProgress({
+                  stage: event.stage,
+                  message: event.message || getStageMessage(event.stage),
+                  percentage: stageProgress[event.stage] || event.progress || 0
+                })
+              }
+
+              // 错误事件
+              if (event.stage === "error") {
+                setError(event.message || "AI 融合失败")
+                setIsAiMerging(false)
+                setAiMergeProgress(null)
+                return
+              }
+
+              // 完成事件 - 解析合并计划
+              if (event.stage === "complete" && event.result) {
+                setMergePlan(event.result)
+                setIsAiMerging(false)
+                setAiMergeProgress(null)
+              }
+            } catch (e) {
+              console.warn("解析 SSE 事件失败:", e)
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error("AI 融合失败:", err)
+      setError(err.message || "AI 融合失败，请重试")
+      setIsAiMerging(false)
+      setAiMergeProgress(null)
+    }
+  }
+
+  // 辅助函数：获取阶段描述
+  const getStageMessage = (stage: string): string => {
+    const messages: Record<string, string> = {
+      'parsing': '📚 正在解析 PPT 内容...',
+      'calling_llm': '🤖 AI 正在分析内容并生成合并策略...',
+      'thinking': '🧠 AI 正在深度分析...',
+      'merging': '🔧 正在执行智能合并...',
+      'complete': '✅ 合并完成！'
+    }
+    return messages[stage] || '处理中...'
+  }
+
+  // feat-142: 确认合并计划
+  const handleConfirmPlan = async (plan: MergePlan | any) => {
+    // 使用调整后的计划（如果有）
+    const finalPlan = adjustedPlan || plan
+
+    // TODO: 调用后端生成最终 PPT (feat-143)
+    // 当前显示提示
+    console.log('确认合并计划:', finalPlan)
+    setError("确认合并计划功能将在 feat-143 中实现 - 当前已展示完整方案并支持用户调整")
+  }
+
+  // feat-142: 取消/重新生成
+  const handleCancelPlan = () => {
+    setMergePlan(null)
+    setAdjustedPlan(null)
+  }
+
+  // feat-142: 处理计划调整（删除页面）
+  const handleDeletePage = (index: number) => {
+    if (!mergePlan) return
+
+    const updatedPlan: MergePlan = {
+      ...mergePlan,
+      slide_plan: mergePlan.slide_plan.filter((_, idx) => idx !== index)
+    }
+    setAdjustedPlan(updatedPlan)
+  }
+
+  // feat-142: 处理页面编辑
+  const handleEditPage = (index: number, newContent: string) => {
+    if (!mergePlan) return
+
+    const updatedPlan: MergePlan = {
+      ...mergePlan,
+      slide_plan: mergePlan.slide_plan.map((item, idx) =>
+        idx === index ? { ...item, new_content: newContent } : item
+      )
+    }
+    setAdjustedPlan(updatedPlan)
+  }
+
+  // feat-142: 处理拖拽排序
+  const handleReorder = (fromIndex: number, toIndex: number) => {
+    if (!mergePlan) return
+
+    const updatedPlan: MergePlan = {
+      ...mergePlan,
+      slide_plan: [...mergePlan.slide_plan]
+    }
+
+    // 交换数组元素
+    const [removed] = updatedPlan.slide_plan.splice(fromIndex, 1)
+    updatedPlan.slide_plan.splice(toIndex, 0, removed)
+
+    setAdjustedPlan(updatedPlan)
   }
 
   return (
@@ -729,8 +968,52 @@ export default function MergePage() {
           />
         </div>
 
-        {/* 右侧：提示语编辑面板 */}
-        <div className="lg:col-span-1">
+        {/* 右侧：提示语编辑面板 + AI 融合面板 */}
+        <div className="lg:col-span-1 space-y-4">
+          {/* AI 融合方式选择 */}
+          <div className="bg-white border rounded-lg p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              AI 融合方式
+            </h3>
+            <MergeModeSelector
+              value={mergeMode}
+              onChange={setMergeMode}
+              disabled={isAiMerging || isGenerating}
+            />
+
+            {/* 操作按钮 */}
+            <div className="flex flex-col gap-3 pt-4 border-t mt-4">
+              <Button
+                onClick={handleAiMerge}
+                disabled={!pptA || !pptB || isAiMerging || isGenerating}
+                className="w-full"
+              >
+                {isAiMerging ? 'AI 融合中...' : '开始 AI 融合'}
+              </Button>
+            </div>
+          </div>
+
+          {/* AI 方案展示面板 */}
+          {(mergePlan || aiMergeProgress) && (
+            <div className="bg-white border rounded-lg p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                AI 合并方案
+              </h3>
+              <MergePlanPanel
+                plan={mergePlan}
+                adjustedPlan={adjustedPlan || undefined}
+                isLoading={isAiMerging}
+                progressInfo={aiMergeProgress || undefined}
+                onConfirm={handleConfirmPlan}
+                onCancel={handleCancelPlan}
+                onDeletePage={handleDeletePage}
+                onEditPage={handleEditPage}
+                onReorder={handleReorder}
+              />
+            </div>
+          )}
+
+          {/* 提示语编辑器（保留原有功能） */}
           <div className="bg-white border rounded-lg p-6 sticky top-8">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               合并提示语
@@ -753,6 +1036,21 @@ export default function MergePage() {
               </div>
             )}
 
+            {/* 全局提示语输入 */}
+            <div className="space-y-2">
+              <Label htmlFor="global-prompt" className="text-sm font-medium">
+                全局合并策略
+              </Label>
+              <Textarea
+                id="global-prompt"
+                value={globalPrompt}
+                onChange={(e) => setGlobalPrompt(e.target.value)}
+                placeholder="例如：保留 PPT A 的封面和总结，将 PPT B 的例题插入到概念讲解之后..."
+                className="min-h-[80px] text-sm"
+                disabled={isAiMerging || isGenerating}
+              />
+            </div>
+
             {/* PromptEditor 组件（feat-077） */}
             <PromptEditor
               pagesA={pptAPages}
@@ -763,7 +1061,7 @@ export default function MergePage() {
               onPagePromptsChange={setPagePrompts}
               globalPrompt={globalPrompt}
               onGlobalPromptChange={setGlobalPrompt}
-              disabled={isGenerating}
+              disabled={isAiMerging || isGenerating}
               focusPage={focusPage}
             />
 

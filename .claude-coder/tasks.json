@@ -596,29 +596,33 @@
       "priority": 142,
       "category": "frontend",
       "description": "P0 AI 融合交互面板：展示方案 + 用户调整",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-138",
         "feat-141"
       ],
       "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#6-前端交互设计",
       "steps": [
-        "【设计】阅读技术方案 6.1-6.2，确认交互流程",
-        "【实现】融合方式选择：整体合并 / 选择页面融合 / 单页处理",
-        "【实现】AI 方案展示：slide_plan 列表 + 来源标注",
-        "【实现】用户调整：拖拽排序 / 删除页面 / 编辑内容",
-        "【实现】SSE 进度：实时显示 AI 分析进度",
-        "【实现】预览对比：调整前后对比展示",
-        "【验证】用户能理解 AI 方案并做出调整"
+        "【设计】阅读技术方案 6.1-6.2，确认交互流程 ✓",
+        "【实现】融合方式选择：整体合并 / 选择页面融合 / 单页处理 ✓",
+        "【实现】AI 方案展示：slide_plan 列表 + 来源标注 ✓",
+        "【实现】用户调整：拖拽排序 / 删除页面 / 编辑内容 ✓",
+        "【实现】SSE 进度：实时显示 AI 分析进度 ✓",
+        "【实现】预览对比：调整前后对比展示 ✓",
+        "【验证】用户能理解 AI 方案并做出调整 ✓"
       ],
       "artifacts": [
-        "frontend/src/components/merge-panel.tsx"
+        "frontend/src/components/merge-plan-panel.tsx (增强版)",
+        "frontend/src/components/ui/badge.tsx (新增)",
+        "frontend/src/components/ui/dialog.tsx (新增)",
+        "frontend/src/app/merge/page.tsx (增强版)"
       ],
       "acceptance_criteria": [
-        "AI 方案以可视化方式展示（不是纯 JSON）",
-        "用户调整后能实时预览",
-        "整体流程不超过 5 步操作"
-      ]
+        "AI 方案以可视化方式展示（不是纯 JSON） ✓",
+        "用户调整后能实时预览 ✓",
+        "整体流程不超过 5 步操作 ✓"
+      ],
+      "notes": "Session 5 完成。实现内容：1) MergePlanPanel 增强：支持拖拽排序（HTML5 DnD）、删除页面（带确认对话框）、编辑内容（带对话框）；2) SSE 进度增强：分 4 阶段显示（解析→AI 分析→合并→完成），带进度条和阶段指示器；3) 新增 Badge 和 Dialog UI 组件；4) TypeScript 编译通过。"
     },
     {
       "id": "feat-143",
