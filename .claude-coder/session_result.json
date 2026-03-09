@@ -1,6 +1,6 @@
 {
-  "session_result": "failed",
+  "session_result": "success",
   "status_before": "failed",
-  "status_after": "failed",
-  "notes": "【Session 11 - feat-145 测试执行】【问题定位】成功定位后端 AI 融合 API 的 Bug：ppt.py 第 2138 行有错误的导入语句 `from ..services.ppt_generator import sse_generator`，但 sse_generator 函数实际在 ppt.py 中定义（第 345 行），不在 ppt_generator.py 中。【修复】已移除错误导入行，并添加注释说明。【问题】uvicorn 进程（PID 21396）无法被杀死（taskkill/npx kill-port/PowerShell 均失败），导致代码无法重新加载测试。【下 session 提醒】1) 需要手动杀死 uvicorn 进程并重启后端服务；2) 或者使用其他方法强制重启（如重启终端/服务器）；3) 修复后重新执行浏览器测试验证 AI 融合功能。"
+  "status_after": "in_progress",
+  "notes": "【Session 12 - feat-145 修复进展】【核心 Bug 修复】1) 修复前端 MergePlanPanel 组件 TypeError：添加空值检查，当 mergePlan 为 null 或 slide_plan 为空时显示 loading/降级 UI，避免 'Cannot read properties of undefined (reading 'map')' 崩溃；2) 修复 .env.local 配置：NEXT_PUBLIC_API_URL 从 8002 改为 8000（之前请求发送到旧后端实例）。【验证结果】前端 TypeScript 编译通过，页面不再崩溃，安全降级正常工作（显示'暂无合并方案数据'），控制台 0 错误。【遗留问题】后端 SSE 流响应可能卡住：curl 测试 API 返回 200 但前端未收到完整 SSE 事件，日志显示'无法解析响应体为有效 JSON'。需要下个 session 继续调试：1) 检查 LLM API 调用是否超时；2) 验证 SSE 流编码问题；3) 确认 content_merger.py 中 merge_full 方法是否正常返回。【下 session 提醒】后端代码未修改，重点调试 SSE 流处理和 LLM 调用超时问题。"
 }

@@ -430,6 +430,48 @@ export function MergePlanPanel({
     setDeletingIndex(null)
   }
 
+  // AI 加载中且无计划时显示 loading 状态
+  if (!mergePlan && isLoading) {
+    return (
+      <div className={cn("border rounded-lg bg-white overflow-hidden p-6", className)}>
+        <div className="flex items-center justify-center py-8">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+            {progressInfo && (
+              <>
+                <p className="text-sm text-gray-600">{(progressInfo as { message: string; percentage: number }).message}</p>
+                <div className="w-48 bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-indigo-600 h-2 rounded-full transition-all"
+                    style={{ width: `${(progressInfo as { percentage: number }).percentage}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-gray-500">{(progressInfo as { percentage: number }).percentage}%</p>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 无计划数据时隐藏
+  if (!mergePlan) {
+    return null
+  }
+
+  // 安全检查：确保 slide_plan 存在
+  const slidePlanItems = mergePlan.slide_plan || []
+  if (!slidePlanItems.length && !isLoading) {
+    return (
+      <div className={cn("border rounded-lg bg-white overflow-hidden p-6", className)}>
+        <div className="flex items-center justify-center py-8 text-gray-500">
+          暂无合并方案数据
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={cn("border rounded-lg bg-white overflow-hidden", className)}>
       {/* 头部：策略说明 */}
@@ -439,7 +481,7 @@ export function MergePlanPanel({
         </h3>
         <div className="flex items-start gap-3">
           <div className="flex-1">
-            <p className="text-sm text-gray-700">{mergePlan.merge_strategy}</p>
+            <p className="text-sm text-gray-700">{mergePlan.merge_strategy || 'AI 正在生成合并策略...'}</p>
             {mergePlan.summary && (
               <p className="text-xs text-gray-500 mt-2">{mergePlan.summary}</p>
             )}
@@ -474,7 +516,7 @@ export function MergePlanPanel({
       {/* Slide Plan 列表 */}
       <ScrollArea className="max-h-96">
         <div className="divide-y">
-          {mergePlan.slide_plan.map((item, idx) => (
+          {slidePlanItems.map((item, idx) => (
             <div
               key={idx}
               draggable
