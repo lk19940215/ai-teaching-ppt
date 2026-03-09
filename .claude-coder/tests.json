@@ -200,6 +200,14 @@
       "expected": "三种边界场景均成功: 1) 跨学科合并生成6页PPT; 2) 复杂提示语解析成功; 3) 空提示语系统默认策略生效，生成8页PPT",
       "last_result": "pass",
       "last_run_session": 4
+    },
+    {
+      "id": "test-feat136-e2e-complete",
+      "feature_id": "feat-136",
+      "verify": "Playwright MCP: /merge 上传 test_math.pptx(4页) + test_chinese.pptx(3页) -> 填写提示语'跨学科综合课件策略' -> 合并 -> 下载验证",
+      "expected": "合并成功: 1) 双文件上传成功且Canvas预览正常(4页+3页); 2) 提示语填写成功; 3) 合并完成显示下载按钮; 4) 下载文件31KB共5页有效PPT; 5) 控制台0错误",
+      "last_result": "pass",
+      "last_run_session": 7
     }
   ]
 }

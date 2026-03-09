@@ -296,7 +296,7 @@
       "priority": 136,
       "category": "test",
       "description": "P0 端到端完整流程：上传 → AI 合并 → 下载 → 验证",
-      "status": "pending",
+      "status": "done",
       "depends_on": ["feat-133"],
       "steps": [
         "【P0】browser_navigate http://localhost:3000/merge",
