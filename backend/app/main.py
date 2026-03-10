@@ -5,8 +5,20 @@ import uvicorn
 from pathlib import Path
 import logging
 import mimetypes
-from .config import settings
-from .api import upload, process, generate, ppt, history, config as config_router
+import sys
+import os
+
+# 添加项目根目录到 Python 路径（支持 python main.py 启动）
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# 配置日志（确保所有模块的日志都能输出）
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+from app.config import settings
+from app.api import upload, process, generate, ppt, history, config as config_router
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +60,7 @@ app.include_router(config_router.router)
 # 静态文件服务
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 app.mount("/templates", StaticFiles(directory=settings.TEMPLATE_DIR), name="templates")
+app.mount("/public", StaticFiles(directory=settings.PUBLIC_DIR), name="public")
 
 @app.get("/")
 async def root():
@@ -58,4 +71,5 @@ async def health_check():
     return {"status": "healthy"}
 
 if __name__ == "__main__":
+    # 支持 python main.py 启动
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

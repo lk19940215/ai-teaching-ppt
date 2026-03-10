@@ -212,85 +212,129 @@ class PptToImageConverter:
             prs = Presentation(pptx_path)
             total_slides = len(prs.slides)
 
-            # 确定要转换的页码
-            if pages is not None:
-                slide_indices = [i for i in pages if i < total_slides]
-            else:
-                slide_indices = list(range(total_slides))
+            logger.info(f"开始转换：{pptx_path.name} ({total_slides} 页) -> {self.output_dir}")
 
-            logger.info(f"开始转换：{pptx_path.name} ({len(slide_indices)} 页) -> {self.output_dir}")
-
-            # 创建输出目录
-            session_id = str(uuid.uuid4())[:8]
-            session_dir = self.output_dir / session_id
+            # 直接使用 output_dir 作为输出目录
+            session_dir = self.output_dir
             session_dir.mkdir(parents=True, exist_ok=True)
 
-            # 逐页转换
-            images = []
+            # 获取 session_id（从 output_dir 名称推断）
+            session_id = self.output_dir.name
+
             base_name = pptx_path.stem
+            images = []
 
-            for slide_idx in slide_indices:
-                try:
-                    # 创建临时单页 PPTX
-                    temp_pptx = session_dir / f"temp_slide_{slide_idx}.pptx"
-                    self._create_single_slide_pptx(prs, slide_idx, temp_pptx)
+            # 方案：PPTX → PDF → PNG（支持多页）
+            # 步骤1：用 LibreOffice 转 PDF
+            total_timeout = min(total_slides * self.timeout_per_page, self.MAX_TIMEOUT)
 
-                    # 转换单页
-                    cmd = [
-                        self.soffice_path,
-                        "--headless",
-                        "--convert-to", "png",
-                        "--outdir", str(session_dir),
-                        str(temp_pptx)
-                    ]
+            # 创建临时目录存放 PDF
+            temp_pdf_dir = session_dir / "temp_pdf"
+            temp_pdf_dir.mkdir(exist_ok=True)
 
-                    result = subprocess.run(
-                        cmd,
-                        capture_output=True,
-                        text=True,
-                        timeout=self.timeout_per_page,
-                        cwd=str(session_dir)
-                    )
+            pdf_cmd = [
+                self.soffice_path,
+                "--headless",
+                "--convert-to", "pdf",
+                "--outdir", str(temp_pdf_dir.absolute()),
+                str(pptx_path.absolute())
+            ]
 
-                    # 清理临时 PPTX
-                    try:
-                        temp_pptx.unlink()
-                    except Exception:
-                        pass
+            logger.info(f"执行 LibreOffice PDF 转换：{' '.join(pdf_cmd)}")
 
-                    if result.returncode != 0:
-                        logger.warning(f"第 {slide_idx} 页转换失败：{result.stderr}")
-                        continue
+            pdf_result = subprocess.run(
+                pdf_cmd,
+                capture_output=True,
+                text=True,
+                timeout=total_timeout,
+                cwd=str(session_dir.absolute())
+            )
 
-                    # 找到生成的 PNG 文件（LibreOffice 会添加随机后缀）
-                    png_pattern = f"temp_slide_{slide_idx}*.png"
-                    png_files = list(session_dir.glob(png_pattern))
-                    if not png_files:
-                        logger.warning(f"第 {slide_idx} 页未找到生成的 PNG 文件")
-                        continue
+            logger.info(f"LibreOffice PDF 返回码：{pdf_result.returncode}")
 
-                    png_file = png_files[0]
-                    # 重命名为最终文件名
-                    final_name = f"{base_name}_page_{slide_idx}.png"
-                    final_path = session_dir / final_name
-                    png_file.rename(final_path)
+            if pdf_result.returncode != 0:
+                logger.error(f"LibreOffice PDF 转换失败：{pdf_result.stderr}")
+                # 清理临时目录
+                shutil.rmtree(temp_pdf_dir, ignore_errors=True)
+                return ConversionResult(
+                    success=False,
+                    images=[],
+                    error=f"LibreOffice PDF 转换失败：{pdf_result.stderr}"
+                )
 
-                    images.append({
-                        "page": slide_idx,
-                        "url": f"/static/versions/{session_id}/{final_name}",
-                        "path": str(final_path),
-                        "width": 1920,
-                        "height": 1080
-                    })
+            # 查找生成的 PDF
+            pdf_files = list(temp_pdf_dir.glob("*.pdf"))
+            if not pdf_files:
+                logger.error("未找到生成的 PDF 文件")
+                shutil.rmtree(temp_pdf_dir, ignore_errors=True)
+                return ConversionResult(
+                    success=False,
+                    images=[],
+                    error="未找到生成的 PDF 文件"
+                )
 
-                except subprocess.TimeoutExpired:
-                    logger.warning(f"第 {slide_idx} 页转换超时")
+            pdf_path = pdf_files[0]
+
+            # 步骤2：用 pdftoppm (poppler) 转 PNG（支持多页）
+            # pdftoppm 输出格式：prefix-1.png, prefix-2.png, ...
+            png_prefix = temp_pdf_dir / "slide"
+
+            pdftoppm_cmd = [
+                "pdftoppm",
+                "-png",
+                "-r", "150",  # 150 DPI，高清
+                str(pdf_path),
+                str(png_prefix)
+            ]
+
+            logger.info(f"执行 pdftoppm 转换：{' '.join(pdftoppm_cmd)}")
+
+            ppm_result = subprocess.run(
+                pdftoppm_cmd,
+                capture_output=True,
+                text=True,
+                timeout=total_timeout
+            )
+
+            if ppm_result.returncode != 0:
+                logger.error(f"pdftoppm 转换失败：{ppm_result.stderr}")
+                shutil.rmtree(temp_pdf_dir, ignore_errors=True)
+                return ConversionResult(
+                    success=False,
+                    images=[],
+                    error=f"pdftoppm 转换失败：{ppm_result.stderr}"
+                )
+
+            # 收集生成的 PNG 文件
+            # pdftoppm 输出格式：slide-1.png, slide-2.png, ...
+            png_files = sorted(temp_pdf_dir.glob("slide-*.png"))
+
+            logger.info(f"pdftoppm 生成了 {len(png_files)} 个 PNG 文件")
+
+            for idx, png_file in enumerate(png_files):
+                slide_idx = idx  # 0-indexed
+
+                # 如果指定了页码，只处理指定的页
+                if pages is not None and slide_idx not in pages:
                     continue
-                except Exception as e:
-                    logger.warning(f"第 {slide_idx} 页转换异常：{e}")
-                    continue
 
-            logger.info(f"转换成功：生成 {len(images)}/{len(slide_indices)} 张图片")
+                # 移动到最终位置并重命名
+                final_name = f"{base_name}_page_{slide_idx}.png"
+                final_path = session_dir / final_name
+                shutil.move(str(png_file), str(final_path))
+
+                images.append({
+                    "page": slide_idx,
+                    "url": f"http://localhost:8000/public/versions/{session_id}/{final_name}",
+                    "path": str(final_path),
+                    "width": 1920,
+                    "height": 1080
+                })
+
+            # 清理临时目录
+            shutil.rmtree(temp_pdf_dir, ignore_errors=True)
+
+            logger.info(f"转换成功：生成 {len(images)} 张图片")
             return ConversionResult(
                 success=True,
                 images=images
@@ -303,44 +347,6 @@ class PptToImageConverter:
                 images=[],
                 error=f"转换异常：{str(e)}"
             )
-
-    def _create_single_slide_pptx(
-        self,
-        source_prs: "Presentation",
-        slide_idx: int,
-        output_path: Path
-    ) -> None:
-        """
-        从源 PPTX 提取单页创建新的 PPTX 文件
-        使用简化的方法 - 只复制 slide 的 XML
-
-        Args:
-            source_prs: 源 PPTX 对象
-            slide_idx: 要提取的页码（0-indexed）
-            output_path: 输出路径
-        """
-        from pptx import Presentation
-        from pptx.oxml import parse_xml
-
-        # 创建新的 PPTX
-        new_prs = Presentation()
-
-        # 获取源幻灯片
-        source_slide = source_prs.slides[slide_idx]
-
-        # 删除默认的空白幻灯片（如果有）
-        if len(new_prs.slides) > 0:
-            new_prs.slides._sldIdLst.remove(new_prs.slides._sldIdLst[0])
-
-        # 复制源幻灯片的 XML
-        source_xml = source_slide._element.xml
-        new_slide_element = parse_xml(source_xml.encode('utf-8'))
-
-        # 添加到新 PPTX
-        new_prs.slides._sldIdLst.append(new_slide_element)
-
-        # 保存
-        new_prs.save(str(output_path))
 
     def _collect_images(
         self,
@@ -362,7 +368,7 @@ class PptToImageConverter:
 
             images.append({
                 "page": page_num,
-                "url": f"/static/versions/{session_dir.name}/{png_file.name}",
+                "url": f"http://localhost:8000/public/versions/{session_dir.name}/{png_file.name}",
                 "path": str(png_file),
                 "width": 1920,  # LibreOffice 默认输出宽度
                 "height": 1080

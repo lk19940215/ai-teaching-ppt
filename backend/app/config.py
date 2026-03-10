@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     # PPT 模板配置
     TEMPLATE_DIR: Path = BASE_DIR / "app" / "templates"
 
+    # 公开静态文件目录（图片预览等）
+    PUBLIC_DIR: Path = BASE_DIR / "public"
+
     class Config:
         env_file = ".env"
         case_sensitive = True
@@ -37,3 +40,4 @@ settings = Settings()
 # 确保上传目录存在
 settings.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 settings.TEMPLATE_DIR.mkdir(parents=True, exist_ok=True)
+settings.PUBLIC_DIR.mkdir(parents=True, exist_ok=True)

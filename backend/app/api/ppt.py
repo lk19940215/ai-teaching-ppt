@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException, Body, UploadFile, File, Form, Query
+from fastapi import APIRouter, HTTPException, Body, UploadFile, File, Form, Query, Request
+from starlette.datastructures import UploadFile as StarletteUploadFile
+from starlette.datastructures import UploadFile as StarletteUploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pathlib import Path
 from typing import Optional, AsyncGenerator, List, Dict, Any
@@ -2150,19 +2152,11 @@ async def ai_merge_ppts(
 # ==================== 版本化管理 API ====================
 
 @router.post("/session/create")
-async def create_ppt_session(
-    files: Dict[str, UploadFile] = Body(..., description="上传的 PPT 文件", examples=[{"ppt_a": "file1.pptx", "ppt_b": "file2.pptx"}])
-):
+async def create_ppt_session(request: Request):
     """
     创建 PPT 合并会话
 
-    Request Body:
-    {
-        "files": {
-            "ppt_a": <file>,
-            "ppt_b": <file>
-        }
-    }
+    Request: FormData with ppt_a and ppt_b files
 
     Response:
     {
@@ -2176,7 +2170,31 @@ async def create_ppt_session(
     import tempfile
     from ..services.version_manager import get_version_manager
 
-    logger.info(f"创建 PPT 合并会话，文件数：{len(files)}")
+    # 从 FormData 获取上传的文件
+    form = await request.form()
+
+    # 调试日志：打印所有 form 字段
+    logger.info(f"收到 session/create 请求，form 字段：{list(form.keys())}")
+    for key, value in form.items():
+        logger.info(f"  - {key}: type={type(value).__name__}, value={value if not isinstance(value, (UploadFile, StarletteUploadFile)) else f'UploadFile({value.filename})'}")
+
+    # 提取所有 .pptx 文件
+    files = {}
+    for key, value in form.items():
+        # 检查是否是 UploadFile 类型（FastAPI 或 Starlette）
+        if isinstance(value, (UploadFile, StarletteUploadFile)):
+            filename = value.filename or ""
+            if filename.lower().endswith(('.pptx', '.ppt')):
+                files[key] = value
+                logger.info(f"  -> 识别为 PPT 文件：{key} = {filename}")
+        # 兼容处理：检查是否有 filename 属性
+        elif hasattr(value, 'filename') and hasattr(value, 'file'):
+            filename = getattr(value, 'filename', '') or ""
+            if filename.lower().endswith(('.pptx', '.ppt')):
+                files[key] = value
+                logger.info(f"  -> 识别为 PPT 文件（兼容模式）：{key} = {filename}")
+
+    logger.info(f"创建 PPT 合并会话，识别到的 PPT 文件数：{len(files)}, 文件 keys：{list(files.keys())}")
 
     if len(files) < 1:
         raise HTTPException(status_code=400, detail="至少需要上传一个文件")
@@ -2250,7 +2268,7 @@ async def create_version(
     Response:
     {
         "version": "v2",
-        "image_url": "/static/versions/abc12345/ppt_a_slide1_v2.png",
+        "image_url": "http://localhost:8000/public/versions/abc12345/ppt_a_slide1_v2.png",
         "created_at": "10:05:00"
     }
     """

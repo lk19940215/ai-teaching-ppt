@@ -20,6 +20,7 @@ from ..models.ppt_structure import (
     DocumentData, SlideData
 )
 from .ppt_to_image import PptToImageConverter, Resolution, LibreOfficeDetector
+from ..config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +28,8 @@ logger = logging.getLogger(__name__)
 class VersionManager:
     """版本管理器"""
 
-    # 存储根目录
-    VERSIONS_ROOT = Path("uploads/versions")
+    # 存储根目录（使用 settings.PUBLIC_DIR 存储公开访问的图片）
+    VERSIONS_ROOT = settings.PUBLIC_DIR / "versions"
 
     def __init__(self):
         # 内存中的会话存储
@@ -203,7 +204,7 @@ class VersionManager:
                 new_img_name = f"{document_id}_slide{slide_index}_{new_version_str}.png"
                 new_img_path = session_dir / new_img_name
                 shutil.move(str(img_path), str(new_img_path))
-                image_url = f"/static/versions/{session_id}/{new_img_name}"
+                image_url = f"http://localhost:8000/public/versions/{session_id}/{new_img_name}"
 
             # 清理临时目录
             try:

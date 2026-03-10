@@ -64,6 +64,9 @@ export function PptCanvasPreview({
   const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false)
   const [isVersionLoading, setIsVersionLoading] = useState(false)
 
+  // feat-150: 图片预览状态（存储每页的图片 URL）
+  const [slideImageUrls, setSlideImageUrls] = useState<Record<number, string>>({})
+
   const isFallbackMode = onFallbackModeChange ? fallbackMode : internalFallbackMode
 
   // feat-141: 加载版本历史
@@ -77,7 +80,21 @@ export function PptCanvasPreview({
         const history = await getVersionHistory(sessionId, documentId, currentIndex)
         setVersionHistory(history)
 
+        // feat-150: 从会话数据提取每页的图片 URL
         const docState = session.documents[documentId]
+        if (docState) {
+          const imageUrls: Record<number, string> = {}
+          for (const [slideIdx, slideState] of Object.entries(docState.slides)) {
+            // 获取当前版本的图片 URL
+            const currentVersion = slideState.current_version
+            const versionData = slideState.versions.find(v => v.version === currentVersion)
+            if (versionData?.image_url) {
+              imageUrls[parseInt(slideIdx)] = versionData.image_url
+            }
+          }
+          setSlideImageUrls(imageUrls)
+        }
+
         if (docState && docState.slides[currentIndex]) {
           const slideState = docState.slides[currentIndex]
           setCurrentSlideVersion(slideState.current_version)
@@ -253,6 +270,9 @@ export function PptCanvasPreview({
 
   const enhancedCurrentPage = currentPage ? convertToEnhanced(currentPage, currentPage.index) : null
 
+  // feat-150: 获取当前页的图片 URL
+  const currentImageUrl = slideImageUrls[currentIndex]
+
   return (
     <div className="border rounded-lg bg-white overflow-hidden" ref={containerRef} tabIndex={0} onFocus={() => {}}>
       {/* 头部 */}
@@ -271,6 +291,8 @@ export function PptCanvasPreview({
           )}
           {selectedPages.length > 0 && <span className="text-xs text-indigo-600 font-medium">已选 {selectedPages.length} 页</span>}
           <span className="text-xs text-gray-500">共 {pages.length} 页</span>
+          {/* feat-150: 显示预览模式标识 */}
+          {currentImageUrl && <span className="text-xs text-green-600 font-medium">📷 图片预览</span>}
         </div>
       </div>
 
@@ -289,9 +311,26 @@ export function PptCanvasPreview({
           )}
           onClick={(e) => currentPage && togglePageSelection(currentPage.index, e)}
         >
-          {enhancedCurrentPage && (
+          {/* feat-150: 优先显示图片，无图片时降级到 Canvas */}
+          {currentImageUrl ? (
+            <img
+              src={currentImageUrl}
+              alt={`第 ${currentIndex + 1} 页`}
+              className="w-full h-auto object-contain"
+              style={{ maxHeight: '450px' }}
+              onError={(e) => {
+                // 图片加载失败时降级到 Canvas
+                console.warn('图片加载失败，降级到 Canvas 渲染')
+                setSlideImageUrls(prev => {
+                  const next = { ...prev }
+                  delete next[currentIndex]
+                  return next
+                })
+              }}
+            />
+          ) : enhancedCurrentPage ? (
             <PptCanvasRenderer pageData={enhancedCurrentPage} width={800} height={450} isSelected={isCurrentSelected} onClick={() => {}} quality={1.0} />
-          )}
+          ) : null}
           {isCurrentSelected && (
             <div className="absolute top-6 right-6 w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center shadow-md">
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -329,11 +368,21 @@ export function PptCanvasPreview({
           {pages.map((page, idx) => {
             const isActive = idx === currentIndex
             const isSelected = selectedPages.includes(page.index)
+            const thumbnailUrl = slideImageUrls[idx]  // feat-150: 获取缩略图 URL
             const enhanced = convertToEnhanced(page, page.index)
             return (
               <div key={page.index} onClick={() => goToPage(idx)}
                 className={cn("flex-shrink-0 w-24 h-14 rounded border-2 overflow-hidden cursor-pointer transition-all relative", isActive ? "border-indigo-500 ring-1 ring-indigo-300 shadow" : isSelected ? "border-green-400 ring-1 ring-green-200" : "border-gray-200 hover:border-gray-400 opacity-70 hover:opacity-100")}>
-                <PptCanvasRenderer pageData={enhanced} width={96} height={54} isSelected={false} onClick={() => {}} quality={0.5} />
+                {/* feat-150: 优先显示图片缩略图 */}
+                {thumbnailUrl ? (
+                  <img
+                    src={thumbnailUrl}
+                    alt={`第 ${idx + 1} 页`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <PptCanvasRenderer pageData={enhanced} width={96} height={54} isSelected={false} onClick={() => {}} quality={0.5} />
+                )}
                 <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-center text-[9px] py-0.5">P{page.index + 1}</div>
                 {isSelected && (
                   <div className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full flex items-center justify-center">

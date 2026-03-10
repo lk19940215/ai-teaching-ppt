@@ -11,6 +11,7 @@ import PromptEditor, { type StructuredPagePrompt } from '@/components/prompt-edi
 import MergeModeSelector, { type MergeMode } from '@/components/merge-mode-selector'
 import MergePlanPanel from '@/components/merge-plan-panel'
 import type { MergePlan } from '@/types/merge-plan'
+import { createSession } from '@/lib/version-api'  // feat-150: 导入 createSession
 
 // PPT 文件上传区域属性
 interface PptUploadAreaProps {
@@ -490,6 +491,26 @@ export default function MergePage() {
 
     loadPptB()
   }, [pptB])
+
+  // feat-150: 当两个 PPT 都上传后，创建会话获取图片预览
+  useEffect(() => {
+    // 只有当两个 PPT 都上传且还没有 sessionId 时才创建会话
+    if (!pptA || !pptB || sessionId) return
+
+    const initSession = async () => {
+      try {
+        console.log('[feat-150] 创建会话...')
+        const result = await createSession({ ppt_a: pptA, ppt_b: pptB })
+        console.log('[feat-150] 会话创建成功:', result.session_id)
+        setSessionId(result.session_id)
+      } catch (err) {
+        console.error('[feat-150] 创建会话失败:', err)
+        // 会话创建失败不影响 PPT 解析，只是没有图片预览
+      }
+    }
+
+    initSession()
+  }, [pptA, pptB, sessionId])
 
   // 处理页面选择变化（用于后续提示语编辑）
   // 当选中页面时，自动聚焦到对应的提示语输入框
@@ -1057,7 +1078,7 @@ export default function MergePage() {
             />
           )}
 
-          {/* PPT A 单页预览 - 使用 Canvas 渲染器（支持 PptxViewJS 降级） */}
+          {/* PPT A 单页预览 - feat-150: 使用图片预览（LibreOffice 转 PNG），降级到 Canvas */}
           <PptCanvasPreview
             label="PPT A 预览"
             pages={fallbackModeA && fallbackDataA.length > 0 ? fallbackDataA : pptAPages}
@@ -1076,9 +1097,12 @@ export default function MergePage() {
             onRenderError={(error) => {
               handleRenderError('A', pptA, error.message)
             }}
+            sessionId={sessionId || undefined}
+            documentId="ppt_a"
+            enableVersioning={!!sessionId}
           />
 
-          {/* PPT B 单页预览 - 使用 Canvas 渲染器（支持 PptxViewJS 降级） */}
+          {/* PPT B 单页预览 - feat-150: 使用图片预览（LibreOffice 转 PNG），降级到 Canvas */}
           <PptCanvasPreview
             label="PPT B 预览"
             pages={fallbackModeB && fallbackDataB.length > 0 ? fallbackDataB : pptBPages}
@@ -1097,6 +1121,9 @@ export default function MergePage() {
             onRenderError={(error) => {
               handleRenderError('B', pptB, error.message)
             }}
+            sessionId={sessionId || undefined}
+            documentId="ppt_b"
+            enableVersioning={!!sessionId}
           />
         </div>
 

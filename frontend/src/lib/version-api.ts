@@ -106,16 +106,7 @@ export async function createSession(
 ): Promise<CreateSessionResponse> {
   const formData = new FormData()
 
-  // 构建 files 对象格式：{ ppt_a: File, ppt_b: File }
-  const filesObject: Record<string, any> = {}
-  for (const [key, file] of Object.entries(files)) {
-    filesObject[key] = file
-  }
-
-  // 使用 Blob 包装 JSON 数据
-  formData.append('files', new Blob([JSON.stringify(filesObject)]))
-
-  // 实际上传文件
+  // 直接上传文件，key 为 ppt_a / ppt_b
   for (const [key, file] of Object.entries(files)) {
     formData.append(key, file)
   }

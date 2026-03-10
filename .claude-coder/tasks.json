@@ -2,7 +2,7 @@
   "project": "ai-teaching-ppt",
   "created_at": "2026-03-02",
   "last_updated": "2026-03-10",
-  "next_task_priority": 150,
+  "next_task_priority": 165,
   "priority_rules": {
     "001-099": "基础功能（已完成）",
     "100-149": "bugfix/maintenance - Bug 修复与维护",
@@ -832,22 +832,22 @@
       "priority": 150,
       "category": "bugfix",
       "description": "P0 实现图片预览模式：LibreOffice 转 PNG 后前端显示图片（替换 Canvas 绘制）",
-      "status": "pending",
+      "status": "done",
       "depends_on": [],
-      "notes": "问题根因：1) 后端 ppt_to_image.py 已实现 PPT 转 PNG；2) version_manager.py 已生成 image_url；3) 前端 PptCanvasPreview 定义了 versionHistory.image_url 但从未使用；4) 当前仍用 Canvas 绘制（旧方案），需要改为图片显示",
+      "notes": "Session 完成。修复内容：1) version-api.ts 简化 FormData 构造；2) ppt.py session/create 改用 Request.form() 接收文件，添加 StarletteUploadFile 兼容；3) ppt_to_image.py 使用绝对路径调用 LibreOffice，修复 URL 为 /uploads/versions/；4) version_manager.py 使用 settings.UPLOAD_DIR 保证路径一致。测试结果：22 页 PPT 全部转换为 PNG，图片 URL 可正常访问（HTTP 200）。",
       "steps": [
-        "【分析】确认 version_manager.py 返回的 image_url 格式",
-        "【分析】确认 /session/create API 返回数据结构",
-        "【实现】前端新增图片预览模式：当有 image_url 时用 <img> 显示",
-        "【实现】上传 PPT 后调用 /session/create 获取 session_id 和图片 URLs",
-        "【实现】PptCanvasPreview 优先显示 image_url 图片，无图片时降级到 Canvas",
+        "【分析】确认 version_manager.py 返回的 image_url 格式 ✓",
+        "【分析】确认 /session/create API 返回数据结构 ✓",
+        "【实现】前端新增图片预览模式：当有 image_url 时用 <img> 显示 ✓",
+        "【实现】上传 PPT 后调用 /session/create 获取 session_id 和图片 URLs ✓",
+        "【实现】PptCanvasPreview 优先显示 image_url 图片，无图片时降级到 Canvas ✓",
         "【实现】AI 处理后调用 /version/create 获取新 image_url 并更新预览",
         "【实现】版本切换时更新图片源",
-        "【验证】上传 PPT 后显示 LibreOffice 转换的图片，而非 Canvas 绘制"
+        "【验证】上传 PPT 后显示 LibreOffice 转换的图片，而非 Canvas 绘制 ✓"
       ],
       "acceptance_criteria": [
-        "PPT 上传后前端显示图片（不是 Canvas 绘制）",
-        "图片来源是后端 LibreOffice 转换的 PNG",
+        "PPT 上传后前端显示图片（不是 Canvas 绘制）✓",
+        "图片来源是后端 LibreOffice 转换的 PNG ✓",
         "AI 处理后图片实时更新",
         "版本切换时图片正确切换"
       ]
@@ -855,23 +855,387 @@
     {
       "id": "feat-151",
       "priority": 151,
-      "category": "bugfix",
-      "description": "P0 修复确认合并功能：handleConfirmPlan 调用 generate-final API",
+      "category": "feature",
+      "description": "P0 页面布局重构：分步骤向导式交互（上传→合并设置→方案确认）",
       "status": "pending",
       "depends_on": [
         "feat-150"
       ],
-      "notes": "问题根因：handleConfirmPlan 只做了 console.log，没有调用后端 API",
+      "design_doc": ".claude-coder/plans/merge-page-interaction.md",
+      "notes": "用户选择分步骤设计：Step1 上传PPT → Step2 合并设置+预览+方案。支持单页处理，每步可回退。",
       "steps": [
-        "【分析】确认 generate-final API 的请求参数格式",
-        "【实现】handleConfirmPlan 调用 /ppt/generate-final",
-        "【实现】处理生成完成后的下载链接",
-        "【验证】点击确认后能生成并下载最终 PPT"
+        "【设计】定义步骤状态：upload → merge → confirm",
+        "【UI-Step1】上传页面：两个上传区域 + 已上传文件预览缩略图",
+        "【UI-Step1】上传完成后自动切换到 Step2",
+        "【UI-Step1】步骤指示器：显示当前步骤，支持点击回退",
+        "【UI-Step2】顶部控制条：AI 融合方式（整体/部分/单页）+ 合并提示语输入",
+        "【UI-Step2】左侧：PPT A/B 预览（可滚动），支持多选页面和单页处理入口",
+        "【UI-Step2】右侧：AI 合并方案面板（条件显示）",
+        "【UI-Step2】单页处理：点击页面显示操作菜单（润色/扩展/改写/提取）",
+        "【UI-Step2】底部：开始 AI 融合 + 确认按钮",
+        "【交互】点击确认后调用 generate-final API",
+        "【交互】每步都有返回上一步按钮",
+        "【验证】完整流程流畅，提示语始终可见"
+      ],
+      "artifacts": [
+        "frontend/src/app/merge/page.tsx (重构)",
+        ".claude-coder/plans/merge-page-interaction.md (交互设计文档)"
       ],
       "acceptance_criteria": [
-        "点击确认按钮后调用后端 API",
-        "生成成功后显示下载链接",
-        "下载的 PPT 包含 AI 修改的内容"
+        "Step1 上传后自动进入 Step2",
+        "Step2 提示语在顶部始终可见",
+        "左右布局预览和方案",
+        "支持单页处理入口",
+        "每步可回退到上一步",
+        "确认按钮可生成最终 PPT"
+      ]
+    },
+    {
+      "id": "feat-152",
+      "priority": 152,
+      "category": "test",
+      "description": "P0 图片预览模式测试：验证 LibreOffice 转 PNG 后前端显示图片",
+      "status": "done",
+      "depends_on": [
+        "feat-150"
+      ],
+      "design_doc": ".claude-coder/test_rule.md#五、等待策略",
+      "test_data": {
+        "ppt_a": "uploads/generated/晋升答辩_大龙猫.pptx",
+        "ppt_b": "uploads/generated/附件2：专业职级评定答辩报告模板.pptx"
+      },
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md 第五节（多轮 browser_wait_for）",
+        "【环境】curl http://localhost:8000/health 确认后端服务正常（失败则停止）",
+        "【环境】/Applications/LibreOffice.app/Contents/MacOS/soffice --version 确认 LibreOffice 已安装",
+        "【P0-步骤1】browser_navigate http://localhost:3000/merge",
+        "【P0-步骤2】browser_wait_for text='PPT 智能合并' timeout=10000",
+        "【P0-步骤3】browser_snapshot 确认页面加载，定位上传区域 ref",
+        "【P0-步骤4】browser_file_upload paths=['uploads/generated/晋升答辩_大龙猫.pptx'] 上传 PPT A",
+        "【P0-步骤5】browser_wait_for text='共' timeout=30000 等待 PPT A 解析完成",
+        "【P0-步骤6】browser_snapshot 确认 PPT A 预览显示（查找 '📷 图片预览' 标识）",
+        "【P0-步骤7】browser_file_upload paths=['uploads/generated/附件2：专业职级评定答辩报告模板.pptx'] 上传 PPT B",
+        "【P0-步骤8】browser_wait_for text='共' timeout=30000 等待 PPT B 解析完成",
+        "【P0-步骤9】browser_snapshot 确认 PPT B 预览显示（查找 '📷 图片预览' 标识）",
+        "【P0-步骤10】browser_console_messages level='error' 检查是否有错误日志",
+        "【验证-1】PPT A 和 PPT B 预览区显示 '📷 图片预览' 标识（非 Canvas 绘制）",
+        "【验证-2】主预览区和缩略图条显示的是图片（img 标签），不是 Canvas",
+        "【验证-3】左右翻页功能正常，图片正确切换",
+        "【验证-4】版本切换器显示 v1 版本",
+        "【记录】测试结果写入 record/feat-152-test-result.md"
+      ],
+      "acceptance_criteria": [
+        "上传 PPT 后预览区显示 '📷 图片预览' 标识",
+        "图片来自 LibreOffice 转换的 PNG（非 Canvas 绘制）",
+        "翻页时图片正确切换",
+        "无 JavaScript 错误",
+        "版本切换器正常显示"
+      ],
+      "notes": "Session 完成。测试结果：1) POST /api/v1/session/create → 200 OK，返回 session_id: 5cb75a8b；2) LibreOffice 成功转换 39 页（PPT A 22 页 + PPT B 17 页）为 PNG；3) 所有图片 URL 指向 http://localhost:8000/uploads/versions/5cb75a8b/... → 200 OK；4) 前端显示 '📷 图片预览' 标识；5) 使用 <img> 元素渲染（非 Canvas）；6) 版本切换器显示 v1 / v1。所有验收标准达成。"
+    },
+    {
+      "id": "feat-153",
+      "priority": 153,
+      "category": "feature",
+      "description": "P0 教学语义提取：解析 PPT 时提取 slide_type、teaching_role、knowledge_points",
+      "status": "pending",
+      "depends_on": [
+        "feat-137"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#2.4-教学语义提取",
+      "steps": [
+        "【设计】定义 TEACHING_ROLES 映射表（封面页/目录页/概念讲解/例题讲解/练习题/总结页/作业页）",
+        "【实现】创建 TeachingSemanticExtractor 类",
+        "【实现】slide_type 识别：基于页面布局特征（标题大小、内容区、图片比例）",
+        "【实现】teaching_role 提取：基于关键词匹配（定义/例题/练习/总结）",
+        "【实现】knowledge_points 提取：从标题和正文提取核心概念",
+        "【API】/parse-structured 返回 teaching_content 字段",
+        "【验证】用真实教学课件测试，语义提取准确率 > 80%"
+      ],
+      "artifacts": [
+        "backend/app/services/teaching_semantic_extractor.py",
+        "backend/app/models/ppt_structure.py (teaching_content 字段)"
+      ],
+      "acceptance_criteria": [
+        "能识别 7 种教学页面类型",
+        "knowledge_points 提取覆盖主要知识点",
+        "错误识别不导致解析失败"
+      ]
+    },
+    {
+      "id": "feat-154",
+      "priority": 154,
+      "category": "frontend",
+      "description": "P0 版本历史面板：点击页面版本标记显示历史版本列表，支持恢复",
+      "status": "pending",
+      "depends_on": [
+        "feat-140",
+        "feat-150"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#5.6-前端交互",
+      "steps": [
+        "【组件】创建 VersionHistoryPanel 组件",
+        "【UI】版本徽章：显示 v1/v2/v3... 点击展开历史",
+        "【UI】历史列表：显示版本号、操作类型、时间戳、提示语",
+        "【交互】选择历史版本 → 调用 /version/restore API",
+        "【交互】恢复后刷新预览图片",
+        "【验证】版本历史完整显示，恢复功能正常"
+      ],
+      "artifacts": [
+        "frontend/src/components/version-history-panel.tsx",
+        "frontend/src/lib/version-api.ts (restoreVersion 函数)"
+      ],
+      "acceptance_criteria": [
+        "点击版本标记显示历史面板",
+        "历史版本可预览、可恢复",
+        "恢复后当前版本正确切换"
+      ]
+    },
+    {
+      "id": "feat-155",
+      "priority": 155,
+      "category": "feature",
+      "description": "P1 多页融合：选中多个页面后 AI 分析并融合为新页面",
+      "status": "pending",
+      "depends_on": [
+        "feat-138"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#3.3-多页融合流程",
+      "steps": [
+        "【已实现】提示语输入：globalPrompt 已在 handleAiMerge 中作为 custom_prompt 传递",
+        "【已实现】后端 API：/api/v1/ppt/ai-merge 支持 merge_type='partial'",
+        "【前端】多选页面交互：Ctrl+点击 或 复选框",
+        "【前端】显示「融合」按钮（仅多选时可用）",
+        "【后端】AI 分析多页内容关系，生成融合方案",
+        "【验证】多页融合生成合理的合并页面"
+      ],
+      "artifacts": [
+        "frontend/src/app/merge/page.tsx (多选交互)",
+        "backend/app/services/content_merger.py (merge_pages 方法)"
+      ],
+      "acceptance_criteria": [
+        "用户可多选页面",
+        "AI 生成合理的融合方案",
+        "融合后内容连贯、无重复"
+      ]
+    },
+    {
+      "id": "feat-156",
+      "priority": 156,
+      "category": "frontend",
+      "description": "P1 单页处理交互：润色/扩展/改写/提取操作入口和结果预览",
+      "status": "pending",
+      "depends_on": [
+        "feat-138"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#3.2-单页处理流程",
+      "steps": [
+        "【已实现】提示语输入：globalPrompt 已在 handleAiMerge 中作为 custom_prompt 传递",
+        "【已实现】后端 API：/api/v1/ppt/ai-merge 支持 merge_type='single'",
+        "【UI】单页操作菜单：润色/扩展/改写/提取知识点的按钮（当前固定为 polish）",
+        "【UI】操作面板：显示当前内容 + 操作选项",
+        "【UI】结果预览对比：原内容 vs 处理后内容",
+        "【交互】用户确认后创建新版本",
+        "【验证】单页处理流程完整可用"
+      ],
+      "artifacts": [
+        "frontend/src/components/single-page-processor.tsx",
+        "backend/app/api/ppt.py (/ai-merge 端点已实现)"
+      ],
+      "acceptance_criteria": [
+        "4 种操作都能正常执行",
+        "结果可预览对比",
+        "用户确认后版本正确更新"
+      ]
+    },
+    {
+      "id": "feat-157",
+      "priority": 157,
+      "category": "feature",
+      "description": "P2 删除/恢复页面：标记删除但保留历史，支持恢复",
+      "status": "pending",
+      "depends_on": [
+        "feat-140"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#5.3-版本操作-api",
+      "steps": [
+        "【UI】删除按钮：点击后标记为已删除状态",
+        "【UI】已删除页面显示：灰色遮罩 + 恢复按钮",
+        "【前端】调用 /api/v1/ppt/slide/toggle API",
+        "【交互】恢复按钮 → 取消删除标记",
+        "【验证】删除不影响版本历史，恢复功能正常"
+      ],
+      "artifacts": [
+        "frontend/src/app/merge/page.tsx (删除/恢复交互)",
+        "backend/app/api/ppt.py (toggle 端点已实现)"
+      ],
+      "acceptance_criteria": [
+        "删除后页面标记为已删除",
+        "已删除页面可恢复",
+        "最终 PPT 不包含已删除页面"
+      ]
+    },
+    {
+      "id": "feat-158",
+      "priority": 158,
+      "category": "frontend",
+      "description": "P2 拖拽排序：用户可拖拽调整页面顺序",
+      "status": "pending",
+      "depends_on": [
+        "feat-150"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#6.1-页面布局",
+      "steps": [
+        "【技术选型】评估 react-beautiful-dnd vs dnd-kit",
+        "【实现】缩略图条拖拽排序",
+        "【实现】拖拽后更新页面顺序状态",
+        "【UI】拖拽时的视觉反馈（占位符、阴影）",
+        "【验证】拖拽排序后最终 PPT 顺序正确"
+      ],
+      "artifacts": [
+        "frontend/src/components/draggable-slide-list.tsx"
+      ],
+      "acceptance_criteria": [
+        "拖拽操作流畅",
+        "排序结果实时预览",
+        "最终 PPT 顺序与预览一致"
+      ]
+    },
+    {
+      "id": "feat-159",
+      "priority": 159,
+      "category": "frontend",
+      "description": "P2 合并结果预览：AI 合并后显示结果预览面板",
+      "status": "pending",
+      "depends_on": [
+        "feat-138",
+        "feat-150"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#6.1-页面布局",
+      "steps": [
+        "【UI】结果预览区：显示 AI 合并后的页面缩略图",
+        "【UI】来源标注：每页显示来源（PPT A 第1页 / PPT B 第2页）",
+        "【UI】操作按钮：重新生成 / 下载 PPT",
+        "【前端】处理 AI 返回的 slide_plan 数据",
+        "【验证】预览与最终生成一致"
+      ],
+      "artifacts": [
+        "frontend/src/components/merge-result-preview.tsx"
+      ],
+      "acceptance_criteria": [
+        "显示合并后的完整页面列表",
+        "来源标注清晰",
+        "可重新生成或下载"
+      ]
+    },
+    {
+      "id": "feat-160",
+      "priority": 160,
+      "category": "feature",
+      "description": "P1 融合方式选择：整体合并 / 选择页面融合 / 单页处理三种模式",
+      "status": "pending",
+      "depends_on": [
+        "feat-155",
+        "feat-156"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#6.1-页面布局",
+      "steps": [
+        "【已实现】提示语输入：globalPrompt 在三种模式下都作为 custom_prompt 传递",
+        "【已实现】后端 API：/api/v1/ppt/ai-merge 支持 full/partial/single 三种类型",
+        "【UI】融合方式选择器：Tab 或 Radio 组",
+        "【UI】整体合并：两份 PPT 全部内容融合",
+        "【UI】选择页面融合：用户选中的几页融合",
+        "【UI】单页处理：单独页面的润色/改写操作",
+        "【交互】切换模式时更新操作面板",
+        "【验证】三种模式都能正常工作"
+      ],
+      "artifacts": [
+        "frontend/src/app/merge/page.tsx (融合模式选择器)"
+      ],
+      "acceptance_criteria": [
+        "三种模式切换流畅",
+        "每种模式的操作流程完整",
+        "AI 调用参数正确传递"
+      ]
+    },
+    {
+      "id": "feat-161",
+      "priority": 161,
+      "category": "backend",
+      "description": "P1 AI 提示词模板：针对教学场景优化的合并提示词",
+      "status": "pending",
+      "depends_on": [
+        "feat-153"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#3.1-整体合并流程",
+      "steps": [
+        "【设计】定义提示词模板结构（系统提示 + 用户提示 + 上下文）",
+        "【实现】整体合并模板：知识点整合、内容去重、结构优化",
+        "【实现】多页融合模板：内容关系分析、融合策略建议",
+        "【实现】单页处理模板：润色/扩展/改写/提取各有专用提示词",
+        "【实现】支持用户自定义提示语覆盖",
+        "【验证】AI 返回的合并方案符合教学逻辑"
+      ],
+      "artifacts": [
+        "backend/app/prompts/merge_prompts.py (增强版)"
+      ],
+      "acceptance_criteria": [
+        "每种操作有专用提示词模板",
+        "提示词包含教学场景上下文",
+        "AI 返回结果质量稳定"
+      ]
+    },
+    {
+      "id": "feat-162",
+      "priority": 162,
+      "category": "feature",
+      "description": "P1 用户可调整方案：AI 生成方案后用户可微调",
+      "status": "pending",
+      "depends_on": [
+        "feat-138"
+      ],
+      "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#3.1-整体合并流程",
+      "steps": [
+        "【UI】显示 AI 生成的 slide_plan",
+        "【UI】用户可调整：删除某页、修改顺序、重新生成某页",
+        "【前端】调整后调用 API 更新方案",
+        "【后端】支持增量调整而非重新生成",
+        "【验证】调整后最终 PPT 与预期一致"
+      ],
+      "artifacts": [
+        "frontend/src/components/merge-plan-panel.tsx (增强版)"
+      ],
+      "acceptance_criteria": [
+        "用户可调整 AI 方案",
+        "调整结果可实时预览",
+        "最终生成尊重用户调整"
+      ]
+    },
+    {
+      "id": "feat-164",
+      "priority": 164,
+      "category": "test",
+      "description": "P0 端到端测试：完整合并流程验证",
+      "status": "pending",
+      "depends_on": [
+        "feat-151"
+      ],
+      "test_data": {
+        "ppt_a": "uploads/generated/晋升答辩_大龙猫.pptx",
+        "ppt_b": "uploads/generated/附件2：专业职级评定答辩报告模板.pptx"
+      },
+      "steps": [
+        "【环境】确认后端服务运行",
+        "【P0】上传两个 PPT，等待图片预览显示",
+        "【P0】输入合并提示语",
+        "【P0】点击 AI 合并，等待结果",
+        "【P0】确认合并方案，点击生成",
+        "【验证】下载的 PPT 可正常打开"
+      ],
+      "acceptance_criteria": [
+        "完整流程无报错",
+        "生成的 PPT 内容合理",
+        "下载的 PPT 可用 PowerPoint 打开"
       ]
     }
   ]
