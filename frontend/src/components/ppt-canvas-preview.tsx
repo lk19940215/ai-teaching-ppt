@@ -33,6 +33,11 @@ interface PptCanvasPreviewProps {
   sessionId?: string
   documentId?: 'ppt_a' | 'ppt_b'
   enableVersioning?: boolean
+  // feat-155: 多页融合功能
+  onMergeSelected?: (pages: number[]) => void
+  isMerging?: boolean
+  partnerSelectedPages?: number[]  // 另一份 PPT 选中的页面（用于显示融合预览）
+  partnerLabel?: string
 }
 
 export function PptCanvasPreview({
@@ -51,6 +56,11 @@ export function PptCanvasPreview({
   sessionId,
   documentId,
   enableVersioning = false,
+  // feat-155: 多页融合功能
+  onMergeSelected,
+  isMerging = false,
+  partnerSelectedPages = [],
+  partnerLabel = '另一份 PPT',
 }: PptCanvasPreviewProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [internalFallbackMode, setInternalFallbackMode] = useState(fallbackMode)
@@ -397,7 +407,39 @@ export function PptCanvasPreview({
 
       {selectedPages.length > 0 && (
         <div className="px-4 py-2 border-t text-xs text-indigo-600 bg-indigo-50/50">
-          已选择：{selectedPages.sort((a, b) => a - b).map(p => `P${p + 1}`).join(", ")}
+          <div className="flex items-center justify-between">
+            <span>
+              已选择：{selectedPages.sort((a, b) => a - b).map(p => `P${p + 1}`).join(", ")}
+            </span>
+            {/* feat-155: 多页融合按钮 */}
+            {onMergeSelected && selectedPages.length >= 1 && !disableSelection && (
+              <button
+                onClick={() => onMergeSelected(selectedPages)}
+                disabled={isMerging}
+                className="ml-2 px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-full hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+              >
+                {isMerging ? (
+                  <>
+                    <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    融合中...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                    融合选中页面
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          {/* feat-155: 显示另一份 PPT 的选中页面（融合预览） */}
+          {partnerSelectedPages.length > 0 && (
+            <div className="mt-1 text-green-600">
+              {partnerLabel} 已选择：{partnerSelectedPages.sort((a, b) => a - b).map(p => `P${p + 1}`).join(", ")}
+            </div>
+          )}
         </div>
       )}
 

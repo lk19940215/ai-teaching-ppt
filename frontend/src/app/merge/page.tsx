@@ -897,7 +897,169 @@ export default function MergePage() {
     setAdjustedPlan(null)
   }
 
-  // ===== 复杂元素跳过处理 =====
+  // ===== 多页融合处理（feat-155） =====
+  const handleMergeSelectedA = (pages: number[]) => {
+    // 设置融合模式为 partial 并开始融合
+    setMergeMode('partial')
+    // 将选中页面设置到 selectedPagesA
+    setSelectedPagesA(pages)
+    // 如果 B 也有选中页面，一起融合
+    handleAiMergeWithPages(pages, selectedPagesB)
+  }
+
+  const handleMergeSelectedB = (pages: number[]) => {
+    // 设置融合模式为 partial 并开始融合
+    setMergeMode('partial')
+    // 将选中页面设置到 selectedPagesB
+    setSelectedPagesB(pages)
+    // 如果 A 也有选中页面，一起融合
+    handleAiMergeWithPages(selectedPagesA, pages)
+  }
+
+  // 多页融合的统一处理函数
+  const handleAiMergeWithPages = async (pagesA: number[], pagesB: number[]) => {
+    if (!pptA || !pptB) {
+      setError('请上传 A/B 两个 PPT 文件')
+      return
+    }
+
+    const llmConfigStr = localStorage.getItem('llm_config')
+    if (!llmConfigStr) {
+      setError('请先在设置页配置 LLM API Key')
+      return
+    }
+
+    const llmConfig = JSON.parse(llmConfigStr)
+    if (!llmConfig.apiKey) {
+      setError('LLM API Key 未配置')
+      return
+    }
+
+    // 检查是否至少选择了一页
+    if (pagesA.length === 0 && pagesB.length === 0) {
+      setError('请至少选择一个页面进行融合')
+      return
+    }
+
+    setIsAiMerging(true)
+    setError(null)
+    setMergePlan(null)
+    setAdjustedPlan(null)
+    setAiMergeProgress({
+      stage: 'parsing',
+      message: '正在准备多页融合...',
+      percentage: 10
+    })
+
+    const formData = new FormData()
+    formData.append('file_a', pptA)
+    formData.append('file_b', pptB)
+    formData.append('merge_type', 'partial')
+    formData.append('provider', llmConfig.provider || 'deepseek')
+    formData.append('api_key', llmConfig.apiKey)
+    formData.append('temperature', '0.3')
+    formData.append('max_tokens', '3000')
+    formData.append('selected_pages_a', pagesA.join(','))
+    formData.append('selected_pages_b', pagesB.join(','))
+
+    if (globalPrompt) {
+      formData.append('custom_prompt', globalPrompt)
+    }
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/ai-merge`, {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: '请求失败' }))
+        throw new Error(errorData.detail || `HTTP ${response.status}`)
+      }
+
+      const reader = response.body?.getReader()
+      if (!reader) {
+        throw new Error('无法读取响应流')
+      }
+
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6)
+            try {
+              const event = JSON.parse(dataStr)
+
+              if (event.type === 'heartbeat') continue
+
+              if (event.stage) {
+                const stageProgress: Record<string, number> = {
+                  'parsing': 15,
+                  'calling_llm': 30,
+                  'thinking': 50,
+                  'merging': 75,
+                  'complete': 100
+                }
+                setAiMergeProgress({
+                  stage: event.stage,
+                  message: event.message || getStageMessage(event.stage),
+                  percentage: stageProgress[event.stage] || event.progress || 0
+                })
+              }
+
+              if (event.stage === 'error') {
+                setError(event.message || '多页融合失败')
+                setIsAiMerging(false)
+                setAiMergeProgress(null)
+                return
+              }
+
+              if (event.stage === 'complete' && event.result) {
+                // 构建 MergePlan 格式
+                const result = event.result
+                const mergePlanData: MergePlan = {
+                  merge_strategy: result.merge_strategy || '多页融合',
+                  summary: result.content_relationship || `融合 PPT A 的 ${pagesA.length} 页和 PPT B 的 ${pagesB.length} 页`,
+                  knowledge_points: result.preserved_from_a?.concat(result.preserved_from_b || []) || [],
+                  slide_plan: [{
+                    action: 'merge',
+                    source: pagesA.length > 0 ? 'A' : 'B',
+                    slide_index: pagesA[0] || pagesB[0],
+                    sources: [
+                      ...pagesA.map(p => ({ source: 'A' as const, slide: p })),
+                      ...pagesB.map(p => ({ source: 'B' as const, slide: p }))
+                    ],
+                    new_content: JSON.stringify(result.new_slide),
+                    instruction: '多页融合生成',
+                    reason: result.merge_strategy
+                  }]
+                }
+                setMergePlan(mergePlanData)
+                setIsAiMerging(false)
+                setAiMergeProgress(null)
+              }
+            } catch (e) {
+              console.warn('解析 SSE 事件失败:', e)
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error('多页融合失败:', err)
+      setError(err.message || '多页融合失败，请重试')
+      setIsAiMerging(false)
+      setAiMergeProgress(null)
+    }
+  }
   const handleToggleSkipComplexSlide = (source: 'A' | 'B', slideIndex: number) => {
     if (source === 'A') {
       setSkippedComplexSlidesA(prev =>
@@ -1093,6 +1255,11 @@ export default function MergePage() {
                 sessionId={sessionId || undefined}
                 documentId="ppt_a"
                 enableVersioning={!!sessionId}
+                // feat-155: 多页融合功能
+                onMergeSelected={handleMergeSelectedA}
+                isMerging={isAiMerging}
+                partnerSelectedPages={selectedPagesB}
+                partnerLabel="PPT B"
               />
 
               {/* PPT B 预览 */}
@@ -1115,6 +1282,11 @@ export default function MergePage() {
                 sessionId={sessionId || undefined}
                 documentId="ppt_b"
                 enableVersioning={!!sessionId}
+                // feat-155: 多页融合功能
+                onMergeSelected={handleMergeSelectedB}
+                isMerging={isAiMerging}
+                partnerSelectedPages={selectedPagesA}
+                partnerLabel="PPT A"
               />
             </div>
 
