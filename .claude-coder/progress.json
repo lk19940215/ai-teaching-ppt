@@ -807,6 +807,105 @@
       "taskId": "feat-157",
       "statusAfter": "done",
       "notes": "【feat-157 P2 删除/恢复页面完成】\n\n实现内容：\n1. 后端模型 (backend/app/models/history.py)：\n   - 添加 is_deleted 布尔字段（默认 False，带索引）\n   - 添加 deleted_at 时间戳字段\n   - 更新 to_dict() 包含新字段\n\n2. 后端 CRUD (backend/app/models/history_crud.py)：\n   - soft_delete_history_record() - 软删除\n   - restore_history_record() - 恢复\n   - get_deleted_history() - 获取已删除记录\n   - get_deleted_count() - 获取已删除数量\n   - 修改查询函数默认排除已删除记录\n\n3. 后端 API (backend/app/api/history.py)：\n   - DELETE /history/{id} 改为软删除\n   - POST /history/{id}/restore 恢复接口\n   - GET /history/deleted 获取已删除列表（注意路由顺序，必须在 /history/{id} 之前）\n\n4. 前端页面 (frontend/src/app/history/page.tsx)：\n   - 添加 activeTab 状态（active/deleted）\n   - 添加标签切换按钮「全部记录」/「回收站」\n   - 已删除记录显示恢复按钮（绿色）和禁用下载\n   - 正常记录显示删除按钮（红色）\n   - 已删除记录显示删除时间和「已删除」标签\n\n测试验证：\n- ✅ 软删除 API：记录标记为 is_deleted=true\n- ✅ 获取已删除列表：返回被删除的记录\n- ✅ 恢复 API：记录恢复为 is_deleted=false\n- ✅ 正常列表查询：自动过滤已删除记录\n\n数据库：删除了旧数据库文件，新表结构自动创建\n\n给下一会话的提醒：\n- 后端服务已重启，新数据库已创建\n- 如需测试前端交互，可访问 http://localhost:3000/history\n"
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-10T12:48:14.004Z",
+      "result": "success",
+      "cost": null,
+      "taskId": "feat-157",
+      "statusAfter": "done",
+      "notes": "【feat-157 P2 删除/恢复页面 UI 完成】\n\n实现内容：\n1. 主预览区已删除页面显示灰色遮罩 + 恢复按钮\n   - 显示「此页面已被删除」红色标签\n   - 绿色「恢复此页面」按钮，点击调用 handleToggleSlide\n\n2. 缩略图条显示已删除页面标识\n   - 红色边框 + 半透明遮罩\n   - 红色「已删除」标签\n\n3. 状态管理\n   - 添加 slideStatuses 状态跟踪每页删除状态\n   - 从会话数据加载时自动提取所有页面状态\n   - 删除/恢复后同步更新状态\n\n测试验证：\n- ✅ UI 组件已实现（grep 验证通过）\n- ✅ slide/toggle API 端点存在\n- ✅ 前端类型检查通过\n\n给下一会话的提醒：\n- 后端和前端服务已启动\n- feat-157 已完成，可以继续 feat-158（拖拽排序）\n- 完整 E2E 测试需要上传 PPT 文件创建会话"
+    },
+    {
+      "session": 2,
+      "timestamp": "2026-03-10T13:04:15.868Z",
+      "result": "success",
+      "cost": 3.97554,
+      "taskId": "feat-158",
+      "statusAfter": "done",
+      "notes": "【feat-158 P2 拖拽排序完成】实现：1) 技术选型 @dnd-kit；2) 安装依赖；3) 创建 DraggableSlideList 组件（useSortable、视觉反馈、手柄指示器）；4) 集成到 PptCanvasPreview（enableDragReorder prop）。验证：TypeScript 通过、浏览器无错误、缩略图正确渲染。"
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-10T13:30:27.892Z",
+      "result": "success",
+      "cost": 2.1585694999999996,
+      "taskId": "feat-159",
+      "statusAfter": "done",
+      "notes": "【feat-158 P2 拖拽排序完成】实现：1) 技术选型 @dnd-kit；2) 安装依赖；3) 创建 DraggableSlideList 组件（useSortable、视觉反馈、手柄指示器）；4) 集成到 PptCanvasPreview（enableDragReorder prop）。验证：TypeScript 通过、浏览器无错误、缩略图正确渲染。"
+    },
+    {
+      "session": 2,
+      "timestamp": "2026-03-10T13:49:02.373Z",
+      "result": "success",
+      "cost": null,
+      "taskId": "feat-160",
+      "statusAfter": "done",
+      "notes": "【feat-160 完成】实现融合方式选择器模式联动。\n\n实现内容：\n1. 新增 ModeGuidePanel 组件 - 根据 mergeMode 显示不同的操作引导（整体合并/选择页面融合/单页处理）\n2. 实现 handleMergeModeChange 函数 - 切换模式时清除不相关的选择状态和面板\n3. 改进选择处理函数 - 只在 single 模式下自动显示 SinglePageProcessor\n4. 右侧面板根据模式动态切换显示内容\n\n验证：Playwright E2E 测试通过\n- 三种模式 UI 正确显示\n- 模式切换时选择状态被清除\n- 单页处理模式下选择页面后显示处理面板\n\n文件变更：\n- 新增: frontend/src/components/mode-guide-panel.tsx\n- 修改: frontend/src/app/merge/page.tsx（集成联动逻辑）\n\n下一步：feat-161 P1 AI 提示词模板"
+    },
+    {
+      "session": 3,
+      "timestamp": "2026-03-10T13:57:48.264Z",
+      "result": "success",
+      "cost": 2.452142499999999,
+      "taskId": "feat-161",
+      "statusAfter": "done",
+      "notes": "【feat-160 完成】实现融合方式选择器模式联动。\n\n实现内容：\n1. 新增 ModeGuidePanel 组件 - 根据 mergeMode 显示不同的操作引导（整体合并/选择页面融合/单页处理）\n2. 实现 handleMergeModeChange 函数 - 切换模式时清除不相关的选择状态和面板\n3. 改进选择处理函数 - 只在 single 模式下自动显示 SinglePageProcessor\n4. 右侧面板根据模式动态切换显示内容\n\n验证：Playwright E2E 测试通过\n- 三种模式 UI 正确显示\n- 模式切换时选择状态被清除\n- 单页处理模式下选择页面后显示处理面板\n\n文件变更：\n- 新增: frontend/src/components/mode-guide-panel.tsx\n- 修改: frontend/src/app/merge/page.tsx（集成联动逻辑）\n\n下一步：feat-161 P1 AI 提示词模板"
+    },
+    {
+      "session": 4,
+      "timestamp": "2026-03-10T14:31:24.494Z",
+      "result": "success",
+      "cost": null,
+      "taskId": "feat-162",
+      "statusAfter": "done",
+      "notes": "【feat-162 完成】实现 AI 方案可调整功能。\n\n实现内容：\n1. 前端 MergePlanPanel 组件新增：\n   - 重新生成按钮（旋转图标）\n   - 重新生成对话框，支持用户输入自定义指令\n   - onRegeneratePage 和 isRegenerating 属性\n2. merge/page.tsx 新增：\n   - isRegenerating 状态\n   - handleRegeneratePage 函数，调用后端 API\n3. 后端新增 /api/v1/ppt/regenerate-slide 端点：\n   - 接收 slide_index、prompt 等参数\n   - 调用 ContentMerger 重新生成单页内容\n   - 返回更新后的 SlidePlanItem\n\n验证结果：\n- 前端 TypeScript 编译通过\n- 后端语法检查通过\n- API 端点已正确注册（OpenAPI 文档中可见）\n\n下一步建议：\n- 实现更多调整操作（如修改动作类型）\n- 添加调整预览功能\n- 优化重新生成的响应速度"
+    },
+    {
+      "session": 5,
+      "timestamp": "2026-03-10T14:37:13.048Z",
+      "result": "success",
+      "cost": 1.6707300000000003,
+      "taskId": "feat-164",
+      "statusAfter": "done",
+      "notes": "【feat-162 完成】实现 AI 方案可调整功能。\n\n实现内容：\n1. 前端 MergePlanPanel 组件新增：\n   - 重新生成按钮（旋转图标）\n   - 重新生成对话框，支持用户输入自定义指令\n   - onRegeneratePage 和 isRegenerating 属性\n2. merge/page.tsx 新增：\n   - isRegenerating 状态\n   - handleRegeneratePage 函数，调用后端 API\n3. 后端新增 /api/v1/ppt/regenerate-slide 端点：\n   - 接收 slide_index、prompt 等参数\n   - 调用 ContentMerger 重新生成单页内容\n   - 返回更新后的 SlidePlanItem\n\n验证结果：\n- 前端 TypeScript 编译通过\n- 后端语法检查通过\n- API 端点已正确注册（OpenAPI 文档中可见）\n\n下一步建议：\n- 实现更多调整操作（如修改动作类型）\n- 添加调整预览功能\n- 优化重新生成的响应速度"
+    },
+    {
+      "session": 6,
+      "timestamp": "2026-03-10T14:46:50.914Z",
+      "result": "success",
+      "cost": 1.5228379999999997,
+      "taskId": "feat-165",
+      "statusAfter": "done",
+      "notes": "【feat-162 完成】实现 AI 方案可调整功能。\n\n实现内容：\n1. 前端 MergePlanPanel 组件新增：\n   - 重新生成按钮（旋转图标）\n   - 重新生成对话框，支持用户输入自定义指令\n   - onRegeneratePage 和 isRegenerating 属性\n2. merge/page.tsx 新增：\n   - isRegenerating 状态\n   - handleRegeneratePage 函数，调用后端 API\n3. 后端新增 /api/v1/ppt/regenerate-slide 端点：\n   - 接收 slide_index、prompt 等参数\n   - 调用 ContentMerger 重新生成单页内容\n   - 返回更新后的 SlidePlanItem\n\n验证结果：\n- 前端 TypeScript 编译通过\n- 后端语法检查通过\n- API 端点已正确注册（OpenAPI 文档中可见）\n\n下一步建议：\n- 实现更多调整操作（如修改动作类型）\n- 添加调整预览功能\n- 优化重新生成的响应速度"
+    },
+    {
+      "session": 7,
+      "timestamp": "2026-03-10T14:58:13.741Z",
+      "result": "success",
+      "cost": 3.9997519999999995,
+      "taskId": "feat-165",
+      "statusAfter": "done",
+      "notes": "【feat-162 完成】实现 AI 方案可调整功能。\n\n实现内容：\n1. 前端 MergePlanPanel 组件新增：\n   - 重新生成按钮（旋转图标）\n   - 重新生成对话框，支持用户输入自定义指令\n   - onRegeneratePage 和 isRegenerating 属性\n2. merge/page.tsx 新增：\n   - isRegenerating 状态\n   - handleRegeneratePage 函数，调用后端 API\n3. 后端新增 /api/v1/ppt/regenerate-slide 端点：\n   - 接收 slide_index、prompt 等参数\n   - 调用 ContentMerger 重新生成单页内容\n   - 返回更新后的 SlidePlanItem\n\n验证结果：\n- 前端 TypeScript 编译通过\n- 后端语法检查通过\n- API 端点已正确注册（OpenAPI 文档中可见）\n\n下一步建议：\n- 实现更多调整操作（如修改动作类型）\n- 添加调整预览功能\n- 优化重新生成的响应速度"
+    },
+    {
+      "session": 8,
+      "timestamp": "2026-03-10T15:00:11.095Z",
+      "result": "success",
+      "cost": 1.184243,
+      "taskId": "feat-166",
+      "statusAfter": "done",
+      "notes": "【feat-162 完成】实现 AI 方案可调整功能。\n\n实现内容：\n1. 前端 MergePlanPanel 组件新增：\n   - 重新生成按钮（旋转图标）\n   - 重新生成对话框，支持用户输入自定义指令\n   - onRegeneratePage 和 isRegenerating 属性\n2. merge/page.tsx 新增：\n   - isRegenerating 状态\n   - handleRegeneratePage 函数，调用后端 API\n3. 后端新增 /api/v1/ppt/regenerate-slide 端点：\n   - 接收 slide_index、prompt 等参数\n   - 调用 ContentMerger 重新生成单页内容\n   - 返回更新后的 SlidePlanItem\n\n验证结果：\n- 前端 TypeScript 编译通过\n- 后端语法检查通过\n- API 端点已正确注册（OpenAPI 文档中可见）\n\n下一步建议：\n- 实现更多调整操作（如修改动作类型）\n- 添加调整预览功能\n- 优化重新生成的响应速度"
+    },
+    {
+      "session": 9,
+      "timestamp": "2026-03-10T15:04:15.477Z",
+      "result": "success",
+      "cost": 1.5395545000000002,
+      "taskId": "feat-166",
+      "statusAfter": "done",
+      "notes": "【feat-162 完成】实现 AI 方案可调整功能。\n\n实现内容：\n1. 前端 MergePlanPanel 组件新增：\n   - 重新生成按钮（旋转图标）\n   - 重新生成对话框，支持用户输入自定义指令\n   - onRegeneratePage 和 isRegenerating 属性\n2. merge/page.tsx 新增：\n   - isRegenerating 状态\n   - handleRegeneratePage 函数，调用后端 API\n3. 后端新增 /api/v1/ppt/regenerate-slide 端点：\n   - 接收 slide_index、prompt 等参数\n   - 调用 ContentMerger 重新生成单页内容\n   - 返回更新后的 SlidePlanItem\n\n验证结果：\n- 前端 TypeScript 编译通过\n- 后端语法检查通过\n- API 端点已正确注册（OpenAPI 文档中可见）\n\n下一步建议：\n- 实现更多调整操作（如修改动作类型）\n- 添加调整预览功能\n- 优化重新生成的响应速度"
     }
   ]
 }

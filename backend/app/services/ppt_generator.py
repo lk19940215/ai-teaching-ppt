@@ -572,6 +572,233 @@ class PPTGenerator:
 
         logger.info(f"成功从 snapshot 重建页面")
 
+    def generate_single_slide_pptx(
+        self,
+        content_snapshot: Dict[str, Any],
+        output_path: Path,
+        font_size: int = 24,
+        primary_color: RGBColor = COLOR_BLUE_5
+    ) -> Path:
+        """
+        从 AI 返回的 content_snapshot 生成单页 PPTX
+
+        Args:
+            content_snapshot: AI 修改的内容快照，格式根据 action 类型不同：
+                - polish: {action, polished_content: {title, main_points}}
+                - expand: {action, expanded_content: {title, expanded_points, original_points}}
+                - rewrite: {action, rewritten_content: {title, main_content}}
+                - extract: {action, extracted_knowledge: {core_concepts, formulas, methods}}
+            output_path: 输出文件路径
+            font_size: 正文字号
+            primary_color: 主色调
+
+        Returns:
+            生成的 PPTX 文件路径
+        """
+        action = content_snapshot.get("action", "polish")
+
+        # 根据 action 类型提取内容
+        title, content_items = self._extract_content_from_snapshot(content_snapshot, action)
+
+        # 创建单页 PPT
+        prs = Presentation()
+        prs.slide_width = Inches(10)
+        prs.slide_height = Inches(7.5)
+
+        # 使用 blank layout
+        blank_layout = prs.slide_layouts[6]
+        slide = prs.slides.add_slide(blank_layout)
+
+        y_position = Inches(0.5)
+
+        # 添加标题
+        if title:
+            title_shape = slide.shapes.add_textbox(Inches(0.5), y_position, Inches(9), Inches(1))
+            title_frame = title_shape.text_frame
+            title_frame.text = title
+            title_frame.paragraphs[0].font.size = Pt(font_size + 6)
+            title_frame.paragraphs[0].font.bold = True
+            title_frame.paragraphs[0].font.color.rgb = primary_color
+            y_position = Inches(1.5)
+
+        # 添加内容项
+        for item in content_items:
+            if isinstance(item, dict):
+                # 结构化内容项
+                item_type = item.get("type", "text")
+                item_content = item.get("content", "")
+
+                if item_type == "heading":
+                    # 小标题
+                    heading_shape = slide.shapes.add_textbox(Inches(0.5), y_position, Inches(9), Inches(0.6))
+                    heading_frame = heading_shape.text_frame
+                    heading_frame.text = item_content
+                    heading_frame.paragraphs[0].font.size = Pt(font_size + 2)
+                    heading_frame.paragraphs[0].font.bold = True
+                    y_position += Inches(0.6)
+                elif item_type == "formula":
+                    # 公式（特殊样式）
+                    formula_shape = slide.shapes.add_textbox(Inches(0.8), y_position, Inches(8.4), Inches(0.6))
+                    formula_frame = formula_shape.text_frame
+                    formula_frame.text = f"📐 {item_content}"
+                    formula_frame.paragraphs[0].font.size = Pt(font_size)
+                    formula_frame.paragraphs[0].font.italic = True
+                    y_position += Inches(0.6)
+                else:
+                    # 普通文本
+                    text_shape = slide.shapes.add_textbox(Inches(0.5), y_position, Inches(9), Inches(0.6))
+                    text_frame = text_shape.text_frame
+                    text_frame.text = f"• {item_content}"
+                    text_frame.paragraphs[0].font.size = Pt(font_size)
+                    y_position += Inches(0.5)
+            else:
+                # 简单字符串内容
+                text_shape = slide.shapes.add_textbox(Inches(0.5), y_position, Inches(9), Inches(0.6))
+                text_frame = text_shape.text_frame
+                text_frame.text = f"• {item}"
+                text_frame.paragraphs[0].font.size = Pt(font_size)
+                y_position += Inches(0.5)
+
+        # 保存文件
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        prs.save(output_path)
+
+        logger.info(f"成功生成单页 PPTX: {output_path}")
+        return output_path
+
+    def _extract_content_from_snapshot(
+        self,
+        content_snapshot: Dict[str, Any],
+        action: str
+    ) -> tuple:
+        """
+        从 content_snapshot 提取标题和内容项
+
+        Args:
+            content_snapshot: AI 返回的内容快照
+            action: 动作类型
+
+        Returns:
+            (title, content_items) 元组
+        """
+        title = ""
+        content_items = []
+
+        if action == "polish":
+            # 润色结果
+            polished = content_snapshot.get("polished_content", {})
+            title = polished.get("title", "")
+            main_points = polished.get("main_points", [])
+            content_items = main_points
+
+        elif action == "expand":
+            # 扩展结果
+            expanded = content_snapshot.get("expanded_content", {})
+            title = expanded.get("title", "")
+
+            # 合并原有要点和扩展要点
+            original = expanded.get("original_points", [])
+            expanded_points = expanded.get("expanded_points", [])
+            new_examples = expanded.get("new_examples", [])
+            additional = expanded.get("additional_content", "")
+
+            # 添加原有要点
+            if original:
+                content_items.append({"type": "heading", "content": "原有内容"})
+                content_items.extend(original)
+
+            # 添加扩展要点
+            if expanded_points:
+                content_items.append({"type": "heading", "content": "扩展内容"})
+                content_items.extend(expanded_points)
+
+            # 添加新例子
+            if new_examples:
+                content_items.append({"type": "heading", "content": "新增示例"})
+                content_items.extend(new_examples)
+
+            # 添加额外内容
+            if additional:
+                content_items.append({"type": "heading", "content": "补充说明"})
+                content_items.append(additional)
+
+        elif action == "rewrite":
+            # 改写结果
+            rewritten = content_snapshot.get("rewritten_content", {})
+            title = rewritten.get("title", "")
+            main_content = rewritten.get("main_content", "")
+            style_features = rewritten.get("style_features", [])
+
+            if main_content:
+                # 将主要内容按段落分割
+                paragraphs = main_content.split("\n\n") if "\n\n" in main_content else [main_content]
+                content_items.extend(paragraphs)
+
+            if style_features:
+                content_items.append({"type": "heading", "content": "风格特点"})
+                content_items.extend(style_features)
+
+        elif action == "extract":
+            # 提取结果
+            extracted = content_snapshot.get("extracted_knowledge", {})
+            title = "知识点提取"
+
+            # 核心概念
+            concepts = extracted.get("core_concepts", [])
+            if concepts:
+                content_items.append({"type": "heading", "content": "核心概念"})
+                for concept in concepts:
+                    if isinstance(concept, dict):
+                        concept_name = concept.get("concept", "")
+                        concept_def = concept.get("definition", "")
+                        content_items.append(f"{concept_name}：{concept_def}")
+                    else:
+                        content_items.append(concept)
+
+            # 公式
+            formulas = extracted.get("formulas", [])
+            if formulas:
+                content_items.append({"type": "heading", "content": "重要公式"})
+                for formula in formulas:
+                    if isinstance(formula, dict):
+                        formula_name = formula.get("name", "")
+                        formula_expr = formula.get("formula", "")
+                        content_items.append({"type": "formula", "content": f"{formula_name}: {formula_expr}"})
+                    else:
+                        content_items.append({"type": "formula", "content": formula})
+
+            # 方法
+            methods = extracted.get("methods", [])
+            if methods:
+                content_items.append({"type": "heading", "content": "解题方法"})
+                for method in methods:
+                    if isinstance(method, dict):
+                        method_name = method.get("name", "")
+                        steps = method.get("steps", [])
+                        content_items.append(f"{method_name}：{' → '.join(steps)}")
+                    else:
+                        content_items.append(method)
+
+            # 易错点
+            mistakes = extracted.get("common_mistakes", [])
+            if mistakes:
+                content_items.append({"type": "heading", "content": "易错提醒"})
+                for mistake in mistakes:
+                    if isinstance(mistake, dict):
+                        wrong = mistake.get("mistake", "")
+                        correct = mistake.get("correction", "")
+                        content_items.append(f"❌ {wrong} → ✅ {correct}")
+                    else:
+                        content_items.append(mistake)
+
+        else:
+            # 未知 action，尝试通用提取
+            title = content_snapshot.get("title", "")
+            content_items = content_snapshot.get("main_points", content_snapshot.get("content", []))
+
+        return title, content_items
+
     def generate(
         self,
         content: Dict[str, Any],

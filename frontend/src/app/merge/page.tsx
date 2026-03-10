@@ -443,6 +443,14 @@ export default function MergePage() {
     percentage: number
   } | null>(null)
 
+  // ===== feat-166: 预览图片 URL 状态 =====
+  const [slideImageUrlsA, setSlideImageUrlsA] = useState<Record<number, string>>({})
+  const [slideImageUrlsB, setSlideImageUrlsB] = useState<Record<number, string>>({})
+
+  // ===== feat-166: 已处理页面版本状态 =====
+  const [processedVersionsA, setProcessedVersionsA] = useState<Record<number, string>>({})
+  const [processedVersionsB, setProcessedVersionsB] = useState<Record<number, string>>({})
+
   // ===== feat-162: 重新生成页面状态 =====
   const [isRegenerating, setIsRegenerating] = useState(false)
 
@@ -1111,6 +1119,23 @@ export default function MergePage() {
       const versionResult = await response.json()
       console.log('[feat-156] 版本创建成功:', versionResult)
 
+      // feat-166: 更新预览图片 URL 和版本状态
+      if (versionResult.image_url) {
+        const slideIndex = singlePageData.index
+        if (singlePageSource === 'A') {
+          setSlideImageUrlsA(prev => ({ ...prev, [slideIndex]: versionResult.image_url }))
+          if (versionResult.version) {
+            setProcessedVersionsA(prev => ({ ...prev, [slideIndex]: versionResult.version }))
+          }
+        } else {
+          setSlideImageUrlsB(prev => ({ ...prev, [slideIndex]: versionResult.image_url }))
+          if (versionResult.version) {
+            setProcessedVersionsB(prev => ({ ...prev, [slideIndex]: versionResult.version }))
+          }
+        }
+        console.log(`[feat-166] 已更新 ${singlePageSource} 第 ${slideIndex + 1} 页预览图:`, versionResult.image_url)
+      }
+
       // 重置单页处理状态
       setShowSinglePageProcessor(false)
       setSinglePageData(null)
@@ -1608,6 +1633,10 @@ export default function MergePage() {
       {currentStep === 'confirm' && (
         <MergeResultPreview
           mergePlan={adjustedPlan || mergePlan}
+          pptAPages={pptAPages}
+          pptBPages={pptBPages}
+          pptAImageUrls={slideImageUrlsA}
+          pptBImageUrls={slideImageUrlsB}
           fileName={fileName}
           downloadUrl={downloadUrl}
           onDownload={handleDownload}

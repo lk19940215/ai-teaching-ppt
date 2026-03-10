@@ -2378,7 +2378,8 @@ async def create_version(
     operation: str = Body(..., description="操作类型 (ai_polish, ai_expand, ai_rewrite, ai_extract)"),
     prompt: Optional[str] = Body(None, description="AI 提示语"),
     new_pptx: Optional[str] = Body(None, description="新生成的单页 PPTX 路径"),
-    content_snapshot: Optional[Dict[str, Any]] = Body(None, description="AI 修改的内容快照（中间结构数据）")
+    content_snapshot: Optional[Dict[str, Any]] = Body(None, description="AI 修改的内容快照（中间结构数据）"),
+    generate_preview: bool = Body(True, description="是否生成预览图片，默认 true")
 ):
     """
     创建新版本
@@ -2391,19 +2392,21 @@ async def create_version(
         "operation": "ai_polish",
         "prompt": "用更通俗的语言解释",
         "new_pptx": "/path/to/new_slide.pptx" (可选),
-        "content_snapshot": {...} (可选，AI 修改的中间结构数据)
+        "content_snapshot": {...} (可选，AI 修改的中间结构数据),
+        "generate_preview": true (可选，是否生成预览图片)
     }
 
     Response:
     {
         "version": "v2",
         "image_url": "http://localhost:8000/public/versions/abc12345/ppt_a_slide1_v2.png",
-        "created_at": "10:05:00"
+        "created_at": "10:05:00",
+        "has_preview": true
     }
     """
     from ..services.version_manager import get_version_manager
 
-    logger.info(f"创建版本：{document_id} slide {slide_index} ({operation})")
+    logger.info(f"创建版本：{document_id} slide {slide_index} ({operation}), generate_preview={generate_preview}")
 
     try:
         version_manager = get_version_manager()
@@ -2413,8 +2416,33 @@ async def create_version(
         if not session:
             raise HTTPException(status_code=404, detail=f"会话不存在：{session_id}")
 
-        # 创建新版本
+        # 确定要使用的 PPTX 路径
         new_pptx_path = Path(new_pptx) if new_pptx else None
+
+        # 如果需要生成预览且提供了 content_snapshot，但未提供 new_pptx，
+        # 则自动从 content_snapshot 生成临时 PPTX
+        if generate_preview and content_snapshot and not new_pptx_path:
+            from ..services.ppt_generator import get_ppt_generator
+
+            # 创建临时目录存放生成的 PPTX
+            temp_dir = settings.PUBLIC_DIR / "versions" / session_id / "temp"
+            temp_dir.mkdir(parents=True, exist_ok=True)
+
+            # 生成临时 PPTX 文件名
+            temp_pptx_path = temp_dir / f"{document_id}_slide{slide_index}_temp.pptx"
+
+            logger.info(f"从 content_snapshot 生成临时 PPTX: {temp_pptx_path}")
+
+            # 调用生成器创建单页 PPTX
+            ppt_generator = get_ppt_generator()
+            ppt_generator.generate_single_slide_pptx(
+                content_snapshot=content_snapshot,
+                output_path=temp_pptx_path
+            )
+
+            new_pptx_path = temp_pptx_path
+
+        # 创建新版本
         version = version_manager.create_version(
             session_id=session_id,
             document_id=document_id,
@@ -2430,7 +2458,8 @@ async def create_version(
             "image_url": version.image_url,
             "created_at": version.created_at,
             "operation": version.operation,
-            "prompt": version.prompt
+            "prompt": version.prompt,
+            "has_preview": bool(version.image_url)
         })
 
     except HTTPException:
