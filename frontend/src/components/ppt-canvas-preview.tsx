@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/ppt-canvas-renderer"
 import { VersionSwitcher } from '@/components/version-switcher'
 import { VersionHistoryPanel } from '@/components/version-history-panel'
+import { DraggableSlideList } from '@/components/draggable-slide-list'
 import type { SlideStatus, SessionData } from '@/lib/version-api'
 import { getSession, getVersionHistory, restoreVersion, toggleSlide } from '@/lib/version-api'
 
@@ -38,6 +39,9 @@ interface PptCanvasPreviewProps {
   isMerging?: boolean
   partnerSelectedPages?: number[]  // 另一份 PPT 选中的页面（用于显示融合预览）
   partnerLabel?: string
+  // feat-158: 拖拽排序功能
+  onReorder?: (oldIndex: number, newIndex: number) => void
+  enableDragReorder?: boolean
 }
 
 export function PptCanvasPreview({
@@ -61,10 +65,12 @@ export function PptCanvasPreview({
   isMerging = false,
   partnerSelectedPages = [],
   partnerLabel = '另一份 PPT',
+  // feat-158: 拖拽排序功能
+  onReorder,
+  enableDragReorder = false,
 }: PptCanvasPreviewProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [internalFallbackMode, setInternalFallbackMode] = useState(fallbackMode)
-  const thumbnailStripRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
   // feat-141: 版本化状态
@@ -180,13 +186,6 @@ export function PptCanvasPreview({
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [goPrev, goNext])
-
-  useEffect(() => {
-    if (thumbnailStripRef.current) {
-      const thumbEl = thumbnailStripRef.current.children[currentIndex] as HTMLElement
-      if (thumbEl) thumbEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
-    }
-  }, [currentIndex])
 
   const togglePageSelection = useCallback((pageIndex: number, e?: React.MouseEvent) => {
     if (disableSelection || !onSelectionChange) return
@@ -403,50 +402,24 @@ export function PptCanvasPreview({
         )}
       </div>
 
-      {/* 底部缩略图条 */}
+      {/* feat-158: 底部缩略图条（支持拖拽排序） */}
       <div className="border-t bg-gray-50 px-2 py-2">
-        <div ref={thumbnailStripRef} className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin" style={{ scrollbarWidth: 'thin' }}>
-          {pages.map((page, idx) => {
-            const isActive = idx === currentIndex
-            const isSelected = selectedPages.includes(page.index)
-            const thumbnailUrl = slideImageUrls[idx]  // feat-150: 获取缩略图 URL
-            const slideStatus = slideStatuses[idx]  // feat-157: 获取页面状态
-            const isDeleted = slideStatus === 'deleted'
-            const enhanced = convertToEnhanced(page, page.index)
-            return (
-              <div key={page.index} onClick={() => goToPage(idx)}
-                className={cn("flex-shrink-0 w-24 h-14 rounded border-2 overflow-hidden cursor-pointer transition-all relative",
-                  isActive ? "border-indigo-500 ring-1 ring-indigo-300 shadow" :
-                  isDeleted ? "border-red-300 opacity-60" :
-                  isSelected ? "border-green-400 ring-1 ring-green-200" :
-                  "border-gray-200 hover:border-gray-400 opacity-70 hover:opacity-100"
-                )}>
-                {/* feat-150: 优先显示图片缩略图 */}
-                {thumbnailUrl ? (
-                  <img
-                    src={thumbnailUrl}
-                    alt={`第 ${idx + 1} 页`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <PptCanvasRenderer pageData={enhanced} width={96} height={54} isSelected={false} onClick={() => {}} quality={0.5} />
-                )}
-                <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-center text-[9px] py-0.5">P{page.index + 1}</div>
-                {/* feat-157: 已删除页面标识 */}
-                {isDeleted && (
-                  <div className="absolute inset-0 bg-gray-500/50 flex items-center justify-center">
-                    <span className="text-white text-[8px] font-medium bg-red-500 px-1 rounded">已删除</span>
-                  </div>
-                )}
-                {isSelected && !isDeleted && (
-                  <div className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full flex items-center justify-center">
-                    <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
+        <DraggableSlideList
+          pages={pages}
+          currentIndex={currentIndex}
+          selectedPages={selectedPages}
+          slideImageUrls={slideImageUrls}
+          slideStatuses={slideStatuses}
+          onPageClick={goToPage}
+          onReorder={(oldIndex, newIndex) => {
+            // 本地更新 pages 顺序（通过回调通知父组件）
+            if (onReorder) {
+              onReorder(oldIndex, newIndex)
+            }
+          }}
+          convertToEnhanced={convertToEnhanced}
+          disableDrag={!enableDragReorder}
+        />
       </div>
 
       {selectedPages.length > 0 && (

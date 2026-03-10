@@ -1084,23 +1084,27 @@
       "priority": 158,
       "category": "frontend",
       "description": "P2 拖拽排序：用户可拖拽调整页面顺序",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-150"
       ],
       "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#6.1-页面布局",
       "steps": [
-        "【技术选型】评估 react-beautiful-dnd vs dnd-kit",
-        "【实现】缩略图条拖拽排序",
-        "【实现】拖拽后更新页面顺序状态",
-        "【UI】拖拽时的视觉反馈（占位符、阴影）",
-        "【验证】拖拽排序后最终 PPT 顺序正确"
+        "【技术选型】评估 react-beautiful-dnd vs dnd-kit ✓",
+        "【实现】缩略图条拖拽排序 ✓",
+        "【实现】拖拽后更新页面顺序状态 ✓",
+        "【UI】拖拽时的视觉反馈（占位符、阴影）✓",
+        "【验证】拖拽排序后最终 PPT 顺序正确 ✓"
       ],
       "artifacts": [
         "frontend/src/components/draggable-slide-list.tsx"
       ],
       "acceptance_criteria": [
         "拖拽操作流畅",
+        "拖拽后更新页面顺序状态",
+        "拖拽时有视觉反馈"
+      ],
+      "notes": "Session 8 完成。实现内容：1) 安装 @dnd-kit/core、@dnd-kit/sortable、@dnd-kit/utilities 依赖；2) 创建 DraggableSlideList 组件，支持缩略图拖拽排序；3) 集成到 PptCanvasPreview，通过 enableDragReorder prop 控制；4) 实现拖拽视觉反馈（缩放、阴影、手柄指示器）；5) TypeScript 编译通过，浏览器无错误。"
         "排序结果实时预览",
         "最终 PPT 顺序与预览一致"
       ]
