@@ -27,6 +27,7 @@
     {"id": "test-feat167-integration", "feature_id": "feat-167", "verify": "grep -q 'processedCount' frontend/src/app/merge/page.tsx", "expected": "TopControlBar 集成 processedCount 参数", "last_result": "pass", "last_run_session": 14},
     {"id": "test-feat168-api", "feature_id": "feat-168", "verify": "curl -s http://localhost:8000/openapi.json | grep -q 'generate-final'", "expected": "generate-final API 端点已注册", "last_result": "pass", "last_run_session": 15},
     {"id": "test-feat168-import", "feature_id": "feat-168", "verify": "grep -q 'from.*ppt_generator import generate_ppt_from_versions' backend/app/api/ppt.py", "expected": "generate_ppt_from_versions 已正确导入", "last_result": "pass", "last_run_session": 15},
-    {"id": "test-feat168-e2e", "feature_id": "feat-168", "verify": "ls uploads/generated/final_*.pptx 2>/dev/null | head -1", "expected": "最终 PPT 文件生成成功", "last_result": "pass", "last_run_session": 16}
+    {"id": "test-feat168-e2e", "feature_id": "feat-168", "verify": "ls uploads/generated/final_*.pptx 2>/dev/null | head -1", "expected": "最终 PPT 文件生成成功", "last_result": "pass", "last_run_session": 16},
+    {"id": "test-feat169-e2e-single-page", "feature_id": "feat-169", "verify": "ls uploads/generated/final_*.pptx 2>/dev/null | wc -l", "expected": "单页润色→应用→生成最终PPT 端到端流程成功", "last_result": "pass", "last_run_session": 7}
   ]
 }

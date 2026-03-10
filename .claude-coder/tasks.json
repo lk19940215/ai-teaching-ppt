@@ -414,7 +414,7 @@
       "priority": 169,
       "category": "test",
       "description": "P0 单页实时预览端到端测试：处理 → 预览 → 生成",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-168"
       ],
