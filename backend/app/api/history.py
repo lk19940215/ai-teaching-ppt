@@ -17,6 +17,10 @@ from ..models.history_crud import (
     search_history,
     get_history_count,
     regenerate_from_history,
+    soft_delete_history_record,
+    restore_history_record,
+    get_deleted_history,
+    get_deleted_count,
 )
 from ..services.ppt_generator import get_ppt_generator
 from ..services.llm import get_llm_service
@@ -79,6 +83,29 @@ async def search_history_api(
         raise HTTPException(status_code=500, detail=f"搜索失败：{str(e)}")
 
 
+@router.get("/history/deleted")
+async def list_deleted_history(
+    session_id: str = Query(..., description="用户 session ID"),
+    limit: int = Query(20, ge=1, le=100, description="每页数量"),
+    offset: int = Query(0, ge=0, description="偏移量"),
+    db = Depends(get_db),
+):
+    """获取已删除的历史记录列表"""
+    try:
+        records = get_deleted_history(db, session_id, limit, offset)
+        total = get_deleted_count(db, session_id)
+        return {
+            "success": True,
+            "data": [record.to_dict() for record in records],
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+        }
+    except Exception as e:
+        logger.error(f"获取已删除记录失败：{e}")
+        raise HTTPException(status_code=500, detail=f"获取已删除记录失败：{str(e)}")
+
+
 @router.get("/history/{record_id}")
 async def get_history_detail(
     record_id: int,
@@ -106,14 +133,31 @@ async def delete_history(
     session_id: str = Query(..., description="用户 session ID"),
     db = Depends(get_db),
 ):
-    """删除历史记录"""
-    success = delete_history_record(db, record_id, session_id)
+    """软删除历史记录（标记删除但保留数据）"""
+    success = soft_delete_history_record(db, record_id, session_id)
     if not success:
         raise HTTPException(status_code=404, detail="记录不存在或无权删除")
 
     return {
         "success": True,
-        "message": "记录已删除",
+        "message": "记录已移至回收站",
+    }
+
+
+@router.post("/history/{record_id}/restore")
+async def restore_history(
+    record_id: int,
+    session_id: str = Query(..., description="用户 session ID"),
+    db = Depends(get_db),
+):
+    """恢复已删除的历史记录"""
+    success = restore_history_record(db, record_id, session_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="记录不存在或无权恢复")
+
+    return {
+        "success": True,
+        "message": "记录已恢复",
     }
 
 

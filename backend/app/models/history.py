@@ -1,7 +1,7 @@
 """
 PPT 生成历史记录模型
 """
-from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey, Boolean
 from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime
 
@@ -36,6 +36,10 @@ class GenerationHistory(Base):
     # 时间戳
     created_at = Column(DateTime, default=datetime.now, nullable=False, index=True)
 
+    # 软删除标记
+    is_deleted = Column(Boolean, default=False, nullable=False, index=True, comment="是否已删除")
+    deleted_at = Column(DateTime, nullable=True, comment="删除时间")
+
     def to_dict(self):
         """转换为字典格式"""
         return {
@@ -50,4 +54,6 @@ class GenerationHistory(Base):
             "file_name": self.file_name,
             "file_path": self.file_path,
             "created_at": self.created_at.isoformat() if self.created_at else None,
+            "is_deleted": self.is_deleted,
+            "deleted_at": self.deleted_at.isoformat() if self.deleted_at else None,
         }

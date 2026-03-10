@@ -2,7 +2,7 @@
 历史记录 CRUD 操作
 """
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, or_
+from sqlalchemy import desc, or_, and_
 from typing import Optional, List
 from datetime import datetime
 import uuid
@@ -44,30 +44,13 @@ def add_generation_record(
     return record
 
 
-def get_history_by_session(
-    db: Session,
-    session_id: str,
-    limit: int = 20,
-    offset: int = 0,
-) -> List[GenerationHistory]:
-    """获取指定 session 的生成历史"""
-    return (
-        db.query(GenerationHistory)
-        .filter(GenerationHistory.session_id == session_id)
-        .order_by(desc(GenerationHistory.created_at))
-        .offset(offset)
-        .limit(limit)
-        .all()
-    )
-
-
 def get_history_record(db: Session, record_id: int) -> Optional[GenerationHistory]:
     """获取单条历史记录"""
     return db.query(GenerationHistory).filter(GenerationHistory.id == record_id).first()
 
 
 def delete_history_record(db: Session, record_id: int, session_id: str) -> bool:
-    """删除历史记录（只能删除自己的记录）"""
+    """删除历史记录（只能删除自己的记录）- 物理删除，保留用于兼容"""
     record = (
         db.query(GenerationHistory)
         .filter(GenerationHistory.id == record_id, GenerationHistory.session_id == session_id)
@@ -78,35 +61,6 @@ def delete_history_record(db: Session, record_id: int, session_id: str) -> bool:
         db.commit()
         return True
     return False
-
-
-def search_history(
-    db: Session,
-    session_id: str,
-    keyword: Optional[str] = None,
-    grade: Optional[str] = None,
-    subject: Optional[str] = None,
-    limit: int = 20,
-    offset: int = 0,
-) -> List[GenerationHistory]:
-    """搜索历史记录"""
-    query = db.query(GenerationHistory).filter(GenerationHistory.session_id == session_id)
-
-    if keyword:
-        query = query.filter(
-            or_(
-                GenerationHistory.title.contains(keyword),
-                GenerationHistory.chapter.contains(keyword),
-            )
-        )
-
-    if grade:
-        query = query.filter(GenerationHistory.grade == grade)
-
-    if subject:
-        query = query.filter(GenerationHistory.subject == subject)
-
-    return query.order_by(desc(GenerationHistory.created_at)).offset(offset).limit(limit).all()
 
 
 def get_history_count(db: Session, session_id: str) -> int:
@@ -149,3 +103,114 @@ def regenerate_from_history(
     db.commit()
     db.refresh(new_record)
     return new_record
+
+
+def soft_delete_history_record(db: Session, record_id: int, session_id: str) -> bool:
+    """软删除历史记录（标记删除但保留数据）"""
+    record = (
+        db.query(GenerationHistory)
+        .filter(GenerationHistory.id == record_id, GenerationHistory.session_id == session_id)
+        .first()
+    )
+    if record:
+        record.is_deleted = True
+        record.deleted_at = datetime.now()
+        db.commit()
+        return True
+    return False
+
+
+def restore_history_record(db: Session, record_id: int, session_id: str) -> bool:
+    """恢复已删除的历史记录"""
+    record = (
+        db.query(GenerationHistory)
+        .filter(GenerationHistory.id == record_id, GenerationHistory.session_id == session_id)
+        .first()
+    )
+    if record:
+        record.is_deleted = False
+        record.deleted_at = None
+        db.commit()
+        return True
+    return False
+
+
+def get_history_by_session(
+    db: Session,
+    session_id: str,
+    limit: int = 20,
+    offset: int = 0,
+    include_deleted: bool = False,
+) -> List[GenerationHistory]:
+    """获取指定 session 的生成历史（默认排除已删除）"""
+    query = db.query(GenerationHistory).filter(GenerationHistory.session_id == session_id)
+
+    if not include_deleted:
+        query = query.filter(GenerationHistory.is_deleted == False)
+
+    return (
+        query.order_by(desc(GenerationHistory.created_at))
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+
+def search_history(
+    db: Session,
+    session_id: str,
+    keyword: Optional[str] = None,
+    grade: Optional[str] = None,
+    subject: Optional[str] = None,
+    limit: int = 20,
+    offset: int = 0,
+    include_deleted: bool = False,
+) -> List[GenerationHistory]:
+    """搜索历史记录（默认排除已删除）"""
+    query = db.query(GenerationHistory).filter(GenerationHistory.session_id == session_id)
+
+    # 默认排除已删除记录
+    if not include_deleted:
+        query = query.filter(GenerationHistory.is_deleted == False)
+
+    if keyword:
+        query = query.filter(
+            or_(
+                GenerationHistory.title.contains(keyword),
+                GenerationHistory.chapter.contains(keyword),
+            )
+        )
+
+    if grade:
+        query = query.filter(GenerationHistory.grade == grade)
+
+    if subject:
+        query = query.filter(GenerationHistory.subject == subject)
+
+    return query.order_by(desc(GenerationHistory.created_at)).offset(offset).limit(limit).all()
+
+
+def get_deleted_history(
+    db: Session,
+    session_id: str,
+    limit: int = 20,
+    offset: int = 0,
+) -> List[GenerationHistory]:
+    """获取已删除的历史记录"""
+    return (
+        db.query(GenerationHistory)
+        .filter(GenerationHistory.session_id == session_id, GenerationHistory.is_deleted == True)
+        .order_by(desc(GenerationHistory.deleted_at))
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+
+def get_deleted_count(db: Session, session_id: str) -> int:
+    """获取已删除记录的数量"""
+    return (
+        db.query(GenerationHistory)
+        .filter(GenerationHistory.session_id == session_id, GenerationHistory.is_deleted == True)
+        .count()
+    )

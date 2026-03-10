@@ -789,6 +789,15 @@
       "taskId": "feat-155",
       "statusAfter": "done",
       "notes": "【feat-155 P1 多页融合完成】\n\n实现内容：\n1. PptCanvasPreview 组件增强：\n   - 添加 onMergeSelected/isMerging/partnerSelectedPages/partnerLabel 属性\n   - 选中页面时显示「融合选中页面」按钮（带加载状态）\n   - 显示另一份 PPT 的选中状态（绿色提示）\n\n2. merge/page.tsx 多页融合处理：\n   - handleMergeSelectedA/B: 设置 partial 模式并开始融合\n   - handleAiMergeWithPages: 统一多页融合处理函数\n   - 调用后端 /ai-merge API (merge_type='partial')\n   - 解析 SSE 响应并构建 MergePlan 数据结构\n\n3. 测试验证（Playwright）：\n   - 上传两个 PPT 文件成功\n   - 选中 PPT A 第 1 页后显示「融合选中页面」按钮\n   - 点击融合按钮后 AI 分析完成\n   - AI 合并方案面板显示融合策略、知识点、新内容\n\n技术要点：\n- 多选交互：Ctrl+点击/复选框（已有功能）\n- 融合流程：选中页面 → 点击融合 → AI 分析 → 显示方案\n- 后端复用：/ai-merge API 已支持 partial 模式\n\nCommit: 0951583"
+    },
+    {
+      "session": 5,
+      "timestamp": "2026-03-10T08:33:01.648Z",
+      "result": "success",
+      "cost": 5.777956,
+      "taskId": "feat-156",
+      "statusAfter": "done",
+      "notes": "【feat-156 P1 单页处理交互完成】\n\n实现内容：\n1. 创建 SinglePageProcessor 组件 (frontend/src/components/single-page-processor.tsx)\n   - 4 种操作卡片：润色/扩展/改写/提取，带图标和说明\n   - 自定义提示语输入框\n   - SSE 流式处理进度显示\n   - 结果预览对比：原标题、新标题、要点列表、扩展内容\n   - 应用/取消按钮\n\n2. 在 merge/page.tsx 集成单页处理功能\n   - 添加单页处理相关状态 (singlePageData, singlePageSource, showSinglePageProcessor)\n   - 修改页面选择处理：选中单页时自动显示处理面板\n   - 添加处理回调函数 (handleSinglePageProcessingStart/Complete/Error/ApplyResult/Cancel)\n   - 应用结果时调用 /version/create API 创建新版本\n\n3. 验证结果\n   - TypeScript 编译通过 ✓\n   - Playwright 测试 UI 渲染正常 ✓\n   - 4 种操作按钮可点击选中 ✓\n   - 处理要求输入框可输入 ✓\n   - 当前页面内容预览显示正确 ✓\n\n截图：feat-156-single-page-processor.png"
     }
   ]
 }
