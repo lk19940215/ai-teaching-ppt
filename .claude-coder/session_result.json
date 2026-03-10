@@ -2,5 +2,5 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "【feat-162 完成】实现 AI 方案可调整功能。\n\n实现内容：\n1. 前端 MergePlanPanel 组件新增：\n   - 重新生成按钮（旋转图标）\n   - 重新生成对话框，支持用户输入自定义指令\n   - onRegeneratePage 和 isRegenerating 属性\n2. merge/page.tsx 新增：\n   - isRegenerating 状态\n   - handleRegeneratePage 函数，调用后端 API\n3. 后端新增 /api/v1/ppt/regenerate-slide 端点：\n   - 接收 slide_index、prompt 等参数\n   - 调用 ContentMerger 重新生成单页内容\n   - 返回更新后的 SlidePlanItem\n\n验证结果：\n- 前端 TypeScript 编译通过\n- 后端语法检查通过\n- API 端点已正确注册（OpenAPI 文档中可见）\n\n下一步建议：\n- 实现更多调整操作（如修改动作类型）\n- 添加调整预览功能\n- 优化重新生成的响应速度"
+  "notes": "【feat-164 完成】P0 端到端测试：完整合并流程验证\n\n测试结果：\n1. ✅ 上传两个 PPT 文件（test_大龙猫.pptx 2页 + test_模版.pptx 4页）\n2. ✅ 输入合并提示语\n3. ✅ 点击 AI 合并，成功生成 5 页合并方案\n4. ✅ 合并结果预览面板正确显示：\n   - 页面缩略图列表\n   - 来源标注（PPT A/B 第N页、AI 新建）\n   - 操作按钮（重新生成、编辑、删除）\n   - 拖拽排序功能\n5. ⚠️ 下载功能按钮禁用，需要 feat-168（最终 PPT 生成）支持\n\n修复的 Bug：\n- merge/page.tsx: 从 SSE 响应中正确提取 plan 字段\n  - 后端返回 {merge_type: 'full', plan: {...}}\n  - 前端需要提取 event.result.plan 作为 MergePlan\n\n给下一个会话的提醒：\n- feat-165~feat-168 依赖链：单页处理实时预览 → 最终 PPT 生成\n- 下载功能需要实现 /ppt/generate-final API（feat-168）\n- 前端已生成合并方案，后端需要根据方案生成实际 PPT 文件"
 }
