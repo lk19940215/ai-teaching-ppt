@@ -261,7 +261,9 @@ function TopControlBar({
   onCancelPlan,
   onDeletePage,
   onEditPage,
-  onReorder
+  onReorder,
+  onRegeneratePage,
+  isRegenerating
 }: {
   mergeMode: MergeMode
   onMergeModeChange: (mode: MergeMode) => void
@@ -277,6 +279,8 @@ function TopControlBar({
   onDeletePage?: (index: number) => void
   onEditPage?: (index: number, newContent: string) => void
   onReorder?: (fromIndex: number, toIndex: number) => void
+  onRegeneratePage?: (index: number, prompt: string) => void
+  isRegenerating?: boolean
 }) {
   return (
     <div className="bg-white border rounded-lg p-4 space-y-4">
@@ -329,6 +333,8 @@ function TopControlBar({
             onDeletePage={onDeletePage}
             onEditPage={onEditPage}
             onReorder={onReorder}
+            onRegeneratePage={onRegeneratePage}
+            isRegenerating={isRegenerating}
           />
         </div>
       )}
@@ -436,6 +442,9 @@ export default function MergePage() {
     message: string
     percentage: number
   } | null>(null)
+
+  // ===== feat-162: 重新生成页面状态 =====
+  const [isRegenerating, setIsRegenerating] = useState(false)
 
   // ===== feat-160: 模式切换联动 =====
   // 切换模式时清除不相关的选择状态
@@ -985,6 +994,74 @@ export default function MergePage() {
     setAdjustedPlan(updatedPlan)
   }
 
+  // ===== feat-162: 重新生成页面 =====
+  const handleRegeneratePage = async (index: number, prompt: string) => {
+    if (!pptA || !pptB || !mergePlan) return
+
+    const llmConfigStr = localStorage.getItem('llm_config')
+    if (!llmConfigStr) {
+      setError('请先在设置页配置 LLM API Key')
+      return
+    }
+
+    const llmConfig = JSON.parse(llmConfigStr)
+    if (!llmConfig.apiKey) {
+      setError('LLM API Key 未配置')
+      return
+    }
+
+    setIsRegenerating(true)
+    setError(null)
+
+    const formData = new FormData()
+    formData.append('file_a', pptA)
+    formData.append('file_b', pptB)
+    formData.append('slide_index', index.toString())
+    formData.append('prompt', prompt)
+    formData.append('provider', llmConfig.provider || 'deepseek')
+    formData.append('api_key', llmConfig.apiKey)
+    formData.append('temperature', '0.3')
+    formData.append('max_tokens', '2000')
+
+    // 获取当前页的计划信息
+    const currentItem = (adjustedPlan || mergePlan).slide_plan[index]
+    formData.append('current_action', currentItem?.action || 'keep')
+    formData.append('current_content', currentItem?.new_content || '')
+    if (currentItem?.source) {
+      formData.append('source_doc', currentItem.source)
+      formData.append('source_slide_index', (currentItem.slide_index ?? 0).toString())
+    }
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/regenerate-slide`, {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: '请求失败' }))
+        throw new Error(errorData.detail || `HTTP ${response.status}`)
+      }
+
+      const result = await response.json()
+
+      // 更新计划中的对应页面
+      const updatedPlan: MergePlan = {
+        ...(adjustedPlan || mergePlan),
+        slide_plan: (adjustedPlan || mergePlan).slide_plan.map((item, idx) =>
+          idx === index ? { ...item, ...result.new_slide } : item
+        )
+      }
+      setAdjustedPlan(updatedPlan)
+      console.log('[feat-162] 重新生成成功:', result)
+    } catch (err: any) {
+      console.error('[feat-162] 重新生成失败:', err)
+      setError(err.message || '重新生成失败，请重试')
+    } finally {
+      setIsRegenerating(false)
+    }
+  }
+
   const handleCancelPlan = () => {
     setMergePlan(null)
     setAdjustedPlan(null)
@@ -1347,6 +1424,8 @@ export default function MergePage() {
             onDeletePage={handleDeletePage}
             onEditPage={handleEditPage}
             onReorder={handleReorder}
+            onRegeneratePage={handleRegeneratePage}
+            isRegenerating={isRegenerating}
           />
 
           {/* 主内容区域：左右布局 */}

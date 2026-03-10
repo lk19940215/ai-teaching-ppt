@@ -2149,6 +2149,135 @@ async def ai_merge_ppts(
     return StreamingResponse(sse_generator(progress_queue), media_type='text/event-stream', headers={'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'X-Accel-Buffering': 'no'})
 
 
+# ==================== feat-162: 增量调整 API ====================
+
+@router.post('/ppt/regenerate-slide')
+async def regenerate_slide(
+    file_a: UploadFile = File(..., description='PPT A 文件'),
+    file_b: UploadFile = File(..., description='PPT B 文件'),
+    slide_index: int = Form(..., description='要重新生成的页码（在方案中的索引）'),
+    prompt: str = Form('', description='重新生成的提示语'),
+    provider: str = Form('deepseek', description='LLM 服务商'),
+    api_key: str = Form(..., description='API Key'),
+    temperature: float = Form(0.3, description='温度参数'),
+    max_tokens: int = Form(2000, description='最大输出 token'),
+    current_action: str = Form('keep', description='当前页的动作类型'),
+    current_content: str = Form('', description='当前页的内容'),
+    source_doc: str = Form('A', description='来源文档'),
+    source_slide_index: int = Form(0, description='源页码'),
+):
+    """
+    feat-162: 重新生成合并方案中的某一页
+
+    Request:
+    - file_a, file_b: PPT 文件
+    - slide_index: 在方案中的页码索引（0-indexed）
+    - prompt: 用户自定义的重新生成指令
+    - current_action: 当前页的动作类型（keep/merge/create等）
+    - current_content: 当前页的内容
+
+    Response:
+    {
+        "new_slide": {
+            "action": "keep",
+            "new_content": "重新生成的内容",
+            "reason": "基于用户指令重新生成"
+        }
+    }
+    """
+    import tempfile
+    from ..services.ppt_content_parser import parse_pptx_to_structure
+    from ..services.content_merger import get_content_merger
+
+    temp_a = None
+    temp_b = None
+
+    try:
+        logger.info(f'feat-162: 开始重新生成第 {slide_index} 页，prompt={prompt}')
+
+        # 解析 PPT 文件
+        content_a = await file_a.read()
+        temp_dir_a = Path(tempfile.gettempdir()) / 'ppt_regenerate'
+        temp_dir_a.mkdir(parents=True, exist_ok=True)
+        temp_a = temp_dir_a / f'{uuid.uuid4().hex}_{file_a.filename}'
+        async with aiofiles.open(temp_a, 'wb') as f:
+            await f.write(content_a)
+        doc_a = parse_pptx_to_structure(temp_a)
+
+        content_b = await file_b.read()
+        temp_dir_b = Path(tempfile.gettempdir()) / 'ppt_regenerate'
+        temp_dir_b.mkdir(parents=True, exist_ok=True)
+        temp_b = temp_dir_b / f'{uuid.uuid4().hex}_{file_b.filename}'
+        async with aiofiles.open(temp_b, 'wb') as f:
+            await f.write(content_b)
+        doc_b = parse_pptx_to_structure(temp_b)
+
+        # 获取源文档的对应页面
+        source_doc_data = doc_a if source_doc == 'A' else doc_b
+        slides = source_doc_data.get('slides', [])
+
+        # 构建 AI 提示语
+        if prompt:
+            regenerate_instruction = f"""
+用户希望重新生成此页面，具体要求：
+{prompt}
+
+请根据上述要求，生成新的页面内容。
+"""
+        else:
+            regenerate_instruction = f"""
+请重新生成此页面，优化内容表达和教学效果。
+当前动作类型：{current_action}
+当前内容：{current_content or '（无）'}
+"""
+
+        # 调用 LLM 生成新内容
+        merger = get_content_merger(provider=provider, api_key=api_key, temperature=temperature, max_tokens=max_tokens)
+
+        # 根据当前动作类型决定如何处理
+        if current_action in ['keep', 'polish', 'expand', 'rewrite', 'extract']:
+            # 单页处理模式
+            if source_slide_index < len(slides):
+                source_slide = slides[source_slide_index]
+                result = merger.process_single_page(source_slide, current_action if current_action != 'keep' else 'polish', prompt)
+                new_slide = {
+                    'action': result.get('action', current_action),
+                    'new_content': result.get('new_content', {}).get('title', '') + '\n' + '\n'.join(result.get('new_content', {}).get('main_points', [])),
+                    'reason': f'基于用户指令重新生成：{prompt[:50]}...' if prompt else 'AI 优化重新生成'
+                }
+            else:
+                raise ValueError(f'源页码超出范围：{source_slide_index}')
+        else:
+            # 创建新内容模式
+            result = merger.process_single_page(
+                {'elements': [], 'teaching_content': {'title': '新页面'}},
+                'create',
+                prompt or f'为合并方案创建第 {slide_index + 1} 页内容'
+            )
+            new_slide = {
+                'action': 'create',
+                'new_content': result.get('new_content', {}).get('title', '') + '\n' + '\n'.join(result.get('new_content', {}).get('main_points', [])),
+                'reason': '用户创建的新页面'
+            }
+
+        logger.info(f'feat-162: 重新生成成功，new_slide={new_slide}')
+        return JSONResponse(content={'success': True, 'new_slide': new_slide})
+
+    except ValueError as e:
+        logger.error(f'feat-162: 参数错误：{e}')
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f'feat-162: 重新生成失败：{e}')
+        raise HTTPException(status_code=500, detail=f'重新生成失败：{str(e)}')
+    finally:
+        for temp_path in [temp_a, temp_b]:
+            try:
+                if temp_path and temp_path.exists():
+                    temp_path.unlink()
+            except:
+                pass
+
+
 # ==================== 版本化管理 API ====================
 
 @router.post("/session/create")

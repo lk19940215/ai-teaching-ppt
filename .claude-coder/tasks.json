@@ -1195,7 +1195,7 @@
       "priority": 162,
       "category": "feature",
       "description": "P1 用户可调整方案：AI 生成方案后用户可微调",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-138"
       ],

@@ -30,6 +30,10 @@ export interface MergePlanPanelProps {
   onEditPage?: (index: number, newContent: string) => void
   /** 当拖拽排序完成时触发 */
   onReorder?: (fromIndex: number, toIndex: number) => void
+  /** feat-162: 当重新生成某页时触发 */
+  onRegeneratePage?: (index: number, prompt: string) => void
+  /** feat-162: 是否正在重新生成 */
+  isRegenerating?: boolean
   /** SSE 进度信息 */
   progressInfo?: {
     stage: string
@@ -218,6 +222,8 @@ export function MergePlanPanel({
   onDeletePage,
   onEditPage,
   onReorder,
+  onRegeneratePage,
+  isRegenerating = false,
   progressInfo,
   className
 }: MergePlanPanelProps) {
@@ -227,6 +233,10 @@ export function MergePlanPanel({
   const [editingContent, setEditingContent] = useState("")
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null)
+  // feat-162: 重新生成相关状态
+  const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false)
+  const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null)
+  const [regeneratePrompt, setRegeneratePrompt] = useState("")
 
   const displayPlan = adjustedPlan || plan
 
@@ -430,6 +440,30 @@ export function MergePlanPanel({
     setDeletingIndex(null)
   }
 
+  // feat-162: 重新生成点击
+  const handleRegenerateClick = (index: number) => {
+    setRegeneratingIndex(index)
+    setRegeneratePrompt('')
+    setRegenerateDialogOpen(true)
+  }
+
+  // feat-162: 确认重新生成
+  const handleConfirmRegenerate = () => {
+    if (regeneratingIndex !== null && onRegeneratePage) {
+      onRegeneratePage(regeneratingIndex, regeneratePrompt)
+    }
+    // 不关闭对话框，等待 isRegenerating 变为 false
+  }
+
+  // feat-162: 取消重新生成
+  const handleCancelRegenerate = () => {
+    if (!isRegenerating) {
+      setRegenerateDialogOpen(false)
+      setRegeneratingIndex(null)
+      setRegeneratePrompt('')
+    }
+  }
+
   // AI 加载中且无计划时显示 loading 状态
   if (!mergePlan && isLoading) {
     return (
@@ -594,6 +628,18 @@ export function MergePlanPanel({
 
                 {/* 操作按钮 */}
                 <div className="flex-shrink-0 flex gap-1">
+                  {/* feat-162: 重新生成按钮 */}
+                  <button
+                    type="button"
+                    onClick={() => handleRegenerateClick(idx)}
+                    className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors"
+                    title="重新生成此页"
+                    disabled={isRegenerating}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleEditClick(idx, item.new_content)}
@@ -683,6 +729,44 @@ export function MergePlanPanel({
             </Button>
             <Button variant="destructive" onClick={handleConfirmDelete}>
               删除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* feat-162: 重新生成对话框 */}
+      <Dialog open={regenerateDialogOpen} onOpenChange={setRegenerateDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>重新生成第 {regeneratingIndex !== null ? regeneratingIndex + 1 : ''} 页</DialogTitle>
+            <DialogDescription>
+              AI 将根据您的指令重新生成此页的内容。留空则使用默认指令。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <textarea
+              className="w-full min-h-[100px] p-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              value={regeneratePrompt}
+              onChange={(e) => setRegeneratePrompt(e.target.value)}
+              placeholder="输入重新生成的指令，例如：增加更多例题、简化语言、添加互动环节..."
+              disabled={isRegenerating}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelRegenerate} disabled={isRegenerating}>
+              取消
+            </Button>
+            <Button onClick={handleConfirmRegenerate} disabled={isRegenerating}>
+              {isRegenerating ? (
+                <>
+                  <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  生成中...
+                </>
+              ) : (
+                '重新生成'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
