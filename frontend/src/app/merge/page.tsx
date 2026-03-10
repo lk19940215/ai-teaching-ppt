@@ -10,6 +10,7 @@ import PptCanvasPreview, { type PptPageData } from '@/components/ppt-canvas-prev
 import MergeModeSelector, { type MergeMode } from '@/components/merge-mode-selector'
 import MergePlanPanel from '@/components/merge-plan-panel'
 import SinglePageProcessor from '@/components/single-page-processor'
+import PromptEditor, { type StructuredPagePrompt } from '@/components/prompt-editor'
 import type { MergePlan } from '@/types/merge-plan'
 import { createSession } from '@/lib/version-api'
 
@@ -241,32 +242,45 @@ function PptUploadArea({ label, description, file, onFileSelect, disabled = fals
 
 /**
  * 顶部控制条组件（feat-151）
- * 包含 AI 融合方式选择和合并提示语输入
+ * 包含 AI 融合方式选择、操作按钮和 AI 合并方案
+ * 注：提示语编辑功能已移至右侧 PromptEditor 组件
  */
 function TopControlBar({
   mergeMode,
   onMergeModeChange,
-  globalPrompt,
-  onGlobalPromptChange,
   onAiMerge,
   onReset,
   isAiMerging,
-  disabled
+  disabled,
+  mergePlan,
+  adjustedPlan,
+  progressInfo,
+  onConfirmPlan,
+  onCancelPlan,
+  onDeletePage,
+  onEditPage,
+  onReorder
 }: {
   mergeMode: MergeMode
   onMergeModeChange: (mode: MergeMode) => void
-  globalPrompt: string
-  onGlobalPromptChange: (prompt: string) => void
   onAiMerge: () => void
   onReset: () => void
   isAiMerging: boolean
   disabled: boolean
+  mergePlan: MergePlan | null
+  adjustedPlan?: MergePlan | null
+  progressInfo?: { stage: string; message: string; percentage: number }
+  onConfirmPlan: () => void
+  onCancelPlan: () => void
+  onDeletePage?: (index: number) => void
+  onEditPage?: (index: number, newContent: string) => void
+  onReorder?: (fromIndex: number, toIndex: number) => void
 }) {
   return (
     <div className="bg-white border rounded-lg p-4 space-y-4">
-      {/* 融合方式选择 */}
+      {/* 上层：融合方式选择 */}
       <div>
-        <h3 className="text-sm font-medium text-gray-900 mb-3">AI 融合方式</h3>
+        <h3 className="text-sm font-medium text-gray-900 mb-2">AI 融合方式</h3>
         <MergeModeSelector
           value={mergeMode}
           onChange={onMergeModeChange}
@@ -274,26 +288,8 @@ function TopControlBar({
         />
       </div>
 
-      {/* 合并提示语输入 */}
-      <div className="pt-4 border-t">
-        <div className="flex items-center justify-between mb-2">
-          <Label htmlFor="global-prompt" className="text-sm font-medium">
-            合并提示语
-          </Label>
-          <span className="text-xs text-gray-400">可选</span>
-        </div>
-        <Textarea
-          id="global-prompt"
-          value={globalPrompt}
-          onChange={(e) => onGlobalPromptChange(e.target.value)}
-          placeholder="例如：保留 PPT A 的封面和总结，将 PPT B 的例题插入到概念讲解之后..."
-          className="min-h-[80px] text-sm"
-          disabled={isAiMerging || disabled}
-        />
-      </div>
-
-      {/* 操作按钮 */}
-      <div className="flex gap-3 pt-2">
+      {/* 下层：操作按钮 */}
+      <div className="flex gap-3">
         <Button
           onClick={onAiMerge}
           disabled={disabled || isAiMerging}
@@ -316,6 +312,24 @@ function TopControlBar({
           重置
         </Button>
       </div>
+
+      {/* AI 合并方案面板 */}
+      {(mergePlan || isAiMerging) && (
+        <div className="pt-4 border-t">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">AI 合并方案</h3>
+          <MergePlanPanel
+            plan={mergePlan}
+            adjustedPlan={adjustedPlan || undefined}
+            isLoading={isAiMerging}
+            progressInfo={progressInfo}
+            onConfirm={() => onConfirmPlan()}
+            onCancel={onCancelPlan}
+            onDeletePage={onDeletePage}
+            onEditPage={onEditPage}
+            onReorder={onReorder}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -410,6 +424,7 @@ export default function MergePage() {
   // ===== AI 融合相关状态 =====
   const [mergeMode, setMergeMode] = useState<MergeMode>('full')
   const [globalPrompt, setGlobalPrompt] = useState('')
+  const [pagePrompts, setPagePrompts] = useState<Record<string, StructuredPagePrompt>>({})
   const [mergePlan, setMergePlan] = useState<MergePlan | null>(null)
   const [adjustedPlan, setAdjustedPlan] = useState<MergePlan | null>(null)
   const [isAiMerging, setIsAiMerging] = useState(false)
@@ -694,6 +709,25 @@ export default function MergePage() {
 
     if (globalPrompt) {
       formData.append('custom_prompt', globalPrompt)
+    }
+
+    // 添加页面级提示语（转换为后端格式）
+    if (Object.keys(pagePrompts).length > 0) {
+      const backendPagePrompts: { a_pages: Record<string, StructuredPagePrompt>; b_pages: Record<string, StructuredPagePrompt> } = {
+        a_pages: {},
+        b_pages: {}
+      }
+
+      Object.entries(pagePrompts).forEach(([key, prompt]) => {
+        const [source, pageNum] = key.split('-')
+        if (source === 'A') {
+          backendPagePrompts.a_pages[pageNum] = prompt
+        } else if (source === 'B') {
+          backendPagePrompts.b_pages[pageNum] = prompt
+        }
+      })
+
+      formData.append('page_prompts', JSON.stringify(backendPagePrompts))
     }
 
     try {
@@ -1074,6 +1108,25 @@ export default function MergePage() {
       formData.append('custom_prompt', globalPrompt)
     }
 
+    // 添加页面级提示语（转换为后端格式）
+    if (Object.keys(pagePrompts).length > 0) {
+      const backendPagePrompts: { a_pages: Record<string, StructuredPagePrompt>; b_pages: Record<string, StructuredPagePrompt> } = {
+        a_pages: {},
+        b_pages: {}
+      }
+
+      Object.entries(pagePrompts).forEach(([key, prompt]) => {
+        const [source, pageNum] = key.split('-')
+        if (source === 'A') {
+          backendPagePrompts.a_pages[pageNum] = prompt
+        } else if (source === 'B') {
+          backendPagePrompts.b_pages[pageNum] = prompt
+        }
+      })
+
+      formData.append('page_prompts', JSON.stringify(backendPagePrompts))
+    }
+
     try {
       const response = await fetch(`${apiBaseUrl}/api/v1/ppt/ai-merge`, {
         method: 'POST',
@@ -1262,12 +1315,18 @@ export default function MergePage() {
           <TopControlBar
             mergeMode={mergeMode}
             onMergeModeChange={setMergeMode}
-            globalPrompt={globalPrompt}
-            onGlobalPromptChange={setGlobalPrompt}
             onAiMerge={handleAiMerge}
             onReset={handleReset}
             isAiMerging={isAiMerging}
             disabled={!pptA || !pptB}
+            mergePlan={mergePlan}
+            adjustedPlan={adjustedPlan}
+            progressInfo={aiMergeProgress || undefined}
+            onConfirmPlan={handleConfirmPlan}
+            onCancelPlan={handleCancelPlan}
+            onDeletePage={handleDeletePage}
+            onEditPage={handleEditPage}
+            onReorder={handleReorder}
           />
 
           {/* 主内容区域：左右布局 */}
@@ -1417,38 +1476,38 @@ export default function MergePage() {
                 />
               )}
 
-              {/* AI 合并方案面板 */}
-              <div className="bg-white border rounded-lg p-6 sticky top-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">AI 合并方案</h3>
-                <MergePlanPanel
-                  plan={mergePlan}
-                  adjustedPlan={adjustedPlan || undefined}
-                  isLoading={isAiMerging}
-                  progressInfo={aiMergeProgress || undefined}
-                  onConfirm={handleConfirmPlan}
-                  onCancel={handleCancelPlan}
-                  onDeletePage={handleDeletePage}
-                  onEditPage={handleEditPage}
-                  onReorder={handleReorder}
+              {/* 页面级提示语编辑器 */}
+              <div className="bg-white border rounded-lg p-4">
+                <h3 className="text-sm font-medium text-gray-900 mb-3">提示语设置</h3>
+                <PromptEditor
+                  pagesA={pptAPages}
+                  pagesB={pptBPages}
+                  selectedPagesA={selectedPagesA}
+                  selectedPagesB={selectedPagesB}
+                  pagePrompts={pagePrompts}
+                  onPagePromptsChange={setPagePrompts}
+                  globalPrompt={globalPrompt}
+                  onGlobalPromptChange={setGlobalPrompt}
+                  disabled={isAiMerging}
                 />
-
-                {/* 选中页面提示 */}
-                {(selectedPagesA.length > 0 || selectedPagesB.length > 0) && !mergePlan && !isAiMerging && (
-                  <div className="mt-4 p-3 bg-indigo-50 border border-indigo-200 rounded">
-                    <p className="text-sm font-medium text-indigo-900 mb-2">已选择页面：</p>
-                    {selectedPagesA.length > 0 && (
-                      <p className="text-xs text-indigo-700">
-                        PPT A: {selectedPagesA.map(p => `P${p + 1}`).join(', ')}
-                      </p>
-                    )}
-                    {selectedPagesB.length > 0 && (
-                      <p className="text-xs text-indigo-700">
-                        PPT B: {selectedPagesB.map(p => `P${p + 1}`).join(', ')}
-                      </p>
-                    )}
-                  </div>
-                )}
               </div>
+
+              {/* 选中页面提示 */}
+              {(selectedPagesA.length > 0 || selectedPagesB.length > 0) && !mergePlan && !isAiMerging && (
+                <div className="bg-white border rounded-lg p-4">
+                  <p className="text-sm font-medium text-gray-900 mb-2">已选择页面：</p>
+                  {selectedPagesA.length > 0 && (
+                    <p className="text-xs text-gray-600">
+                      PPT A: {selectedPagesA.map(p => `P${p + 1}`).join(', ')}
+                    </p>
+                  )}
+                  {selectedPagesB.length > 0 && (
+                    <p className="text-xs text-gray-600">
+                      PPT B: {selectedPagesB.map(p => `P${p + 1}`).join(', ')}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

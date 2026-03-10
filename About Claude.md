@@ -111,6 +111,10 @@ hook 用法，用于在 Claude 执行特定操作时，触发通知。
 
 ```
 
+# SDK 文档
+
+[SDK 文档](https://platform.claude.com/docs/zh-CN/agent-sdk/typescript#agent-definition)
+
 # 其它
 
 ## 2026-03-09
