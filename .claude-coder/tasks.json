@@ -263,7 +263,7 @@
       "priority": 164,
       "category": "test",
       "description": "P0 端到端测试：完整合并流程验证",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-151"
       ],

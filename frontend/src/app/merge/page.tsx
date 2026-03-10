@@ -825,7 +825,9 @@ export default function MergePage() {
               }
 
               if (event.stage === 'complete' && event.result) {
-                setMergePlan(event.result)
+                // 后端返回 {merge_type: 'full', plan: {...}}，需要提取 plan
+                const plan = event.result.plan || event.result
+                setMergePlan(plan)
                 setIsAiMerging(false)
                 setAiMergeProgress(null)
               }
