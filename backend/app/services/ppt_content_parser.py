@@ -21,6 +21,7 @@ from ..models.ppt_structure import (
     DocumentData, SlideData, ElementData, Position, Style, Paragraph,
     TeachingContent, ElementType, SlideType, TeachingRole, to_dict
 )
+from .teaching_semantic_extractor import TeachingSemanticExtractor
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +44,8 @@ class PptContentParser:
             max_image_size: 图片最大尺寸（用于压缩）
         """
         self.max_image_size = max_image_size
+        # 初始化教学语义提取器
+        self.semantic_extractor = TeachingSemanticExtractor()
 
     def parse(self, file_path: Path) -> DocumentData:
         """
@@ -63,9 +66,10 @@ class PptContentParser:
         slide_height = prs.slide_height / 914400
 
         # 遍历每页
+        total_slides = len(prs.slides)
         for slide_idx, slide in enumerate(prs.slides):
             slide_data = self._parse_slide(
-                slide, slide_idx, slide_width, slide_height
+                slide, slide_idx, slide_width, slide_height, total_slides
             )
             slides_data.append(slide_data)
 
@@ -89,7 +93,7 @@ class PptContentParser:
         return document
 
     def _parse_slide(
-        self, slide, slide_idx: int, width: float, height: float
+        self, slide, slide_idx: int, width: float, height: float, total_slides: int
     ) -> SlideData:
         """解析单页幻灯片"""
         elements: List[ElementData] = []
@@ -112,19 +116,30 @@ class PptContentParser:
                 if element.type == ElementType.TITLE and not title:
                     title = element.text
 
-        # 判断页面类型
-        slide_type = self._detect_slide_type(slide_idx, elements)
-        teaching_role = self._detect_teaching_role(slide_idx, elements)
+        # 使用教学语义提取器进行语义分析
+        teaching_content = self.semantic_extractor.extract_teaching_content(
+            slide_idx=slide_idx,
+            total_slides=total_slides,
+            elements=elements,
+            title=title
+        )
 
-        # 提取教学语义
-        teaching_content = self._extract_teaching_content(elements, title)
+        # 从语义提取结果获取 slide_type 和 teaching_role
+        semantic_result = self.semantic_extractor.extract(
+            slide_idx=slide_idx,
+            total_slides=total_slides,
+            elements=elements,
+            title=title
+        )
+
+        # 更新 teaching_content 的 has_images 和 has_tables
         teaching_content.has_images = has_images
         teaching_content.has_tables = has_tables
 
         return SlideData(
             slide_index=slide_idx,
-            slide_type=slide_type,
-            teaching_role=teaching_role,
+            slide_type=semantic_result.slide_type,
+            teaching_role=semantic_result.teaching_role,
             elements=elements,
             teaching_content=teaching_content,
             layout_width=width,

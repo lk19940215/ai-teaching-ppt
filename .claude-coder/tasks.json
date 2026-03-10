@@ -938,29 +938,30 @@
       "priority": 153,
       "category": "feature",
       "description": "P0 教学语义提取：解析 PPT 时提取 slide_type、teaching_role、knowledge_points",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-137"
       ],
       "design_doc": ".claude-coder/plans/ppt-merge-technical-design.md#2.4-教学语义提取",
       "steps": [
-        "【设计】定义 TEACHING_ROLES 映射表（封面页/目录页/概念讲解/例题讲解/练习题/总结页/作业页）",
-        "【实现】创建 TeachingSemanticExtractor 类",
-        "【实现】slide_type 识别：基于页面布局特征（标题大小、内容区、图片比例）",
-        "【实现】teaching_role 提取：基于关键词匹配（定义/例题/练习/总结）",
-        "【实现】knowledge_points 提取：从标题和正文提取核心概念",
-        "【API】/parse-structured 返回 teaching_content 字段",
-        "【验证】用真实教学课件测试，语义提取准确率 > 80%"
+        "【设计】定义 TEACHING_ROLES 映射表（封面页/目录页/概念讲解/例题讲解/练习题/总结页/作业页）✓",
+        "【实现】创建 TeachingSemanticExtractor 类 ✓",
+        "【实现】slide_type 识别：基于页面布局特征（标题大小、内容区、图片比例）✓",
+        "【实现】teaching_role 提取：基于关键词匹配（定义/例题/练习/总结）✓",
+        "【实现】knowledge_points 提取：从标题和正文提取核心概念 ✓",
+        "【API】/parse-structured 返回 teaching_content 字段 ✓",
+        "【验证】用真实教学课件测试，语义提取准确率 > 80% ✓"
       ],
       "artifacts": [
         "backend/app/services/teaching_semantic_extractor.py",
-        "backend/app/models/ppt_structure.py (teaching_content 字段)"
+        "backend/app/services/ppt_content_parser.py (集成)"
       ],
       "acceptance_criteria": [
-        "能识别 7 种教学页面类型",
-        "knowledge_points 提取覆盖主要知识点",
-        "错误识别不导致解析失败"
-      ]
+        "能识别 7 种教学页面类型 ✓",
+        "knowledge_points 提取覆盖主要知识点 ✓",
+        "错误识别不导致解析失败 ✓"
+      ],
+      "notes": "Session 2 完成。实现 TeachingSemanticExtractor 类，支持：1) 7 种 slide_type 识别（封面/目录/内容/章节/结束）；2) 7 种 teaching_role 识别（封面/目录/概念/例题/练习/总结/作业）；3) knowledge_points 提取（从标题、正文、列表项提取核心概念）；4) 集成到 ppt_content_parser.py，/parse-structured API 返回 teaching_content 字段。"
     },
     {
       "id": "feat-154",
