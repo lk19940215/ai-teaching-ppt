@@ -1168,7 +1168,7 @@
       "priority": 161,
       "category": "backend",
       "description": "P1 AI 提示词模板：针对教学场景优化的合并提示词",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-153"
       ],

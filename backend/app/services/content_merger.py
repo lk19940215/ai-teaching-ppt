@@ -13,6 +13,15 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 from enum import Enum
 
+# 导入增强版提示词模板
+from ..prompts.merge_prompts import (
+    build_full_merge_prompt,
+    build_partial_merge_prompt,
+    build_single_page_prompt,
+    get_strategy_prompt,
+    MERGE_STRATEGY_TEMPLATES
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -120,9 +129,12 @@ class ContentMerger:
         """
         logger.info(f"开始整体合并: A({doc_a.get('total_slides', 0)}页) + B({doc_b.get('total_slides', 0)}页)")
 
-        # 构建 LLM 提示词
-        system_prompt = self._build_system_prompt(MergeType.FULL)
-        user_prompt = self._build_full_merge_prompt(doc_a, doc_b, custom_prompt)
+        # 使用增强版提示词模板构建 LLM 提示词
+        file_a_name = doc_a.get('source_file', 'PPT A')
+        file_b_name = doc_b.get('source_file', 'PPT B')
+        system_prompt, user_prompt = build_full_merge_prompt(
+            doc_a, doc_b, file_a_name, file_b_name, custom_prompt
+        )
 
         # 调用 LLM
         llm = self._get_llm_service()
@@ -161,9 +173,8 @@ class ContentMerger:
 
         logger.info(f"单页处理: action={action}")
 
-        # 构建提示词
-        system_prompt = self._build_system_prompt(MergeType.SINGLE)
-        user_prompt = self._build_single_page_prompt(slide_data, action, custom_prompt)
+        # 使用增强版提示词模板构建提示词
+        system_prompt, user_prompt = build_single_page_prompt(slide_data, action, custom_prompt)
 
         # 调用 LLM
         llm = self._get_llm_service()
@@ -198,9 +209,10 @@ class ContentMerger:
         """
         logger.info(f"多页融合: A({len(pages_a)}页) + B({len(pages_b)}页)")
 
-        # 构建提示词
-        system_prompt = self._build_system_prompt(MergeType.PARTIAL)
-        user_prompt = self._build_pages_merge_prompt(pages_a, pages_b, custom_prompt)
+        # 使用增强版提示词模板构建提示词
+        system_prompt, user_prompt = build_partial_merge_prompt(
+            pages_a, pages_b, custom_prompt
+        )
 
         # 调用 LLM
         llm = self._get_llm_service()
