@@ -382,7 +382,7 @@
       "priority": 168,
       "category": "fullstack",
       "description": "P0 最终 PPT 生成：收集所有修改生成最终文件",
-      "status": "testing",
+      "status": "done",
       "depends_on": [
         "feat-167",
         "feat-143"

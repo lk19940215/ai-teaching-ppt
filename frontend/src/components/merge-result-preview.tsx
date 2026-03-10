@@ -377,8 +377,47 @@ export function MergeResultPreview({
   // 当前拖拽的项
   const activeSlide = activeId ? previewSlides.find(s => s.id === activeId) : null
 
-  // 无数据时显示占位
+  // 无数据但下载链接可用时，显示单页处理模式的结果
   if (!mergePlan || previewSlides.length === 0) {
+    // feat-168: 支持单页处理模式，无需 mergePlan 也可下载
+    if (downloadUrl) {
+      return (
+        <div className={cn("max-w-md mx-auto", className)}>
+          <div className="bg-white border rounded-lg p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">PPT 生成完成</h2>
+            <p className="text-sm text-gray-600 mb-2">
+              已根据您的修改生成最终 PPT
+            </p>
+            {fileName && (
+              <p className="text-xs text-gray-500 mb-6">
+                文件名：{fileName}
+              </p>
+            )}
+            <div className="flex gap-3 justify-center">
+              {onDownload && (
+                <Button onClick={onDownload} className="bg-green-600 hover:bg-green-700">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  下载 PPT
+                </Button>
+              )}
+              {onRestart && (
+                <Button variant="outline" onClick={onRestart}>
+                  重新开始
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className={cn("max-w-md mx-auto", className)}>
         <div className="bg-white border rounded-lg p-8 text-center">

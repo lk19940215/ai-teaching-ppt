@@ -6820,7 +6820,8 @@ def generate_ppt_from_versions(
             _add_placeholder_slide(prs, f"页面 {slide_index + 1} (版本 {version})", content_size)
 
     # 保存文件
-    output_dir = Path("uploads/generated")
+    from ..config import settings
+    output_dir = settings.UPLOAD_DIR / "generated"
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path = output_dir / f"final_{uuid4().hex[:8]}.pptx"
 

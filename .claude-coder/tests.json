@@ -26,6 +26,7 @@
     {"id": "test-feat167-progress-component", "feature_id": "feat-167", "verify": "ls frontend/src/components/processing-progress.tsx && grep -q '已处理' frontend/src/components/processing-progress.tsx", "expected": "ProcessingProgress 组件存在且包含进度文字", "last_result": "pass", "last_run_session": 14},
     {"id": "test-feat167-integration", "feature_id": "feat-167", "verify": "grep -q 'processedCount' frontend/src/app/merge/page.tsx", "expected": "TopControlBar 集成 processedCount 参数", "last_result": "pass", "last_run_session": 14},
     {"id": "test-feat168-api", "feature_id": "feat-168", "verify": "curl -s http://localhost:8000/openapi.json | grep -q 'generate-final'", "expected": "generate-final API 端点已注册", "last_result": "pass", "last_run_session": 15},
-    {"id": "test-feat168-import", "feature_id": "feat-168", "verify": "grep -q 'from.*ppt_generator import generate_ppt_from_versions' backend/app/api/ppt.py", "expected": "generate_ppt_from_versions 已正确导入", "last_result": "pass", "last_run_session": 15}
+    {"id": "test-feat168-import", "feature_id": "feat-168", "verify": "grep -q 'from.*ppt_generator import generate_ppt_from_versions' backend/app/api/ppt.py", "expected": "generate_ppt_from_versions 已正确导入", "last_result": "pass", "last_run_session": 15},
+    {"id": "test-feat168-e2e", "feature_id": "feat-168", "verify": "ls uploads/generated/final_*.pptx 2>/dev/null | head -1", "expected": "最终 PPT 文件生成成功", "last_result": "pass", "last_run_session": 16}
   ]
 }

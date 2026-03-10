@@ -1208,19 +1208,23 @@ export default function MergePage() {
       const versionResult = await response.json()
       console.log('[feat-156] 版本创建成功:', versionResult)
 
-      // feat-166: 更新预览图片 URL 和版本状态
+      // feat-166: 更新版本状态（无论预览图是否生成成功）
+      const slideIndex = singlePageData.index
+      if (versionResult.version) {
+        if (singlePageSource === 'A') {
+          setProcessedVersionsA(prev => ({ ...prev, [slideIndex]: versionResult.version }))
+        } else {
+          setProcessedVersionsB(prev => ({ ...prev, [slideIndex]: versionResult.version }))
+        }
+        console.log(`[feat-166] 已更新 ${singlePageSource} 第 ${slideIndex + 1} 页版本: ${versionResult.version}`)
+      }
+
+      // feat-166: 更新预览图片 URL（如果有）
       if (versionResult.image_url) {
-        const slideIndex = singlePageData.index
         if (singlePageSource === 'A') {
           setSlideImageUrlsA(prev => ({ ...prev, [slideIndex]: versionResult.image_url }))
-          if (versionResult.version) {
-            setProcessedVersionsA(prev => ({ ...prev, [slideIndex]: versionResult.version }))
-          }
         } else {
           setSlideImageUrlsB(prev => ({ ...prev, [slideIndex]: versionResult.image_url }))
-          if (versionResult.version) {
-            setProcessedVersionsB(prev => ({ ...prev, [slideIndex]: versionResult.version }))
-          }
         }
         console.log(`[feat-166] 已更新 ${singlePageSource} 第 ${slideIndex + 1} 页预览图:`, versionResult.image_url)
       }
