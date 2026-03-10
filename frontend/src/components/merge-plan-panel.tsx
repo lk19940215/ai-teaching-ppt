@@ -41,7 +41,7 @@ export interface MergePlanPanelProps {
 
 /** 获取动作图标 */
 function getActionIcon(action: MergeAction): React.ReactNode {
-  const icons: Record<MergeAction, React.JSX.Element> = {
+  const icons: Record<MergeAction, React.ReactNode> = {
     keep: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

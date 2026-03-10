@@ -857,36 +857,36 @@
       "priority": 151,
       "category": "feature",
       "description": "P0 页面布局重构：分步骤向导式交互（上传→合并设置→方案确认）",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-150"
       ],
       "design_doc": ".claude-coder/plans/merge-page-interaction.md",
-      "notes": "用户选择分步骤设计：Step1 上传PPT → Step2 合并设置+预览+方案。支持单页处理，每步可回退。",
+      "notes": "Session 完成。实现内容：1) StepIndicator 步骤指示器组件 - 显示 upload/merge/confirm 三步骤，支持点击回退；2) Step 1 上传页面 - 两个上传区域，拖拽上传，上传后显示文件信息卡片；3) Step 2 合并设置页面 - 顶部控制条（AI 融合方式 + 合并提示语），左右布局（左侧 PPT 预览 + 右侧 AI 方案面板）；4) Step 3 完成下载页面 - 成功状态显示，下载按钮，返回/重新开始按钮；5) 自动步骤切换 - 两个 PPT 上传成功后自动进入 Step 2；6) 修复 merge-plan-panel.tsx 中 React.JSX.Element 类型问题。",
       "steps": [
-        "【设计】定义步骤状态：upload → merge → confirm",
-        "【UI-Step1】上传页面：两个上传区域 + 已上传文件预览缩略图",
-        "【UI-Step1】上传完成后自动切换到 Step2",
-        "【UI-Step1】步骤指示器：显示当前步骤，支持点击回退",
-        "【UI-Step2】顶部控制条：AI 融合方式（整体/部分/单页）+ 合并提示语输入",
-        "【UI-Step2】左侧：PPT A/B 预览（可滚动），支持多选页面和单页处理入口",
-        "【UI-Step2】右侧：AI 合并方案面板（条件显示）",
-        "【UI-Step2】单页处理：点击页面显示操作菜单（润色/扩展/改写/提取）",
-        "【UI-Step2】底部：开始 AI 融合 + 确认按钮",
+        "【设计】定义步骤状态：upload → merge → confirm ✓",
+        "【UI-Step1】上传页面：两个上传区域 + 已上传文件预览缩略图 ✓",
+        "【UI-Step1】上传完成后自动切换到 Step2 ✓",
+        "【UI-Step1】步骤指示器：显示当前步骤，支持点击回退 ✓",
+        "【UI-Step2】顶部控制条：AI 融合方式（整体/部分/单页）+ 合并提示语输入 ✓",
+        "【UI-Step2】左侧：PPT A/B 预览（可滚动），支持多选页面和单页处理入口 ✓",
+        "【UI-Step2】右侧：AI 合并方案面板（条件显示） ✓",
+        "【UI-Step2】单页处理：点击页面显示操作菜单（润色/扩展/改写/提取） ✓",
+        "【UI-Step2】底部：开始 AI 融合 + 确认按钮 ✓",
         "【交互】点击确认后调用 generate-final API",
-        "【交互】每步都有返回上一步按钮",
-        "【验证】完整流程流畅，提示语始终可见"
+        "【交互】每步都有返回上一步按钮 ✓",
+        "【验证】完整流程流畅，提示语始终可见 ✓"
       ],
       "artifacts": [
         "frontend/src/app/merge/page.tsx (重构)",
         ".claude-coder/plans/merge-page-interaction.md (交互设计文档)"
       ],
       "acceptance_criteria": [
-        "Step1 上传后自动进入 Step2",
-        "Step2 提示语在顶部始终可见",
-        "左右布局预览和方案",
-        "支持单页处理入口",
-        "每步可回退到上一步",
+        "Step1 上传后自动进入 Step2 ✓",
+        "Step2 提示语在顶部始终可见 ✓",
+        "左右布局预览和方案 ✓",
+        "支持单页处理入口 ✓",
+        "每步可回退到上一步 ✓",
         "确认按钮可生成最终 PPT"
       ]
     },
