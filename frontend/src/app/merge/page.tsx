@@ -1548,6 +1548,9 @@ export default function MergePage() {
                 sessionId={sessionId || undefined}
                 documentId="ppt_a"
                 enableVersioning={!!sessionId}
+                // feat-166: 传递预览图片 URL 和已处理版本状态
+                externalSlideImageUrls={slideImageUrlsA}
+                processedVersions={processedVersionsA}
                 // feat-155: 多页融合功能
                 onMergeSelected={handleMergeSelectedA}
                 isMerging={isAiMerging}
@@ -1575,6 +1578,9 @@ export default function MergePage() {
                 sessionId={sessionId || undefined}
                 documentId="ppt_b"
                 enableVersioning={!!sessionId}
+                // feat-166: 传递预览图片 URL 和已处理版本状态
+                externalSlideImageUrls={slideImageUrlsB}
+                processedVersions={processedVersionsB}
                 // feat-155: 多页融合功能
                 onMergeSelected={handleMergeSelectedB}
                 isMerging={isAiMerging}

@@ -322,7 +322,7 @@
       "priority": 166,
       "category": "frontend",
       "description": "P0 前端实时预览：处理完成后刷新预览图片",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-165"
       ],

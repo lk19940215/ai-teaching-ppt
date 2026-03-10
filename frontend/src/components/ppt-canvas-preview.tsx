@@ -34,6 +34,10 @@ interface PptCanvasPreviewProps {
   sessionId?: string
   documentId?: 'ppt_a' | 'ppt_b'
   enableVersioning?: boolean
+  // feat-166: 外部传入的预览图片 URL（来自单页处理结果）
+  externalSlideImageUrls?: Record<number, string>
+  // feat-166: 已处理页面的版本状态
+  processedVersions?: Record<number, string>
   // feat-155: 多页融合功能
   onMergeSelected?: (pages: number[]) => void
   isMerging?: boolean
@@ -60,6 +64,9 @@ export function PptCanvasPreview({
   sessionId,
   documentId,
   enableVersioning = false,
+  // feat-166: 外部传入的预览图片 URL 和版本状态
+  externalSlideImageUrls,
+  processedVersions,
   // feat-155: 多页融合功能
   onMergeSelected,
   isMerging = false,
@@ -86,6 +93,20 @@ export function PptCanvasPreview({
   const [slideStatuses, setSlideStatuses] = useState<Record<number, SlideStatus>>({})
 
   const isFallbackMode = onFallbackModeChange ? fallbackMode : internalFallbackMode
+
+  // feat-166: 合并外部传入的图片 URL（来自单页处理结果）
+  useEffect(() => {
+    if (externalSlideImageUrls && Object.keys(externalSlideImageUrls).length > 0) {
+      setSlideImageUrls(prev => {
+        const merged = { ...prev }
+        // 外部传入的 URL 优先级更高（最新处理结果）
+        for (const [idx, url] of Object.entries(externalSlideImageUrls)) {
+          merged[parseInt(idx)] = url
+        }
+        return merged
+      })
+    }
+  }, [externalSlideImageUrls])
 
   // feat-141: 加载版本历史
   useEffect(() => {
@@ -410,6 +431,8 @@ export function PptCanvasPreview({
           selectedPages={selectedPages}
           slideImageUrls={slideImageUrls}
           slideStatuses={slideStatuses}
+          // feat-166: 传递已处理页面的版本状态
+          processedVersions={processedVersions}
           onPageClick={goToPage}
           onReorder={(oldIndex, newIndex) => {
             // 本地更新 pages 顺序（通过回调通知父组件）

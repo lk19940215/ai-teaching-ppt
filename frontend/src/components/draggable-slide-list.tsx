@@ -40,6 +40,8 @@ interface DraggableSlideListProps {
   selectedPages: number[]
   slideImageUrls: Record<number, string>
   slideStatuses: Record<number, SlideStatus>
+  // feat-166: 已处理页面的版本状态
+  processedVersions?: Record<number, string>
   onPageClick: (index: number) => void
   onReorder: (oldIndex: number, newIndex: number) => void
   convertToEnhanced: (page: SlideItem, pageIndex: number) => EnhancedPptPageData
@@ -56,6 +58,7 @@ function SortableSlideItem({
   isSelected,
   isDeleted,
   thumbnailUrl,
+  processedVersion,
   enhanced,
   onClick,
 }: {
@@ -65,6 +68,7 @@ function SortableSlideItem({
   isSelected: boolean
   isDeleted: boolean
   thumbnailUrl?: string
+  processedVersion?: string
   enhanced: EnhancedPptPageData
   onClick: () => void
 }) {
@@ -116,6 +120,20 @@ function SortableSlideItem({
       <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-center text-[9px] py-0.5 pointer-events-none">
         P{page.index + 1}
       </div>
+      {/* feat-166: 版本徽章（v2/v3） */}
+      {processedVersion && processedVersion !== 'v1' && (
+        <div className="absolute top-0.5 left-5 bg-indigo-500 text-white text-[8px] font-medium px-1 rounded pointer-events-none">
+          {processedVersion}
+        </div>
+      )}
+      {/* feat-166: 已处理 ✓ 标记 */}
+      {processedVersion && processedVersion !== 'v1' && (
+        <div className="absolute bottom-3 right-0.5 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center pointer-events-none">
+          <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+        </div>
+      )}
       {/* feat-157: 已删除页面标识 */}
       {isDeleted && (
         <div className="absolute inset-0 bg-gray-500/50 flex items-center justify-center pointer-events-none">
@@ -193,6 +211,7 @@ export function DraggableSlideList({
   selectedPages,
   slideImageUrls,
   slideStatuses,
+  processedVersions,
   onPageClick,
   onReorder,
   convertToEnhanced,
@@ -258,6 +277,7 @@ export function DraggableSlideList({
           const thumbnailUrl = slideImageUrls[idx]
           const slideStatus = slideStatuses[idx]
           const isDeleted = slideStatus === 'deleted'
+          const processedVersion = processedVersions?.[page.index]
           const enhanced = convertToEnhanced(page, page.index)
 
           return (
@@ -280,6 +300,20 @@ export function DraggableSlideList({
               <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-center text-[9px] py-0.5">
                 P{page.index + 1}
               </div>
+              {/* feat-166: 版本徽章（v2/v3） */}
+              {processedVersion && processedVersion !== 'v1' && (
+                <div className="absolute top-0.5 left-5 bg-indigo-500 text-white text-[8px] font-medium px-1 rounded pointer-events-none">
+                  {processedVersion}
+                </div>
+              )}
+              {/* feat-166: 已处理 ✓ 标记 */}
+              {processedVersion && processedVersion !== 'v1' && (
+                <div className="absolute bottom-3 right-0.5 w-3 h-3 bg-green-500 rounded-full flex items-center justify-center pointer-events-none">
+                  <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
               {isDeleted && (
                 <div className="absolute inset-0 bg-gray-500/50 flex items-center justify-center">
                   <span className="text-white text-[8px] font-medium bg-red-500 px-1 rounded">已删除</span>
@@ -317,6 +351,7 @@ export function DraggableSlideList({
             const thumbnailUrl = slideImageUrls[idx]
             const slideStatus = slideStatuses[idx]
             const isDeleted = slideStatus === 'deleted'
+            const processedVersion = processedVersions?.[page.index]
             const enhanced = convertToEnhanced(page, page.index)
 
             return (
@@ -328,6 +363,7 @@ export function DraggableSlideList({
                 isSelected={isSelected}
                 isDeleted={isDeleted}
                 thumbnailUrl={thumbnailUrl}
+                processedVersion={processedVersion}
                 enhanced={enhanced}
                 onClick={() => onPageClick(idx)}
               />
