@@ -1,8 +1,8 @@
 {
   "project": "ai-teaching-ppt",
   "created_at": "2026-03-02",
-  "last_updated": "2026-03-09",
-  "next_task_priority": 146,
+  "last_updated": "2026-03-10",
+  "next_task_priority": 150,
   "priority_rules": {
     "001-099": "基础功能（已完成）",
     "100-149": "bugfix/maintenance - Bug 修复与维护",
@@ -826,6 +826,53 @@
         "用户可继续操作"
       ],
       "notes": "Session 14: 测试完成。1) 创建包含柱状图的测试 PPT (test_chart.pptx)；2) 后端 API 正确检测到第 2 页包含图表 (complex_element_slides: [2])；3) 前端 ComplexElementWarningCard 组件正确显示警告卡片 (标题/说明/页码按钮/提示)；4) 用户可通过按钮切换保留/跳过状态。验收标准全部达成。"
+    },
+    {
+      "id": "feat-150",
+      "priority": 150,
+      "category": "bugfix",
+      "description": "P0 实现图片预览模式：LibreOffice 转 PNG 后前端显示图片（替换 Canvas 绘制）",
+      "status": "pending",
+      "depends_on": [],
+      "notes": "问题根因：1) 后端 ppt_to_image.py 已实现 PPT 转 PNG；2) version_manager.py 已生成 image_url；3) 前端 PptCanvasPreview 定义了 versionHistory.image_url 但从未使用；4) 当前仍用 Canvas 绘制（旧方案），需要改为图片显示",
+      "steps": [
+        "【分析】确认 version_manager.py 返回的 image_url 格式",
+        "【分析】确认 /session/create API 返回数据结构",
+        "【实现】前端新增图片预览模式：当有 image_url 时用 <img> 显示",
+        "【实现】上传 PPT 后调用 /session/create 获取 session_id 和图片 URLs",
+        "【实现】PptCanvasPreview 优先显示 image_url 图片，无图片时降级到 Canvas",
+        "【实现】AI 处理后调用 /version/create 获取新 image_url 并更新预览",
+        "【实现】版本切换时更新图片源",
+        "【验证】上传 PPT 后显示 LibreOffice 转换的图片，而非 Canvas 绘制"
+      ],
+      "acceptance_criteria": [
+        "PPT 上传后前端显示图片（不是 Canvas 绘制）",
+        "图片来源是后端 LibreOffice 转换的 PNG",
+        "AI 处理后图片实时更新",
+        "版本切换时图片正确切换"
+      ]
+    },
+    {
+      "id": "feat-151",
+      "priority": 151,
+      "category": "bugfix",
+      "description": "P0 修复确认合并功能：handleConfirmPlan 调用 generate-final API",
+      "status": "pending",
+      "depends_on": [
+        "feat-150"
+      ],
+      "notes": "问题根因：handleConfirmPlan 只做了 console.log，没有调用后端 API",
+      "steps": [
+        "【分析】确认 generate-final API 的请求参数格式",
+        "【实现】handleConfirmPlan 调用 /ppt/generate-final",
+        "【实现】处理生成完成后的下载链接",
+        "【验证】点击确认后能生成并下载最终 PPT"
+      ],
+      "acceptance_criteria": [
+        "点击确认按钮后调用后端 API",
+        "生成成功后显示下载链接",
+        "下载的 PPT 包含 AI 修改的内容"
+      ]
     }
   ]
 }

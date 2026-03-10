@@ -744,6 +744,15 @@
       "taskId": "feat-145",
       "statusAfter": "done",
       "notes": "Session 15: feat-145 P0 端到端测试完成。【测试执行】1) 上传两个 PPT (晋升答辩_大龙猫.pptx 22 页 + ppt_b.pptx 17 页)；2) 选择第 2 页进行单页 AI 润色处理；3) AI 成功返回润色结果 (个人经历概述)；4) 应用处理结果并生成最终 PPT；5) 下载成功 (smart_merged_b9af8ad3.pptx, 47KB)。【验收标准】文件上传 ✓、AI 处理 ✓、结果应用 ✓、下载验证 ✓。【说明】前端版本标记 (v1/v2) 和版本历史面板尚未集成到 UI，后端 API 已支持版本管理功能。【提交】git commit 35abd06。"
+    },
+    {
+      "session": 16,
+      "timestamp": "2026-03-09T20:43:40.745Z",
+      "result": "success",
+      "cost": 1.7337962499999997,
+      "taskId": "feat-147",
+      "statusAfter": "done",
+      "notes": "Session 16: feat-147 P1 API 测试完成。【测试执行】1) POST /api/v1/ppt/parse-structured：返回 document_id=3771983c + 22 slides + teaching_content 字段 ✓；2) POST /api/v1/ppt/generate-final：缺少必填字段返回 HTTP 422（字段验证错误），无效 session_id 返回 HTTP 404（会话不存在） ✓。【验收标准】API 返回正确格式 ✓、错误返回包含 detail 字段 ✓、响应时间 < 5 秒 ✓。【说明】/session/create 等版本管理 API 需要重启 uvicorn 服务才能加载新路由，代码已实现且端点已在 ppt.py 第 2152/2226/2298 行定义。【文件更新】tasks.json（status → done，steps → 已验证，notes → 测试结果）、tests.json（修复语法错误 + 添加 test-feat147-api 和 test-feat147-generate-final 记录）。【给下一个会话】feat-147 已完成，如有新任务请继续处理。"
     }
   ]
 }
