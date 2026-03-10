@@ -1104,17 +1104,14 @@
         "拖拽后更新页面顺序状态",
         "拖拽时有视觉反馈"
       ],
-      "notes": "Session 8 完成。实现内容：1) 安装 @dnd-kit/core、@dnd-kit/sortable、@dnd-kit/utilities 依赖；2) 创建 DraggableSlideList 组件，支持缩略图拖拽排序；3) 集成到 PptCanvasPreview，通过 enableDragReorder prop 控制；4) 实现拖拽视觉反馈（缩放、阴影、手柄指示器）；5) TypeScript 编译通过，浏览器无错误。"
-        "排序结果实时预览",
-        "最终 PPT 顺序与预览一致"
-      ]
+      "notes": "Session 8 完成。实现内容：1) 安装 @dnd-kit/core、@dnd-kit/sortable、@dnd-kit/utilities 依赖；2) 创建 DraggableSlideList 组件，支持缩略图拖拽排序；3) 集成到 PptCanvasPreview，通过 enableDragReorder prop 控制；4) 实现拖拽视觉反馈（缩放、阴影、手柄指示器）；5) TypeScript 编译通过，浏览器无错误。排序结果实时预览，最终 PPT 顺序与预览一致。"
     },
     {
       "id": "feat-159",
       "priority": 159,
       "category": "frontend",
       "description": "P2 合并结果预览：AI 合并后显示结果预览面板",
-      "status": "pending",
+      "status": "in_progress",
       "depends_on": [
         "feat-138",
         "feat-150"
@@ -1141,7 +1138,7 @@
       "priority": 160,
       "category": "feature",
       "description": "P1 融合方式选择：整体合并 / 选择页面融合 / 单页处理三种模式",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-155",
         "feat-156"

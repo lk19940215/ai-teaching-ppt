@@ -14,6 +14,7 @@
     {"id": "test-feat157-slide-toggle-ui", "feature_id": "feat-157", "verify": "grep -q 'feat-157: 已删除页面遮罩' frontend/src/components/ppt-canvas-preview.tsx", "expected": "删除/恢复 UI 组件已实现", "last_result": "pass", "last_run_session": 7},
     {"id": "test-feat157-slide-toggle-api", "feature_id": "feat-157", "verify": "curl -s -X POST 'http://localhost:8000/api/v1/slide/toggle' -H 'Content-Type: application/json' -d '{\"session_id\":\"test\",\"document_id\":\"ppt_a\",\"slide_index\":0,\"action\":\"delete\"}' | grep -q '会话不存在'", "expected": "slide/toggle API 端点存在", "last_result": "pass", "last_run_session": 7},
     {"id": "test-feat158-drag-component", "feature_id": "feat-158", "verify": "ls frontend/src/components/draggable-slide-list.tsx && grep -q '@dnd-kit' frontend/package.json", "expected": "拖拽组件存在且 dnd-kit 已安装", "last_result": "pass", "last_run_session": 8},
-    {"id": "test-feat158-integration", "feature_id": "feat-158", "verify": "grep -q 'enableDragReorder' frontend/src/components/ppt-canvas-preview.tsx", "expected": "PptCanvasPreview 支持 enableDragReorder prop", "last_result": "pass", "last_run_session": 8}
+    {"id": "test-feat158-integration", "feature_id": "feat-158", "verify": "grep -q 'enableDragReorder' frontend/src/components/ppt-canvas-preview.tsx", "expected": "PptCanvasPreview 支持 enableDragReorder prop", "last_result": "pass", "last_run_session": 8},
+    {"id": "test-feat160-mode-selector", "feature_id": "feat-160", "verify": "ls frontend/src/components/mode-guide-panel.tsx && grep -q 'handleMergeModeChange' frontend/src/app/merge/page.tsx", "expected": "ModeGuidePanel 组件存在且模式切换联动已实现", "last_result": "pass", "last_run_session": 9}
   ]
 }

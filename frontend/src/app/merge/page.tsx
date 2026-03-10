@@ -9,8 +9,10 @@ import { apiBaseUrl } from '@/lib/api'
 import PptCanvasPreview, { type PptPageData } from '@/components/ppt-canvas-preview'
 import MergeModeSelector, { type MergeMode } from '@/components/merge-mode-selector'
 import MergePlanPanel from '@/components/merge-plan-panel'
+import MergeResultPreview from '@/components/merge-result-preview'
 import SinglePageProcessor from '@/components/single-page-processor'
 import PromptEditor, { type StructuredPagePrompt } from '@/components/prompt-editor'
+import ModeGuidePanel from '@/components/mode-guide-panel'
 import type { MergePlan } from '@/types/merge-plan'
 import { createSession } from '@/lib/version-api'
 
@@ -434,6 +436,24 @@ export default function MergePage() {
     message: string
     percentage: number
   } | null>(null)
+
+  // ===== feat-160: 模式切换联动 =====
+  // 切换模式时清除不相关的选择状态
+  const handleMergeModeChange = useCallback((newMode: MergeMode) => {
+    const prevMode = mergeMode
+    setMergeMode(newMode)
+
+    // 模式切换时清除选择状态和单页处理面板
+    if (prevMode !== newMode) {
+      setSelectedPagesA([])
+      setSelectedPagesB([])
+      setShowSinglePageProcessor(false)
+      setSinglePageData(null)
+      setSinglePageSource(null)
+      setMergePlan(null)
+      setAdjustedPlan(null)
+    }
+  }, [mergeMode])
 
   // ===== Step 3: 完成状态 =====
   const [error, setError] = useState<string | null>(null)
@@ -893,8 +913,8 @@ export default function MergePage() {
   // ===== 页面选择处理 =====
   const handleSelectionChangeA = (selected: number[]) => {
     setSelectedPagesA(selected)
-    // feat-156: 单页处理 - 当只选中一页时显示处理面板
-    if (selected.length === 1) {
+    // feat-160: 只在单页处理模式下自动显示 SinglePageProcessor
+    if (mergeMode === 'single' && selected.length === 1) {
       const pageIndex = selected[0]
       const pageData = pptAPages.find(p => p.index === pageIndex)
       if (pageData) {
@@ -903,7 +923,7 @@ export default function MergePage() {
         setShowSinglePageProcessor(true)
       }
     } else {
-      // 多选或无选时关闭单页处理面板
+      // 非 single 模式或多选/无选时关闭单页处理面板
       if (singlePageSource === 'A') {
         setShowSinglePageProcessor(false)
         setSinglePageData(null)
@@ -914,8 +934,8 @@ export default function MergePage() {
 
   const handleSelectionChangeB = (selected: number[]) => {
     setSelectedPagesB(selected)
-    // feat-156: 单页处理 - 当只选中一页时显示处理面板
-    if (selected.length === 1) {
+    // feat-160: 只在单页处理模式下自动显示 SinglePageProcessor
+    if (mergeMode === 'single' && selected.length === 1) {
       const pageIndex = selected[0]
       const pageData = pptBPages.find(p => p.index === pageIndex)
       if (pageData) {
@@ -924,7 +944,7 @@ export default function MergePage() {
         setShowSinglePageProcessor(true)
       }
     } else {
-      // 多选或无选时关闭单页处理面板
+      // 非 single 模式或多选/无选时关闭单页处理面板
       if (singlePageSource === 'B') {
         setShowSinglePageProcessor(false)
         setSinglePageData(null)
@@ -1314,7 +1334,7 @@ export default function MergePage() {
           {/* 顶部控制条 */}
           <TopControlBar
             mergeMode={mergeMode}
-            onMergeModeChange={setMergeMode}
+            onMergeModeChange={handleMergeModeChange}
             onAiMerge={handleAiMerge}
             onReset={handleReset}
             isAiMerging={isAiMerging}
@@ -1459,6 +1479,15 @@ export default function MergePage() {
 
             {/* 右侧：AI 方案面板 / 单页处理面板 */}
             <div className="lg:col-span-1 space-y-4">
+              {/* feat-160: 模式引导面板（非单页处理时显示） */}
+              {!showSinglePageProcessor && (
+                <ModeGuidePanel
+                  mode={mergeMode}
+                  selectedPagesA={selectedPagesA}
+                  selectedPagesB={selectedPagesB}
+                />
+              )}
+
               {/* feat-156: 单页处理面板 */}
               {showSinglePageProcessor && singlePageData && singlePageSource && (
                 <SinglePageProcessor
@@ -1491,33 +1520,20 @@ export default function MergePage() {
                   disabled={isAiMerging}
                 />
               </div>
-
-              {/* 选中页面提示 */}
-              {(selectedPagesA.length > 0 || selectedPagesB.length > 0) && !mergePlan && !isAiMerging && (
-                <div className="bg-white border rounded-lg p-4">
-                  <p className="text-sm font-medium text-gray-900 mb-2">已选择页面：</p>
-                  {selectedPagesA.length > 0 && (
-                    <p className="text-xs text-gray-600">
-                      PPT A: {selectedPagesA.map(p => `P${p + 1}`).join(', ')}
-                    </p>
-                  )}
-                  {selectedPagesB.length > 0 && (
-                    <p className="text-xs text-gray-600">
-                      PPT B: {selectedPagesB.map(p => `P${p + 1}`).join(', ')}
-                    </p>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* ===== Step 3: 完成下载 ===== */}
+      {/* ===== Step 3: 合并结果预览 ===== */}
       {currentStep === 'confirm' && (
-        <DownloadComplete
+        <MergeResultPreview
+          mergePlan={adjustedPlan || mergePlan}
           fileName={fileName}
+          downloadUrl={downloadUrl}
           onDownload={handleDownload}
+          onRegenerate={handleAiMerge}
+          onReorder={(newPlan) => setAdjustedPlan(newPlan)}
           onBack={() => handleStepClick('merge')}
           onRestart={handleReset}
         />
