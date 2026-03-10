@@ -13,6 +13,7 @@ import MergeResultPreview from '@/components/merge-result-preview'
 import SinglePageProcessor from '@/components/single-page-processor'
 import PromptEditor, { type StructuredPagePrompt } from '@/components/prompt-editor'
 import ModeGuidePanel from '@/components/mode-guide-panel'
+import ProcessingProgress from '@/components/processing-progress'
 import type { MergePlan } from '@/types/merge-plan'
 import { createSession } from '@/lib/version-api'
 
@@ -263,7 +264,10 @@ function TopControlBar({
   onEditPage,
   onReorder,
   onRegeneratePage,
-  isRegenerating
+  isRegenerating,
+  // feat-167: 处理进度
+  processedCount,
+  totalPages,
 }: {
   mergeMode: MergeMode
   onMergeModeChange: (mode: MergeMode) => void
@@ -281,17 +285,29 @@ function TopControlBar({
   onReorder?: (fromIndex: number, toIndex: number) => void
   onRegeneratePage?: (index: number, prompt: string) => void
   isRegenerating?: boolean
+  // feat-167: 处理进度
+  processedCount?: number
+  totalPages?: number
 }) {
   return (
     <div className="bg-white border rounded-lg p-4 space-y-4">
-      {/* 上层：融合方式选择 */}
-      <div>
-        <h3 className="text-sm font-medium text-gray-900 mb-2">AI 融合方式</h3>
-        <MergeModeSelector
-          value={mergeMode}
-          onChange={onMergeModeChange}
-          disabled={isAiMerging || disabled}
-        />
+      {/* 上层：融合方式选择 + 处理进度 */}
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <h3 className="text-sm font-medium text-gray-900 mb-2">AI 融合方式</h3>
+          <MergeModeSelector
+            value={mergeMode}
+            onChange={onMergeModeChange}
+            disabled={isAiMerging || disabled}
+          />
+        </div>
+
+        {/* feat-167: 处理进度显示 */}
+        {processedCount !== undefined && totalPages !== undefined && processedCount > 0 && (
+          <div className="flex-shrink-0 ml-4">
+            <ProcessingProgress processed={processedCount} total={totalPages} />
+          </div>
+        )}
       </div>
 
       {/* 下层：操作按钮 */}
@@ -1453,6 +1469,10 @@ export default function MergePage() {
             onReorder={handleReorder}
             onRegeneratePage={handleRegeneratePage}
             isRegenerating={isRegenerating}
+            // feat-167: 计算已处理页数
+            processedCount={Object.keys(processedVersionsA).filter(k => processedVersionsA[parseInt(k)] && processedVersionsA[parseInt(k)] !== 'v1').length +
+                           Object.keys(processedVersionsB).filter(k => processedVersionsB[parseInt(k)] && processedVersionsB[parseInt(k)] !== 'v1').length}
+            totalPages={pptAPages.length + pptBPages.length}
           />
 
           {/* 主内容区域：左右布局 */}

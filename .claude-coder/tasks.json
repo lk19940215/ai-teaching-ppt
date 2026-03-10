@@ -353,7 +353,7 @@
       "priority": 167,
       "category": "frontend",
       "description": "P1 累积状态与进度显示：已处理 N/M 页",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-166"
       ],
