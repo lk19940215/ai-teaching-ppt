@@ -753,6 +753,24 @@
       "taskId": "feat-147",
       "statusAfter": "done",
       "notes": "Session 16: feat-147 P1 API 测试完成。【测试执行】1) POST /api/v1/ppt/parse-structured：返回 document_id=3771983c + 22 slides + teaching_content 字段 ✓；2) POST /api/v1/ppt/generate-final：缺少必填字段返回 HTTP 422（字段验证错误），无效 session_id 返回 HTTP 404（会话不存在） ✓。【验收标准】API 返回正确格式 ✓、错误返回包含 detail 字段 ✓、响应时间 < 5 秒 ✓。【说明】/session/create 等版本管理 API 需要重启 uvicorn 服务才能加载新路由，代码已实现且端点已在 ppt.py 第 2152/2226/2298 行定义。【文件更新】tasks.json（status → done，steps → 已验证，notes → 测试结果）、tests.json（修复语法错误 + 添加 test-feat147-api 和 test-feat147-generate-final 记录）。【给下一个会话】feat-147 已完成，如有新任务请继续处理。"
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-10T07:42:32.165Z",
+      "result": "success",
+      "cost": 8.478553,
+      "taskId": "feat-151",
+      "statusAfter": "done",
+      "notes": "【feat-151 P0 页面布局重构完成】\n\n实现内容：\n1. StepIndicator 步骤指示器组件 - 显示 upload/merge/confirm 三步骤，支持点击回退\n2. Step 1 上传页面 - 两个上传区域（PPT A/B），支持拖拽上传，上传后显示文件信息卡片\n3. Step 2 合并设置页面 - 顶部控制条（AI 融合方式选择 + 合并提示语输入），左右布局（左侧 PPT 预览 + 右侧 AI 方案面板）\n4. Step 3 完成下载页面 - 成功状态显示，下载按钮，返回/重新开始按钮\n5. 自动步骤切换 - 两个 PPT 上传成功后自动进入 Step 2\n6. 修复 merge-plan-panel.tsx 中 React.JSX.Element 类型问题为 React.ReactNode\n\n测试验证：\n- TypeScript 类型检查通过\n- 浏览器端到端测试：上传两个 PPT 后自动进入 Step 2，显示正确的图片预览和版本标记\n- 步骤指示器正确显示各步骤状态\n\n截图：\n- feat-151-step1-upload.png\n- feat-151-step2-merge.png\n- feat-151-step2-top.png"
+    },
+    {
+      "session": 2,
+      "timestamp": "2026-03-10T07:53:44.468Z",
+      "result": "success",
+      "cost": 5.895580000000001,
+      "taskId": "feat-153",
+      "statusAfter": "done",
+      "notes": "【feat-153 P0 教学语义提取完成】\n\n实现内容：\n1. 创建 TeachingSemanticExtractor 类 (backend/app/services/teaching_semantic_extractor.py)\n   - 支持 7 种 slide_type 识别：title_slide/outline_slide/content_slide/section_slide/end_slide/unknown\n   - 支持 7 种 teaching_role 识别：cover/outline/concept/example/exercise/summary/homework（基于关键词匹配）\n   - 实现 knowledge_points 提取：从标题、正文、列表项提取核心概念\n   - 支持学科特定关键词提取（math/chinese/english/science）\n\n2. 修改 ppt_content_parser.py 集成教学语义提取\n   - 初始化 TeachingSemanticExtractor 实例\n   - 在 _parse_slide 中使用新的提取方法\n\n3. 验证结果\n   - API /api/v1/ppt/parse-structured 返回 teaching_content 字段\n   - 包含 slide_type, teaching_role, knowledge_points, main_points, examples\n\n给下一个会话的提醒：\n- feat-153 已完成，可继续 feat-154（版本历史面板）或 feat-155（多页融合）\n- 后端服务运行正常，保持 8000 端口"
     }
   ]
 }

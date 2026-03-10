@@ -968,7 +968,7 @@
       "priority": 154,
       "category": "frontend",
       "description": "P0 版本历史面板：点击页面版本标记显示历史版本列表，支持恢复",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-140",
         "feat-150"

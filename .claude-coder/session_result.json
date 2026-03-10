@@ -2,5 +2,5 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "【feat-151 P0 页面布局重构完成】\n\n实现内容：\n1. StepIndicator 步骤指示器组件 - 显示 upload/merge/confirm 三步骤，支持点击回退\n2. Step 1 上传页面 - 两个上传区域（PPT A/B），支持拖拽上传，上传后显示文件信息卡片\n3. Step 2 合并设置页面 - 顶部控制条（AI 融合方式选择 + 合并提示语输入），左右布局（左侧 PPT 预览 + 右侧 AI 方案面板）\n4. Step 3 完成下载页面 - 成功状态显示，下载按钮，返回/重新开始按钮\n5. 自动步骤切换 - 两个 PPT 上传成功后自动进入 Step 2\n6. 修复 merge-plan-panel.tsx 中 React.JSX.Element 类型问题为 React.ReactNode\n\n测试验证：\n- TypeScript 类型检查通过\n- 浏览器端到端测试：上传两个 PPT 后自动进入 Step 2，显示正确的图片预览和版本标记\n- 步骤指示器正确显示各步骤状态\n\n截图：\n- feat-151-step1-upload.png\n- feat-151-step2-merge.png\n- feat-151-step2-top.png"
+  "notes": "【feat-154 P0 版本历史面板完成】\n\n验证结果：\n1. VersionSwitcher 组件：显示 v1/v1 版本标记，支持点击打开历史面板\n2. VersionHistoryPanel 组件：完整显示版本历史列表（版本号、操作类型、时间戳、图片预览）\n3. 版本恢复功能：支持选择历史版本进行恢复\n4. 删除页面功能：支持删除/恢复页面\n\n端到端测试验证：\n- 上传 PPT 后自动显示版本标记 v1/v1\n- 点击版本标记弹出历史面板\n- 面板显示：版本号 v1、操作类型'原始上传'、时间戳、图片预览\n- 当前版本有蓝色勾选标记\n- 底部有'删除此页'和'关闭'按钮\n\n代码验证：\n- TypeScript 编译通过\n- 后端 API /version/restore 端点已注册\n- 组件已集成到 PptCanvasPreview"
 }
