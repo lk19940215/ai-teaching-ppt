@@ -2,5 +2,5 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "【feat-164 完成】P0 端到端测试：完整合并流程验证\n\n测试结果：\n1. ✅ 上传两个 PPT 文件（test_大龙猫.pptx 2页 + test_模版.pptx 4页）\n2. ✅ 输入合并提示语\n3. ✅ 点击 AI 合并，成功生成 5 页合并方案\n4. ✅ 合并结果预览面板正确显示：\n   - 页面缩略图列表\n   - 来源标注（PPT A/B 第N页、AI 新建）\n   - 操作按钮（重新生成、编辑、删除）\n   - 拖拽排序功能\n5. ⚠️ 下载功能按钮禁用，需要 feat-168（最终 PPT 生成）支持\n\n修复的 Bug：\n- merge/page.tsx: 从 SSE 响应中正确提取 plan 字段\n  - 后端返回 {merge_type: 'full', plan: {...}}\n  - 前端需要提取 event.result.plan 作为 MergePlan\n\n给下一个会话的提醒：\n- feat-165~feat-168 依赖链：单页处理实时预览 → 最终 PPT 生成\n- 下载功能需要实现 /ppt/generate-final API（feat-168）\n- 前端已生成合并方案，后端需要根据方案生成实际 PPT 文件"
+  "notes": "【feat-167 完成】P1 累积状态与进度显示：已处理 N/M 页\n\n实现内容：\n1. 创建 ProcessingProgress 组件（进度条 + 文字 + 完成标记）\n2. TopControlBar 新增 processedCount/totalPages 参数\n3. page.tsx 计算已处理页数并传递给 TopControlBar\n4. 进度条仅在 processedCount > 0 时显示\n\n技术细节：\n- 进度条使用 indigo-600 颜色，宽度根据百分比动态变化\n- 全部完成时显示绿色 ✓ 图标和「全部完成」文字\n- processedCount 计算方式：过滤 v1 以外的版本号\n\n测试验证：\n- TypeScript 编译通过（pnpm tsc --noEmit）\n- ProcessingProgress 组件正确渲染\n- TopControlBar 正确接收和显示进度参数\n\n下一步建议：\n- feat-168: 最终 PPT 生成功能（收集所有修改生成最终文件）"
 }

@@ -2087,27 +2087,41 @@ async def ai_merge_ppts(
         temp_b = None
         try:
             logger.info(f'开始 AI 内容融合：type={merge_type}')
-            await progress_queue.put({"stage": "analysis", "progress": 10, "message": "正在解析 PPT A 内容..."})
-            content_a = await file_a.read()
-            temp_dir_a = Path(tempfile.gettempdir()) / 'ppt_ai_merge'
-            temp_dir_a.mkdir(parents=True, exist_ok=True)
-            temp_a = temp_dir_a / f'{uuid.uuid4().hex}_{file_a.filename}'
-            async with aiofiles.open(temp_a, 'wb') as f:
-                await f.write(content_a)
             from ..services.ppt_content_parser import parse_pptx_to_structure
-            doc_a = parse_pptx_to_structure(temp_a)
-            logger.info(f'PPT A 解析完成：{len(doc_a.get("slides", []))} 页')
-            await progress_queue.put({"stage": "analysis", "progress": 25, "message": "正在解析 PPT B 内容..."})
-            content_b = await file_b.read()
-            temp_dir_b = Path(tempfile.gettempdir()) / 'ppt_ai_merge'
-            temp_dir_b.mkdir(parents=True, exist_ok=True)
-            temp_b = temp_dir_b / f'{uuid.uuid4().hex}_{file_b.filename}'
-            async with aiofiles.open(temp_b, 'wb') as f:
-                await f.write(content_b)
-            doc_b = parse_pptx_to_structure(temp_b)
-            logger.info(f'PPT B 解析完成：{len(doc_b.get("slides", []))} 页')
-            await progress_queue.put({"stage": "thinking", "progress": 50, "message": "正在调用 AI 生成合并策略..."})
             from ..services.content_merger import get_content_merger
+
+            doc_a = {"slides": []}
+            doc_b = {"slides": []}
+
+            # feat-168 fix: 单页处理模式只解析源文件，避免解析空的 placeholder 文件
+            need_parse_a = merge_type != 'single' or source_doc == 'A'
+            need_parse_b = merge_type != 'single' or source_doc == 'B'
+
+            if need_parse_a:
+                await progress_queue.put({"stage": "analysis", "progress": 10, "message": "正在解析 PPT A 内容..."})
+                content_a = await file_a.read()
+                if content_a:  # 只有当文件非空时才解析
+                    temp_dir_a = Path(tempfile.gettempdir()) / 'ppt_ai_merge'
+                    temp_dir_a.mkdir(parents=True, exist_ok=True)
+                    temp_a = temp_dir_a / f'{uuid.uuid4().hex}_{file_a.filename}'
+                    async with aiofiles.open(temp_a, 'wb') as f:
+                        await f.write(content_a)
+                    doc_a = parse_pptx_to_structure(temp_a)
+                    logger.info(f'PPT A 解析完成：{len(doc_a.get("slides", []))} 页')
+
+            if need_parse_b:
+                await progress_queue.put({"stage": "analysis", "progress": 25, "message": "正在解析 PPT B 内容..."})
+                content_b = await file_b.read()
+                if content_b:  # 只有当文件非空时才解析
+                    temp_dir_b = Path(tempfile.gettempdir()) / 'ppt_ai_merge'
+                    temp_dir_b.mkdir(parents=True, exist_ok=True)
+                    temp_b = temp_dir_b / f'{uuid.uuid4().hex}_{file_b.filename}'
+                    async with aiofiles.open(temp_b, 'wb') as f:
+                        await f.write(content_b)
+                    doc_b = parse_pptx_to_structure(temp_b)
+                    logger.info(f'PPT B 解析完成：{len(doc_b.get("slides", []))} 页')
+
+            await progress_queue.put({"stage": "thinking", "progress": 50, "message": "正在调用 AI 生成合并策略..."})
             merger = get_content_merger(provider=provider, api_key=api_key, temperature=temperature, max_tokens=max_tokens)
             if merge_type == 'full':
                 plan = merger.merge_full(doc_a, doc_b, custom_prompt)
@@ -2625,6 +2639,7 @@ async def generate_final_ppt(
     }
     """
     from ..services.version_manager import get_version_manager, SlideStatus
+    from ..services.ppt_generator import generate_ppt_from_versions
     from pptx import Presentation
     from io import BytesIO
 

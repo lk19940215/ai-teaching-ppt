@@ -268,6 +268,9 @@ function TopControlBar({
   // feat-167: 处理进度
   processedCount,
   totalPages,
+  // feat-168: 生成最终 PPT
+  onGenerateFinal,
+  isGeneratingFinal,
 }: {
   mergeMode: MergeMode
   onMergeModeChange: (mode: MergeMode) => void
@@ -288,6 +291,9 @@ function TopControlBar({
   // feat-167: 处理进度
   processedCount?: number
   totalPages?: number
+  // feat-168: 生成最终 PPT
+  onGenerateFinal?: () => void
+  isGeneratingFinal?: boolean
 }) {
   return (
     <div className="bg-white border rounded-lg p-4 space-y-4">
@@ -304,8 +310,26 @@ function TopControlBar({
 
         {/* feat-167: 处理进度显示 */}
         {processedCount !== undefined && totalPages !== undefined && processedCount > 0 && (
-          <div className="flex-shrink-0 ml-4">
+          <div className="flex-shrink-0 ml-4 flex items-center gap-3">
             <ProcessingProgress processed={processedCount} total={totalPages} />
+            {/* feat-168: 生成最终 PPT 按钮 */}
+            {onGenerateFinal && (
+              <Button
+                onClick={onGenerateFinal}
+                disabled={isGeneratingFinal}
+                size="sm"
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {isGeneratingFinal ? (
+                  <>
+                    <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
+                    生成中...
+                  </>
+                ) : (
+                  '生成最终 PPT'
+                )}
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -469,6 +493,9 @@ export default function MergePage() {
 
   // ===== feat-162: 重新生成页面状态 =====
   const [isRegenerating, setIsRegenerating] = useState(false)
+
+  // ===== feat-168: 生成最终 PPT 状态 =====
+  const [isGeneratingFinal, setIsGeneratingFinal] = useState(false)
 
   // ===== feat-160: 模式切换联动 =====
   // 切换模式时清除不相关的选择状态
@@ -883,6 +910,50 @@ export default function MergePage() {
     setCurrentStep('confirm')
   }
 
+  // ===== feat-168: 生成最终 PPT =====
+  const handleGenerateFinal = async () => {
+    if (!sessionId) {
+      setError('会话不存在，请重新上传 PPT')
+      return
+    }
+
+    setIsGeneratingFinal(true)
+    setError(null)
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/generate-final`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          title: '智能合并课件',
+          grade: '6',
+          subject: 'general',
+          style: 'simple'
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || '生成失败')
+      }
+
+      const result = await response.json()
+      console.log('[feat-168] 最终 PPT 生成成功:', result)
+
+      // 设置下载链接
+      setDownloadUrl(`${apiBaseUrl}${result.download_url}`)
+      setFileName(result.file_name)
+      setCurrentStep('confirm')
+
+    } catch (err: any) {
+      console.error('[feat-168] 生成最终 PPT 失败:', err)
+      setError(err.message || '生成失败，请重试')
+    } finally {
+      setIsGeneratingFinal(false)
+    }
+  }
+
   // ===== 下载处理 =====
   const handleDownload = async () => {
     if (!downloadUrl) return
@@ -1117,7 +1188,7 @@ export default function MergePage() {
       const documentId = singlePageSource === 'A' ? 'ppt_a' : 'ppt_b'
 
       // 调用版本创建 API
-      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/version/create`, {
+      const response = await fetch(`${apiBaseUrl}/api/v1/version/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1473,6 +1544,9 @@ export default function MergePage() {
             processedCount={Object.keys(processedVersionsA).filter(k => processedVersionsA[parseInt(k)] && processedVersionsA[parseInt(k)] !== 'v1').length +
                            Object.keys(processedVersionsB).filter(k => processedVersionsB[parseInt(k)] && processedVersionsB[parseInt(k)] !== 'v1').length}
             totalPages={pptAPages.length + pptBPages.length}
+            // feat-168: 生成最终 PPT
+            onGenerateFinal={handleGenerateFinal}
+            isGeneratingFinal={isGeneratingFinal}
           />
 
           {/* 主内容区域：左右布局 */}

@@ -302,7 +302,7 @@ export function SinglePageProcessor({
             </div>
 
             {/* 内容对比 */}
-            {result.new_content.main_points.length > 0 && (
+            {result.new_content.main_points && result.new_content.main_points.length > 0 && (
               <div className="bg-blue-50 border border-blue-200 rounded p-3">
                 <div className="text-xs text-blue-600 font-medium mb-2">主要要点</div>
                 <ul className="space-y-1">
@@ -325,7 +325,7 @@ export function SinglePageProcessor({
             )}
 
             {/* 修改说明 */}
-            {result.changes.length > 0 && (
+            {result.changes && result.changes.length > 0 && (
               <div className="text-xs text-gray-500">
                 <span className="font-medium">修改说明：</span>
                 {result.changes.join("；")}
