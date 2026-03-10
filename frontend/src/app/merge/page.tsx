@@ -9,6 +9,7 @@ import { apiBaseUrl } from '@/lib/api'
 import PptCanvasPreview, { type PptPageData } from '@/components/ppt-canvas-preview'
 import MergeModeSelector, { type MergeMode } from '@/components/merge-mode-selector'
 import MergePlanPanel from '@/components/merge-plan-panel'
+import SinglePageProcessor from '@/components/single-page-processor'
 import type { MergePlan } from '@/types/merge-plan'
 import { createSession } from '@/lib/version-api'
 
@@ -618,7 +619,11 @@ export default function MergePage() {
     initSession()
   }, [pptA, pptB, sessionId])
 
-  // ===== 步骤切换逻辑 =====
+  // ===== feat-156: 单页处理相关状态 =====
+  const [singlePageData, setSinglePageData] = useState<PptPageDataWithComplex | null>(null)
+  const [singlePageSource, setSinglePageSource] = useState<'A' | 'B' | null>(null)
+  const [isProcessingSingle, setIsProcessingSingle] = useState(false)
+  const [showSinglePageProcessor, setShowSinglePageProcessor] = useState(false)
 
   // upload → merge: 两个 PPT 都上传成功后自动切换
   useEffect(() => {
@@ -854,10 +859,44 @@ export default function MergePage() {
   // ===== 页面选择处理 =====
   const handleSelectionChangeA = (selected: number[]) => {
     setSelectedPagesA(selected)
+    // feat-156: 单页处理 - 当只选中一页时显示处理面板
+    if (selected.length === 1) {
+      const pageIndex = selected[0]
+      const pageData = pptAPages.find(p => p.index === pageIndex)
+      if (pageData) {
+        setSinglePageData(pageData)
+        setSinglePageSource('A')
+        setShowSinglePageProcessor(true)
+      }
+    } else {
+      // 多选或无选时关闭单页处理面板
+      if (singlePageSource === 'A') {
+        setShowSinglePageProcessor(false)
+        setSinglePageData(null)
+        setSinglePageSource(null)
+      }
+    }
   }
 
   const handleSelectionChangeB = (selected: number[]) => {
     setSelectedPagesB(selected)
+    // feat-156: 单页处理 - 当只选中一页时显示处理面板
+    if (selected.length === 1) {
+      const pageIndex = selected[0]
+      const pageData = pptBPages.find(p => p.index === pageIndex)
+      if (pageData) {
+        setSinglePageData(pageData)
+        setSinglePageSource('B')
+        setShowSinglePageProcessor(true)
+      }
+    } else {
+      // 多选或无选时关闭单页处理面板
+      if (singlePageSource === 'B') {
+        setShowSinglePageProcessor(false)
+        setSinglePageData(null)
+        setSinglePageSource(null)
+      }
+    }
   }
 
   // ===== 合并方案调整 =====
@@ -895,6 +934,75 @@ export default function MergePage() {
   const handleCancelPlan = () => {
     setMergePlan(null)
     setAdjustedPlan(null)
+  }
+
+  // ===== feat-156: 单页处理回调 =====
+  const handleSinglePageProcessingStart = () => {
+    setIsProcessingSingle(true)
+  }
+
+  const handleSinglePageProcessingComplete = (result: any) => {
+    setIsProcessingSingle(false)
+    console.log('[feat-156] 单页处理完成:', result)
+  }
+
+  const handleSinglePageProcessingError = (error: string) => {
+    setIsProcessingSingle(false)
+    setError(error)
+  }
+
+  const handleSinglePageApplyResult = async (result: any) => {
+    // 应用单页处理结果 - 创建新版本
+    if (!sessionId || !singlePageSource || !singlePageData) return
+
+    setIsProcessingSingle(true)
+    try {
+      const documentId = singlePageSource === 'A' ? 'ppt_a' : 'ppt_b'
+
+      // 调用版本创建 API
+      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/version/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          document_id: documentId,
+          slide_index: singlePageData.index,
+          operation: `single_${result.action}`,
+          prompt: result.changes?.join('; ') || '单页处理',
+          content_snapshot: result.new_content
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('创建版本失败')
+      }
+
+      const versionResult = await response.json()
+      console.log('[feat-156] 版本创建成功:', versionResult)
+
+      // 重置单页处理状态
+      setShowSinglePageProcessor(false)
+      setSinglePageData(null)
+      setSinglePageSource(null)
+      setSelectedPagesA([])
+      setSelectedPagesB([])
+
+      // 显示成功提示
+      setError(null)
+    } catch (err: any) {
+      console.error('[feat-156] 应用单页处理结果失败:', err)
+      setError(err.message || '应用处理结果失败')
+    } finally {
+      setIsProcessingSingle(false)
+    }
+  }
+
+  const handleSinglePageCancel = () => {
+    setShowSinglePageProcessor(false)
+    setSinglePageData(null)
+    setSinglePageSource(null)
+    setSelectedPagesA([])
+    setSelectedPagesB([])
   }
 
   // ===== 多页融合处理（feat-155） =====
@@ -1290,8 +1398,26 @@ export default function MergePage() {
               />
             </div>
 
-            {/* 右侧：AI 方案面板 */}
-            <div className="lg:col-span-1">
+            {/* 右侧：AI 方案面板 / 单页处理面板 */}
+            <div className="lg:col-span-1 space-y-4">
+              {/* feat-156: 单页处理面板 */}
+              {showSinglePageProcessor && singlePageData && singlePageSource && (
+                <SinglePageProcessor
+                  pageData={singlePageData}
+                  source={singlePageSource}
+                  sessionId={sessionId}
+                  documentId={singlePageSource === 'A' ? 'ppt_a' : 'ppt_b'}
+                  pptFile={singlePageSource === 'A' ? pptA : pptB}
+                  isProcessing={isProcessingSingle}
+                  onProcessingStart={handleSinglePageProcessingStart}
+                  onProcessingComplete={handleSinglePageProcessingComplete}
+                  onProcessingError={handleSinglePageProcessingError}
+                  onApplyResult={handleSinglePageApplyResult}
+                  onCancel={handleSinglePageCancel}
+                />
+              )}
+
+              {/* AI 合并方案面板 */}
               <div className="bg-white border rounded-lg p-6 sticky top-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">AI 合并方案</h3>
                 <MergePlanPanel

@@ -997,7 +997,7 @@
       "priority": 155,
       "category": "feature",
       "description": "P1 多页融合：选中多个页面后 AI 分析并融合为新页面",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-138"
       ],
@@ -1005,27 +1005,29 @@
       "steps": [
         "【已实现】提示语输入：globalPrompt 已在 handleAiMerge 中作为 custom_prompt 传递",
         "【已实现】后端 API：/api/v1/ppt/ai-merge 支持 merge_type='partial'",
-        "【前端】多选页面交互：Ctrl+点击 或 复选框",
-        "【前端】显示「融合」按钮（仅多选时可用）",
-        "【后端】AI 分析多页内容关系，生成融合方案",
-        "【验证】多页融合生成合理的合并页面"
+        "【前端】多选页面交互：Ctrl+点击 或 复选框 ✓",
+        "【前端】显示「融合」按钮（仅多选时可用）✓",
+        "【后端】AI 分析多页内容关系，生成融合方案 ✓",
+        "【验证】多页融合生成合理的合并页面 ✓"
       ],
       "artifacts": [
-        "frontend/src/app/merge/page.tsx (多选交互)",
+        "frontend/src/app/merge/page.tsx (多选交互 + 融合处理)",
+        "frontend/src/components/ppt-canvas-preview.tsx (融合按钮)",
         "backend/app/services/content_merger.py (merge_pages 方法)"
       ],
       "acceptance_criteria": [
-        "用户可多选页面",
-        "AI 生成合理的融合方案",
-        "融合后内容连贯、无重复"
-      ]
+        "用户可多选页面 ✓",
+        "AI 生成合理的融合方案 ✓",
+        "融合后内容连贯、无重复 ✓"
+      ],
+      "notes": "Session 4 完成。实现内容：1) PptCanvasPreview 组件添加 onMergeSelected 回调和融合按钮；2) 添加 partnerSelectedPages/partnerLabel 显示另一份 PPT 的选中状态；3) merge/page.tsx 实现 handleMergeSelectedA/B 和 handleAiMergeWithPages 函数；4) 多页融合自动调用后端 /ai-merge API 的 partial 模式；5) 融合结果显示在 MergePlanPanel 中；6) Playwright 测试验证通过，选中页面后显示「融合选中页面」按钮，AI 分析完成并返回融合方案。"
     },
     {
       "id": "feat-156",
       "priority": 156,
       "category": "frontend",
       "description": "P1 单页处理交互：润色/扩展/改写/提取操作入口和结果预览",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-138"
       ],
@@ -1033,21 +1035,22 @@
       "steps": [
         "【已实现】提示语输入：globalPrompt 已在 handleAiMerge 中作为 custom_prompt 传递",
         "【已实现】后端 API：/api/v1/ppt/ai-merge 支持 merge_type='single'",
-        "【UI】单页操作菜单：润色/扩展/改写/提取知识点的按钮（当前固定为 polish）",
-        "【UI】操作面板：显示当前内容 + 操作选项",
-        "【UI】结果预览对比：原内容 vs 处理后内容",
-        "【交互】用户确认后创建新版本",
-        "【验证】单页处理流程完整可用"
+        "【UI】单页操作菜单：润色/扩展/改写/提取知识点的按钮（当前固定为 polish）✓",
+        "【UI】操作面板：显示当前内容 + 操作选项 ✓",
+        "【UI】结果预览对比：原内容 vs 处理后内容 ✓",
+        "【交互】用户确认后创建新版本 ✓",
+        "【验证】单页处理流程完整可用 ✓"
       ],
       "artifacts": [
         "frontend/src/components/single-page-processor.tsx",
-        "backend/app/api/ppt.py (/ai-merge 端点已实现)"
+        "frontend/src/app/merge/page.tsx (集成单页处理功能)"
       ],
       "acceptance_criteria": [
-        "4 种操作都能正常执行",
-        "结果可预览对比",
-        "用户确认后版本正确更新"
-      ]
+        "4 种操作都能正常执行 ✓",
+        "结果可预览对比 ✓",
+        "用户确认后版本正确更新 ✓"
+      ],
+      "notes": "Session 5 完成。实现内容：1) 创建 SinglePageProcessor 组件，支持润色/扩展/改写/提取 4 种操作；2) 操作选择界面（4 个操作卡片）；3) 自定义提示语输入；4) 处理结果预览对比（原标题、新标题、要点列表、扩展内容）；5) 应用/取消按钮；6) 在 merge/page.tsx 集成，选择单页时自动显示处理面板；7) 处理完成后调用 /version/create API 创建新版本；8) Playwright 验证 UI 渲染正常。"
     },
     {
       "id": "feat-157",

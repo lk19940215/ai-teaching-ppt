@@ -780,6 +780,15 @@
       "taskId": "feat-154",
       "statusAfter": "done",
       "notes": "【feat-154 P0 版本历史面板完成】\n\n验证结果：\n1. VersionSwitcher 组件：显示 v1/v1 版本标记，支持点击打开历史面板\n2. VersionHistoryPanel 组件：完整显示版本历史列表（版本号、操作类型、时间戳、图片预览）\n3. 版本恢复功能：支持选择历史版本进行恢复\n4. 删除页面功能：支持删除/恢复页面\n\n端到端测试验证：\n- 上传 PPT 后自动显示版本标记 v1/v1\n- 点击版本标记弹出历史面板\n- 面板显示：版本号 v1、操作类型'原始上传'、时间戳、图片预览\n- 当前版本有蓝色勾选标记\n- 底部有'删除此页'和'关闭'按钮\n\n代码验证：\n- TypeScript 编译通过\n- 后端 API /version/restore 端点已注册\n- 组件已集成到 PptCanvasPreview"
+    },
+    {
+      "session": 4,
+      "timestamp": "2026-03-10T08:20:17.017Z",
+      "result": "success",
+      "cost": 6.856762999999998,
+      "taskId": "feat-155",
+      "statusAfter": "done",
+      "notes": "【feat-155 P1 多页融合完成】\n\n实现内容：\n1. PptCanvasPreview 组件增强：\n   - 添加 onMergeSelected/isMerging/partnerSelectedPages/partnerLabel 属性\n   - 选中页面时显示「融合选中页面」按钮（带加载状态）\n   - 显示另一份 PPT 的选中状态（绿色提示）\n\n2. merge/page.tsx 多页融合处理：\n   - handleMergeSelectedA/B: 设置 partial 模式并开始融合\n   - handleAiMergeWithPages: 统一多页融合处理函数\n   - 调用后端 /ai-merge API (merge_type='partial')\n   - 解析 SSE 响应并构建 MergePlan 数据结构\n\n3. 测试验证（Playwright）：\n   - 上传两个 PPT 文件成功\n   - 选中 PPT A 第 1 页后显示「融合选中页面」按钮\n   - 点击融合按钮后 AI 分析完成\n   - AI 合并方案面板显示融合策略、知识点、新内容\n\n技术要点：\n- 多选交互：Ctrl+点击/复选框（已有功能）\n- 融合流程：选中页面 → 点击融合 → AI 分析 → 显示方案\n- 后端复用：/ai-merge API 已支持 partial 模式\n\nCommit: 0951583"
     }
   ]
 }

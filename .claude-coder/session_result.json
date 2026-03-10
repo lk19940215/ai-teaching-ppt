@@ -2,5 +2,5 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "【feat-154 P0 版本历史面板完成】\n\n验证结果：\n1. VersionSwitcher 组件：显示 v1/v1 版本标记，支持点击打开历史面板\n2. VersionHistoryPanel 组件：完整显示版本历史列表（版本号、操作类型、时间戳、图片预览）\n3. 版本恢复功能：支持选择历史版本进行恢复\n4. 删除页面功能：支持删除/恢复页面\n\n端到端测试验证：\n- 上传 PPT 后自动显示版本标记 v1/v1\n- 点击版本标记弹出历史面板\n- 面板显示：版本号 v1、操作类型'原始上传'、时间戳、图片预览\n- 当前版本有蓝色勾选标记\n- 底部有'删除此页'和'关闭'按钮\n\n代码验证：\n- TypeScript 编译通过\n- 后端 API /version/restore 端点已注册\n- 组件已集成到 PptCanvasPreview"
+  "notes": "【feat-156 P1 单页处理交互完成】\n\n实现内容：\n1. 创建 SinglePageProcessor 组件 (frontend/src/components/single-page-processor.tsx)\n   - 4 种操作卡片：润色/扩展/改写/提取，带图标和说明\n   - 自定义提示语输入框\n   - SSE 流式处理进度显示\n   - 结果预览对比：原标题、新标题、要点列表、扩展内容\n   - 应用/取消按钮\n\n2. 在 merge/page.tsx 集成单页处理功能\n   - 添加单页处理相关状态 (singlePageData, singlePageSource, showSinglePageProcessor)\n   - 修改页面选择处理：选中单页时自动显示处理面板\n   - 添加处理回调函数 (handleSinglePageProcessingStart/Complete/Error/ApplyResult/Cancel)\n   - 应用结果时调用 /version/create API 创建新版本\n\n3. 验证结果\n   - TypeScript 编译通过 ✓\n   - Playwright 测试 UI 渲染正常 ✓\n   - 4 种操作按钮可点击选中 ✓\n   - 处理要求输入框可输入 ✓\n   - 当前页面内容预览显示正确 ✓\n\n截图：feat-156-single-page-processor.png"
 }
