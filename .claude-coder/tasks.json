@@ -1241,6 +1241,174 @@
         "生成的 PPT 内容合理",
         "下载的 PPT 可用 PowerPoint 打开"
       ]
+    },
+    {
+      "id": "feat-165",
+      "priority": 165,
+      "category": "backend",
+      "description": "P0 单页处理实时预览生成：AI 处理后生成真实 PPT 预览图",
+      "status": "pending",
+      "depends_on": [
+        "feat-156",
+        "feat-140"
+      ],
+      "design_doc": ".claude-coder/plans/single-page-realtime-preview.md#五、实现步骤",
+      "steps": [
+        "【设计】阅读方案文档第五节实现步骤 ✓",
+        "【API-1.1】/version/create 新增 generate_preview 参数，默认 true",
+        "【API-1.1】接收 content_snapshot 参数（AI 修改后的内容）",
+        "【实现-1.2】创建 generate_single_slide_pptx() 函数",
+        "【实现-1.2】从 content_snapshot 重建单页 PPTX（标题、正文、列表）",
+        "【实现-1.3】调用 LibreOffice 转换单页为 PNG",
+        "【实现-1.4】更新 version_manager.py 返回 image_url",
+        "【验证】curl 测试 API 返回正确的预览图 URL"
+      ],
+      "artifacts": [
+        "backend/app/api/ppt.py (/version/create 增强)",
+        "backend/app/services/ppt_generator.py (generate_single_slide_pptx 函数)",
+        "backend/app/services/version_manager.py (返回预览图)"
+      ],
+      "acceptance_criteria": [
+        "API 调用后返回有效的预览图 URL",
+        "预览图显示 AI 修改后的真实 PPT 效果",
+        "处理时间 < 10 秒"
+      ]
+    },
+    {
+      "id": "feat-166",
+      "priority": 166,
+      "category": "frontend",
+      "description": "P0 前端实时预览：处理完成后刷新预览图片",
+      "status": "pending",
+      "depends_on": [
+        "feat-165"
+      ],
+      "design_doc": ".claude-coder/plans/single-page-realtime-preview.md#五、实现步骤",
+      "steps": [
+        "【设计】阅读方案文档 4.1-4.3 UI 设计 ✓",
+        "【实现-2.1】handleSinglePageApplyResult 调用 /version/create 后获取 image_url",
+        "【实现-2.1】更新 pptAPages/pptBPages 中对应页面的 imageUrl",
+        "【实现-2.2】SinglePageProcessor 添加处理中 loading 动画",
+        "【实现-2.3】PptCanvasPreview 显示版本徽章 v2/v3",
+        "【实现-2.3】已处理页面显示 ✓ 标记",
+        "【验证】浏览器测试：处理单页后预览图实时更新"
+      ],
+      "artifacts": [
+        "frontend/src/app/merge/page.tsx (handleSinglePageApplyResult 增强)",
+        "frontend/src/components/single-page-processor.tsx (loading 状态)",
+        "frontend/src/components/ppt-canvas-preview.tsx (版本徽章、✓ 标记)"
+      ],
+      "acceptance_criteria": [
+        "AI 处理完成后预览图片立即更新",
+        "显示真实 PPT 效果（非文字对比）",
+        "版本徽章正确显示 v2",
+        "处理中有 loading 动画"
+      ]
+    },
+    {
+      "id": "feat-167",
+      "priority": 167,
+      "category": "frontend",
+      "description": "P1 累积状态与进度显示：已处理 N/M 页",
+      "status": "pending",
+      "depends_on": [
+        "feat-166"
+      ],
+      "design_doc": ".claude-coder/plans/single-page-realtime-preview.md#五、实现步骤",
+      "steps": [
+        "【设计】定义 ProcessedPage 接口 ✓",
+        "【实现-3.1】添加 processedPages 状态：Record<string, ProcessedPage>",
+        "【实现-3.1】处理完成后更新 processedPages",
+        "【组件-3.2】创建 ProcessingProgress 组件（进度条 + 文字）",
+        "【实现-3.2】在 TopControlBar 中显示进度组件",
+        "【实现-3.3】缩略图显示已处理 ✓ 标记",
+        "【验证】依次处理 3 页，进度显示正确"
+      ],
+      "artifacts": [
+        "frontend/src/app/merge/page.tsx (processedPages 状态)",
+        "frontend/src/components/processing-progress.tsx (新组件)"
+      ],
+      "acceptance_criteria": [
+        "显示\"已处理 N/M 页\"进度条",
+        "进度条随处理实时更新",
+        "已处理页面有 ✓ 标记"
+      ]
+    },
+    {
+      "id": "feat-168",
+      "priority": 168,
+      "category": "fullstack",
+      "description": "P0 最终 PPT 生成：收集所有修改生成最终文件",
+      "status": "pending",
+      "depends_on": [
+        "feat-167",
+        "feat-143"
+      ],
+      "design_doc": ".claude-coder/plans/single-page-realtime-preview.md#五、实现步骤",
+      "steps": [
+        "【设计】定义 version_map 数据结构 ✓",
+        "【前端-4.1】\"生成最终 PPT\" 按钮（仅已处理 > 0 页时显示）",
+        "【前端-4.1】收集 processedPages 生成 version_map",
+        "【前端-4.1】调用 /generate-final API",
+        "【后端-4.2】从 version_map 获取每页的版本信息",
+        "【后端-4.2】从源 PPTX 复制未处理页面",
+        "【后端-4.2】从 content_snapshot 重建已处理页面",
+        "【后端-4.2】合并生成最终 PPTX",
+        "【验证】端到端测试：处理 3 页 → 生成 → 下载 → 打开验证"
+      ],
+      "artifacts": [
+        "frontend/src/app/merge/page.tsx (生成按钮、version_map 收集)",
+        "backend/app/services/ppt_generator.py (generate_ppt_from_versions 增强)"
+      ],
+      "acceptance_criteria": [
+        "点击按钮后生成最终 PPT",
+        "下载的 PPT 包含所有 AI 修改",
+        "PPT 可用 PowerPoint 正常打开"
+      ]
+    },
+    {
+      "id": "feat-169",
+      "priority": 169,
+      "category": "test",
+      "description": "P0 单页实时预览端到端测试：处理 → 预览 → 生成",
+      "status": "pending",
+      "depends_on": [
+        "feat-168"
+      ],
+      "design_doc": ".claude-coder/plans/single-page-realtime-preview.md#六、验收标准",
+      "test_data": {
+        "ppt_a": "uploads/generated/test_大龙猫.pptx",
+        "ppt_b": "uploads/generated/test_模版.pptx"
+      },
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md 第五节（多轮 browser_wait_for）",
+        "【环境】curl http://localhost:8000/health 确认后端服务正常（失败则停止）",
+        "【P0】browser_navigate http://localhost:3000/merge",
+        "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
+        "【P0】browser_file_upload paths=['uploads/generated/test_大龙猫.pptx']",
+        "【P0】browser_wait_for text='共' timeout=30000",
+        "【P0】browser_file_upload paths=['uploads/generated/test_模版.pptx']",
+        "【P0】browser_wait_for text='共' timeout=30000",
+        "【P0】browser_snapshot 确认两份 PPT 预览图片加载，定位页面缩略图 ref",
+        "【P0】browser_click ref=[第2页缩略图]",
+        "【P0】browser_snapshot 确认单页处理面板显示",
+        "【P0】browser_click ref=[润色操作按钮]",
+        "【P0】browser_click ref=[开始润色按钮]",
+        "【P0】browser_wait_for text='润色完成' timeout=60000",
+        "【P0】browser_snapshot 验证预览图更新，显示 v2 徽章",
+        "【P0】browser_click ref=[应用结果按钮]",
+        "【P0】browser_wait_for text='已处理' timeout=10000",
+        "【P0】browser_click ref=[生成最终PPT按钮]",
+        "【P0】browser_wait_for text='生成完成' timeout=60000",
+        "【P0】browser_snapshot 验证下载链接出现",
+        "【验证】下载的 PPT 可正常打开"
+      ],
+      "acceptance_criteria": [
+        "单页处理后预览图实时更新",
+        "版本徽章正确显示 v2",
+        "进度显示「已处理 1/N 页」",
+        "最终 PPT 包含 AI 修改"
+      ]
     }
   ]
 }
