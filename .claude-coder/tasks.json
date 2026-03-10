@@ -1057,7 +1057,7 @@
       "priority": 157,
       "category": "feature",
       "description": "P2 删除/恢复页面：标记删除但保留历史，支持恢复",
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-140"
       ],

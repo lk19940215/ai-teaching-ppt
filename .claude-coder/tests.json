@@ -10,6 +10,8 @@
     {"id": "test-feat156-single-page", "feature_id": "feat-156", "verify": "ls frontend/src/components/single-page-processor.tsx", "expected": "单页处理组件存在", "last_result": "pass", "last_run_session": 5},
     {"id": "test-feat157-soft-delete", "feature_id": "feat-157", "verify": "curl -s -X DELETE 'http://localhost:8000/api/v1/history/1?session_id=test_session_softdelete' | grep -q '移至回收站'", "expected": "返回'记录已移至回收站'", "last_result": "pass", "last_run_session": 6},
     {"id": "test-feat157-get-deleted", "feature_id": "feat-157", "verify": "curl -s 'http://localhost:8000/api/v1/history/deleted?session_id=test_session_softdelete' | grep -q 'is_deleted'", "expected": "返回已删除记录列表", "last_result": "pass", "last_run_session": 6},
-    {"id": "test-feat157-restore", "feature_id": "feat-157", "verify": "curl -s -X POST 'http://localhost:8000/api/v1/history/1/restore?session_id=test_session_softdelete' | grep -q '记录已恢复'", "expected": "返回'记录已恢复'", "last_result": "pass", "last_run_session": 6}
+    {"id": "test-feat157-restore", "feature_id": "feat-157", "verify": "curl -s -X POST 'http://localhost:8000/api/v1/history/1/restore?session_id=test_session_softdelete' | grep -q '记录已恢复'", "expected": "返回'记录已恢复'", "last_result": "pass", "last_run_session": 6},
+    {"id": "test-feat157-slide-toggle-ui", "feature_id": "feat-157", "verify": "grep -q 'feat-157: 已删除页面遮罩' frontend/src/components/ppt-canvas-preview.tsx", "expected": "删除/恢复 UI 组件已实现", "last_result": "pass", "last_run_session": 7},
+    {"id": "test-feat157-slide-toggle-api", "feature_id": "feat-157", "verify": "curl -s -X POST 'http://localhost:8000/api/v1/slide/toggle' -H 'Content-Type: application/json' -d '{\"session_id\":\"test\",\"document_id\":\"ppt_a\",\"slide_index\":0,\"action\":\"delete\"}' | grep -q '会话不存在'", "expected": "slide/toggle API 端点存在", "last_result": "pass", "last_run_session": 7}
   ]
 }

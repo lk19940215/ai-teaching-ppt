@@ -76,6 +76,8 @@ export function PptCanvasPreview({
 
   // feat-150: 图片预览状态（存储每页的图片 URL）
   const [slideImageUrls, setSlideImageUrls] = useState<Record<number, string>>({})
+  // feat-157: 每页的删除状态
+  const [slideStatuses, setSlideStatuses] = useState<Record<number, SlideStatus>>({})
 
   const isFallbackMode = onFallbackModeChange ? fallbackMode : internalFallbackMode
 
@@ -94,6 +96,7 @@ export function PptCanvasPreview({
         const docState = session.documents[documentId]
         if (docState) {
           const imageUrls: Record<number, string> = {}
+          const statuses: Record<number, SlideStatus> = {}
           for (const [slideIdx, slideState] of Object.entries(docState.slides)) {
             // 获取当前版本的图片 URL
             const currentVersion = slideState.current_version
@@ -101,8 +104,11 @@ export function PptCanvasPreview({
             if (versionData?.image_url) {
               imageUrls[parseInt(slideIdx)] = versionData.image_url
             }
+            // feat-157: 提取每页的删除状态
+            statuses[parseInt(slideIdx)] = slideState.status
           }
           setSlideImageUrls(imageUrls)
+          setSlideStatuses(statuses)
         }
 
         if (docState && docState.slides[currentIndex]) {
@@ -235,7 +241,10 @@ export function PptCanvasPreview({
     const action = currentSlideStatus === 'deleted' ? 'restore' : 'delete'
     try {
       await toggleSlide({ session_id: sessionId, document_id: documentId, slide_index: currentIndex, action })
-      setCurrentSlideStatus(action === 'delete' ? 'deleted' : 'active')
+      const newStatus = action === 'delete' ? 'deleted' : 'active'
+      setCurrentSlideStatus(newStatus)
+      // feat-157: 同时更新 slideStatuses 状态
+      setSlideStatuses(prev => ({ ...prev, [currentIndex]: newStatus }))
       if (action === 'delete') setCurrentSlideVersion(null)
       setIsHistoryPanelOpen(false)
     } catch (err) {
@@ -341,7 +350,29 @@ export function PptCanvasPreview({
           ) : enhancedCurrentPage ? (
             <PptCanvasRenderer pageData={enhancedCurrentPage} width={800} height={450} isSelected={isCurrentSelected} onClick={() => {}} quality={1.0} />
           ) : null}
-          {isCurrentSelected && (
+          {/* feat-157: 已删除页面遮罩层 + 恢复按钮 */}
+          {currentSlideStatus === 'deleted' && enableVersioning && sessionId && documentId && (
+            <div className="absolute inset-0 bg-gray-500/70 flex flex-col items-center justify-center z-20">
+              <div className="text-center p-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-100 border border-red-300 rounded-full text-red-700 text-sm font-medium mb-4">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  此页面已被删除
+                </div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleToggleSlide() }}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg shadow-md transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  恢复此页面
+                </button>
+              </div>
+            </div>
+          )}
+          {isCurrentSelected && currentSlideStatus !== 'deleted' && (
             <div className="absolute top-6 right-6 w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center shadow-md">
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -379,10 +410,17 @@ export function PptCanvasPreview({
             const isActive = idx === currentIndex
             const isSelected = selectedPages.includes(page.index)
             const thumbnailUrl = slideImageUrls[idx]  // feat-150: 获取缩略图 URL
+            const slideStatus = slideStatuses[idx]  // feat-157: 获取页面状态
+            const isDeleted = slideStatus === 'deleted'
             const enhanced = convertToEnhanced(page, page.index)
             return (
               <div key={page.index} onClick={() => goToPage(idx)}
-                className={cn("flex-shrink-0 w-24 h-14 rounded border-2 overflow-hidden cursor-pointer transition-all relative", isActive ? "border-indigo-500 ring-1 ring-indigo-300 shadow" : isSelected ? "border-green-400 ring-1 ring-green-200" : "border-gray-200 hover:border-gray-400 opacity-70 hover:opacity-100")}>
+                className={cn("flex-shrink-0 w-24 h-14 rounded border-2 overflow-hidden cursor-pointer transition-all relative",
+                  isActive ? "border-indigo-500 ring-1 ring-indigo-300 shadow" :
+                  isDeleted ? "border-red-300 opacity-60" :
+                  isSelected ? "border-green-400 ring-1 ring-green-200" :
+                  "border-gray-200 hover:border-gray-400 opacity-70 hover:opacity-100"
+                )}>
                 {/* feat-150: 优先显示图片缩略图 */}
                 {thumbnailUrl ? (
                   <img
@@ -394,7 +432,13 @@ export function PptCanvasPreview({
                   <PptCanvasRenderer pageData={enhanced} width={96} height={54} isSelected={false} onClick={() => {}} quality={0.5} />
                 )}
                 <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-center text-[9px] py-0.5">P{page.index + 1}</div>
-                {isSelected && (
+                {/* feat-157: 已删除页面标识 */}
+                {isDeleted && (
+                  <div className="absolute inset-0 bg-gray-500/50 flex items-center justify-center">
+                    <span className="text-white text-[8px] font-medium bg-red-500 px-1 rounded">已删除</span>
+                  </div>
+                )}
+                {isSelected && !isDeleted && (
                   <div className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full flex items-center justify-center">
                     <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                   </div>
