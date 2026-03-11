@@ -1,10 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { apiBaseUrl } from "@/lib/api"
+import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/ppt-canvas-renderer"
 
 // 单页处理动作类型
 type SinglePageAction = "polish" | "expand" | "rewrite" | "extract"
@@ -52,6 +53,65 @@ interface ProcessingResult {
     additional_content?: string
   }
   changes: string[]
+}
+
+/**
+ * 将 AI 返回的 new_content 转换为 EnhancedPptPageData 格式
+ * 用于 Canvas 模拟渲染
+ */
+function convertContentToPageData(
+  content: { title: string; main_points: string[]; additional_content?: string },
+  pageIndex: number
+): EnhancedPptPageData {
+  const mainPoints = content.main_points || []
+  const additionalContent = content.additional_content || ''
+
+  // 构建文本内容
+  const allTexts = [...mainPoints]
+  if (additionalContent) {
+    allTexts.push(additionalContent)
+  }
+
+  return {
+    index: pageIndex,
+    title: content.title || '',
+    content: allTexts.map(text => ({ type: 'text' as const, text })),
+    shapes: [{
+      type: 'text_box',
+      name: 'main_content',
+      position: { x: 50, y: 100, width: 860, height: 400 },
+      text_content: [{
+        runs: mainPoints.map(text => ({
+          text: text + '\n',
+          font: { size: 18, color: '#333333' }
+        }))
+      }]
+    }],
+    layout: { width: 960, height: 540 }
+  }
+}
+
+/**
+ * 将原始 PageData 转换为 EnhancedPptPageData 格式
+ */
+function convertPageDataToEnhanced(pageData: PageData): EnhancedPptPageData {
+  return {
+    index: pageData.index,
+    title: pageData.title || '',
+    content: (pageData.content || []).map(text => ({ type: 'text' as const, text })),
+    shapes: [{
+      type: 'text_box',
+      name: 'original_content',
+      position: { x: 50, y: 100, width: 860, height: 400 },
+      text_content: [{
+        runs: (pageData.content || []).map(text => ({
+          text: text + '\n',
+          font: { size: 18, color: '#333333' }
+        }))
+      }]
+    }],
+    layout: { width: 960, height: 540 }
+  }
 }
 
 // 组件属性
@@ -290,48 +350,92 @@ export function SinglePageProcessor({
             </button>
           </div>
 
-          {/* 对比显示 */}
-          <div className="space-y-3">
-            {/* 原标题 */}
-            <div className="text-xs text-gray-500">原标题：{pageData.title || "无标题"}</div>
-
-            {/* 新标题 */}
-            <div className="bg-green-50 border border-green-200 rounded p-3">
-              <div className="text-xs text-green-600 font-medium mb-1">处理后标题</div>
-              <div className="text-sm text-gray-900 font-medium">{result.new_content.title}</div>
+          {/* 版本对比 UI - Canvas 预览 */}
+          <div className="border rounded-lg overflow-hidden">
+            <div className="bg-gray-50 px-3 py-2 border-b text-xs font-medium text-gray-600">
+              版本对比预览
             </div>
-
-            {/* 内容对比 */}
-            {result.new_content.main_points && result.new_content.main_points.length > 0 && (
-              <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                <div className="text-xs text-blue-600 font-medium mb-2">主要要点</div>
-                <ul className="space-y-1">
-                  {result.new_content.main_points.map((point, idx) => (
-                    <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
-                      <span className="text-blue-500 mt-0.5">•</span>
-                      {point}
-                    </li>
-                  ))}
-                </ul>
+            <div className="grid grid-cols-2 gap-0.5 bg-gray-200">
+              {/* 原始版本 */}
+              <div className="bg-white p-2">
+                <div className="text-xs text-gray-500 mb-1 text-center">原始版本</div>
+                <div className="flex justify-center">
+                  <PptCanvasRenderer
+                    pageData={convertPageDataToEnhanced(pageData)}
+                    width={280}
+                    height={158}
+                    quality={0.8}
+                  />
+                </div>
+                <div className="text-xs text-gray-400 mt-1 text-center truncate">
+                  {pageData.title || "无标题"}
+                </div>
               </div>
-            )}
-
-            {/* 扩展内容 */}
-            {result.new_content.additional_content && (
-              <div className="bg-amber-50 border border-amber-200 rounded p-3">
-                <div className="text-xs text-amber-600 font-medium mb-1">扩展内容</div>
-                <div className="text-sm text-gray-700">{result.new_content.additional_content}</div>
+              {/* 处理后版本 */}
+              <div className="bg-white p-2">
+                <div className="text-xs text-green-600 mb-1 text-center font-medium">处理后版本</div>
+                <div className="flex justify-center">
+                  <PptCanvasRenderer
+                    pageData={convertContentToPageData(result.new_content, pageData.index)}
+                    width={280}
+                    height={158}
+                    quality={0.8}
+                  />
+                </div>
+                <div className="text-xs text-green-600 mt-1 text-center truncate font-medium">
+                  {result.new_content.title || "新标题"}
+                </div>
               </div>
-            )}
-
-            {/* 修改说明 */}
-            {result.changes && result.changes.length > 0 && (
-              <div className="text-xs text-gray-500">
-                <span className="font-medium">修改说明：</span>
-                {result.changes.join("；")}
-              </div>
-            )}
+            </div>
           </div>
+
+          {/* 文本对比（折叠显示） */}
+          <details className="group">
+            <summary className="cursor-pointer text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1">
+              <svg className="w-3 h-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              查看详细文本对比
+            </summary>
+            <div className="mt-2 space-y-3">
+              {/* 新标题 */}
+              <div className="bg-green-50 border border-green-200 rounded p-3">
+                <div className="text-xs text-green-600 font-medium mb-1">处理后标题</div>
+                <div className="text-sm text-gray-900 font-medium">{result.new_content.title}</div>
+              </div>
+
+              {/* 内容对比 */}
+              {result.new_content.main_points && result.new_content.main_points.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                  <div className="text-xs text-blue-600 font-medium mb-2">主要要点</div>
+                  <ul className="space-y-1">
+                    {result.new_content.main_points.map((point, idx) => (
+                      <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                        <span className="text-blue-500 mt-0.5">•</span>
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* 扩展内容 */}
+              {result.new_content.additional_content && (
+                <div className="bg-amber-50 border border-amber-200 rounded p-3">
+                  <div className="text-xs text-amber-600 font-medium mb-1">扩展内容</div>
+                  <div className="text-sm text-gray-700">{result.new_content.additional_content}</div>
+                </div>
+              )}
+
+              {/* 修改说明 */}
+              {result.changes && result.changes.length > 0 && (
+                <div className="text-xs text-gray-500">
+                  <span className="font-medium">修改说明：</span>
+                  {result.changes.join("；")}
+                </div>
+              )}
+            </div>
+          </details>
 
           {/* 操作按钮 */}
           <div className="flex gap-2 pt-2">

@@ -1,8 +1,8 @@
 {
   "project": "ai-teaching-ppt",
   "created_at": "2026-03-02",
-  "last_updated": "2026-03-10",
-  "next_task_priority": 170,
+  "last_updated": "2026-03-11",
+  "next_task_priority": 171,
   "completed_milestones": [
     {
       "id": "milestone-1",
@@ -451,6 +451,30 @@
         "版本徽章正确显示 v2",
         "进度显示「已处理 1/N 页」",
         "最终 PPT 包含 AI 修改"
+      ]
+    },
+    {
+      "id": "feat-170",
+      "priority": 170,
+      "category": "frontend",
+      "description": "P1 兜底渲染优化：简化渲染模式显示 content 内容",
+      "status": "done",
+      "depends_on": [],
+      "design_doc": ".claude/plans/tender-bubbling-waterfall.md",
+      "steps": [
+        "【分析】确认问题：简化渲染只使用 title，忽略 content 数组 ✓",
+        "【实现-1】修改标题逻辑：title || content[0] || '第 N 页' ✓",
+        "【实现-2】新增内容文本渲染：显示前3条 content ✓",
+        "【验证】前端类型检查 pnpm tsc --noEmit ✓",
+        "【测试】上传 PPT 验证预览区显示内容 ✓"
+      ],
+      "artifacts": [
+        "frontend/src/components/ppt-canvas-renderer.tsx (简化渲染逻辑)"
+      ],
+      "acceptance_criteria": [
+        "PPT 上传后预览区显示标题或内容摘要 ✓",
+        "标题为空时显示 content 第一项 ✓",
+        "显示前3条内容文本 ✓"
       ]
     }
   ]

@@ -584,12 +584,18 @@ export function PptCanvasRenderer({
       ctx.fillStyle = bgColor
       ctx.fillRect(0, 0, width, height * 0.15)
 
-      // 绘制标题（只取前 20 个字符）
+      // 绘制标题（优先使用 title，为空时使用 content 第一项）
       ctx.fillStyle = '#ffffff'
       ctx.font = 'bold 16px Microsoft YaHei, sans-serif'
       ctx.textAlign = 'left'
       ctx.textBaseline = 'middle'
-      const title = pageData.title.substring(0, 20) + (pageData.title.length > 20 ? '...' : '')
+      const displayTitle = pageData.title ||
+        (pageData.content?.length > 0
+          ? (typeof pageData.content[0] === 'string'
+              ? pageData.content[0]
+              : pageData.content[0]?.text || '')
+          : `第 ${pageData.index + 1} 页`)
+      const title = displayTitle.substring(0, 20) + (displayTitle.length > 20 ? '...' : '')
       ctx.fillText(title, offsetX + 10, offsetY + height * 0.075)
 
       // 绘制页码
@@ -601,6 +607,55 @@ export function PptCanvasRenderer({
       ctx.fillStyle = '#f5f5f5'
       ctx.fillRect(offsetX + 10, offsetY + height * 0.2, width - 20, height * 0.3)
     ctx.fillRect(offsetX + 10, offsetY + height * 0.55, width - 20, height * 0.15)
+
+    // 绘制内容文本（最多显示前3条）
+    const contentItems = pageData.content?.slice(0, 3) || []
+    let textY = offsetY + height * 0.25
+    ctx.fillStyle = '#333333'
+    ctx.font = '14px Microsoft YaHei, sans-serif'
+    ctx.textAlign = 'left'
+
+    for (const item of contentItems) {
+      const text = typeof item === 'string' ? item : item?.text || ''
+      if (text) {
+        const displayText = text.substring(0, 40) + (text.length > 40 ? '...' : '')
+        ctx.fillText(displayText, offsetX + 20, textY)
+        textY += 22
+      }
+    }
+
+    // 增强渲染：遍历 shapes 数组渲染详细内容
+    // 如果 shapes 有 text_content 或 table_data，则渲染
+    const shapesToRender = pageData.shapes?.slice(0, 5) || [] // 最多渲染5个shapes
+    for (const shape of shapesToRender) {
+      // 渲染文本框
+      if (shape.text_content && shape.text_content.length > 0) {
+        renderTextShape(ctx, shape, offsetX, offsetY)
+      }
+      // 渲染表格
+      else if (shape.table_data && shape.table_data.length > 0) {
+        renderTableShape(ctx, shape, offsetX, offsetY)
+      }
+      // 渲染图片（简化为占位符）
+      else if (shape.image_base64) {
+        // 使用简化的图片占位符，避免异步加载问题
+        const x = shape.position.x * scale + offsetX
+        const y = shape.position.y * scale + offsetY
+        const w = shape.position.width * scale
+        const h = shape.position.height * scale
+        ctx.fillStyle = '#e8e8e8'
+        ctx.fillRect(x, y, w, h)
+        ctx.strokeStyle = '#cccccc'
+        ctx.lineWidth = 1
+        ctx.strokeRect(x, y, w, h)
+        // 图片图标
+        ctx.fillStyle = '#999999'
+        ctx.font = `${Math.min(w, h) * 0.3}px Arial`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText('🖼', x + w / 2, y + h / 2)
+      }
+    }
 
     // 如果有图片，绘制图片占位符
     const hasImage = pageData.shapes?.some(s =>

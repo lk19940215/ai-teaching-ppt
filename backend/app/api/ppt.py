@@ -2610,16 +2610,19 @@ async def generate_final_ppt(
     title: str = Body(..., description="最终 PPT 标题"),
     grade: str = Body("6", description="年级"),
     subject: str = Body("general", description="学科"),
-    style: str = Body("simple", description="风格")
+    style: str = Body("simple", description="风格"),
+    final_selection: Optional[List[str]] = Body(None, description="最终选择的版本ID列表，如 ['ppt_a_0_v1', 'ppt_b_1_v1']")
 ):
     """
     基于当前选择的版本生成最终 PPT
 
     流程：
-    1. 获取会话数据，收集所有活跃页面的当前版本
-    2. 对于 v1 版本：从源 PPTX 直接复制页面
-    3. 对于 v2+ 版本：从 content_snapshot 内容快照重建页面
-    4. 生成统一样式的最终 PPT
+    1. 获取会话数据
+    2. 如果提供了 final_selection，只包含指定的版本
+    3. 否则收集所有活跃页面的当前版本
+    4. 对于 v1 版本：从源 PPTX 直接复制页面
+    5. 对于 v2+ 版本：从 content_snapshot 内容快照重建页面
+    6. 生成统一样式的最终 PPT
 
     Request:
     {
@@ -2627,7 +2630,8 @@ async def generate_final_ppt(
         "title": "合并后的课件标题",
         "grade": "6",
         "subject": "math",
-        "style": "simple"
+        "style": "simple",
+        "final_selection": ["ppt_a_0_v1", "ppt_b_1_v1", "merged_0_v1"]
     }
 
     Response:
@@ -2642,8 +2646,9 @@ async def generate_final_ppt(
     from ..services.ppt_generator import generate_ppt_from_versions
     from pptx import Presentation
     from io import BytesIO
+    import re
 
-    logger.info(f"生成最终 PPT: session_id={session_id}, title={title}")
+    logger.info(f"生成最终 PPT: session_id={session_id}, title={title}, final_selection={final_selection}")
 
     try:
         version_manager = get_version_manager()
@@ -2652,24 +2657,62 @@ async def generate_final_ppt(
         if not session:
             raise HTTPException(status_code=404, detail=f"会话不存在：{session_id}")
 
-        # 收集所有活跃页面及其版本数据
         merged_slides = []  # List of (source_pptx, slide_index, content_snapshot)
 
-        for doc_id, doc_state in session.documents.items():
-            source_pptx = doc_state.source_file
-            # 验证文件存在
-            if not Path(source_pptx).exists():
-                logger.warning(f"源文件不存在：{source_pptx}，跳过")
-                continue
+        if final_selection:
+            # 使用 final_selection 指定的版本
+            logger.info(f"使用 final_selection: {len(final_selection)} 个版本")
 
-            for slide_index, slide_state in doc_state.slides.items():
-                if slide_state.status == SlideStatus.DELETED or not slide_state.current_version:
-                    continue  # 跳过已删除页面
+            for version_id in final_selection:
+                # 解析 version_id: "ppt_a_0_v1" -> doc_id="ppt_a", slide_index=0, version="v1"
+                # 或 "merged_0_v1" -> doc_id="merged", slide_index=0, version="v1"
+                match = re.match(r'^(ppt_a|ppt_b|merged)_(\d+)_v(\d+)$', version_id)
+                if not match:
+                    logger.warning(f"无法解析 version_id: {version_id}，跳过")
+                    continue
 
-                # 查找当前版本的 content_snapshot
+                doc_id = match.group(1)
+                slide_index = int(match.group(2))
+                version_name = f"v{match.group(3)}"
+
+                # 处理 merged 类型（融合生成的幻灯片）
+                if doc_id == 'merged':
+                    # 融合幻灯片暂时从 ppt_a 和 ppt_b 的第一个源文件获取
+                    # TODO: 后续需要存储融合幻灯片的独立内容
+                    if 'ppt_a' in session.documents:
+                        doc_state = session.documents['ppt_a']
+                        source_pptx = doc_state.source_file
+                        if Path(source_pptx).exists():
+                            merged_slides.append({
+                                "source_pptx": source_pptx,
+                                "slide_index": 0,
+                                "content_snapshot": None,
+                                "version": version_name
+                            })
+                    continue
+
+                # 处理普通幻灯片
+                if doc_id not in session.documents:
+                    logger.warning(f"文档不存在: {doc_id}，跳过")
+                    continue
+
+                doc_state = session.documents[doc_id]
+                source_pptx = doc_state.source_file
+
+                if not Path(source_pptx).exists():
+                    logger.warning(f"源文件不存在：{source_pptx}，跳过")
+                    continue
+
+                if slide_index not in doc_state.slides:
+                    logger.warning(f"幻灯片不存在: {doc_id}[{slide_index}]，跳过")
+                    continue
+
+                slide_state = doc_state.slides[slide_index]
+
+                # 查找指定版本的 content_snapshot
                 content_snapshot = None
                 for version in slide_state.versions:
-                    if version.version == slide_state.current_version:
+                    if version.version == version_name:
                         if version.content_snapshot:
                             content_snapshot = version.content_snapshot
                         break
@@ -2678,8 +2721,37 @@ async def generate_final_ppt(
                     "source_pptx": source_pptx,
                     "slide_index": slide_index,
                     "content_snapshot": content_snapshot,
-                    "version": slide_state.current_version
+                    "version": version_name
                 })
+        else:
+            # 兼容旧逻辑：收集所有活跃页面
+            logger.info("使用默认逻辑：收集所有活跃页面")
+
+            for doc_id, doc_state in session.documents.items():
+                source_pptx = doc_state.source_file
+                # 验证文件存在
+                if not Path(source_pptx).exists():
+                    logger.warning(f"源文件不存在：{source_pptx}，跳过")
+                    continue
+
+                for slide_index, slide_state in doc_state.slides.items():
+                    if slide_state.status == SlideStatus.DELETED or not slide_state.current_version:
+                        continue  # 跳过已删除页面
+
+                    # 查找当前版本的 content_snapshot
+                    content_snapshot = None
+                    for version in slide_state.versions:
+                        if version.version == slide_state.current_version:
+                            if version.content_snapshot:
+                                content_snapshot = version.content_snapshot
+                            break
+
+                    merged_slides.append({
+                        "source_pptx": source_pptx,
+                        "slide_index": slide_index,
+                        "content_snapshot": content_snapshot,
+                        "version": slide_state.current_version
+                    })
 
         if not merged_slides:
             raise HTTPException(status_code=400, detail="没有可生成的页面")

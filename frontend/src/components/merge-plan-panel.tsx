@@ -4,7 +4,7 @@ import * as React from "react"
 import { useState, useCallback } from "react"
 import { cn } from "@/lib/utils"
 import type { MergePlan, SlidePlanItem, MergeAction, SinglePageResult, PartialMergeResult } from "@/types/merge-plan"
-import { getActionDescription, getSourceLabel, getActionColor, isMergePlan, isSinglePageResult, isPartialMergeResult } from "@/types/merge-plan"
+import { getActionDescription, getSourceLabel, getActionColor, isMergePlan, isSinglePageResult, isPartialMergeResult, parseSlideContent, slideContentToText } from "@/types/merge-plan"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -163,7 +163,11 @@ function PartialMergeResultCard({ result }: { result: any }) {
     <div className="border rounded-lg p-4 bg-white">
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-medium text-gray-900">融合结果</h4>
-        <span className="text-xs text-gray-500">{result.content_relationship}</span>
+        <span className="text-xs text-gray-500">
+          {typeof result.content_relationship === 'string'
+            ? result.content_relationship
+            : result.content_relationship?.type || '融合'}
+        </span>
       </div>
 
       {result.new_slide.title && (
@@ -606,7 +610,11 @@ export function MergePlanPanel({
                   {item.new_content && (
                     <div className="bg-indigo-50 border border-indigo-100 rounded p-2 text-xs text-indigo-800 mt-2">
                       <p className="font-medium mb-1">新内容：</p>
-                      <p className="whitespace-pre-wrap">{item.new_content}</p>
+                      <p className="whitespace-pre-wrap">
+                        {typeof item.new_content === 'string'
+                          ? item.new_content
+                          : slideContentToText(parseSlideContent(item.new_content))}
+                      </p>
                     </div>
                   )}
 
@@ -642,7 +650,7 @@ export function MergePlanPanel({
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleEditClick(idx, item.new_content)}
+                    onClick={() => handleEditClick(idx, typeof item.new_content === 'string' ? item.new_content : slideContentToText(parseSlideContent(item.new_content)))}
                     className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
                     title="编辑此页内容"
                   >

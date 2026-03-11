@@ -25,8 +25,15 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { MergePlan, SlidePlanItem, MergeAction } from "@/types/merge-plan"
-import { getActionDescription, getSourceLabel, getActionColor } from "@/types/merge-plan"
+import { getActionDescription, getSourceLabel, getActionColor, parseSlideContent, slideContentToText } from "@/types/merge-plan"
 import { ScrollArea } from "@/components/ui/scroll-area"
+
+// 辅助函数：获取 new_content 的文本表示
+function getNewContentText(newContent: string | any): string {
+  if (!newContent) return ''
+  if (typeof newContent === 'string') return newContent
+  return slideContentToText(parseSlideContent(newContent))
+}
 
 /**
  * feat-159: 合并结果预览面板
@@ -214,7 +221,7 @@ function SortablePreviewSlide({
               </div>
               {item.new_content && (
                 <p className="text-[10px] text-gray-500 line-clamp-2 max-w-[100px]">
-                  {item.new_content.slice(0, 50)}...
+                  {getNewContentText(item.new_content).slice(0, 50)}...
                 </p>
               )}
             </div>
@@ -331,7 +338,7 @@ export function MergeResultPreview({
       order: idx,
       item,
       thumbnailUrl: undefined, // 后续可从 pptAImageUrls/pptBImageUrls 获取
-      title: item.new_content?.slice(0, 30) || `第 ${idx + 1} 页`
+      title: getNewContentText(item.new_content).slice(0, 30) || `第 ${idx + 1} 页`
     }))
   }, [mergePlan])
 
@@ -547,7 +554,7 @@ export function MergeResultPreview({
                 </div>
                 {previewSlides[currentIndex].item.new_content && (
                   <p className="text-sm text-gray-600 whitespace-pre-wrap">
-                    {previewSlides[currentIndex].item.new_content}
+                    {getNewContentText(previewSlides[currentIndex].item.new_content)}
                   </p>
                 )}
                 {previewSlides[currentIndex].item.reason && (
