@@ -3,76 +3,20 @@
   "last_updated": "2026-03-12",
   "next_task_priority": 185,
   "completed_milestones": [
-    {
-      "name": "基础设施搭建",
-      "summary": "后端 FastAPI、前端 Next.js、Docker 部署",
-      "at": "2026-03-02"
-    },
-    {
-      "name": "核心生成流程",
-      "summary": "文件上传/OCR、LLM 内容生成、PPTX 生成",
-      "at": "2026-03-02"
-    },
-    {
-      "name": "学科增强与自适应",
-      "summary": "英语专属页面、年级自适应、K-12 扩展",
-      "at": "2026-03-03"
-    },
-    {
-      "name": "历史记录与 LLM 配置",
-      "summary": "生成历史、LLM 服务商切换、参数配置",
-      "at": "2026-03-03"
-    },
-    {
-      "name": "PPT 质量优化",
-      "summary": "提示词优化、模板优化、动画效果、点击显示答案",
-      "at": "2026-03-04"
-    },
-    {
-      "name": "学科深度优化",
-      "summary": "提示词引擎、语文/数学/理科/文科/英语专属",
-      "at": "2026-03-04"
-    },
-    {
-      "name": "教学设计科学化",
-      "summary": "认知负荷、布鲁姆分类、情境创设、差异化教学",
-      "at": "2026-03-05"
-    },
-    {
-      "name": "前端优化与修复",
-      "summary": "Dark Mode、交互动画、API 环境变量、进度反馈",
-      "at": "2026-03-05"
-    },
-    {
-      "name": "后端优化与修复",
-      "summary": "JSON 解析、Playwright 测试、E2E 测试",
-      "at": "2026-03-06"
-    },
-    {
-      "name": "SSE 流式反馈",
-      "summary": "SSE 流式生成进度推送",
-      "at": "2026-03-05"
-    },
-    {
-      "name": "/merge 基础测试与修复",
-      "summary": "核心流程测试、多场景测试、错误处理",
-      "at": "2026-03-08"
-    },
-    {
-      "name": "/merge 增强 - Canvas 与提示词",
-      "summary": "Canvas 预览重构、提示词编辑器、AI 合并",
-      "at": "2026-03-09"
-    },
-    {
-      "name": "AI 内容级合并",
-      "summary": "PPT 解析、AI 融合引擎、真实渲染预览、单页编辑",
-      "at": "2026-03-10"
-    },
-    {
-      "name": "PPT 合并增强与版本化预览",
-      "summary": "实时预览生成、累积进度、最终PPT生成、兜底渲染",
-      "at": "2026-03-11"
-    }
+    { "name": "基础设施搭建", "summary": "后端 FastAPI、前端 Next.js、Docker 部署", "at": "2026-03-02" },
+    { "name": "核心生成流程", "summary": "文件上传/OCR、LLM 内容生成、PPTX 生成", "at": "2026-03-02" },
+    { "name": "学科增强与自适应", "summary": "英语专属页面、年级自适应、K-12 扩展", "at": "2026-03-03" },
+    { "name": "历史记录与 LLM 配置", "summary": "生成历史、LLM 服务商切换、参数配置", "at": "2026-03-03" },
+    { "name": "PPT 质量优化", "summary": "提示词优化、模板优化、动画效果、点击显示答案", "at": "2026-03-04" },
+    { "name": "学科深度优化", "summary": "提示词引擎、语文/数学/理科/文科/英语专属", "at": "2026-03-04" },
+    { "name": "教学设计科学化", "summary": "认知负荷、布鲁姆分类、情境创设、差异化教学", "at": "2026-03-05" },
+    { "name": "前端优化与修复", "summary": "Dark Mode、交互动画、API 环境变量、进度反馈", "at": "2026-03-05" },
+    { "name": "后端优化与修复", "summary": "JSON 解析、Playwright 测试、E2E 测试", "at": "2026-03-06" },
+    { "name": "SSE 流式反馈", "summary": "SSE 流式生成进度推送", "at": "2026-03-05" },
+    { "name": "/merge 基础测试与修复", "summary": "核心流程测试、多场景测试、错误处理", "at": "2026-03-08" },
+    { "name": "/merge 增强 - Canvas 与提示词", "summary": "Canvas 预览重构、提示词编辑器、AI 合并", "at": "2026-03-09" },
+    { "name": "AI 内容级合并", "summary": "PPT 解析、AI 融合引擎、真实渲染预览、单页编辑", "at": "2026-03-10" },
+    { "name": "PPT 合并增强与版本化预览", "summary": "实时预览生成、累积进度、最终PPT生成、兜底渲染", "at": "2026-03-11" }
   ],
   "features": [
     {
@@ -103,9 +47,7 @@
       "priority": 172,
       "category": "frontend",
       "description": "阶段二：接入 merge 页面 - SlidePoolPanel 缩略图渲染",
-      "depends_on": [
-        "feat-171"
-      ],
+      "depends_on": ["feat-171"],
       "design_doc": "docs/research-frontend-pptx-rendering.md#六、实施路线",
       "steps": [
         "【设计】确定渲染优先级决策树：LibreOffice 图片 URL → PptxViewJSRenderer → SlideContentRenderer → PptCanvasRenderer → 占位符",
@@ -130,9 +72,7 @@
       "priority": 173,
       "category": "frontend",
       "description": "阶段二：接入 merge 页面 - SlidePreviewPanel 主预览区",
-      "depends_on": [
-        "feat-172"
-      ],
+      "depends_on": ["feat-172"],
       "design_doc": "docs/research-frontend-pptx-rendering.md#六、实施路线",
       "steps": [
         "【分析】SlidePreviewPanel 传入 imageUrl（来自后端 preview_url）",
@@ -153,9 +93,7 @@
       "priority": 174,
       "category": "frontend",
       "description": "阶段三：优化 PptCanvasRenderer - 修复已知问题",
-      "depends_on": [
-        "feat-173"
-      ],
+      "depends_on": ["feat-173"],
       "design_doc": "docs/research-frontend-pptx-rendering.md#六、实施路线",
       "steps": [
         "【问题1】修复颜色格式：补 # 前缀（'000000' → '#000000'）",
@@ -178,9 +116,7 @@
       "priority": 175,
       "category": "frontend",
       "description": "阶段四：新建 SlideContentRenderer - AI 内容美观渲染",
-      "depends_on": [
-        "feat-174"
-      ],
+      "depends_on": ["feat-174"],
       "design_doc": "docs/research-ai-content-rendering.md",
       "steps": [
         "【设计】定义组件接口：SlideContentRendererProps",
@@ -205,9 +141,7 @@
       "priority": 176,
       "category": "frontend",
       "description": "阶段四：集成 SlideContentRenderer 到预览面板",
-      "depends_on": [
-        "feat-175"
-      ],
+      "depends_on": ["feat-175"],
       "design_doc": "docs/research-ai-content-rendering.md#六、与现有代码的集成",
       "steps": [
         "【替换1】SlidePreviewPanel：version.action 存在时，用 SlideContentRenderer 替代 PptCanvasRenderer",
@@ -229,9 +163,7 @@
       "priority": 177,
       "category": "frontend",
       "description": "阶段四：更新渲染优先级决策树",
-      "depends_on": [
-        "feat-176"
-      ],
+      "depends_on": ["feat-176"],
       "design_doc": "docs/research-frontend-pptx-rendering.md#七、渲染优先级决策树",
       "steps": [
         "【实现】渲染优先级逻辑（以 SlidePreviewPanel 为例）：",
@@ -256,9 +188,7 @@
       "priority": 178,
       "category": "test",
       "description": "阶段五：集成测试 - 渲染效果与降级链路",
-      "depends_on": [
-        "feat-177"
-      ],
+      "depends_on": ["feat-177"],
       "design_doc": "docs/research-frontend-pptx-rendering.md#六、实施路线",
       "test_data": {
         "ppt_a": "uploads/generated/test_大龙猫.pptx",
@@ -294,9 +224,7 @@
       "priority": 179,
       "category": "frontend",
       "description": "优化：SlidePoolPanel 传递 PPT file 引用",
-      "depends_on": [
-        "feat-171"
-      ],
+      "depends_on": ["feat-171"],
       "design_doc": "docs/research-frontend-pptx-rendering.md#六、实施路线",
       "steps": [
         "【分析】useMergeSession 返回值添加 ppt_a_file / ppt_b_file 引用",
@@ -341,9 +269,7 @@
       "priority": 181,
       "category": "backend",
       "description": "后端优化：/api/v1/ppt/parse 支持图片 base64 提取",
-      "depends_on": [
-        "feat-180"
-      ],
+      "depends_on": ["feat-180"],
       "design_doc": "docs/research-frontend-pptx-rendering.md#2.1 PptCanvasRenderer",
       "steps": [
         "【问题】PptCanvasRenderer 的图片渲染问题3：'图片仅绘制占位符（灰色矩形 + 🖼 图标），不加载真实图片'",
@@ -368,29 +294,23 @@
       "priority": 182,
       "category": "frontend",
       "description": "兜底方案：PptxViewJSRenderer 降级到 PptCanvasRenderer 的自动切换",
-      "depends_on": [
-        "feat-181"
-      ],
+      "depends_on": ["feat-181"],
       "design_doc": "docs/research-frontend-pptx-rendering.md#五、推荐方案",
       "steps": [
-        "【问题】PptxViewJSRenderer 可能因兼容性（浏览器不支持）或内存问题失败",
-        "【实现1】SlidePoolPanel 中监听 PptxViewJSRenderer 的 onError 事件",
-        "【实现2】错误发生时将 fallbackMode 置为 true",
-        "【实现3】使用三元表达式切换渲染器：fallbackMode ? PptCanvasRenderer : PptxViewJSRenderer",
-        "【实现4】降级时显示提示（使用 Badge 组件 '渲染降级：使用简化模式'）",
-        "【测试1】浏览器控制台禁用 Canvas API（Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', { value: null })）",
-        "【测试2】browser_snapshot 验证降级提示出现",
-        "【测试3】browser_snapshot 验证使用 PptCanvasRenderer 渲染",
-        "【测试4】恢复 Canvas 支持后重新上传，验证正常渲染"
+        "【问题】PptxViewJSRenderer 可能因兼容性或性能问题失败",
+        "【实现】PptxViewJSRenderer 监听 'error' 事件",
+        "【实现】错误发生时自动切换到 PptCanvasRenderer",
+        "【实现】降级时显示提示（'渲染降级：使用简化模式'）",
+        "【验证】强制触发错误，确认降级切换成功"
       ],
       "artifacts": [
-        "frontend/src/components/slide-pool-panel.tsx"
+        "frontend/src/components/pptxviewjs-renderer.tsx",
+        "frontend/src/components/pptxviewjs-preview.tsx"
       ],
       "acceptance_criteria": [
         "PptxViewJSRenderer 失败时自动降级",
         "降级后使用 PptCanvasRenderer 渲染",
-        "用户能看到降级提示",
-        "恢复后可重新使用 PptxViewJSRenderer"
+        "用户能看到降级提示"
       ]
     },
     {
@@ -398,18 +318,15 @@
       "priority": 183,
       "category": "frontend",
       "description": "性能优化：PptxViewJSRenderer 缓存机制",
-      "depends_on": [
-        "feat-182"
-      ],
+      "depends_on": ["feat-182"],
       "design_doc": "docs/research-frontend-pptx-rendering.md#六、实施路线",
       "steps": [
-        "【问题】每次渲染都重新解析 PPTX，20 页幻灯片池性能差",
-        "【实现】使用 WeakMap 缓存 PPTXViewer 实例（无上限，自动垃圾回收）",
-        "【实现】缓存键：`${file.name}_${file.size}`",
-        "【实现】useEffect 检查缓存，存在则复用",
-        "【实现】页面卸载时调用 viewer.destroy() 清理",
-        "【测试】上传 PPT 后快速切换不同页面，记录渲染时间",
-        "【验证】首次渲染 500ms，后续渲染 <100ms"
+        "【问题】每次渲染都重新解析 PPTX，性能差",
+        "【实现】使用 LRU 缓存 PPTXViewer 实例",
+        "【实现】缓存键：`${file.name}_${file.size}_${slideIndex}`",
+        "【实现】缓存上限：20 个 PPTX 实例",
+        "【优化】内存清理：页面卸载时调用 destroy()",
+        "【验证】连续切换页面渲染速度提升"
       ],
       "artifacts": [
         "frontend/src/components/pptxviewjs-renderer.tsx"
@@ -417,7 +334,7 @@
       "acceptance_criteria": [
         "PPTX 实例被缓存复用",
         "连续渲染同一 PPT 速度更快",
-        "内存占用可控（无固定上限）"
+        "内存占用可控"
       ]
     },
     {
@@ -425,9 +342,7 @@
       "priority": 184,
       "category": "frontend",
       "description": "优化：SlideContentRenderer 支持 SlideContent elements 渲染",
-      "depends_on": [
-        "feat-176"
-      ],
+      "depends_on": ["feat-176"],
       "design_doc": "docs/research-ai-content-rendering.md#2.2 后端 content_snapshot 完整格式",
       "steps": [
         "【问题】merge action 返回的格式与普通 action 不同（含 elements[]）",
