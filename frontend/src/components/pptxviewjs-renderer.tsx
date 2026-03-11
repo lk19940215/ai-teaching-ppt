@@ -1,51 +1,84 @@
 "use client"
 
 import * as React from "react"
-import dynamic from 'next/dynamic'
-
-// 动态导入 PPTXViewer，确保只在客户端加载
-const PPTXViewerPromise = import('pptxviewjs').then(mod => mod.PPTXViewer)
 
 /**
- * PptxViewJS Canvas 渲染器组件（feat-208）
- *
- * 功能：
- * - 使用 PptxViewJS 库渲染 PPTX 文件
- * - Canvas 原生渲染（比手动解析更真实）
- * - 内置翻页 API（previousSlide, nextSlide, goToSlide）
- * - 支持缩放和质量控制
- * - 支持缩略图模式
+ * PptxViewJS Canvas 渲染器组件（feat-171）
+ * 使用 PptxViewJS 库渲染 PPTX 文件
  */
 
-// 渲染器配置
 interface PptxViewJSRendererProps {
-  // PPTX 文件（用于前端解析）
   file?: File | null
-  // 当前渲染的页面索引
   slideIndex: number
-  // 画布宽度
   width?: number
-  // 画布高度
   height?: number
-  // 是否选中状态
   isSelected?: boolean
-  // 点击回调
   onClick?: () => void
-  // 渲染质量
   quality?: 'low' | 'medium' | 'high'
-  // 渲染失败回调
   onError?: (error: Error) => void
-  // 加载完成回调
   onLoad?: (slideCount: number) => void
-  // 是否启用缩略图模式
   enableThumbnails?: boolean
-  // 缩放比例
   scale?: number
 }
 
-/**
- * PptxViewJS 渲染器组件
- */
+// 全局加载状态
+type LibState = 'idle' | 'loading' | 'ready' | 'error'
+let libState: LibState = 'idle'
+let PPTXViewerClass: any = null
+const loadCallbacks: Array<(success: boolean) => void> = []
+
+function loadLibrary(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (libState === 'ready' && PPTXViewerClass) {
+      resolve(true)
+      return
+    }
+
+    if (libState === 'loading') {
+      loadCallbacks.push(resolve)
+      return
+    }
+
+    libState = 'loading'
+
+    const loadScript = (src: string): Promise<void> => {
+      return new Promise((res, rej) => {
+        const script = document.createElement('script')
+        script.src = src
+        script.async = true
+        script.onload = () => res()
+        script.onerror = () => rej(new Error(`Failed to load ${src}`))
+        document.head.appendChild(script)
+      })
+    }
+
+    // 顺序加载依赖
+    loadScript('/js/jszip.min.js')
+      .then(() => loadScript('/js/chart.umd.min.js'))
+      .then(() => loadScript('/js/PptxViewJS.min.js'))
+      .then(() => {
+        const win = window as any
+        if (win.PptxViewJS?.PPTXViewer) {
+          PPTXViewerClass = win.PptxViewJS.PPTXViewer
+          libState = 'ready'
+          console.log('[PptxViewJS] 库加载成功')
+          resolve(true)
+          loadCallbacks.forEach(cb => cb(true))
+          loadCallbacks.length = 0
+        } else {
+          throw new Error('PptxViewJS.PPTXViewer not found')
+        }
+      })
+      .catch((err) => {
+        console.error('[PptxViewJS] 库加载失败:', err)
+        libState = 'error'
+        resolve(false)
+        loadCallbacks.forEach(cb => cb(false))
+        loadCallbacks.length = 0
+      })
+  })
+}
+
 export function PptxViewJSRenderer({
   file,
   slideIndex = 0,
@@ -61,111 +94,83 @@ export function PptxViewJSRenderer({
 }: PptxViewJSRendererProps) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const viewerRef = React.useRef<any>(null)
+  const [libReady, setLibReady] = React.useState(libState === 'ready')
   const [isLoaded, setIsLoaded] = React.useState(false)
   const [slideCount, setSlideCount] = React.useState(0)
   const [error, setError] = React.useState<Error | null>(null)
   const [isRendering, setIsRendering] = React.useState(false)
-  const [PPTXViewer, setPPTXViewer] = React.useState<any>(null)
 
-  // 加载 PPTXViewer 库（仅客户端）
+  // 加载库
   React.useEffect(() => {
     if (typeof window === 'undefined') return
-    PPTXViewerPromise.then(mod => setPPTXViewer(() => mod))
+
+    loadLibrary().then(success => {
+      if (success) {
+        setLibReady(true)
+      } else {
+        setError(new Error('pptxviewjs 加载失败'))
+      }
+    })
   }, [])
 
-  // 初始化 PPTXViewer
+  // 初始化 viewer
   React.useEffect(() => {
-    if (!file || !canvasRef.current || !PPTXViewer) return
+    if (!file || !canvasRef.current || !libReady || !PPTXViewerClass) return
 
     let destroyed = false
     const canvas = canvasRef.current
 
-    // 创建 PPTXViewer 实例
-    const options: any = {
+    setIsLoaded(false)
+    setSlideCount(0)
+    setError(null)
+
+    const viewer = new PPTXViewerClass({
       canvas,
-      debug: process.env.NODE_ENV === 'development',
+      debug: true,
       enableThumbnails,
       slideSizeMode: scale ? 'custom' : 'fit',
       backgroundColor: '#ffffff',
-    }
-
-    const viewer = new PPTXViewer(options)
+    })
     viewerRef.current = viewer
 
-    // 事件监听
-    const handleLoaded = () => {
+    const handleLoadComplete = (data: any) => {
       if (destroyed) return
-      const count = viewer.getSlideCount()
+      const count = typeof data === 'number' ? data : (data?.slideCount || 0)
       setSlideCount(count)
       setIsLoaded(true)
       onLoad?.(count)
-      console.log(`[PptxViewJS] 加载完成，共 ${count} 页`)
     }
 
-    const handleError = (...args: unknown[]) => {
+    const handleError = (err: any) => {
       if (destroyed) return
-      const err = args[0] instanceof Error ? args[0] : new Error(String(args[0]))
-      console.error('[PptxViewJS] 加载失败:', err)
-      setError(err)
-      onError?.(err)
-      setIsLoaded(true)
+      const e = err instanceof Error ? err : new Error(String(err))
+      setError(e)
+      onError?.(e)
     }
 
-    viewer.on('loaded', handleLoaded)
+    viewer.on('loadComplete', handleLoadComplete)
     viewer.on('error', handleError)
+    viewer.loadFile(file).catch(handleError)
 
-    // 加载文件
-    const loadPptx = async () => {
-      try {
-        setIsRendering(true)
-        await viewer.loadFile(file)
-        await viewer.renderSlide(slideIndex, canvas, { quality, scale })
-        setIsRendering(false)
-      } catch (err) {
-        handleError(err instanceof Error ? err : new Error('加载失败'))
-        setIsRendering(false)
-      }
-    }
-
-    loadPptx()
-
-    // 清理
     return () => {
       destroyed = true
-      viewer.off('loaded', handleLoaded)
+      viewer.off('loadComplete', handleLoadComplete)
       viewer.off('error', handleError)
       viewer.destroy()
       viewerRef.current = null
     }
-  }, [file]) // 仅当文件变化时重新初始化
+  }, [file, libReady])
 
-  // 切换页面时渲染
+  // 渲染页面
   React.useEffect(() => {
     if (!viewerRef.current || !isLoaded || !canvasRef.current) return
 
-    const renderSlide = async () => {
-      try {
-        setIsRendering(true)
-        const viewer = viewerRef.current!
-        const canvas = canvasRef.current!
-
-        // 使用 goToSlide 跳转到指定页面
-        await viewer.goToSlide(slideIndex, canvas)
-        await viewer.render(canvas, { quality, scale })
-        setIsRendering(false)
-      } catch (err) {
-        console.error('[PptxViewJS] 渲染失败:', err)
-        setError(err instanceof Error ? err : new Error('渲染失败'))
-        onError?.(err instanceof Error ? err : new Error('渲染失败'))
-        setIsRendering(false)
-      }
-    }
-
-    renderSlide()
+    setIsRendering(true)
+    viewerRef.current
+      .renderSlide(slideIndex, canvasRef.current, { quality, scale })
+      .catch((err: any) => setError(err instanceof Error ? err : new Error('渲染失败')))
+      .finally(() => setIsRendering(false))
   }, [slideIndex, isLoaded, quality, scale])
-
-  // 获取当前渲染的 Canvas
-  const currentCanvas = viewerRef.current ? null : canvasRef.current
 
   return (
     <div
@@ -182,21 +187,18 @@ export function PptxViewJSRenderer({
         } ${isSelected ? 'ring-2 ring-indigo-500' : ''}`}
       />
 
-      {/* 加载状态 */}
       {!isLoaded && !error && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
           <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
 
-      {/* 渲染中状态 */}
       {isLoaded && isRendering && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/50 rounded-lg">
           <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
 
-      {/* 错误状态 */}
       {error && (
         <div className="absolute inset-0 flex items-center justify-center bg-red-50 rounded-lg">
           <div className="text-center p-2">
@@ -208,7 +210,6 @@ export function PptxViewJSRenderer({
         </div>
       )}
 
-      {/* 页码标签 */}
       {isLoaded && (
         <div className="absolute bottom-1 left-1 bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded">
           P{slideIndex + 1}/{slideCount}

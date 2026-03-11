@@ -79,6 +79,7 @@
       "id": "feat-171",
       "priority": 171,
       "category": "frontend",
+      "status": "in_progress",
       "description": "阶段一：修复 PptxViewJSRenderer - 核实 API 并修复渲染",
       "design_doc": "docs/research-frontend-pptx-rendering.md#六、实施路线",
       "steps": [
@@ -90,7 +91,9 @@
         "【本地测试】上传 test_大龙猫.pptx 确认渲染成功"
       ],
       "artifacts": [
-        "frontend/src/components/pptxviewjs-renderer.tsx"
+        "frontend/src/components/pptxviewjs-renderer.tsx",
+        "frontend/src/app/layout.tsx",
+        "frontend/public/js/"
       ],
       "acceptance_criteria": [
         "pptxviewjs 正确加载 PPTX 文件",

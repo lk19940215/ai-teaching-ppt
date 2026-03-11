@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import { Header } from '@/components/header'
 
@@ -21,6 +22,10 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className={inter.className}>
+        {/* feat-171: pptxviewjs 依赖 - 使用 afterInteractive 在页面加载后加载 */}
+        <Script src="/js/jszip.min.js" strategy="afterInteractive" />
+        <Script src="/js/chart.umd.min.js" strategy="afterInteractive" />
+        <Script src="/js/PptxViewJS.min.js" strategy="afterInteractive" />
         <div className="min-h-screen bg-gray-50">
           <Header />
           <main className="container mx-auto py-8">
