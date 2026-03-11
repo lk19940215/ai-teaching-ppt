@@ -534,10 +534,16 @@ class PPTGenerator:
         blank_layout = target_prs.slide_layouts[6]
         slide = target_prs.slides.add_slide(blank_layout)
 
-        # 从 snapshot 中提取内容
-        title = snapshot.get("title", "")
-        elements = snapshot.get("elements", [])
-        main_points = snapshot.get("main_points", [])
+        # 适配嵌套格式：content_snapshot 可能是 {action, polished_content: {...}} 形式
+        action = snapshot.get("action", "")
+        if action and action in ("polish", "expand", "rewrite", "extract"):
+            title, content_items = self._extract_content_from_snapshot(snapshot, action)
+            elements = [{"type": "text_body", "content": item} if isinstance(item, str) else item for item in content_items]
+            main_points = []
+        else:
+            title = snapshot.get("title", "")
+            elements = snapshot.get("elements", [])
+            main_points = snapshot.get("main_points", [])
 
         y_position = Inches(0.5)
 

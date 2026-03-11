@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple, Dict, Any
 from dataclasses import dataclass
 from enum import Enum
+import fitz  # PyMuPDF
 
 logger = logging.getLogger(__name__)
 
@@ -275,61 +276,49 @@ class PptToImageConverter:
 
             pdf_path = pdf_files[0]
 
-            # 步骤2：用 pdftoppm (poppler) 转 PNG（支持多页）
-            # pdftoppm 输出格式：prefix-1.png, prefix-2.png, ...
-            png_prefix = temp_pdf_dir / "slide"
+            # 步骤2：用 PyMuPDF 将 PDF 转换为 PNG
+            logger.info(f"使用 PyMuPDF 转换 PDF → PNG：{pdf_path}")
 
-            pdftoppm_cmd = [
-                "pdftoppm",
-                "-png",
-                "-r", "150",  # 150 DPI，高清
-                str(pdf_path),
-                str(png_prefix)
-            ]
+            try:
+                doc = fitz.open(str(pdf_path))
+                total_pages = len(doc)
 
-            logger.info(f"执行 pdftoppm 转换：{' '.join(pdftoppm_cmd)}")
+                for page_idx in range(total_pages):
+                    # 如果指定了页码，只处理指定的页
+                    if pages is not None and page_idx not in pages:
+                        continue
 
-            ppm_result = subprocess.run(
-                pdftoppm_cmd,
-                capture_output=True,
-                text=True,
-                timeout=total_timeout
-            )
+                    page = doc[page_idx]
+                    # 150 DPI 高清渲染
+                    mat = fitz.Matrix(150 / 72, 150 / 72)
+                    pix = page.get_pixmap(matrix=mat)
 
-            if ppm_result.returncode != 0:
-                logger.error(f"pdftoppm 转换失败：{ppm_result.stderr}")
+                    # 保存 PNG
+                    final_name = f"{base_name}_page_{page_idx}.png"
+                    final_path = session_dir / final_name
+                    pix.save(str(final_path))
+
+                    images.append({
+                        "page": page_idx,
+                        "url": f"http://localhost:8000/public/versions/{session_id}/{final_name}",
+                        "path": str(final_path),
+                        "width": pix.width,
+                        "height": pix.height
+                    })
+
+                    logger.debug(f"转换第 {page_idx + 1}/{total_pages} 页完成")
+
+                doc.close()
+                logger.info(f"PyMuPDF 转换完成：生成 {len(images)} 张图片")
+
+            except Exception as e:
+                logger.error(f"PyMuPDF 转换失败：{e}")
                 shutil.rmtree(temp_pdf_dir, ignore_errors=True)
                 return ConversionResult(
                     success=False,
                     images=[],
-                    error=f"pdftoppm 转换失败：{ppm_result.stderr}"
+                    error=f"PDF 转 PNG 失败：{str(e)}"
                 )
-
-            # 收集生成的 PNG 文件
-            # pdftoppm 输出格式：slide-1.png, slide-2.png, ...
-            png_files = sorted(temp_pdf_dir.glob("slide-*.png"))
-
-            logger.info(f"pdftoppm 生成了 {len(png_files)} 个 PNG 文件")
-
-            for idx, png_file in enumerate(png_files):
-                slide_idx = idx  # 0-indexed
-
-                # 如果指定了页码，只处理指定的页
-                if pages is not None and slide_idx not in pages:
-                    continue
-
-                # 移动到最终位置并重命名
-                final_name = f"{base_name}_page_{slide_idx}.png"
-                final_path = session_dir / final_name
-                shutil.move(str(png_file), str(final_path))
-
-                images.append({
-                    "page": slide_idx,
-                    "url": f"http://localhost:8000/public/versions/{session_id}/{final_name}",
-                    "path": str(final_path),
-                    "width": 1920,
-                    "height": 1080
-                })
 
             # 清理临时目录
             shutil.rmtree(temp_pdf_dir, ignore_errors=True)

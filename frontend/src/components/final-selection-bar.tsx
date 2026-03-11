@@ -120,9 +120,9 @@ function DraggableSelectionItem({
 
       {/* 缩略图 */}
       <div className="w-[100px] h-[56px] bg-gray-50 rounded overflow-hidden">
-        {imageUrl ? (
+        {(imageUrl || item.version.preview_url) ? (
           <img
-            src={imageUrl}
+            src={imageUrl || item.version.preview_url}
             alt={item.version.content.title || ''}
             className="w-full h-full object-cover"
           />

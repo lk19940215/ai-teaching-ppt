@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, Body, UploadFile, File, Form, Query, Request
 from starlette.datastructures import UploadFile as StarletteUploadFile
-from starlette.datastructures import UploadFile as StarletteUploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pathlib import Path
 from typing import Optional, AsyncGenerator, List, Dict, Any
@@ -2611,7 +2610,8 @@ async def generate_final_ppt(
     grade: str = Body("6", description="年级"),
     subject: str = Body("general", description="学科"),
     style: str = Body("simple", description="风格"),
-    final_selection: Optional[List[str]] = Body(None, description="最终选择的版本ID列表，如 ['ppt_a_0_v1', 'ppt_b_1_v1']")
+    final_selection: Optional[List[str]] = Body(None, description="最终选择的版本ID列表，如 ['ppt_a_0_v1', 'ppt_b_1_v1']"),
+    content_snapshots: Optional[Dict[str, Any]] = Body(None, description="前端附带的内容快照（用于 merged/AI 处理版本）")
 ):
     """
     基于当前选择的版本生成最终 PPT
@@ -2677,9 +2677,16 @@ async def generate_final_ppt(
 
                 # 处理 merged 类型（融合生成的幻灯片）
                 if doc_id == 'merged':
-                    # 融合幻灯片暂时从 ppt_a 和 ppt_b 的第一个源文件获取
-                    # TODO: 后续需要存储融合幻灯片的独立内容
-                    if 'ppt_a' in session.documents:
+                    # 优先使用前端传来的 content_snapshots
+                    frontend_snapshot = (content_snapshots or {}).get(version_id)
+                    if frontend_snapshot:
+                        merged_slides.append({
+                            "source_pptx": None,
+                            "slide_index": slide_index,
+                            "content_snapshot": frontend_snapshot,
+                            "version": version_name
+                        })
+                    elif 'ppt_a' in session.documents:
                         doc_state = session.documents['ppt_a']
                         source_pptx = doc_state.source_file
                         if Path(source_pptx).exists():
@@ -2716,6 +2723,10 @@ async def generate_final_ppt(
                         if version.content_snapshot:
                             content_snapshot = version.content_snapshot
                         break
+
+                # 如果后端没有 content_snapshot，尝试使用前端传来的
+                if not content_snapshot and content_snapshots and version_id in content_snapshots:
+                    content_snapshot = content_snapshots[version_id]
 
                 merged_slides.append({
                     "source_pptx": source_pptx,

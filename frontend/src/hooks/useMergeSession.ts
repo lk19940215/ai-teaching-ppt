@@ -400,27 +400,28 @@ export function useMergeSession(): UseMergeSessionReturn {
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const dataStr = line.slice(6)
+            let event: any
             try {
-              const event = JSON.parse(dataStr)
-              if (event.type === 'heartbeat') continue
-              if (event.stage === 'error') {
-                throw new Error(event.message || '处理失败')
-              }
-              if (event.stage === 'complete' && event.result) {
-                finalResult = event.result
-              }
-              if (event.stage) {
-                setSession(prev => ({
-                  ...prev,
-                  progress_info: {
-                    stage: event.stage,
-                    message: event.message || '处理中...',
-                    percentage: event.progress || 50,
-                  },
-                }))
-              }
+              event = JSON.parse(dataStr)
             } catch (e) {
-              // 忽略解析错误
+              continue
+            }
+            if (event.type === 'heartbeat') continue
+            if (event.stage === 'error') {
+              throw new Error(event.message || '处理失败')
+            }
+            if (event.stage === 'complete' && event.result) {
+              finalResult = event.result
+            }
+            if (event.stage) {
+              setSession(prev => ({
+                ...prev,
+                progress_info: {
+                  stage: event.stage,
+                  message: event.message || '处理中...',
+                  percentage: event.progress || 50,
+                },
+              }))
             }
           }
         }
@@ -561,27 +562,28 @@ export function useMergeSession(): UseMergeSessionReturn {
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const dataStr = line.slice(6)
+            let event: any
             try {
-              const event = JSON.parse(dataStr)
-              if (event.type === 'heartbeat') continue
-              if (event.stage === 'error') {
-                throw new Error(event.message || '融合失败')
-              }
-              if (event.stage === 'complete' && event.result) {
-                finalResult = event.result
-              }
-              if (event.stage) {
-                setSession(prev => ({
-                  ...prev,
-                  progress_info: {
-                    stage: event.stage,
-                    message: event.message || '处理中...',
-                    percentage: event.progress || 50,
-                  },
-                }))
-              }
+              event = JSON.parse(dataStr)
             } catch (e) {
-              // 忽略解析错误
+              continue
+            }
+            if (event.type === 'heartbeat') continue
+            if (event.stage === 'error') {
+              throw new Error(event.message || '融合失败')
+            }
+            if (event.stage === 'complete' && event.result) {
+              finalResult = event.result
+            }
+            if (event.stage) {
+              setSession(prev => ({
+                ...prev,
+                progress_info: {
+                  stage: event.stage,
+                  message: event.message || '处理中...',
+                  percentage: event.progress || 50,
+                },
+              }))
             }
           }
         }
@@ -727,6 +729,10 @@ export function useMergeSession(): UseMergeSessionReturn {
       throw new Error('会话不存在')
     }
 
+    if (session.session_id.startsWith('local_')) {
+      throw new Error('后端会话创建失败，无法生成最终 PPT。请检查后端服务是否正常运行，然后重新上传文件。')
+    }
+
     setSession(prev => ({
       ...prev,
       is_processing: true,
@@ -738,6 +744,23 @@ export function useMergeSession(): UseMergeSessionReturn {
     }))
 
     try {
+      // 为 merged 和 AI 处理过的版本附带内容快照，确保后端能重建页面
+      const contentSnapshots: Record<string, any> = {}
+      for (const versionId of session.final_selection) {
+        for (const item of Object.values(session.slide_pool)) {
+          const version = item.versions.find(v => v.version_id === versionId)
+          if (version && (item.original_source === 'merge' || version.action)) {
+            contentSnapshots[versionId] = {
+              title: version.content.title,
+              main_points: version.content.main_points,
+              elements: version.content.elements,
+              additional_content: version.content.additional_content,
+            }
+            break
+          }
+        }
+      }
+
       const response = await fetch(`${apiBaseUrl}/api/v1/ppt/generate-final`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -749,6 +772,7 @@ export function useMergeSession(): UseMergeSessionReturn {
           subject: 'general',
           style: 'simple',
           custom_prompt: globalPrompt || undefined,
+          content_snapshots: contentSnapshots,
         }),
       })
 

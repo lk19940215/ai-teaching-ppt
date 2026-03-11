@@ -181,7 +181,7 @@ export function PptCanvasPreview({
         type: 'text_box',
         name: `content-${pageIndex}`,
         position: { x: 50, y: 80, width: 860, height: 400 },
-        text_content: content.map((text: string) => ({ runs: [{ text, font: { size: 18, color: '000000' } }] }))
+        text_content: content.map((text: string) => ({ runs: [{ text, font: { size: 18, color: '#000000' } }] }))
       })
     }
 

@@ -22,6 +22,8 @@ export interface SlideContent {
   main_points?: string[]
   additional_content?: string
   layout_type?: 'title' | 'content' | 'two_column' | 'image_left' | 'image_right'
+  /** 融合结果中的结构化元素列表 */
+  elements?: Array<{ type: string; content: string }>
 }
 
 /**
