@@ -2,5 +2,5 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "完成 feat-178 集成测试：渲染效果与降级链路验证。\n\n测试结果：\n1. ✅ 后端健康检查通过\n2. ✅ /merge 页面导航成功\n3. ✅ 两PPT上传成功（test_大龙猫.pptx + test_模版.pptx）\n4. ✅ 幻灯片池显示6页缩略图\n5. ✅ 主预览区显示真实内容\n6. ✅ 润色操作执行成功，生成v2版本\n7. ✅ AI版本使用SlideContentRenderer渲染（要点模板 + 已润色标记）\n8. ✅ 原始版本使用PptxViewJS渲染（img元素）\n9. ✅ v1/v2版本切换正常\n\n降级链路验证：\n- 原始版本：PptxViewJS → img元素渲染 ✅\n- AI版本：SlideContentRenderer → 要点模板渲染 ✅\n\n注意：\n- 当前测试PPT仅6页，未验证50页性能要求\n- Playwright MCP browser_wait_for 有30秒内建超时限制，需多阶段等待\n\n截图已保存：feat-178-ai-render-v2.png, feat-178-original-v1.png\n\n进度：11/14 done, 0 failed。下一个任务是 feat-185（降级方案）或 feat-186（性能优化）或 feat-187（SlideContent elements 渲染）。"
+  "notes": "完成 feat-189：新建 utils 目录，实现 5 个工具函数。\n\n实现内容：\n1. utils/math_utils.py - sum/sub/mul/div/sqrt 五个工具函数\n2. utils/__init__.py - 导出所有函数\n3. div 函数包含除零检查（抛出 ZeroDivisionError）\n4. sqrt 函数包含负数检查（抛出 ValueError）\n\n验证测试：\n- 所有 5 个函数导入正常\n- 功能测试全部通过（sum/sub/mul/div/sqrt）\n- 错误处理正确（除零、负数平方根）\n\n备注：utils 目录及文件之前已存在并被 git 追踪，本次主要更新 tasks.json 和 tests.json。\n\n下一步：feat-186（PptxViewJSRenderer 缓存机制）- 注意依赖 feat-182 不存在"
 }

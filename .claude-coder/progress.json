@@ -134,6 +134,24 @@
       "taskId": "feat-178",
       "statusAfter": "done",
       "notes": "完成 feat-178 集成测试：渲染效果与降级链路验证。\n\n测试结果：\n1. ✅ 后端健康检查通过\n2. ✅ /merge 页面导航成功\n3. ✅ 两PPT上传成功（test_大龙猫.pptx + test_模版.pptx）\n4. ✅ 幻灯片池显示6页缩略图\n5. ✅ 主预览区显示真实内容\n6. ✅ 润色操作执行成功，生成v2版本\n7. ✅ AI版本使用SlideContentRenderer渲染（要点模板 + 已润色标记）\n8. ✅ 原始版本使用PptxViewJS渲染（img元素）\n9. ✅ v1/v2版本切换正常\n\n降级链路验证：\n- 原始版本：PptxViewJS → img元素渲染 ✅\n- AI版本：SlideContentRenderer → 要点模板渲染 ✅\n\n注意：\n- 当前测试PPT仅6页，未验证50页性能要求\n- Playwright MCP browser_wait_for 有30秒内建超时限制，需多阶段等待\n\n截图已保存：feat-178-ai-render-v2.png, feat-178-original-v1.png\n\n进度：11/14 done, 0 failed。下一个任务是 feat-185（降级方案）或 feat-186（性能优化）或 feat-187（SlideContent elements 渲染）。"
+    },
+    {
+      "session": 3,
+      "timestamp": "2026-03-12T16:52:47.369Z",
+      "result": "success",
+      "cost": 2.9001160000000015,
+      "taskId": "feat-185",
+      "statusAfter": "done",
+      "notes": "完成 feat-185：PptxViewJSRenderer 降级到 PptCanvasRenderer 的自动切换。\n\n实现内容：\n1. SlidePoolPanel：添加 fallbackMode 状态、handlePptxViewJSError 错误回调、降级渲染切换逻辑、Badge 组件显示降级提示（\"降级渲染\"）\n2. SlidePreviewPanel：同样添加完整的降级机制，确保原始版本渲染失败时自动切换到 PptCanvasRenderer（\"渲染降级：使用简化模式\"）\n3. 渲染优先级决策树更新：PptxViewJSRenderer 失败时自动降级\n4. 文件/幻灯片变化时自动重置降级状态\n\n验收测试：\n- TypeScript 编译通过 ✅\n- grep 验证 fallbackMode 状态存在 ✅\n- grep 验证 handlePptxViewJSError 回调存在 ✅\n- grep 验证 Badge 降级提示存在 ✅\n- E2E 测试确认页面正常渲染 ✅\n\n进度：12/14 done, 0 failed。\n\n下一步：feat-186（PptxViewJSRenderer 缓存机制）或 feat-188（SlideContent elements 渲染）"
+    },
+    {
+      "session": 4,
+      "timestamp": "2026-03-12T16:58:16.870Z",
+      "result": "success",
+      "cost": 2.3078570000000003,
+      "taskId": "feat-188",
+      "statusAfter": "done",
+      "notes": "完成 feat-188：SlideContentRenderer 支持 SlideContent elements 渲染。\n\n实现内容：\n1. parseElements 新增 subtitle 类型支持（与后端 content_merger.py 一致）\n2. MergeTemplate 渲染副标题，使用斜体灰色样式\n3. 融合来源标记已正确显示（'融合自 A:P2 + B:P3'）\n\n验收测试：\n- TypeScript 编译通过 ✅\n- grep 验证 subtitle 类型支持 ✅\n- grep 验证融合来源标记存在 ✅\n- 页面加载正常无控制台错误 ✅\n\n进度：13/14 done, 0 failed。\n\n下一步：feat-186（PptxViewJSRenderer 缓存机制）"
     }
   ]
 }
