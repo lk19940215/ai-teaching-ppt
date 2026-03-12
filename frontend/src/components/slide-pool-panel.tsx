@@ -151,7 +151,12 @@ function SlideThumbnail({
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      {/* 缩略图区域 - feat-172: 渲染优先级决策树 */}
+      {/* 渲染优先级决策树（feat-177）：
+          1. LibreOffice 图片 URL → <img>
+          2. 原始版本（无 action）且有 PPT file → PptxViewJSRenderer
+          3. AI 版本（有 action）→ SlideContentRenderer
+          4. 有 content 数据 → PptCanvasRenderer
+          5. 兜底 → 占位符 */}
       <div className="aspect-video bg-gray-50 rounded-t-md overflow-hidden">
         {/* 优先级 1: LibreOffice 图片 URL */}
         {imageUrl ? (
@@ -164,7 +169,7 @@ function SlideThumbnail({
               (e.target as HTMLImageElement).style.display = 'none'
             }}
           />
-        ) : /* 优先级 2: 原始版本用 PptxViewJSRenderer */
+        ) : /* 优先级 2: 原始版本（无 action）且有 PPT file → PptxViewJSRenderer */
         isOriginalVersion && pptFile ? (
           <PptxViewJSRenderer
             file={pptFile}
@@ -173,7 +178,7 @@ function SlideThumbnail({
             height={135}
             quality="low"
           />
-        ) : /* 优先级 3: AI 版本使用 SlideContentRenderer（feat-176）*/
+        ) : /* 优先级 3: AI 版本（有 action）→ SlideContentRenderer */
         isAIVersion && currentVersion?.action && currentVersion?.content ? (
           <SlideContentRenderer
             content={currentVersion.content}
@@ -181,7 +186,7 @@ function SlideThumbnail({
             slide={item}
             size="thumbnail"
           />
-        ) : /* 优先级 4: 兜底用 PptCanvasRenderer */
+        ) : /* 优先级 4: 有 content 数据 → PptCanvasRenderer（优化版）*/
         currentVersion?.content ? (
           <PptCanvasRenderer
             pageData={versionToPageData(currentVersion, item.original_index)}
@@ -189,7 +194,7 @@ function SlideThumbnail({
             height={135}
             quality={0.7}
           />
-        ) : (
+        ) : /* 优先级 5: 兜底 → 占位符 */ (
           <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
             无预览
           </div>

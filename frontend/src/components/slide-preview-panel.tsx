@@ -280,7 +280,12 @@ export function SlidePreviewPanel({
         </div>
       </div>
 
-      {/* 主预览区 - feat-173: 渲染优先级决策树 */}
+      {/* 渲染优先级决策树（feat-177）：
+          1. LibreOffice 图片 URL → <img>
+          2. 原始版本（无 action）且有 PPT file → PptxViewJSRenderer
+          3. AI 版本（有 action）→ SlideContentRenderer
+          4. 有 content 数据 → PptCanvasRenderer
+          5. 兜底 → 占位符 */}
       <div className="flex-1 p-4">
         <div className="aspect-video bg-gray-50 rounded-lg overflow-hidden border">
           {isProcessing ? (
@@ -298,7 +303,7 @@ export function SlidePreviewPanel({
                 </div>
               )}
             </div>
-          ) : /* 优先级 1: 有 imageUrl（LibreOffice 预览图）*/
+          ) : /* 优先级 1: LibreOffice 图片 URL */
           imageUrl ? (
             <img
               src={imageUrl}
@@ -318,7 +323,7 @@ export function SlidePreviewPanel({
               height={450}
               quality="high"
             />
-          ) : /* 优先级 3: AI 版本（有 action）→ SlideContentRenderer（feat-176）*/
+          ) : /* 优先级 3: AI 版本（有 action）→ SlideContentRenderer */
           version?.action && version.content ? (
             <SlideContentRenderer
               content={version.content}
@@ -326,7 +331,7 @@ export function SlidePreviewPanel({
               slide={slide}
               size="preview"
             />
-          ) : /* 优先级 4: 兜底 → PptCanvasRenderer */
+          ) : /* 优先级 4: 有 content 数据 → PptCanvasRenderer（优化版）*/
           version?.content ? (
             <PptCanvasRenderer
               pageData={contentToPageData(version.content, slide.original_index)}
@@ -334,7 +339,7 @@ export function SlidePreviewPanel({
               height={450}
               quality={1.0}
             />
-          ) : (
+          ) : /* 优先级 5: 兜底 → 占位符 */ (
             <div className="w-full h-full flex items-center justify-center text-gray-400">
               无预览
             </div>

@@ -236,6 +236,7 @@
       "id": "feat-177",
       "priority": 177,
       "category": "frontend",
+      "status": "done",
       "description": "阶段四：更新渲染优先级决策树",
       "depends_on": [
         "feat-176"

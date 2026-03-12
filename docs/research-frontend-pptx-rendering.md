@@ -225,6 +225,12 @@ previewer.preview(buffer)
 
 ## 七、渲染优先级决策树
 
+> **实现状态**：✅ 已完成（feat-177）
+>
+> 实现位置：
+> - `frontend/src/components/slide-preview-panel.tsx` (主预览区)
+> - `frontend/src/components/slide-pool-panel.tsx` (缩略图)
+
 ```
 渲染请求
     ↓
@@ -234,10 +240,16 @@ previewer.preview(buffer)
 有原始 PPTX 文件引用？
     ├── 是 → PptxViewJSRenderer（前端 Canvas 渲染）
     └── 否 ↓
+是 AI 版本（有 action）？
+    ├── 是 → SlideContentRenderer（React 模板渲染）
+    └── 否 ↓
 有解析后的 EnhancedPptPageData？
     ├── 是 → PptCanvasRenderer（优化版）
-    └── 否 ↓
-有 SlideContent（AI 内容）？
-    ├── 是 → SlideContentRenderer（React 模板渲染，见文档二）
     └── 否 → 占位符（页码 + 灰色背景）
 ```
+
+**降级链路完整性**：
+1. ✅ LibreOffice 图片 → 直接显示
+2. ✅ 原始版本（无 action）→ PptxViewJSRenderer
+3. ✅ AI 版本（有 action）→ SlideContentRenderer
+4. ✅ 兜底 → PptCanvasRenderer / 占位符
