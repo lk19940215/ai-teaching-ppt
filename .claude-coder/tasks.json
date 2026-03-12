@@ -183,7 +183,7 @@
       "id": "feat-175",
       "priority": 175,
       "category": "frontend",
-      "status": "pending",
+      "status": "testing",
       "description": "阶段四：新建 SlideContentRenderer - AI 内容美观渲染",
       "depends_on": [
         "feat-174"
@@ -303,7 +303,7 @@
       "id": "feat-179",
       "priority": 179,
       "category": "frontend",
-      "status": "pending",
+      "status": "done",
       "description": "优化：SlidePoolPanel 传递 PPT file 引用",
       "depends_on": [
         "feat-171"
