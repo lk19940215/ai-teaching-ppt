@@ -37,6 +37,7 @@ import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/ppt-ca
 import { PptxViewJSRenderer } from "@/components/pptxviewjs-renderer"
 import { SlideContentRenderer } from "@/components/slide-content-renderer"
 import type { SlideContent } from "@/types/merge-plan"
+import { usePptxFallback, getPptFile } from "@/hooks/use-pptx-fallback"
 
 export interface SlidePreviewPanelProps {
   /** 当前幻灯片 */
@@ -232,8 +233,16 @@ export function SlidePreviewPanel({
   // 当前选中的操作
   const [selectedAction, setSelectedAction] = React.useState<SlideAction | null>(null)
 
+  // 优先使用外部传入的 URL，其次使用版本中的 preview_url
+  const imageUrl = externalImageUrl || version?.preview_url
+
+  // feat-185: 获取对应的 PPT 文件
+  const pptFile = getPptFile(slide?.original_source, fileA, fileB)
+
   // feat-185: PptxViewJSRenderer 降级状态
-  const [fallbackMode, setFallbackMode] = useState(false)
+  const { fallbackMode, handlePptxViewJSError } = usePptxFallback({
+    resetDeps: [pptFile, slide?.slide_id]
+  })
 
   // 处理操作点击 - 设置选中的操作并注入模板
   const handleActionClick = (action: SlideAction) => {
@@ -251,24 +260,6 @@ export function SlidePreviewPanel({
       onProcess(selectedAction, globalPrompt || undefined)
     }
   }
-
-  // 优先使用外部传入的 URL，其次使用版本中的 preview_url
-  const imageUrl = externalImageUrl || version?.preview_url
-
-  // feat-185: 获取对应的 PPT 文件
-  const pptFile = slide?.original_source === 'ppt_a' ? fileA :
-                  slide?.original_source === 'ppt_b' ? fileB : null
-
-  // feat-185: PptxViewJSRenderer 错误处理，触发降级
-  const handlePptxViewJSError = useCallback((error: Error) => {
-    console.warn('[SlidePreviewPanel] PptxViewJSRenderer 渲染失败，降级到 PptCanvasRenderer:', error.message)
-    setFallbackMode(true)
-  }, [])
-
-  // feat-185: 重置降级状态（当文件或幻灯片变化时）
-  React.useEffect(() => {
-    setFallbackMode(false)
-  }, [pptFile, slide?.slide_id])
 
   // 无幻灯片时的提示
   if (!slide || !version) {

@@ -30,6 +30,7 @@ import {
 import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/ppt-canvas-renderer"
 import { PptxViewJSRenderer } from "@/components/pptxviewjs-renderer"
 import { SlideContentRenderer } from "@/components/slide-content-renderer"
+import { usePptxFallback, getPptFile } from "@/hooks/use-pptx-fallback"
 
 export interface SlidePoolPanelProps {
   /** 所有幻灯片池项 */
@@ -142,9 +143,6 @@ function SlideThumbnail({
     item.original_source === 'merge' ? 'bg-purple-100 text-purple-700' :
     'bg-amber-100 text-amber-700'
 
-  // feat-185: PptxViewJSRenderer 降级状态
-  const [fallbackMode, setFallbackMode] = useState(false)
-
   // 优先使用外部传入的 URL（LibreOffice 生成的预览图）
   const imageUrl = externalImageUrl || currentVersion?.preview_url
 
@@ -152,22 +150,15 @@ function SlideThumbnail({
   const isOriginalVersion = !currentVersion?.action && item.versions.length === 1
 
   // 获取对应的 PPT 文件
-  const pptFile = item.original_source === 'ppt_a' ? fileA :
-                  item.original_source === 'ppt_b' ? fileB : null
+  const pptFile = getPptFile(item.original_source, fileA, fileB)
+
+  // feat-185: PptxViewJSRenderer 降级状态
+  const { fallbackMode, handlePptxViewJSError } = usePptxFallback({
+    resetDeps: [pptFile, item.slide_id]
+  })
 
   // 判断是否为 AI 版本（有 action 或版本号 > 1）
   const isAIVersion = currentVersion?.action || item.versions.length > 1
-
-  // feat-185: PptxViewJSRenderer 错误处理，触发降级
-  const handlePptxViewJSError = useCallback((error: Error) => {
-    console.warn('[SlideThumbnail] PptxViewJSRenderer 渲染失败，降级到 PptCanvasRenderer:', error.message)
-    setFallbackMode(true)
-  }, [])
-
-  // 重置降级状态（当文件变化时）
-  React.useEffect(() => {
-    setFallbackMode(false)
-  }, [pptFile, item.slide_id])
 
   return (
     <div
