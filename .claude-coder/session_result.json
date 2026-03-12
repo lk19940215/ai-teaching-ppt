@@ -1,6 +1,6 @@
 {
   "session_result": "success",
-  "status_before": "pending",
+  "status_before": "testing",
   "status_after": "done",
-  "notes": "feat-180 任务完成。\n\n修改内容：\n1. 分析后发现后端 API 已支持 extract_enhanced=true 参数，返回完整的 text_content runs 数据\n2. 问题在于 SlidePreviewPanel 的 contentToPageData 函数没有使用 version.shapes，而是从简化的 content 构造数据\n3. 重构 contentToPageData 为 versionToPageData，优先使用 version.shapes（来自后端增强模式），与 SlidePoolPanel 保持一致\n\n验证结果：\n- API 返回 text_content 包含 runs 数组（font/color/size/alignment）\n- 前端渲染器可正确使用增强数据进行精确渲染\n- TypeScript 类型检查通过\n- 所有 4 个测试用例通过\n\n给下一个会话的提醒：\n- feat-181 依赖 feat-180，现在可以开始 feat-181（图片 base64 提取）\n- 后端 API 已完整支持增强模式，前端已正确对接\n- SlidePoolPanel 和 SlidePreviewPanel 都使用 versionToPageData 函数\n\n进度：6/14 done"
+  "notes": "验证并完成 feat-175、feat-176、feat-177、feat-181 四个渲染优化任务。feat-175 SlideContentRenderer 组件已完成，支持 BulletTemplate/KnowledgeTemplate/MergeTemplate/ContentTemplate 四种模板和缩略图模式。feat-176 集成到 SlidePreviewPanel 和 SlidePoolPanel。feat-177 渲染优先级决策树已实现（LibreOffice URL → PptxViewJSRenderer → SlideContentRenderer → PptCanvasRenderer）。feat-181 后端图片 base64 提取 API 已验证通过。E2E 测试验证：上传 PPT → 润色 → v2 版本正确使用 SlideContentRenderer 渲染，显示要点模板和已润色标签。下一个任务是 feat-178（集成测试）或 feat-182（降级方案）。"
 }

@@ -264,7 +264,7 @@
       "id": "feat-178",
       "priority": 178,
       "category": "test",
-      "status": "pending",
+      "status": "done",
       "description": "阶段五：集成测试 - 渲染效果与降级链路",
       "depends_on": [
         "feat-177"
@@ -377,8 +377,8 @@
       ]
     },
     {
-      "id": "feat-182",
-      "priority": 182,
+      "id": "feat-185",
+      "priority": 185,
       "category": "frontend",
       "status": "pending",
       "description": "兜底方案：PptxViewJSRenderer 降级到 PptCanvasRenderer 的自动切换",
@@ -408,8 +408,8 @@
       ]
     },
     {
-      "id": "feat-183",
-      "priority": 183,
+      "id": "feat-186",
+      "priority": 186,
       "category": "frontend",
       "status": "pending",
       "description": "性能优化：PptxViewJSRenderer 缓存机制",
@@ -436,8 +436,8 @@
       ]
     },
     {
-      "id": "feat-184",
-      "priority": 184,
+      "id": "feat-188",
+      "priority": 188,
       "category": "frontend",
       "status": "pending",
       "description": "优化：SlideContentRenderer 支持 SlideContent elements 渲染",
