@@ -183,6 +183,7 @@
       "id": "feat-175",
       "priority": 175,
       "category": "frontend",
+      "status": "done",
       "description": "阶段四：新建 SlideContentRenderer - AI 内容美观渲染",
       "depends_on": [
         "feat-174"
