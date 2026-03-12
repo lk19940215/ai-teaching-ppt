@@ -59,8 +59,24 @@ export interface SlidePoolPanelProps {
 
 /**
  * 将 SlideVersion 内容转换为 EnhancedPptPageData
+ * feat-180: 使用保存的 shapes 和 layout 数据实现精确渲染
  */
 function versionToPageData(version: SlideVersion, pageIndex: number): EnhancedPptPageData {
+  // feat-180: 优先使用保存的 shapes 数据（来自后端增强模式）
+  if (version.shapes && version.shapes.length > 0) {
+    return {
+      index: pageIndex,
+      title: version.content.title || '',
+      content: (version.content.main_points || []).map(text => ({
+        type: 'text' as const,
+        text,
+      })),
+      shapes: version.shapes,
+      layout: version.layout || { width: 960, height: 540 },
+    }
+  }
+
+  // 降级：从 content 构造简化的 shapes（旧逻辑）
   const mainPoints = version.content.main_points || []
   const additionalContent = version.content.additional_content || ''
 
@@ -89,9 +105,10 @@ function versionToPageData(version: SlideVersion, pageIndex: number): EnhancedPp
 /**
  * 单个幻灯片缩略图
  * feat-172: 渲染优先级决策树
+ * feat-182: PptxViewJSRenderer 降级到 PptCanvasRenderer 的自动切换
  * 1. LibreOffice 图片 URL → <img>
- * 2. 原始版本（v1，无 action）且有 PPT file → PptxViewJSRenderer
- * 3. AI 版本（v2+，有 action）→ 占位符（灰色块 + action 标签）
+ * 2. 原始版本（v1，无 action）且有 PPT file → PptxViewJSRenderer（失败时降级）
+ * 3. AI 版本（v2+，有 action）→ SlideContentRenderer
  * 4. 兜底 → PptCanvasRenderer
  */
 function SlideThumbnail({
@@ -124,6 +141,9 @@ function SlideThumbnail({
     item.original_source === 'merge' ? 'bg-purple-100 text-purple-700' :
     'bg-amber-100 text-amber-700'
 
+  // feat-182: PptxViewJSRenderer 降级状态
+  const [fallbackMode, setFallbackMode] = useState(false)
+
   // 优先使用外部传入的 URL（LibreOffice 生成的预览图）
   const imageUrl = externalImageUrl || currentVersion?.preview_url
 
@@ -136,6 +156,17 @@ function SlideThumbnail({
 
   // 判断是否为 AI 版本（有 action 或版本号 > 1）
   const isAIVersion = currentVersion?.action || item.versions.length > 1
+
+  // feat-182: PptxViewJSRenderer 错误处理，触发降级
+  const handlePptxViewJSError = useCallback(() => {
+    console.warn('[SlideThumbnail] PptxViewJSRenderer 渲染失败，降级到 PptCanvasRenderer')
+    setFallbackMode(true)
+  }, [])
+
+  // 重置降级状态（当文件变化时）
+  React.useEffect(() => {
+    setFallbackMode(false)
+  }, [pptFile, item.slide_id])
 
   return (
     <div
@@ -151,9 +182,9 @@ function SlideThumbnail({
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      {/* 渲染优先级决策树（feat-177）：
+      {/* 渲染优先级决策树（feat-177, feat-182）：
           1. LibreOffice 图片 URL → <img>
-          2. 原始版本（无 action）且有 PPT file → PptxViewJSRenderer
+          2. 原始版本（无 action）且有 PPT file → PptxViewJSRenderer（降级时用 PptCanvasRenderer）
           3. AI 版本（有 action）→ SlideContentRenderer
           4. 有 content 数据 → PptCanvasRenderer
           5. 兜底 → 占位符 */}
@@ -169,15 +200,28 @@ function SlideThumbnail({
               (e.target as HTMLImageElement).style.display = 'none'
             }}
           />
-        ) : /* 优先级 2: 原始版本（无 action）且有 PPT file → PptxViewJSRenderer */
+        ) : /* 优先级 2: 原始版本（无 action）且有 PPT file */
         isOriginalVersion && pptFile ? (
-          <PptxViewJSRenderer
-            file={pptFile}
-            slideIndex={item.original_index}
-            width={240}
-            height={135}
-            quality="low"
-          />
+          // feat-182: 根据 fallbackMode 选择渲染器
+          fallbackMode ? (
+            // 降级模式：使用 PptCanvasRenderer
+            <PptCanvasRenderer
+              pageData={versionToPageData(currentVersion!, item.original_index)}
+              width={240}
+              height={135}
+              quality={0.7}
+            />
+          ) : (
+            // 正常模式：使用 PptxViewJSRenderer，监听错误
+            <PptxViewJSRenderer
+              file={pptFile}
+              slideIndex={item.original_index}
+              width={240}
+              height={135}
+              quality="low"
+              onError={handlePptxViewJSError}
+            />
+          )
         ) : /* 优先级 3: AI 版本（有 action）→ SlideContentRenderer */
         isAIVersion && currentVersion?.action && currentVersion?.content ? (
           <SlideContentRenderer
@@ -200,6 +244,13 @@ function SlideThumbnail({
           </div>
         )}
       </div>
+
+      {/* feat-182: 降级提示 */}
+      {fallbackMode && (
+        <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[9px] rounded shadow z-10">
+          降级渲染
+        </div>
+      )}
 
       {/* 信息栏 */}
       <div className="px-2 py-1.5">

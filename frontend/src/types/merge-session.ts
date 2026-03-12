@@ -33,6 +33,10 @@ export interface SlideVersion {
   action?: SlideAction
   /** 结构化内容 */
   content: SlideContent
+  /** feat-180: 增强模式的 shapes 数据，用于 PptCanvasRenderer 降级渲染 */
+  shapes?: OriginalSlideData['shapes']
+  /** feat-180: 页面布局信息 */
+  layout?: { width: number; height: number }
   /** 预览图URL */
   preview_url?: string
   /** 创建时间戳 */
@@ -61,12 +65,36 @@ export interface SlidePoolItem {
   display_title?: string
 }
 
-/** 原始幻灯片数据 */
+/** 原始幻灯片数据 - feat-180: 支持增强模式返回的完整数据 */
 export interface OriginalSlideData {
   index: number
   title: string
   content: string[]
-  shapes?: any[]
+  /** feat-180: 增强模式返回的 shapes 数据，包含 text_content runs */
+  shapes?: Array<{
+    type: string
+    name: string
+    position: { x: number; y: number; width: number; height: number }
+    position_relative?: { x: number; y: number; width: number; height: number }
+    image_base64?: string
+    table_data?: string[][]
+    text_content?: Array<{
+      runs: Array<{
+        text: string
+        font: {
+          name?: string
+          size?: number
+          color?: string
+          bold?: boolean
+          italic?: boolean
+          underline?: boolean
+        }
+      }>
+      alignment?: string
+    }>
+  }>
+  /** 页面布局信息 */
+  layout?: { width: number; height: number }
   has_complex_elements?: boolean
   complex_element_types?: string[]
 }
@@ -139,6 +167,7 @@ export interface SlidePoolGroup {
 
 /**
  * 创建初始版本的幻灯片池项
+ * feat-180: 保存 shapes 和 layout 数据用于增强渲染
  */
 export function createInitialSlidePoolItem(
   source: 'ppt_a' | 'ppt_b',
@@ -160,6 +189,9 @@ export function createInitialSlidePoolItem(
         title: slideData.title,
         main_points: slideData.content,
       },
+      // feat-180: 保存增强模式的 shapes 和 layout 数据
+      shapes: slideData.shapes,
+      layout: slideData.layout,
       created_at: Date.now(),
     }],
     current_version: versionId,

@@ -303,6 +303,7 @@
       "id": "feat-179",
       "priority": 179,
       "category": "frontend",
+      "status": "done",
       "description": "优化：SlidePoolPanel 传递 PPT file 引用",
       "depends_on": [
         "feat-171"
@@ -327,6 +328,7 @@
       "id": "feat-180",
       "priority": 180,
       "category": "backend",
+      "status": "done",
       "description": "后端优化：/api/v1/ppt/parse 增强返回完整 EnhancedPptPageData",
       "design_doc": "docs/research-frontend-pptx-rendering.md#二、项目现有前端渲染组件",
       "steps": [
@@ -350,6 +352,7 @@
       "id": "feat-181",
       "priority": 181,
       "category": "backend",
+      "status": "done",
       "description": "后端优化：/api/v1/ppt/parse 支持图片 base64 提取",
       "depends_on": [
         "feat-180"
@@ -377,6 +380,7 @@
       "id": "feat-182",
       "priority": 182,
       "category": "frontend",
+      "status": "done",
       "description": "兜底方案：PptxViewJSRenderer 降级到 PptCanvasRenderer 的自动切换",
       "depends_on": [
         "feat-181"
@@ -407,6 +411,7 @@
       "id": "feat-183",
       "priority": 183,
       "category": "frontend",
+      "status": "done",
       "description": "性能优化：PptxViewJSRenderer 缓存机制",
       "depends_on": [
         "feat-182"
@@ -434,6 +439,7 @@
       "id": "feat-184",
       "priority": 184,
       "category": "frontend",
+      "status": "done",
       "description": "优化：SlideContentRenderer 支持 SlideContent elements 渲染",
       "depends_on": [
         "feat-176"

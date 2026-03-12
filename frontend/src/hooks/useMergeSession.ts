@@ -86,10 +86,13 @@ export interface UseMergeSessionReturn {
 
 /**
  * 解析 PPT 文件获取页面数据
+ * feat-180: 启用增强模式，获取完整的 text_content runs 用于 PptCanvasRenderer 渲染
  */
 async function parsePptFile(file: File): Promise<OriginalSlideData[]> {
   const formData = new FormData()
   formData.append('file', file)
+  formData.append('extract_enhanced', 'true')  // feat-180: 启用增强模式
+  formData.append('max_image_size', '512')     // 限制图片尺寸
 
   const response = await fetch(`${apiBaseUrl}/api/v1/ppt/parse`, {
     method: 'POST',
@@ -111,6 +114,7 @@ async function parsePptFile(file: File): Promise<OriginalSlideData[]> {
     title: page.title || '',
     content: page.content || [],
     shapes: page.shapes,
+    layout: page.layout,  // feat-180: 保存布局信息
     has_complex_elements: page.has_complex_elements,
     complex_element_types: page.complex_element_types,
   }))

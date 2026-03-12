@@ -5,6 +5,7 @@ import * as React from "react"
 /**
  * PptxViewJS Canvas 渲染器组件（feat-171）
  * 使用 PptxViewJS 库渲染 PPTX 文件
+ * feat-183: PPTXViewer 实例缓存机制，提升多页切换性能
  */
 
 interface PptxViewJSRendererProps {
@@ -26,6 +27,50 @@ type LibState = 'idle' | 'loading' | 'ready' | 'error'
 let libState: LibState = 'idle'
 let PPTXViewerClass: any = null
 const loadCallbacks: Array<(success: boolean) => void> = []
+
+// feat-183: 全局 PPTXViewer 缓存（使用 Map，因为 WeakMap 键必须是对象）
+const viewerCache = new Map<string, { viewer: any; slideCount: number }>()
+const MAX_CACHE_SIZE = 10 // 最多缓存 10 个 PPTX 实例
+
+/**
+ * 生成缓存键
+ */
+function getCacheKey(file: File): string {
+  return `${file.name}_${file.size}`
+}
+
+/**
+ * 从缓存获取 viewer
+ */
+function getCachedViewer(file: File): { viewer: any; slideCount: number } | null {
+  const key = getCacheKey(file)
+  return viewerCache.get(key) || null
+}
+
+/**
+ * 添加 viewer 到缓存
+ */
+function setCachedViewer(file: File, viewer: any, slideCount: number): void {
+  const key = getCacheKey(file)
+
+  // 如果缓存已满，移除最旧的条目
+  if (viewerCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = viewerCache.keys().next().value
+    if (firstKey) {
+      const oldEntry = viewerCache.get(firstKey)
+      if (oldEntry?.viewer) {
+        try {
+          oldEntry.viewer.destroy()
+        } catch (e) {
+          console.warn('[PptxViewJS] 销毁旧缓存实例失败:', e)
+        }
+      }
+      viewerCache.delete(firstKey)
+    }
+  }
+
+  viewerCache.set(key, { viewer, slideCount })
+}
 
 function loadLibrary(): Promise<boolean> {
   return new Promise((resolve) => {
@@ -121,7 +166,7 @@ export function PptxViewJSRenderer({
     })
   }, [])
 
-  // 初始化 viewer
+  // feat-183: 初始化 viewer（带缓存）
   React.useEffect(() => {
     if (!file || !canvasRef.current || !libReady || !PPTXViewerClass) return
 
@@ -129,9 +174,21 @@ export function PptxViewJSRenderer({
     const canvas = canvasRef.current
 
     setIsLoaded(false)
-    setSlideCount(0)
     setError(null)
 
+    // feat-183: 检查缓存
+    const cached = getCachedViewer(file)
+    if (cached) {
+      console.log('[PptxViewJS] 使用缓存的 viewer:', file.name)
+      viewerRef.current = cached.viewer
+      setSlideCount(cached.slideCount)
+      setIsLoaded(true)
+      onLoad?.(cached.slideCount)
+      return
+    }
+
+    // 创建新的 viewer
+    setSlideCount(0)
     const viewer = new PPTXViewerClass({
       canvas,
       debug: true,
@@ -147,6 +204,9 @@ export function PptxViewJSRenderer({
       setSlideCount(count)
       setIsLoaded(true)
       onLoad?.(count)
+
+      // feat-183: 缓存加载成功的 viewer
+      setCachedViewer(file, viewer, count)
     }
 
     const handleError = (err: any) => {
@@ -164,7 +224,8 @@ export function PptxViewJSRenderer({
       destroyed = true
       viewer.off('loadComplete', handleLoadComplete)
       viewer.off('error', handleError)
-      viewer.destroy()
+      // feat-183: 不再卸载时销毁，让缓存管理
+      // viewer.destroy()
       viewerRef.current = null
     }
   }, [file, libReady])
