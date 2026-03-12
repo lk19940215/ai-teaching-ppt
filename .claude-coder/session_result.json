@@ -1,6 +1,6 @@
 {
   "session_result": "success",
-  "status_before": "N/A",
-  "status_after": "N/A",
-  "notes": "追加了 6 个任务（feat-185~190）：创建 utils 目录并实现 5 个 TypeScript 数学工具函数（sum, sub, mul, div, sqrt）。任务按函数拆分，形成线性依赖链（feat-185→186→187→188→189→190）。div 和 sqrt 函数包含错误处理（除零、负数）。"
+  "status_before": "pending",
+  "status_after": "done",
+  "notes": "完成 feat-185: 创建 frontend/src/utils/ 目录，实现 sum(a: number, b: number): number 加法函数。包含 math.ts 实现和 index.ts 统一导出。TypeScript 编译通过。后续任务 feat-186 (sub) 依赖此任务。"
 }

@@ -1,0 +1,13 @@
+{
+  "sessions": [
+    {
+      "session": 1,
+      "timestamp": "2026-03-12T11:04:52.061Z",
+      "result": "success",
+      "cost": 0.9146730000000001,
+      "taskId": "feat-185",
+      "statusAfter": "done",
+      "notes": "完成 feat-185: 创建 frontend/src/utils/ 目录，实现 sum(a: number, b: number): number 加法函数。包含 math.ts 实现和 index.ts 统一导出。TypeScript 编译通过。后续任务 feat-186 (sub) 依赖此任务。"
+    }
+  ]
+}

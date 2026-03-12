@@ -1,7 +1,7 @@
 {
   "project": "ai-teaching-ppt",
   "last_updated": "2026-03-12",
-  "next_task_priority": 191,
+  "next_task_priority": 187,
   "completed_milestones": [
     {
       "name": "基础设施搭建",
@@ -452,120 +452,49 @@
       "id": "feat-185",
       "priority": 185,
       "category": "frontend",
-      "description": "创建 utils 目录并实现 sum 加法函数",
+      "description": "Utils 工具函数：实现 sub 和 mul 数学函数",
+      "status": "pending",
+      "depends_on": [],
       "steps": [
-        "创建项目根目录 utils/ 目录",
-        "创建 utils/sum.ts 文件，实现加法函数：function sum(a: number, b: number): number",
-        "创建 utils/index.ts 作为统一导出入口，先导出 sum",
-        "验证：cd /Users/longkuo/Desktop/AI/ai-teaching-ppt && ls -la utils/ && grep -q 'sum' utils/index.ts && echo 'pass'"
+        "【实现】在 frontend/src/utils/math.ts 中添加 sub(a, b) 函数：返回 a - b",
+        "【实现】在 frontend/src/utils/math.ts 中添加 mul(a, b) 函数：返回 a * b",
+        "【更新】在 frontend/src/utils/index.ts 中导出新函数",
+        "【验证】pnpm tsc --noEmit 无报错"
       ],
       "artifacts": [
-        "utils/index.ts",
-        "utils/sum.ts"
+        "frontend/src/utils/math.ts",
+        "frontend/src/utils/index.ts"
       ],
-      "status": "pending"
+      "acceptance_criteria": [
+        "sub 和 mul 函数正确实现",
+        "TypeScript 类型定义完整",
+        "编译无错误"
+      ]
     },
     {
       "id": "feat-186",
       "priority": 186,
       "category": "frontend",
-      "description": "实现 sub 减法函数",
+      "description": "Utils 工具函数：实现 div 和 sqrt 数学函数（含边界处理）",
+      "status": "pending",
       "depends_on": [
         "feat-185"
       ],
       "steps": [
-        "创建 utils/sub.ts 文件",
-        "实现减法函数：function sub(a: number, b: number): number",
-        "更新 utils/index.ts 导出 sub",
-        "验证：grep -q 'export.*sub' utils/index.ts && grep -q 'function sub' utils/sub.ts && echo 'pass'"
+        "【实现】在 frontend/src/utils/math.ts 中添加 div(a, b) 函数：返回 a / b，除零时返回 null",
+        "【实现】在 frontend/src/utils/math.ts 中添加 sqrt(n) 函数：返回平方根，负数时返回 null",
+        "【更新】在 frontend/src/utils/index.ts 中导出新函数",
+        "【验证】pnpm tsc --noEmit 无报错"
       ],
       "artifacts": [
-        "utils/sub.ts",
-        "utils/index.ts"
+        "frontend/src/utils/math.ts",
+        "frontend/src/utils/index.ts"
       ],
-      "status": "pending"
-    },
-    {
-      "id": "feat-187",
-      "priority": 187,
-      "category": "frontend",
-      "description": "实现 mul 乘法函数",
-      "depends_on": [
-        "feat-186"
-      ],
-      "steps": [
-        "创建 utils/mul.ts 文件",
-        "实现乘法函数：function mul(a: number, b: number): number",
-        "更新 utils/index.ts 导出 mul",
-        "验证：grep -q 'export.*mul' utils/index.ts && grep -q 'function mul' utils/mul.ts && echo 'pass'"
-      ],
-      "artifacts": [
-        "utils/mul.ts",
-        "utils/index.ts"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "feat-188",
-      "priority": 188,
-      "category": "frontend",
-      "description": "实现 div 除法函数（含除零处理）",
-      "depends_on": [
-        "feat-187"
-      ],
-      "steps": [
-        "创建 utils/div.ts 文件",
-        "实现除法函数：function div(a: number, b: number): number",
-        "错误处理：除数为 0 时抛出 Error('Division by zero')",
-        "更新 utils/index.ts 导出 div",
-        "验证：grep -q 'Division by zero' utils/div.ts && echo 'pass'"
-      ],
-      "artifacts": [
-        "utils/div.ts",
-        "utils/index.ts"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "feat-189",
-      "priority": 189,
-      "category": "frontend",
-      "description": "实现 sqrt 平方根函数（含负数处理）",
-      "depends_on": [
-        "feat-188"
-      ],
-      "steps": [
-        "创建 utils/sqrt.ts 文件",
-        "实现平方根函数：function sqrt(n: number): number",
-        "错误处理：输入为负数时抛出 Error('Cannot calculate square root of negative number')",
-        "更新 utils/index.ts 导出 sqrt",
-        "验证：grep -q 'negative number' utils/sqrt.ts && echo 'pass'"
-      ],
-      "artifacts": [
-        "utils/sqrt.ts",
-        "utils/index.ts"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "feat-190",
-      "priority": 190,
-      "category": "frontend",
-      "description": "完善 utils 导出入口并验证全部函数",
-      "depends_on": [
-        "feat-189"
-      ],
-      "steps": [
-        "确认 utils/index.ts 导出全部 5 个函数（sum, sub, mul, div, sqrt）",
-        "创建 utils/types.ts 定义公共类型（可选）",
-        "验证 TypeScript 类型检查通过：npx tsc utils/*.ts --noEmit 2>&1 | grep -c 'error' | xargs -I {} test {} -eq 0 && echo 'pass'",
-        "验证导出完整：grep -c 'export' utils/index.ts | xargs -I {} test {} -ge 5 && echo 'pass'"
-      ],
-      "artifacts": [
-        "utils/index.ts",
-        "utils/types.ts"
-      ],
-      "status": "pending"
+      "acceptance_criteria": [
+        "div 和 sqrt 函数正确实现边界处理",
+        "TypeScript 类型定义完整（返回类型包含 null）",
+        "编译无错误"
+      ]
     }
   ]
 }
