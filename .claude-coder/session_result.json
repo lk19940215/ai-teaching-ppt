@@ -2,5 +2,5 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "feat-178 集成测试完成：渲染效果与降级链路验证\n\n验证结果：\n1. 幻灯片池缩略图渲染\n   - 原始版本（v1）：PptxViewJSRenderer 渲染真实图片\n   - AI 版本（v2）：SlideContentRenderer 渲染 📘 + v2 标签\n2. 主预览区渲染\n   - v1：真实 PPT 内容 + 内容摘要列表\n   - v2：要点模板 + '✨ 已润色' 标签\n3. 版本切换（v1/v2）正常工作\n4. 降级链路完整：LibreOffice → PptxViewJSRenderer → SlideContentRenderer → PptCanvasRenderer → 占位符\n\n测试数据：test_大龙猫.pptx + test_模版.pptx\n\n下一个任务：feat-179 优化 SlidePoolPanel 传递 PPT file 引用\n给下一个会话的提醒：\n- feat-179 是前端优化任务，需要修改 useMergeSession hook\n- 测试时使用相同测试数据"
+  "notes": "feat-171 验证完成：\n\n1. API 调研：通过 TypeScript 定义文件 (PptxViewJS.d.ts) 确认了 pptxviewjs 的正确 API：\n   - 事件名：loadComplete（当前代码已正确使用）\n   - renderSlide(slideIndex, canvas?, options?) 签名正确\n   - goToSlide(slideIndex, canvas?) 签名正确\n\n2. 代码审查：pptxviewjs-renderer.tsx 中的事件监听和 API 调用已正确实现，无需修复\n\n3. 功能测试：通过 Playwright MCP 上传 test_with_image.pptx，验证渲染成功：\n   - 库正确加载（通过 layout.tsx 的 Script 标签）\n   - PPTX 解析正确（显示 \"共 1 页\"）\n   - 缓存机制生效（Console 显示 \"使用缓存的 viewer\"）\n\n4. 结论：原调研文档中提到的问题（事件名不匹配、参数传递）在实际代码中已正确实现，无需修复\n\n下一步：feat-172 可继续开发，依赖已满足"
 }

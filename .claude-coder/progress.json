@@ -53,6 +53,15 @@
       "taskId": "unknown",
       "statusAfter": "done",
       "notes": "feat-178 集成测试完成：渲染效果与降级链路验证\n\n验证结果：\n1. 幻灯片池缩略图渲染\n   - 原始版本（v1）：PptxViewJSRenderer 渲染真实图片\n   - AI 版本（v2）：SlideContentRenderer 渲染 📘 + v2 标签\n2. 主预览区渲染\n   - v1：真实 PPT 内容 + 内容摘要列表\n   - v2：要点模板 + '✨ 已润色' 标签\n3. 版本切换（v1/v2）正常工作\n4. 降级链路完整：LibreOffice → PptxViewJSRenderer → SlideContentRenderer → PptCanvasRenderer → 占位符\n\n测试数据：test_大龙猫.pptx + test_模版.pptx\n\n下一个任务：feat-179 优化 SlidePoolPanel 传递 PPT file 引用\n给下一个会话的提醒：\n- feat-179 是前端优化任务，需要修改 useMergeSession hook\n- 测试时使用相同测试数据"
+    },
+    {
+      "session": 7,
+      "timestamp": "2026-03-12T14:52:31.858Z",
+      "result": "success",
+      "cost": 5.485981499999999,
+      "taskId": "unknown",
+      "statusAfter": "done",
+      "notes": "Session 7 完成 6 个任务（feat-179 ~ feat-184）:\n\n1. feat-179: SlidePoolPanel 传递 PPT file 引用 - 已在之前完成，确认 fileA/fileB 已传递\n\n2. feat-180: /api/v1/ppt/parse 增强返回完整 EnhancedPptPageData\n   - 前端 parsePptFile 添加 extract_enhanced=true 参数\n   - 更新 OriginalSlideData 类型支持 shapes 和 layout\n   - 更新 versionToPageData 使用保存的 shapes 数据\n   - 验证: API 返回 enhanced=True 且 shapes 包含 text_content runs\n\n3. feat-181: 图片 base64 提取 - 功能已在 feat-174/feat-180 中实现\n   - 验证: 创建测试 PPT 包含图片，API 返回 image_base64\n\n4. feat-182: PptxViewJSRenderer 降级到 PptCanvasRenderer\n   - 添加 fallbackMode 状态和 handlePptxViewJSError 回调\n   - 降级时显示'降级渲染'提示 Badge\n\n5. feat-183: PptxViewJSRenderer 缓存机制\n   - 添加 viewerCache Map 缓存 PPTXViewer 实例\n   - 缓存键: ${file.name}_${file.size}\n   - 最多缓存 10 个实例，LRU 淘汰\n\n6. feat-184: SlideContentRenderer 支持 elements 渲染\n   - 功能已在 feat-175 中实现\n   - parseElements 支持 title/text_body/list_item 类型\n   - getMergeSourceLabel 显示融合来源标记\n\n所有任务已完成。下一个会话可检查 tasks.json 中是否有新的 pending 任务。"
     }
   ]
 }
