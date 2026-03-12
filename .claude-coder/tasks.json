@@ -460,6 +460,29 @@
         "显示融合来源标记",
         "不同类型元素渲染正确"
       ]
+    {
+      "id": "feat-189",
+      "priority": 189,
+      "category": "infra",
+      "status": "done",
+      "description": "新建 utils 目录，实现 5 个工具函数",
+      "design_doc": "requirements.md",
+      "steps": [
+        "【实现】新建 utils 目录，实现 sum 函数",
+        "【实现】实现 sub 函数",
+        "【实现】实现 mul 函数",
+        "【实现】实现 div 函数",
+        "【实现】实现 sqrt 函数"
+      ],
+      "artifacts": [
+        "utils/__init__.py",
+        "utils/math_utils.py"
+      ],
+      "acceptance_criteria": [
+        "utils 目录存在",
+        "5 个函数可正常导入和调用",
+        "函数功能正确"
+      ]
     }
   ]
 }
