@@ -183,7 +183,7 @@
       "id": "feat-175",
       "priority": 175,
       "category": "frontend",
-      "status": "testing",
+      "status": "done",
       "description": "阶段四：新建 SlideContentRenderer - AI 内容美观渲染",
       "depends_on": [
         "feat-174"
@@ -211,7 +211,7 @@
       "id": "feat-176",
       "priority": 176,
       "category": "frontend",
-      "status": "pending",
+      "status": "done",
       "description": "阶段四：集成 SlideContentRenderer 到预览面板",
       "depends_on": [
         "feat-175"
@@ -236,7 +236,7 @@
       "id": "feat-177",
       "priority": 177,
       "category": "frontend",
-      "status": "pending",
+      "status": "done",
       "description": "阶段四：更新渲染优先级决策树",
       "depends_on": [
         "feat-176"
@@ -352,7 +352,7 @@
       "id": "feat-181",
       "priority": 181,
       "category": "backend",
-      "status": "testing",
+      "status": "done",
       "description": "后端优化：/api/v1/ppt/parse 支持图片 base64 提取",
       "depends_on": [
         "feat-180"
@@ -459,29 +459,6 @@
         "支持 elements 渲染",
         "显示融合来源标记",
         "不同类型元素渲染正确"
-      ]
-    {
-      "id": "feat-187",
-      "priority": 187,
-      "category": "infra",
-      "status": "done",
-      "description": "新建 utils 目录并实现 5 个工具函数",
-      "design_doc": "requirements.md",
-      "steps": [
-        "【实现】创建 utils 目录和 sum 函数",
-        "【实现】实现 sub 函数",
-        "【实现】实现 mul 函数",
-        "【实现】实现 div 函数",
-        "【实现】实现 sqrt 函数"
-      ],
-      "artifacts": [
-        "utils/__init__.py",
-        "utils/math_utils.py"
-      ],
-      "acceptance_criteria": [
-        "utils 目录存在",
-        "5 个函数可正常调用",
-        "类型注解正确"
       ]
     }
   ]
