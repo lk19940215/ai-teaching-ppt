@@ -112,7 +112,10 @@ async function parsePptFile(file: File): Promise<OriginalSlideData[]> {
   return result.pages.map((page: any) => ({
     index: page.index,
     title: page.title || '',
-    content: page.content || [],
+    // feat-172: 处理增强模式返回的 content 对象数组，提取 .text 字段
+    content: (page.content || []).map((item: any) =>
+      typeof item === 'string' ? item : (item?.text || '')
+    ),
     shapes: page.shapes,
     layout: page.layout,  // feat-180: 保存布局信息
     has_complex_elements: page.has_complex_elements,
