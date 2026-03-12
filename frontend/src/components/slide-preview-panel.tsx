@@ -122,9 +122,28 @@ const ACTION_CONFIG: Record<SlideAction, { label: string; description: string; i
 }
 
 /**
- * 将 SlideContent 转换为 EnhancedPptPageData
+ * 将 SlideVersion 转换为 EnhancedPptPageData
+ * feat-180: 优先使用保存的 shapes 数据（来自后端增强模式）
  */
-function contentToPageData(content: SlideContent, pageIndex: number): EnhancedPptPageData {
+function versionToPageData(version: SlideVersion, pageIndex: number): EnhancedPptPageData {
+  // feat-180: 优先使用保存的 shapes 数据（来自后端增强模式）
+  if (version.shapes && version.shapes.length > 0) {
+    const content = version.content
+    const mainPoints = content.main_points || []
+    return {
+      index: pageIndex,
+      title: content.title || '',
+      content: mainPoints.map(text => ({
+        type: 'text' as const,
+        text,
+      })),
+      shapes: version.shapes,
+      layout: version.layout || { width: 960, height: 540 },
+    }
+  }
+
+  // 降级：从 content 构造简化的 shapes（旧逻辑）
+  const content = version.content
   const mainPoints = content.main_points || []
   const additionalContent = content.additional_content || ''
 
@@ -334,7 +353,7 @@ export function SlidePreviewPanel({
           ) : /* 优先级 4: 有 content 数据 → PptCanvasRenderer（优化版）*/
           version?.content ? (
             <PptCanvasRenderer
-              pageData={contentToPageData(version.content, slide.original_index)}
+              pageData={versionToPageData(version, slide.original_index)}
               width={800}
               height={450}
               quality={1.0}

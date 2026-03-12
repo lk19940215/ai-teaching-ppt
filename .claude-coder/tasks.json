@@ -328,7 +328,7 @@
       "id": "feat-180",
       "priority": 180,
       "category": "backend",
-      "status": "pending",
+      "status": "done",
       "description": "后端优化：/api/v1/ppt/parse 增强返回完整 EnhancedPptPageData",
       "design_doc": "docs/research-frontend-pptx-rendering.md#二、项目现有前端渲染组件",
       "steps": [
