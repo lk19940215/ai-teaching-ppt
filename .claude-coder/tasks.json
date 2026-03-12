@@ -211,6 +211,7 @@
       "id": "feat-176",
       "priority": 176,
       "category": "frontend",
+      "status": "done",
       "description": "阶段四：集成 SlideContentRenderer 到预览面板",
       "depends_on": [
         "feat-175"

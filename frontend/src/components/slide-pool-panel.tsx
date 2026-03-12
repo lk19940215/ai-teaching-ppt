@@ -28,6 +28,7 @@ import {
 } from "@/types/merge-session"
 import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/ppt-canvas-renderer"
 import { PptxViewJSRenderer } from "@/components/pptxviewjs-renderer"
+import { SlideContentRenderer } from "@/components/slide-content-renderer"
 
 export interface SlidePoolPanelProps {
   /** 所有幻灯片池项 */
@@ -172,27 +173,14 @@ function SlideThumbnail({
             height={135}
             quality="low"
           />
-        ) : /* 优先级 3: AI 版本显示占位符 */
-        isAIVersion && currentVersion?.action ? (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50">
-            <div className="text-2xl mb-1">
-              {currentVersion.action === 'polish' ? '✨' :
-               currentVersion.action === 'expand' ? '📈' :
-               currentVersion.action === 'rewrite' ? '📝' :
-               currentVersion.action === 'extract' ? '🎯' :
-               currentVersion.action === 'merge' ? '🔀' : '📄'}
-            </div>
-            <div className="text-xs text-indigo-600 font-medium">
-              {currentVersion.action === 'polish' ? '已润色' :
-               currentVersion.action === 'expand' ? '已扩展' :
-               currentVersion.action === 'rewrite' ? '已改写' :
-               currentVersion.action === 'extract' ? '已提取' :
-               currentVersion.action === 'merge' ? '融合' : 'AI处理'}
-            </div>
-            <div className="text-[10px] text-gray-400 mt-1">
-              v{item.versions.length}
-            </div>
-          </div>
+        ) : /* 优先级 3: AI 版本使用 SlideContentRenderer（feat-176）*/
+        isAIVersion && currentVersion?.action && currentVersion?.content ? (
+          <SlideContentRenderer
+            content={currentVersion.content}
+            action={currentVersion.action}
+            slide={item}
+            size="thumbnail"
+          />
         ) : /* 优先级 4: 兜底用 PptCanvasRenderer */
         currentVersion?.content ? (
           <PptCanvasRenderer

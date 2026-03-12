@@ -34,6 +34,7 @@ import {
 } from "@/types/merge-session"
 import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/ppt-canvas-renderer"
 import { PptxViewJSRenderer } from "@/components/pptxviewjs-renderer"
+import { SlideContentRenderer } from "@/components/slide-content-renderer"
 import type { SlideContent } from "@/types/merge-plan"
 
 export interface SlidePreviewPanelProps {
@@ -317,15 +318,15 @@ export function SlidePreviewPanel({
               height={450}
               quality="high"
             />
-          ) : /* 优先级 3: AI 版本（有 action）→ PptCanvasRenderer */
+          ) : /* 优先级 3: AI 版本（有 action）→ SlideContentRenderer（feat-176）*/
           version?.action && version.content ? (
-            <PptCanvasRenderer
-              pageData={contentToPageData(version.content, slide.original_index)}
-              width={800}
-              height={450}
-              quality={1.0}
+            <SlideContentRenderer
+              content={version.content}
+              action={version.action}
+              slide={slide}
+              size="preview"
             />
-          ) : /* 优先级 4: 兜底 */
+          ) : /* 优先级 4: 兜底 → PptCanvasRenderer */
           version?.content ? (
             <PptCanvasRenderer
               pageData={contentToPageData(version.content, slide.original_index)}
