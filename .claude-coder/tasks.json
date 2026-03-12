@@ -439,7 +439,7 @@
       "id": "feat-188",
       "priority": 188,
       "category": "frontend",
-      "status": "pending",
+      "status": "done",
       "description": "优化：SlideContentRenderer 支持 SlideContent elements 渲染",
       "depends_on": [
         "feat-176"

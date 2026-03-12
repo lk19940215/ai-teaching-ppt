@@ -314,17 +314,20 @@ interface MergeTemplateProps {
 
 /**
  * 解析 elements 数组
- * 后端返回格式：[{ type: "title" | "text_body" | "list_item", content: string }]
+ * feat-188: 支持后端返回的所有 element 类型
+ * 后端返回格式：[{ type: "title" | "subtitle" | "text_body" | "list_item", content: string }]
  */
 function parseElements(content: SlideContent) {
   const elements = content.elements || []
 
   const parsed: {
     title: string
+    subtitle: string
     textBodies: string[]
     listItems: string[]
   } = {
     title: content.title || "",
+    subtitle: "",
     textBodies: [],
     listItems: [],
   }
@@ -332,6 +335,8 @@ function parseElements(content: SlideContent) {
   for (const el of elements) {
     if (el.type === "title") {
       parsed.title = el.content
+    } else if (el.type === "subtitle") {
+      parsed.subtitle = el.content
     } else if (el.type === "text_body") {
       parsed.textBodies.push(el.content)
     } else if (el.type === "list_item") {
@@ -366,10 +371,12 @@ function MergeTemplate({ content, slide, isThumbnail }: MergeTemplateProps) {
   const mergeLabel = getMergeSourceLabel(slide)
 
   const maxTitleLength = isThumbnail ? 15 : 40
+  const maxSubtitleLength = isThumbnail ? 20 : 60
   const maxTextLength = isThumbnail ? 30 : 100
   const maxItems = isThumbnail ? 3 : 6
 
   const title = truncateText(parsed.title || content.title || "融合结果", maxTitleLength)
+  const subtitle = parsed.subtitle ? truncateText(parsed.subtitle, maxSubtitleLength) : null
 
   return (
     <div className={cn("flex flex-col h-full", styles.gap)}>
@@ -384,6 +391,13 @@ function MergeTemplate({ content, slide, isThumbnail }: MergeTemplateProps) {
         <span className="text-white text-base">🔀</span>
         <h3 className={cn("text-white truncate", styles.title)}>{title}</h3>
       </div>
+
+      {/* 副标题（feat-188: 支持 subtitle 类型）*/}
+      {subtitle && !isThumbnail && (
+        <p className={cn("text-gray-500 italic", styles.bullet)}>
+          {subtitle}
+        </p>
+      )}
 
       {/* 正文内容 */}
       {parsed.textBodies.length > 0 && (
