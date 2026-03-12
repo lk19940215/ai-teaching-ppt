@@ -562,6 +562,8 @@ export default function MergePage() {
                 currentAction={session.active_operation}
                 progressInfo={session.progress_info}
                 globalPrompt={globalPrompt}
+                fileA={session.ppt_a_file}
+                fileB={session.ppt_b_file}
                 onSwitchVersion={handleSwitchVersion}
                 onProcess={handleProcess}
                 onInjectPrompt={setGlobalPrompt}

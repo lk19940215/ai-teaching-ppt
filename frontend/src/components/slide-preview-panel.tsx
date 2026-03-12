@@ -1,12 +1,19 @@
 /**
  * 幻灯片预览面板组件
  * feat-171: 显示当前幻灯片的大图预览，支持版本切换和操作
+ * feat-173: 原始版本使用 PptxViewJSRenderer，AI版本使用 PptCanvasRenderer
  *
  * 功能：
  * - 大图预览当前幻灯片
  * - 版本切换器（v1, v2, v3...）
  * - 操作按钮（润色、扩展、改写、提取）- 点击注入模板到全局提示词
  * - 添加到最终选择
+ *
+ * 渲染优先级（feat-173）：
+ * 1. 有 imageUrl（LibreOffice预览图）→ <img>
+ * 2. 是原始版本（无 action）且有 PPT file → PptxViewJSRenderer
+ * 3. 是 AI 版本（有 action）→ PptCanvasRenderer
+ * 4. 兜底 → 占位符
  */
 
 "use client"
@@ -26,6 +33,7 @@ import {
   getSourceLabel,
 } from "@/types/merge-session"
 import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/ppt-canvas-renderer"
+import { PptxViewJSRenderer } from "@/components/pptxviewjs-renderer"
 import type { SlideContent } from "@/types/merge-plan"
 
 export interface SlidePreviewPanelProps {
@@ -49,6 +57,10 @@ export interface SlidePreviewPanelProps {
   }
   /** 全局提示词（从父组件传入） */
   globalPrompt?: string
+  /** PPT A 文件引用（用于 PptxViewJSRenderer 渲染原始版本）*/
+  fileA?: File | null
+  /** PPT B 文件引用 */
+  fileB?: File | null
 
   // 回调
   /** 切换版本 */
@@ -186,6 +198,8 @@ export function SlidePreviewPanel({
   currentAction,
   progressInfo,
   globalPrompt = '',
+  fileA,
+  fileB,
   onSwitchVersion,
   onProcess,
   onInjectPrompt,
@@ -265,7 +279,7 @@ export function SlidePreviewPanel({
         </div>
       </div>
 
-      {/* 主预览区 */}
+      {/* 主预览区 - feat-173: 渲染优先级决策树 */}
       <div className="flex-1 p-4">
         <div className="aspect-video bg-gray-50 rounded-lg overflow-hidden border">
           {isProcessing ? (
@@ -283,19 +297,46 @@ export function SlidePreviewPanel({
                 </div>
               )}
             </div>
-          ) : imageUrl ? (
+          ) : /* 优先级 1: 有 imageUrl（LibreOffice 预览图）*/
+          imageUrl ? (
             <img
               src={imageUrl}
               alt={slide.display_title || `幻灯片 ${slide.original_index + 1}`}
               className="w-full h-full object-contain"
+              onError={(e) => {
+                // 图片加载失败时隐藏，触发降级渲染
+                (e.target as HTMLImageElement).style.display = 'none'
+              }}
             />
-          ) : (
+          ) : /* 优先级 2: 原始版本（无 action）且有 PPT file → PptxViewJSRenderer */
+          !version?.action && (slide.original_source === 'ppt_a' || slide.original_source === 'ppt_b') && (slide.original_source === 'ppt_a' ? fileA : fileB) ? (
+            <PptxViewJSRenderer
+              file={slide.original_source === 'ppt_a' ? fileA! : fileB!}
+              slideIndex={slide.original_index}
+              width={800}
+              height={450}
+              quality="high"
+            />
+          ) : /* 优先级 3: AI 版本（有 action）→ PptCanvasRenderer */
+          version?.action && version.content ? (
             <PptCanvasRenderer
               pageData={contentToPageData(version.content, slide.original_index)}
               width={800}
               height={450}
               quality={1.0}
             />
+          ) : /* 优先级 4: 兜底 */
+          version?.content ? (
+            <PptCanvasRenderer
+              pageData={contentToPageData(version.content, slide.original_index)}
+              width={800}
+              height={450}
+              quality={1.0}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400">
+              无预览
+            </div>
           )}
         </div>
 

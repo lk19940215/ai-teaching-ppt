@@ -133,7 +133,7 @@
       "id": "feat-173",
       "priority": 173,
       "category": "frontend",
-      "status": "in_progress",
+      "status": "done",
       "description": "阶段二：接入 merge 页面 - SlidePreviewPanel 主预览区",
       "depends_on": [
         "feat-172"
@@ -448,54 +448,6 @@
         "支持 elements 渲染",
         "显示融合来源标记",
         "不同类型元素渲染正确"
-      ]
-    },
-    {
-      "id": "feat-185",
-      "priority": 185,
-      "category": "frontend",
-      "description": "Utils 工具函数：实现 sub 和 mul 数学函数",
-      "status": "pending",
-      "depends_on": [],
-      "steps": [
-        "【实现】在 frontend/src/utils/math.ts 中添加 sub(a, b) 函数：返回 a - b",
-        "【实现】在 frontend/src/utils/math.ts 中添加 mul(a, b) 函数：返回 a * b",
-        "【更新】在 frontend/src/utils/index.ts 中导出新函数",
-        "【验证】pnpm tsc --noEmit 无报错"
-      ],
-      "artifacts": [
-        "frontend/src/utils/math.ts",
-        "frontend/src/utils/index.ts"
-      ],
-      "acceptance_criteria": [
-        "sub 和 mul 函数正确实现",
-        "TypeScript 类型定义完整",
-        "编译无错误"
-      ]
-    },
-    {
-      "id": "feat-186",
-      "priority": 186,
-      "category": "frontend",
-      "description": "Utils 工具函数：实现 div 和 sqrt 数学函数（含边界处理）",
-      "status": "pending",
-      "depends_on": [
-        "feat-185"
-      ],
-      "steps": [
-        "【实现】在 frontend/src/utils/math.ts 中添加 div(a, b) 函数：返回 a / b，除零时返回 null",
-        "【实现】在 frontend/src/utils/math.ts 中添加 sqrt(n) 函数：返回平方根，负数时返回 null",
-        "【更新】在 frontend/src/utils/index.ts 中导出新函数",
-        "【验证】pnpm tsc --noEmit 无报错"
-      ],
-      "artifacts": [
-        "frontend/src/utils/math.ts",
-        "frontend/src/utils/index.ts"
-      ],
-      "acceptance_criteria": [
-        "div 和 sqrt 函数正确实现边界处理",
-        "TypeScript 类型定义完整（返回类型包含 null）",
-        "编译无错误"
       ]
     }
   ]
