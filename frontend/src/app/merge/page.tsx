@@ -547,6 +547,8 @@ export default function MergePage() {
                 isProcessing={session.is_processing}
                 isMerging={session.active_operation === 'merge'}
                 onMergeSelected={handleMergeSelected}
+                fileA={session.ppt_a_file}
+                fileB={session.ppt_b_file}
               />
             </div>
 

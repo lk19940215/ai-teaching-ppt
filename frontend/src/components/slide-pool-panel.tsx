@@ -27,6 +27,7 @@ import {
   getSourceLabel,
 } from "@/types/merge-session"
 import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/ppt-canvas-renderer"
+import { PptxViewJSRenderer } from "@/components/pptxviewjs-renderer"
 
 export interface SlidePoolPanelProps {
   /** 所有幻灯片池项 */
@@ -47,6 +48,10 @@ export interface SlidePoolPanelProps {
   isMerging?: boolean
   /** 融合选中幻灯片回调 */
   onMergeSelected?: (slideIds: string[]) => void
+  /** PPT A 文件引用（用于 PptxViewJSRenderer 渲染原始版本）*/
+  fileA?: File | null
+  /** PPT B 文件引用 */
+  fileB?: File | null
   /** 类名 */
   className?: string
 }
@@ -82,6 +87,11 @@ function versionToPageData(version: SlideVersion, pageIndex: number): EnhancedPp
 
 /**
  * 单个幻灯片缩略图
+ * feat-172: 渲染优先级决策树
+ * 1. LibreOffice 图片 URL → <img>
+ * 2. 原始版本（v1，无 action）且有 PPT file → PptxViewJSRenderer
+ * 3. AI 版本（v2+，有 action）→ 占位符（灰色块 + action 标签）
+ * 4. 兜底 → PptCanvasRenderer
  */
 function SlideThumbnail({
   item,
@@ -89,6 +99,8 @@ function SlideThumbnail({
   isSelected,
   isMultiSelected,
   imageUrl: externalImageUrl,
+  fileA,
+  fileB,
   onClick,
   onDoubleClick,
 }: {
@@ -97,6 +109,8 @@ function SlideThumbnail({
   isSelected: boolean
   isMultiSelected: boolean
   imageUrl?: string
+  fileA?: File | null
+  fileB?: File | null
   onClick: (e?: React.MouseEvent) => void
   onDoubleClick?: () => void
 }) {
@@ -109,8 +123,18 @@ function SlideThumbnail({
     item.original_source === 'merge' ? 'bg-purple-100 text-purple-700' :
     'bg-amber-100 text-amber-700'
 
-  // 优先使用外部传入的 URL，其次使用版本中的 preview_url
+  // 优先使用外部传入的 URL（LibreOffice 生成的预览图）
   const imageUrl = externalImageUrl || currentVersion?.preview_url
+
+  // 判断是否为原始版本（v1，无 action）
+  const isOriginalVersion = !currentVersion?.action && item.versions.length === 1
+
+  // 获取对应的 PPT 文件
+  const pptFile = item.original_source === 'ppt_a' ? fileA :
+                  item.original_source === 'ppt_b' ? fileB : null
+
+  // 判断是否为 AI 版本（有 action 或版本号 > 1）
+  const isAIVersion = currentVersion?.action || item.versions.length > 1
 
   return (
     <div
@@ -126,8 +150,9 @@ function SlideThumbnail({
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      {/* 缩略图区域 */}
+      {/* 缩略图区域 - feat-172: 渲染优先级决策树 */}
       <div className="aspect-video bg-gray-50 rounded-t-md overflow-hidden">
+        {/* 优先级 1: LibreOffice 图片 URL */}
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -138,7 +163,38 @@ function SlideThumbnail({
               (e.target as HTMLImageElement).style.display = 'none'
             }}
           />
-        ) : currentVersion?.content ? (
+        ) : /* 优先级 2: 原始版本用 PptxViewJSRenderer */
+        isOriginalVersion && pptFile ? (
+          <PptxViewJSRenderer
+            file={pptFile}
+            slideIndex={item.original_index}
+            width={240}
+            height={135}
+            quality="low"
+          />
+        ) : /* 优先级 3: AI 版本显示占位符 */
+        isAIVersion && currentVersion?.action ? (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50">
+            <div className="text-2xl mb-1">
+              {currentVersion.action === 'polish' ? '✨' :
+               currentVersion.action === 'expand' ? '📈' :
+               currentVersion.action === 'rewrite' ? '📝' :
+               currentVersion.action === 'extract' ? '🎯' :
+               currentVersion.action === 'merge' ? '🔀' : '📄'}
+            </div>
+            <div className="text-xs text-indigo-600 font-medium">
+              {currentVersion.action === 'polish' ? '已润色' :
+               currentVersion.action === 'expand' ? '已扩展' :
+               currentVersion.action === 'rewrite' ? '已改写' :
+               currentVersion.action === 'extract' ? '已提取' :
+               currentVersion.action === 'merge' ? '融合' : 'AI处理'}
+            </div>
+            <div className="text-[10px] text-gray-400 mt-1">
+              v{item.versions.length}
+            </div>
+          </div>
+        ) : /* 优先级 4: 兜底用 PptCanvasRenderer */
+        currentVersion?.content ? (
           <PptCanvasRenderer
             pageData={versionToPageData(currentVersion, item.original_index)}
             width={240}
@@ -211,6 +267,8 @@ function SlideGroup({
   finalSelection,
   multiSelectedIds,
   slideImageUrls,
+  fileA,
+  fileB,
   onSlideClick,
   onSlideDoubleClick,
 }: {
@@ -219,6 +277,8 @@ function SlideGroup({
   finalSelection: string[]
   multiSelectedIds: string[]
   slideImageUrls?: Record<string, string>
+  fileA?: File | null
+  fileB?: File | null
   onSlideClick: (slideId: string, e?: React.MouseEvent) => void
   onSlideDoubleClick?: (slideId: string) => void
 }) {
@@ -267,6 +327,8 @@ function SlideGroup({
                 isSelected={isSelected}
                 isMultiSelected={isMultiSelected}
                 imageUrl={imageUrl}
+                fileA={fileA}
+                fileB={fileB}
                 onClick={(e) => onSlideClick(item.slide_id, e)}
                 onDoubleClick={onSlideDoubleClick ? () => onSlideDoubleClick(item.slide_id) : undefined}
               />
@@ -291,6 +353,8 @@ export function SlidePoolPanel({
   isProcessing,
   isMerging,
   onMergeSelected,
+  fileA,
+  fileB,
   className,
 }: SlidePoolPanelProps) {
   // 计算分组
@@ -373,6 +437,8 @@ export function SlidePoolPanel({
               finalSelection={finalSelection}
               multiSelectedIds={multiSelectedIds}
               slideImageUrls={slideImageUrls}
+              fileA={fileA}
+              fileB={fileB}
               onSlideClick={handleSlideClick}
               onSlideDoubleClick={onSlideDoubleClick}
             />

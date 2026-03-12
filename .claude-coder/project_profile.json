@@ -1,48 +1,50 @@
 {
   "name": "ai-teaching-ppt",
-  "detected_at": "2026-03-06T16:30:00",
+  "detected_at": "2026-03-12T16:13:00",
   "project_type": "existing",
   "tech_stack": {
-    "languages": ["python", "typescript"],
+    "languages": ["typescript", "python"],
     "backend": {
       "framework": "fastapi",
       "runtime": "uvicorn",
       "entry": "app.main:app"
     },
     "frontend": {
-      "framework": "next",
+      "framework": "nextjs",
       "bundler": "next",
       "dir": "frontend"
     },
     "database": "sqlite",
-    "package_managers": ["pip", "pnpm"]
+    "package_managers": ["pnpm", "pip"]
   },
   "services": [
     {
       "name": "backend",
-      "command": "cd backend && ./start.sh",
+      "command": "uvicorn app.main:app --reload --port 8000",
       "port": 8000,
       "health_check": "http://localhost:8000/health",
-      "cwd": ".",
-      "note": "使用单进程模式，解决 uvicorn --reload 多进程导致的 SSE/网络异常"
+      "cwd": "backend"
     },
     {
       "name": "frontend",
-      "command": "cd frontend && pnpm dev",
+      "command": "pnpm dev",
       "port": 3000,
       "health_check": "http://localhost:3000",
       "cwd": "frontend"
     }
   ],
   "env_setup": {
-    "python_env": "venv:.venv",
+    "python_env": "venv",
     "node_version": "20"
   },
   "existing_docs": [
     "README.md",
     ".claude/CLAUDE.md",
-    ".claude/rules/testing.md",
-    "问题整理.md"
+    "docs/canvas-preview.md",
+    "docs/ppt-structure.md",
+    "docs/code-review-merge-flow.md",
+    "docs/research-ai-content-rendering.md",
+    "docs/research-frontend-pptx-rendering.md"
   ],
   "has_tests": true,
   "has_docker": true,
@@ -57,7 +59,6 @@
     "README.md",
     ".claude/CLAUDE.md",
     "backend/app/main.py",
-    "backend/app/config.py",
-    "frontend/package.json"
+    ".mcp.json"
   ]
 }
