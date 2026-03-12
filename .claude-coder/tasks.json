@@ -157,6 +157,7 @@
       "id": "feat-174",
       "priority": 174,
       "category": "frontend",
+      "status": "done",
       "description": "阶段三：优化 PptCanvasRenderer - 修复已知问题",
       "depends_on": [
         "feat-173"

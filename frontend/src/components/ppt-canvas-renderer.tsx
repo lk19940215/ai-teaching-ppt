@@ -232,6 +232,20 @@ interface PptCanvasRendererProps {
 }
 
 /**
+ * 颜色格式标准化（feat-174）
+ * 确保 '000000' 格式转为 '#000000'
+ */
+function normalizeColor(color: string | undefined): string {
+  if (!color) return '#000000'
+  // 如果已经有 # 前缀，直接返回
+  if (color.startsWith('#')) return color
+  // 如果是 6 位十六进制颜色，添加 # 前缀
+  if (/^[0-9A-Fa-f]{6}$/.test(color)) return `#${color}`
+  // 其他情况直接返回（可能是颜色名如 'red'）
+  return color
+}
+
+/**
  * PPT Canvas 渲染器组件（feat-083）
  *
  * 功能：
@@ -297,7 +311,7 @@ export function PptCanvasRenderer({
     }
   }, [pageData.index])
 
-  // 渲染单个文本运行
+  // 渲染单个文本运行（feat-174: 修复颜色格式）
   const renderTextRun = (
     ctx: CanvasRenderingContext2D,
     run: {
@@ -322,7 +336,8 @@ export function PptCanvasRenderer({
     const fontStyle = run.font.italic ? 'italic' : 'normal'
 
     ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`
-    ctx.fillStyle = run.font.color || '#000000'
+    // feat-174: 使用标准化颜色格式
+    ctx.fillStyle = normalizeColor(run.font.color)
 
     // 绘制文本
     ctx.fillText(run.text, x, y, maxWidth)
@@ -330,7 +345,8 @@ export function PptCanvasRenderer({
     // 绘制下划线
     if (run.font.underline) {
       const textWidth = ctx.measureText(run.text).width
-      ctx.strokeStyle = run.font.color || '#000000'
+      // feat-174: 使用标准化颜色格式
+      ctx.strokeStyle = normalizeColor(run.font.color)
       ctx.lineWidth = fontSize * 0.05
       ctx.beginPath()
       ctx.moveTo(x, y + fontSize * 0.1)
@@ -339,7 +355,7 @@ export function PptCanvasRenderer({
     }
   }
 
-  // 渲染文本框
+  // 渲染文本框（feat-174: 修复段落对齐逻辑）
   const renderTextShape = (
     ctx: CanvasRenderingContext2D,
     shape: any,
@@ -355,26 +371,53 @@ export function PptCanvasRenderer({
     let currentY = y + 20 * scale // 初始Y位置，留出顶部边距
 
     for (const paragraph of shape.text_content) {
-      let currentX = x
+      // feat-174: 先计算段落总宽度（用于居中/右对齐定位）
+      let paragraphWidth = 0
+      for (const run of paragraph.runs) {
+        const fontSize = (run.font.size || 18) * scale
+        const fontFamily = run.font.name || 'Microsoft YaHei, sans-serif'
+        const fontWeight = run.font.bold ? 'bold' : 'normal'
+        const fontStyle = run.font.italic ? 'italic' : 'normal'
+        ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`
+        paragraphWidth += ctx.measureText(run.text).width
+      }
 
-      // 段落对齐
+      // feat-174: 根据对齐方式设置起始 X 和 textAlign
+      let startX = x
       if (paragraph.alignment && paragraph.alignment.includes('CENTER')) {
-        currentX = x + maxWidth / 2
+        // 居中：起始点为区域中心
+        startX = x + maxWidth / 2
         ctx.textAlign = 'center'
       } else if (paragraph.alignment && paragraph.alignment.includes('RIGHT')) {
-        currentX = x + maxWidth
+        // 右对齐：起始点为区域右边界
+        startX = x + maxWidth
         ctx.textAlign = 'right'
       } else {
+        // 左对齐：起始点为区域左边界
         ctx.textAlign = 'left'
+      }
+
+      // feat-174: 计算段落起始 X（考虑段落总宽度）
+      // 对于居中/右对齐，需要考虑段落实际宽度来定位
+      let currentX = startX
+      if (paragraph.alignment && paragraph.alignment.includes('CENTER')) {
+        // 居中对齐时，从段落中心开始绘制
+        currentX = startX - paragraphWidth / 2 + paragraphWidth / 2
+      } else if (paragraph.alignment && paragraph.alignment.includes('RIGHT')) {
+        // 右对齐时，从段落右边界开始绘制
+        currentX = startX - paragraphWidth + paragraphWidth
       }
 
       // 渲染段落中的所有运行
       for (const run of paragraph.runs) {
         renderTextRun(ctx, run, currentX, currentY, maxWidth)
 
-        // 更新 X 位置（连续渲染）
-        const textWidth = ctx.measureText(run.text).width
-        currentX += textWidth
+        // feat-174: 只有左对齐时才累加 X 位置
+        // 居中和右对齐时，每个 run 都从固定点绘制
+        if (!paragraph.alignment || paragraph.alignment.includes('LEFT')) {
+          const textWidth = ctx.measureText(run.text).width
+          currentX += textWidth
+        }
       }
 
       // 换行
@@ -625,7 +668,7 @@ export function PptCanvasRenderer({
     }
 
     // 增强渲染：遍历 shapes 数组渲染详细内容
-    // 如果 shapes 有 text_content 或 table_data，则渲染
+    // feat-174: 启用图片真实渲染和 AutoShape 渲染
     const shapesToRender = pageData.shapes?.slice(0, 5) || [] // 最多渲染5个shapes
     for (const shape of shapesToRender) {
       // 渲染文本框
@@ -636,40 +679,18 @@ export function PptCanvasRenderer({
       else if (shape.table_data && shape.table_data.length > 0) {
         renderTableShape(ctx, shape, offsetX, offsetY)
       }
-      // 渲染图片（简化为占位符）
+      // feat-174: 启用图片真实渲染（替代占位符）
       else if (shape.image_base64) {
-        // 使用简化的图片占位符，避免异步加载问题
-        const x = shape.position.x * scale + offsetX
-        const y = shape.position.y * scale + offsetY
-        const w = shape.position.width * scale
-        const h = shape.position.height * scale
-        ctx.fillStyle = '#e8e8e8'
-        ctx.fillRect(x, y, w, h)
-        ctx.strokeStyle = '#cccccc'
-        ctx.lineWidth = 1
-        ctx.strokeRect(x, y, w, h)
-        // 图片图标
-        ctx.fillStyle = '#999999'
-        ctx.font = `${Math.min(w, h) * 0.3}px Arial`
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-        ctx.fillText('🖼', x + w / 2, y + h / 2)
+        // 调用 renderImageShape 实现真实图片渲染
+        renderImageShape(ctx, shape, offsetX, offsetY)
+      }
+      // feat-174: 启用 AutoShape 渲染
+      else if (shape.type?.includes('shape') || shape.type?.includes('auto')) {
+        renderAutoShape(ctx, shape, offsetX, offsetY)
       }
     }
 
-    // 如果有图片，绘制图片占位符
-    const hasImage = pageData.shapes?.some(s =>
-      s.type?.includes('picture') || s.type?.includes('image') || s.image_base64
-    )
-    if (hasImage) {
-      ctx.fillStyle = '#e0e0e0'
-      ctx.fillRect(offsetX + width - 100, offsetY + height * 0.2, 80, 60)
-      // 绘制图片图标
-      ctx.fillStyle = '#999999'
-      ctx.beginPath()
-      ctx.arc(width - 60, height * 0.35, 15, 0, Math.PI * 2)
-      ctx.fill()
-    }
+    // feat-174: 移除冗余的图片占位符绘制逻辑（已由 renderImageShape 处理）
 
     // 绘制选中边框
     if (isSelected) {
