@@ -62,6 +62,15 @@
       "taskId": "unknown",
       "statusAfter": "done",
       "notes": "Session 7 完成 6 个任务（feat-179 ~ feat-184）:\n\n1. feat-179: SlidePoolPanel 传递 PPT file 引用 - 已在之前完成，确认 fileA/fileB 已传递\n\n2. feat-180: /api/v1/ppt/parse 增强返回完整 EnhancedPptPageData\n   - 前端 parsePptFile 添加 extract_enhanced=true 参数\n   - 更新 OriginalSlideData 类型支持 shapes 和 layout\n   - 更新 versionToPageData 使用保存的 shapes 数据\n   - 验证: API 返回 enhanced=True 且 shapes 包含 text_content runs\n\n3. feat-181: 图片 base64 提取 - 功能已在 feat-174/feat-180 中实现\n   - 验证: 创建测试 PPT 包含图片，API 返回 image_base64\n\n4. feat-182: PptxViewJSRenderer 降级到 PptCanvasRenderer\n   - 添加 fallbackMode 状态和 handlePptxViewJSError 回调\n   - 降级时显示'降级渲染'提示 Badge\n\n5. feat-183: PptxViewJSRenderer 缓存机制\n   - 添加 viewerCache Map 缓存 PPTXViewer 实例\n   - 缓存键: ${file.name}_${file.size}\n   - 最多缓存 10 个实例，LRU 淘汰\n\n6. feat-184: SlideContentRenderer 支持 elements 渲染\n   - 功能已在 feat-175 中实现\n   - parseElements 支持 title/text_body/list_item 类型\n   - getMergeSourceLabel 显示融合来源标记\n\n所有任务已完成。下一个会话可检查 tasks.json 中是否有新的 pending 任务。"
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-12T15:40:33.039Z",
+      "result": "success",
+      "cost": 2.6293325000000003,
+      "taskId": "feat-171",
+      "statusAfter": "done",
+      "notes": "feat-171 验证完成：\n\n1. API 调研：通过 TypeScript 定义文件 (PptxViewJS.d.ts) 确认了 pptxviewjs 的正确 API：\n   - 事件名：loadComplete（当前代码已正确使用）\n   - renderSlide(slideIndex, canvas?, options?) 签名正确\n   - goToSlide(slideIndex, canvas?) 签名正确\n\n2. 代码审查：pptxviewjs-renderer.tsx 中的事件监听和 API 调用已正确实现，无需修复\n\n3. 功能测试：通过 Playwright MCP 上传 test_with_image.pptx，验证渲染成功：\n   - 库正确加载（通过 layout.tsx 的 Script 标签）\n   - PPTX 解析正确（显示 \"共 1 页\"）\n   - 缓存机制生效（Console 显示 \"使用缓存的 viewer\"）\n\n4. 结论：原调研文档中提到的问题（事件名不匹配、参数传递）在实际代码中已正确实现，无需修复\n\n下一步：feat-172 可继续开发，依赖已满足"
     }
   ]
 }

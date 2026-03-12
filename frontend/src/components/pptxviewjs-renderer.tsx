@@ -28,50 +28,22 @@ let libState: LibState = 'idle'
 let PPTXViewerClass: any = null
 const loadCallbacks: Array<(success: boolean) => void> = []
 
-// feat-183: 全局 PPTXViewer 缓存（使用 Map，因为 WeakMap 键必须是对象）
-const viewerCache = new Map<string, { viewer: any; slideCount: number }>()
-const MAX_CACHE_SIZE = 10 // 最多缓存 10 个 PPTX 实例
-
-/**
- * 生成缓存键
- */
-// 使用计数器+文件信息生成唯一缓存键，避免同名文件冲突
-let cacheCounter = 0
-function getCacheKey(file: File): string {
-  return `${file.name}_${file.size}_${++cacheCounter}`
-}
+// feat-183: 使用 WeakMap 缓存 PPTXViewer 实例
+// WeakMap 的键必须是对象，当 File 对象被 GC 时缓存自动清除
+const viewerCache = new WeakMap<File, { viewer: any; slideCount: number }>()
 
 /**
  * 从缓存获取 viewer
  */
 function getCachedViewer(file: File): { viewer: any; slideCount: number } | null {
-  const key = getCacheKey(file)
-  return viewerCache.get(key) || null
+  return viewerCache.get(file) || null
 }
 
 /**
  * 添加 viewer 到缓存
  */
 function setCachedViewer(file: File, viewer: any, slideCount: number): void {
-  const key = getCacheKey(file)
-
-  // 如果缓存已满，移除最旧的条目
-  if (viewerCache.size >= MAX_CACHE_SIZE) {
-    const firstKey = viewerCache.keys().next().value
-    if (firstKey) {
-      const oldEntry = viewerCache.get(firstKey)
-      if (oldEntry?.viewer) {
-        try {
-          oldEntry.viewer.destroy()
-        } catch (e) {
-          console.warn('[PptxViewJS] 销毁旧缓存实例失败:', e)
-        }
-      }
-      viewerCache.delete(firstKey)
-    }
-  }
-
-  viewerCache.set(key, { viewer, slideCount })
+  viewerCache.set(file, { viewer, slideCount })
 }
 
 function loadLibrary(): Promise<boolean> {

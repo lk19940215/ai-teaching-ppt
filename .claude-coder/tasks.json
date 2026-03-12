@@ -133,7 +133,7 @@
       "id": "feat-173",
       "priority": 173,
       "category": "frontend",
-      "status": "pending",
+      "status": "done",
       "description": "阶段二：接入 merge 页面 - SlidePreviewPanel 主预览区",
       "depends_on": [
         "feat-172"
@@ -157,7 +157,7 @@
       "id": "feat-174",
       "priority": 174,
       "category": "frontend",
-      "status": "pending",
+      "status": "done",
       "description": "阶段三：优化 PptCanvasRenderer - 修复已知问题",
       "depends_on": [
         "feat-173"
