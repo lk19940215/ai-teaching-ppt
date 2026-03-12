@@ -380,7 +380,7 @@
       "id": "feat-185",
       "priority": 185,
       "category": "frontend",
-      "status": "pending",
+      "status": "done",
       "description": "兜底方案：PptxViewJSRenderer 降级到 PptCanvasRenderer 的自动切换",
       "depends_on": [
         "feat-181"

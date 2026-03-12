@@ -2,6 +2,7 @@
  * 幻灯片预览面板组件
  * feat-171: 显示当前幻灯片的大图预览，支持版本切换和操作
  * feat-173: 原始版本使用 PptxViewJSRenderer，AI版本使用 PptCanvasRenderer
+ * feat-185: PptxViewJSRenderer 降级到 PptCanvasRenderer 的自动切换
  *
  * 功能：
  * - 大图预览当前幻灯片
@@ -9,17 +10,17 @@
  * - 操作按钮（润色、扩展、改写、提取）- 点击注入模板到全局提示词
  * - 添加到最终选择
  *
- * 渲染优先级（feat-173）：
+ * 渲染优先级（feat-173, feat-185）：
  * 1. 有 imageUrl（LibreOffice预览图）→ <img>
- * 2. 是原始版本（无 action）且有 PPT file → PptxViewJSRenderer
- * 3. 是 AI 版本（有 action）→ PptCanvasRenderer
- * 4. 兜底 → 占位符
+ * 2. 是原始版本（无 action）且有 PPT file → PptxViewJSRenderer（失败时降级到 PptCanvasRenderer）
+ * 3. 是 AI 版本（有 action）→ SlideContentRenderer
+ * 4. 兜底 → PptCanvasRenderer / 占位符
  */
 
 "use client"
 
 import * as React from "react"
-import { useMemo } from "react"
+import { useMemo, useState, useCallback } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -231,6 +232,9 @@ export function SlidePreviewPanel({
   // 当前选中的操作
   const [selectedAction, setSelectedAction] = React.useState<SlideAction | null>(null)
 
+  // feat-185: PptxViewJSRenderer 降级状态
+  const [fallbackMode, setFallbackMode] = useState(false)
+
   // 处理操作点击 - 设置选中的操作并注入模板
   const handleActionClick = (action: SlideAction) => {
     const template = ACTION_CONFIG[action]?.template
@@ -250,6 +254,21 @@ export function SlidePreviewPanel({
 
   // 优先使用外部传入的 URL，其次使用版本中的 preview_url
   const imageUrl = externalImageUrl || version?.preview_url
+
+  // feat-185: 获取对应的 PPT 文件
+  const pptFile = slide?.original_source === 'ppt_a' ? fileA :
+                  slide?.original_source === 'ppt_b' ? fileB : null
+
+  // feat-185: PptxViewJSRenderer 错误处理，触发降级
+  const handlePptxViewJSError = useCallback((error: Error) => {
+    console.warn('[SlidePreviewPanel] PptxViewJSRenderer 渲染失败，降级到 PptCanvasRenderer:', error.message)
+    setFallbackMode(true)
+  }, [])
+
+  // feat-185: 重置降级状态（当文件或幻灯片变化时）
+  React.useEffect(() => {
+    setFallbackMode(false)
+  }, [pptFile, slide?.slide_id])
 
   // 无幻灯片时的提示
   if (!slide || !version) {
@@ -299,14 +318,24 @@ export function SlidePreviewPanel({
         </div>
       </div>
 
-      {/* 渲染优先级决策树（feat-177）：
+      {/* 渲染优先级决策树（feat-177, feat-185）：
           1. LibreOffice 图片 URL → <img>
-          2. 原始版本（无 action）且有 PPT file → PptxViewJSRenderer
+          2. 原始版本（无 action）且有 PPT file → PptxViewJSRenderer（降级时用 PptCanvasRenderer）
           3. AI 版本（有 action）→ SlideContentRenderer
           4. 有 content 数据 → PptCanvasRenderer
           5. 兜底 → 占位符 */}
       <div className="flex-1 p-4">
-        <div className="aspect-video bg-gray-50 rounded-lg overflow-hidden border">
+        <div className="aspect-video bg-gray-50 rounded-lg overflow-hidden border relative">
+          {/* feat-185: 降级提示 Badge */}
+          {fallbackMode && (
+            <Badge
+              variant="outline"
+              className="absolute top-2 left-2 bg-amber-100 text-amber-700 border-amber-300 z-10"
+            >
+              渲染降级：使用简化模式
+            </Badge>
+          )}
+
           {isProcessing ? (
             <div className="w-full h-full flex flex-col items-center justify-center">
               <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mb-3" />
@@ -333,15 +362,27 @@ export function SlidePreviewPanel({
                 (e.target as HTMLImageElement).style.display = 'none'
               }}
             />
-          ) : /* 优先级 2: 原始版本（无 action）且有 PPT file → PptxViewJSRenderer */
-          !version?.action && (slide.original_source === 'ppt_a' || slide.original_source === 'ppt_b') && (slide.original_source === 'ppt_a' ? fileA : fileB) ? (
-            <PptxViewJSRenderer
-              file={slide.original_source === 'ppt_a' ? fileA! : fileB!}
-              slideIndex={slide.original_index}
-              width={800}
-              height={450}
-              quality="high"
-            />
+          ) : /* 优先级 2: 原始版本（无 action）且有 PPT file → PptxViewJSRenderer（feat-185: 支持降级）*/
+          !version?.action && pptFile ? (
+            fallbackMode ? (
+              // feat-185: 降级模式 - 使用 PptCanvasRenderer
+              <PptCanvasRenderer
+                pageData={versionToPageData(version, slide.original_index)}
+                width={800}
+                height={450}
+                quality={1.0}
+              />
+            ) : (
+              // 正常模式 - 使用 PptxViewJSRenderer，监听错误
+              <PptxViewJSRenderer
+                file={pptFile}
+                slideIndex={slide.original_index}
+                width={800}
+                height={450}
+                quality="high"
+                onError={handlePptxViewJSError}
+              />
+            )
           ) : /* 优先级 3: AI 版本（有 action）→ SlideContentRenderer */
           version?.action && version.content ? (
             <SlideContentRenderer

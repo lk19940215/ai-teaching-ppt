@@ -1,6 +1,7 @@
 /**
  * 幻灯片池面板组件
  * feat-171: 显示所有幻灯片（PPT A/B、融合结果）的池化管理
+ * feat-185: PptxViewJSRenderer 降级到 PptCanvasRenderer 的自动切换
  *
  * 功能：
  * - 分组显示幻灯片（PPT A / PPT B / 融合结果）
@@ -105,7 +106,7 @@ function versionToPageData(version: SlideVersion, pageIndex: number): EnhancedPp
 /**
  * 单个幻灯片缩略图
  * feat-172: 渲染优先级决策树
- * feat-182: PptxViewJSRenderer 降级到 PptCanvasRenderer 的自动切换
+ * feat-185: PptxViewJSRenderer 降级到 PptCanvasRenderer 的自动切换
  * 1. LibreOffice 图片 URL → <img>
  * 2. 原始版本（v1，无 action）且有 PPT file → PptxViewJSRenderer（失败时降级）
  * 3. AI 版本（v2+，有 action）→ SlideContentRenderer
@@ -141,7 +142,7 @@ function SlideThumbnail({
     item.original_source === 'merge' ? 'bg-purple-100 text-purple-700' :
     'bg-amber-100 text-amber-700'
 
-  // feat-182: PptxViewJSRenderer 降级状态
+  // feat-185: PptxViewJSRenderer 降级状态
   const [fallbackMode, setFallbackMode] = useState(false)
 
   // 优先使用外部传入的 URL（LibreOffice 生成的预览图）
@@ -157,9 +158,9 @@ function SlideThumbnail({
   // 判断是否为 AI 版本（有 action 或版本号 > 1）
   const isAIVersion = currentVersion?.action || item.versions.length > 1
 
-  // feat-182: PptxViewJSRenderer 错误处理，触发降级
-  const handlePptxViewJSError = useCallback(() => {
-    console.warn('[SlideThumbnail] PptxViewJSRenderer 渲染失败，降级到 PptCanvasRenderer')
+  // feat-185: PptxViewJSRenderer 错误处理，触发降级
+  const handlePptxViewJSError = useCallback((error: Error) => {
+    console.warn('[SlideThumbnail] PptxViewJSRenderer 渲染失败，降级到 PptCanvasRenderer:', error.message)
     setFallbackMode(true)
   }, [])
 
@@ -182,7 +183,7 @@ function SlideThumbnail({
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      {/* 渲染优先级决策树（feat-177, feat-182）：
+      {/* 渲染优先级决策树（feat-177, feat-185）：
           1. LibreOffice 图片 URL → <img>
           2. 原始版本（无 action）且有 PPT file → PptxViewJSRenderer（降级时用 PptCanvasRenderer）
           3. AI 版本（有 action）→ SlideContentRenderer
@@ -202,7 +203,7 @@ function SlideThumbnail({
           />
         ) : /* 优先级 2: 原始版本（无 action）且有 PPT file */
         isOriginalVersion && pptFile ? (
-          // feat-182: 根据 fallbackMode 选择渲染器
+          // feat-185: 根据 fallbackMode 选择渲染器
           fallbackMode ? (
             // 降级模式：使用 PptCanvasRenderer
             <PptCanvasRenderer
@@ -245,11 +246,14 @@ function SlideThumbnail({
         )}
       </div>
 
-      {/* feat-182: 降级提示 */}
+      {/* feat-185: 降级提示 Badge */}
       {fallbackMode && (
-        <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[9px] rounded shadow z-10">
+        <Badge
+          variant="outline"
+          className="absolute top-1 left-1 bg-amber-100 text-amber-700 border-amber-300 text-[9px] px-1.5 py-0.5 z-10"
+        >
           降级渲染
-        </div>
+        </Badge>
       )}
 
       {/* 信息栏 */}
