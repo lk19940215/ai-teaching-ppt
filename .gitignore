@@ -48,3 +48,7 @@ yarn-error.log*
 .claude-coder/.runtime/
 .claude-coder/playwright-auth.json
 .claude-coder/.runtime/browser-profile
+
+# 上传和生成的测试文件
+uploads/
+backend/test_*.pptx

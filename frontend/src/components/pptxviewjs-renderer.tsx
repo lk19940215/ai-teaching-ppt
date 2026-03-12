@@ -35,8 +35,10 @@ const MAX_CACHE_SIZE = 10 // 最多缓存 10 个 PPTX 实例
 /**
  * 生成缓存键
  */
+// 使用计数器+文件信息生成唯一缓存键，避免同名文件冲突
+let cacheCounter = 0
 function getCacheKey(file: File): string {
-  return `${file.name}_${file.size}`
+  return `${file.name}_${file.size}_${++cacheCounter}`
 }
 
 /**
