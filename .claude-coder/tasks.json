@@ -105,7 +105,7 @@
       "id": "feat-172",
       "priority": 172,
       "category": "frontend",
-      "status": "done",
+      "status": "pending",
       "description": "阶段二：接入 merge 页面 - SlidePoolPanel 缩略图渲染",
       "depends_on": [
         "feat-171"
@@ -133,7 +133,7 @@
       "id": "feat-173",
       "priority": 173,
       "category": "frontend",
-      "status": "done",
+      "status": "pending",
       "description": "阶段二：接入 merge 页面 - SlidePreviewPanel 主预览区",
       "depends_on": [
         "feat-172"
@@ -157,7 +157,7 @@
       "id": "feat-174",
       "priority": 174,
       "category": "frontend",
-      "status": "done",
+      "status": "pending",
       "description": "阶段三：优化 PptCanvasRenderer - 修复已知问题",
       "depends_on": [
         "feat-173"
@@ -183,7 +183,7 @@
       "id": "feat-175",
       "priority": 175,
       "category": "frontend",
-      "status": "done",
+      "status": "pending",
       "description": "阶段四：新建 SlideContentRenderer - AI 内容美观渲染",
       "depends_on": [
         "feat-174"
@@ -211,7 +211,7 @@
       "id": "feat-176",
       "priority": 176,
       "category": "frontend",
-      "status": "done",
+      "status": "pending",
       "description": "阶段四：集成 SlideContentRenderer 到预览面板",
       "depends_on": [
         "feat-175"
@@ -236,7 +236,7 @@
       "id": "feat-177",
       "priority": 177,
       "category": "frontend",
-      "status": "done",
+      "status": "pending",
       "description": "阶段四：更新渲染优先级决策树",
       "depends_on": [
         "feat-176"
@@ -264,7 +264,7 @@
       "id": "feat-178",
       "priority": 178,
       "category": "test",
-      "status": "done",
+      "status": "pending",
       "description": "阶段五：集成测试 - 渲染效果与降级链路",
       "depends_on": [
         "feat-177"
@@ -303,7 +303,7 @@
       "id": "feat-179",
       "priority": 179,
       "category": "frontend",
-      "status": "done",
+      "status": "pending",
       "description": "优化：SlidePoolPanel 传递 PPT file 引用",
       "depends_on": [
         "feat-171"
@@ -328,7 +328,7 @@
       "id": "feat-180",
       "priority": 180,
       "category": "backend",
-      "status": "done",
+      "status": "pending",
       "description": "后端优化：/api/v1/ppt/parse 增强返回完整 EnhancedPptPageData",
       "design_doc": "docs/research-frontend-pptx-rendering.md#二、项目现有前端渲染组件",
       "steps": [
@@ -352,7 +352,7 @@
       "id": "feat-181",
       "priority": 181,
       "category": "backend",
-      "status": "done",
+      "status": "pending",
       "description": "后端优化：/api/v1/ppt/parse 支持图片 base64 提取",
       "depends_on": [
         "feat-180"
@@ -380,7 +380,7 @@
       "id": "feat-182",
       "priority": 182,
       "category": "frontend",
-      "status": "done",
+      "status": "pending",
       "description": "兜底方案：PptxViewJSRenderer 降级到 PptCanvasRenderer 的自动切换",
       "depends_on": [
         "feat-181"
@@ -411,7 +411,7 @@
       "id": "feat-183",
       "priority": 183,
       "category": "frontend",
-      "status": "done",
+      "status": "pending",
       "description": "性能优化：PptxViewJSRenderer 缓存机制",
       "depends_on": [
         "feat-182"
@@ -439,7 +439,7 @@
       "id": "feat-184",
       "priority": 184,
       "category": "frontend",
-      "status": "done",
+      "status": "pending",
       "description": "优化：SlideContentRenderer 支持 SlideContent elements 渲染",
       "depends_on": [
         "feat-176"
