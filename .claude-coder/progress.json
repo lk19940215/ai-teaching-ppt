@@ -35,6 +35,15 @@
       "taskId": "unknown",
       "statusAfter": "done",
       "notes": "feat-176 完成：集成 SlideContentRenderer 到预览面板\n\n实现内容：\n1. SlidePreviewPanel：AI 版本使用 SlideContentRenderer 替代 PptCanvasRenderer\n   - 优先级 3 改为 SlideContentRenderer，支持 action/content/slide/size 参数\n2. SlidePoolPanel：AI 版本缩略图使用 SlideContentRenderer (size='thumbnail')\n   - 替换原来的占位符（图标+文字）为美观的模板渲染\n\n测试验证（Playwright MCP）：\n- 上传两个 PPT 文件\n- 点击润色操作 → 执行润色\n- AI 处理完成后：\n  - 幻灯片池缩略图显示 v2 标记和 📘 图标\n  - 主预览区显示要点模板（蓝色色带+标题+要点列表）\n  - 版本切换器正常工作（v1/v2）\n\n下一个任务：feat-177 更新渲染优先级决策树（依赖 feat-176）\n给下一个会话的提醒：\n- feat-177 需要在代码中实现完整的渲染优先级逻辑\n- feat-178 是集成测试，需要执行完整流程"
+    },
+    {
+      "session": 5,
+      "timestamp": "2026-03-12T14:25:21.964Z",
+      "result": "success",
+      "cost": 2.4708170000000007,
+      "taskId": "unknown",
+      "statusAfter": "done",
+      "notes": "feat-177 完成：更新渲染优先级决策树\n\n实现内容：\n1. SlidePreviewPanel：添加渲染优先级决策树注释（5级降级链路）\n   - 优先级 1: LibreOffice 图片 URL → <img>\n   - 优先级 2: 原始版本（无 action）→ PptxViewJSRenderer\n   - 优先级 3: AI 版本（有 action）→ SlideContentRenderer\n   - 优先级 4: 有 content 数据 → PptCanvasRenderer\n   - 优先级 5: 兜底 → 占位符\n2. SlidePoolPanel：同步更新渲染优先级注释\n3. 更新 docs/research-frontend-pptx-rendering.md 记录实现状态\n\n验证结果：\n- TypeScript 类型检查通过\n- Playwright E2E 测试验证渲染链路正常\n- 原始版本（v1）显示真实 PPT 内容（PptxViewJSRenderer）\n- AI 版本（v2+）使用 SlideContentRenderer 美观渲染（📘 + 要点模板 + 已润色标签）\n\n下一个任务：feat-178 集成测试 - 渲染效果与降级链路\n给下一个会话的提醒：\n- feat-178 是集成测试任务，需要执行完整流程验证\n- 测试数据：test_大龙猫.pptx 和 test_模版.pptx"
     }
   ]
 }
