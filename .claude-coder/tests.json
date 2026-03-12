@@ -28,6 +28,7 @@
     {"id": "test-feat168-api", "feature_id": "feat-168", "verify": "curl -s http://localhost:8000/openapi.json | grep -q 'generate-final'", "expected": "generate-final API 端点已注册", "last_result": "pass", "last_run_session": 15},
     {"id": "test-feat168-import", "feature_id": "feat-168", "verify": "grep -q 'from.*ppt_generator import generate_ppt_from_versions' backend/app/api/ppt.py", "expected": "generate_ppt_from_versions 已正确导入", "last_result": "pass", "last_run_session": 15},
     {"id": "test-feat168-e2e", "feature_id": "feat-168", "verify": "ls uploads/generated/final_*.pptx 2>/dev/null | head -1", "expected": "最终 PPT 文件生成成功", "last_result": "pass", "last_run_session": 16},
-    {"id": "test-feat169-e2e-single-page", "feature_id": "feat-169", "verify": "ls uploads/generated/final_*.pptx 2>/dev/null | wc -l", "expected": "单页润色→应用→生成最终PPT 端到端流程成功", "last_result": "pass", "last_run_session": 7}
+    {"id": "test-feat169-e2e-single-page", "feature_id": "feat-169", "verify": "ls uploads/generated/final_*.pptx 2>/dev/null | wc -l", "expected": "单页润色→应用→生成最终PPT 端到端流程成功", "last_result": "pass", "last_run_session": 7},
+    {"id": "test-feat171-pptxviewjs", "feature_id": "feat-171", "verify": "ls frontend/src/components/pptxviewjs-renderer.tsx && grep -q '库已通过 layout.tsx 加载' frontend/src/components/pptxviewjs-renderer.tsx", "expected": "PptxViewJSRenderer 组件存在并支持 layout.tsx 加载的库", "last_result": "pass", "last_run_session": 1}
   ]
 }

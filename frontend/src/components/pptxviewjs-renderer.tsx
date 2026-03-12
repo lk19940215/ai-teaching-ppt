@@ -29,6 +29,14 @@ const loadCallbacks: Array<(success: boolean) => void> = []
 
 function loadLibrary(): Promise<boolean> {
   return new Promise((resolve) => {
+    // 检查是否已经通过 layout.tsx 的 Next.js Script 加载
+    const win = window as any
+    if (win.PptxViewJS?.PPTXViewer && !PPTXViewerClass) {
+      PPTXViewerClass = win.PptxViewJS.PPTXViewer
+      libState = 'ready'
+      console.log('[PptxViewJS] 库已通过 layout.tsx 加载')
+    }
+
     if (libState === 'ready' && PPTXViewerClass) {
       resolve(true)
       return

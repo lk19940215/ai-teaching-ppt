@@ -79,7 +79,7 @@
       "id": "feat-171",
       "priority": 171,
       "category": "frontend",
-      "status": "in_progress",
+      "status": "done",
       "description": "阶段一：修复 PptxViewJSRenderer - 核实 API 并修复渲染",
       "design_doc": "docs/research-frontend-pptx-rendering.md#六、实施路线",
       "steps": [

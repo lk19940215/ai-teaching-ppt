@@ -206,6 +206,7 @@ export function PptxViewJSPreview({
   }
 
   // 加载中状态（file 存在但 slideCount 还是 0）
+  // 注意：需要渲染 PptxViewJSRenderer 来触发 onLoad 回调
   if (slideCount === 0) {
     return (
       <div className="border rounded-lg p-6 bg-white" ref={containerRef}>
@@ -213,9 +214,28 @@ export function PptxViewJSPreview({
           <h3 className="text-lg font-medium text-gray-900">{label}</h3>
           <span className="text-xs text-gray-500">正在加载...</span>
         </div>
-        <div className="text-center py-12">
-          <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-gray-500 text-sm">正在解析 PPT 文件...</p>
+        <div className="relative" style={{ height: '450px' }}>
+          {/* 隐藏的渲染器，用于触发 onLoad */}
+          <div className="absolute inset-0 opacity-0 pointer-events-none">
+            {usePptxViewJS && !fallbackMode && (
+              <PptxViewJSRenderer
+                file={file}
+                slideIndex={0}
+                width={800}
+                height={450}
+                quality="high"
+                onError={handleError}
+                onLoad={handleLoad}
+              />
+            )}
+          </div>
+          {/* 加载动画 */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-gray-500 text-sm">正在解析 PPT 文件...</p>
+            </div>
+          </div>
         </div>
       </div>
     )
