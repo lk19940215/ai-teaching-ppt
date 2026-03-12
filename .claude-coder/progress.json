@@ -71,6 +71,42 @@
       "taskId": "feat-171",
       "statusAfter": "done",
       "notes": "feat-171 验证完成：\n\n1. API 调研：通过 TypeScript 定义文件 (PptxViewJS.d.ts) 确认了 pptxviewjs 的正确 API：\n   - 事件名：loadComplete（当前代码已正确使用）\n   - renderSlide(slideIndex, canvas?, options?) 签名正确\n   - goToSlide(slideIndex, canvas?) 签名正确\n\n2. 代码审查：pptxviewjs-renderer.tsx 中的事件监听和 API 调用已正确实现，无需修复\n\n3. 功能测试：通过 Playwright MCP 上传 test_with_image.pptx，验证渲染成功：\n   - 库正确加载（通过 layout.tsx 的 Script 标签）\n   - PPTX 解析正确（显示 \"共 1 页\"）\n   - 缓存机制生效（Console 显示 \"使用缓存的 viewer\"）\n\n4. 结论：原调研文档中提到的问题（事件名不匹配、参数传递）在实际代码中已正确实现，无需修复\n\n下一步：feat-172 可继续开发，依赖已满足"
+    },
+    {
+      "session": 2,
+      "timestamp": "2026-03-12T15:55:33.069Z",
+      "result": "success",
+      "cost": 3.3470869999999997,
+      "taskId": "feat-172",
+      "statusAfter": "done",
+      "notes": "feat-172 验证完成：\n\n1. 发现并修复 Bug：后端增强模式返回的 content 数组是对象 [{type, text, position, font}]，而前端期望 string[]。在 useMergeSession.ts 的 parsePptFile 函数中添加 .text 提取逻辑。\n\n2. 验证结果：\n   - 幻灯片池正确显示 PPT A（2页）+ PPT B（4页）\n   - 缩略图使用真实 PPT 内容渲染（非灰色占位符）\n   - 主预览区正确显示\n   - 内容摘要正确解析\n   - 无控制台错误\n\n3. 渲染优先级决策树已实现：\n   - LibreOffice 图片 URL → <img>\n   - 原始版本 + PPT file → PptxViewJSRenderer\n   - AI 版本 → SlideContentRenderer\n   - 兜底 → PptCanvasRenderer\n\n下一步：feat-173（SlidePreviewPanel 主预览区）依赖本任务，现已可以开始。"
+    },
+    {
+      "session": 1,
+      "timestamp": "2026-03-12T16:02:21.243Z",
+      "result": "success",
+      "cost": 1.7986105000000001,
+      "taskId": "feat-175",
+      "statusAfter": "done",
+      "notes": "feat-172 验证完成：\n\n1. 发现并修复 Bug：后端增强模式返回的 content 数组是对象 [{type, text, position, font}]，而前端期望 string[]。在 useMergeSession.ts 的 parsePptFile 函数中添加 .text 提取逻辑。\n\n2. 验证结果：\n   - 幻灯片池正确显示 PPT A（2页）+ PPT B（4页）\n   - 缩略图使用真实 PPT 内容渲染（非灰色占位符）\n   - 主预览区正确显示\n   - 内容摘要正确解析\n   - 无控制台错误\n\n3. 渲染优先级决策树已实现：\n   - LibreOffice 图片 URL → <img>\n   - 原始版本 + PPT file → PptxViewJSRenderer\n   - AI 版本 → SlideContentRenderer\n   - 兜底 → PptCanvasRenderer\n\n下一步：feat-173（SlidePreviewPanel 主预览区）依赖本任务，现已可以开始。"
+    },
+    {
+      "session": 2,
+      "timestamp": "2026-03-12T16:05:34.632Z",
+      "result": "success",
+      "cost": 1.8508229999999999,
+      "taskId": "feat-179",
+      "statusAfter": "done",
+      "notes": "feat-179 任务验证完成。\n\n结论：该功能在之前的 feat-172 中已完整实现。\n\n验证内容：\n1. useMergeSession.ts 中 session 状态包含 ppt_a_file / ppt_b_file\n2. initSession 正确设置这两个文件引用\n3. SlidePoolPanel 接收 fileA / fileB 参数\n4. SlideThumbnail 根据 slide.original_source 选择对应的 PPT file\n5. PptxViewJSRenderer 使用 PPT file 渲染原始版本缩略图\n\n端到端测试通过：\n- PPT A (2页) + PPT B (4页) 正确解析\n- 幻灯片池显示 6 页，缩略图正确渲染\n- 主预览区正确显示内容摘要\n\n进度：5/14 done"
+    },
+    {
+      "session": 3,
+      "timestamp": "2026-03-12T16:14:50.320Z",
+      "result": "success",
+      "cost": 2.8922959999999995,
+      "taskId": "feat-180",
+      "statusAfter": "done",
+      "notes": "feat-180 任务完成。\n\n修改内容：\n1. 分析后发现后端 API 已支持 extract_enhanced=true 参数，返回完整的 text_content runs 数据\n2. 问题在于 SlidePreviewPanel 的 contentToPageData 函数没有使用 version.shapes，而是从简化的 content 构造数据\n3. 重构 contentToPageData 为 versionToPageData，优先使用 version.shapes（来自后端增强模式），与 SlidePoolPanel 保持一致\n\n验证结果：\n- API 返回 text_content 包含 runs 数组（font/color/size/alignment）\n- 前端渲染器可正确使用增强数据进行精确渲染\n- TypeScript 类型检查通过\n- 所有 4 个测试用例通过\n\n给下一个会话的提醒：\n- feat-181 依赖 feat-180，现在可以开始 feat-181（图片 base64 提取）\n- 后端 API 已完整支持增强模式，前端已正确对接\n- SlidePoolPanel 和 SlidePreviewPanel 都使用 versionToPageData 函数\n\n进度：6/14 done"
     }
   ]
 }

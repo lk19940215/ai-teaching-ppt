@@ -352,7 +352,7 @@
       "id": "feat-181",
       "priority": 181,
       "category": "backend",
-      "status": "pending",
+      "status": "testing",
       "description": "后端优化：/api/v1/ppt/parse 支持图片 base64 提取",
       "depends_on": [
         "feat-180"

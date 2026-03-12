@@ -2,5 +2,5 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": "feat-172 验证完成：\n\n1. 发现并修复 Bug：后端增强模式返回的 content 数组是对象 [{type, text, position, font}]，而前端期望 string[]。在 useMergeSession.ts 的 parsePptFile 函数中添加 .text 提取逻辑。\n\n2. 验证结果：\n   - 幻灯片池正确显示 PPT A（2页）+ PPT B（4页）\n   - 缩略图使用真实 PPT 内容渲染（非灰色占位符）\n   - 主预览区正确显示\n   - 内容摘要正确解析\n   - 无控制台错误\n\n3. 渲染优先级决策树已实现：\n   - LibreOffice 图片 URL → <img>\n   - 原始版本 + PPT file → PptxViewJSRenderer\n   - AI 版本 → SlideContentRenderer\n   - 兜底 → PptCanvasRenderer\n\n下一步：feat-173（SlidePreviewPanel 主预览区）依赖本任务，现已可以开始。"
+  "notes": "feat-180 任务完成。\n\n修改内容：\n1. 分析后发现后端 API 已支持 extract_enhanced=true 参数，返回完整的 text_content runs 数据\n2. 问题在于 SlidePreviewPanel 的 contentToPageData 函数没有使用 version.shapes，而是从简化的 content 构造数据\n3. 重构 contentToPageData 为 versionToPageData，优先使用 version.shapes（来自后端增强模式），与 SlidePoolPanel 保持一致\n\n验证结果：\n- API 返回 text_content 包含 runs 数组（font/color/size/alignment）\n- 前端渲染器可正确使用增强数据进行精确渲染\n- TypeScript 类型检查通过\n- 所有 4 个测试用例通过\n\n给下一个会话的提醒：\n- feat-181 依赖 feat-180，现在可以开始 feat-181（图片 base64 提取）\n- 后端 API 已完整支持增强模式，前端已正确对接\n- SlidePoolPanel 和 SlidePreviewPanel 都使用 versionToPageData 函数\n\n进度：6/14 done"
 }
