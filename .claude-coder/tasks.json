@@ -1,7 +1,7 @@
 {
   "project": "ai-teaching-ppt",
-  "last_updated": "2026-03-12",
-  "next_task_priority": 187,
+  "last_updated": "2026-03-13",
+  "next_task_priority": 190,
   "completed_milestones": [
     {
       "name": "基础设施搭建",
@@ -411,7 +411,7 @@
       "id": "feat-186",
       "priority": 186,
       "category": "frontend",
-      "status": "pending",
+      "status": "done",
       "description": "性能优化：PptxViewJSRenderer 缓存机制",
       "depends_on": [
         "feat-182"
@@ -460,6 +460,7 @@
         "显示融合来源标记",
         "不同类型元素渲染正确"
       ]
+    },
     {
       "id": "feat-189",
       "priority": 189,
