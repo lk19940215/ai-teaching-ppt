@@ -1,7 +1,7 @@
 {
   "project": "ai-teaching-ppt",
   "last_updated": "2026-03-15",
-  "next_task_priority": 196,
+  "next_task_priority": 199,
   "completed_milestones": [
     {
       "name": "基础设施搭建",
@@ -663,6 +663,99 @@
         "占位符文本（'添加标题内容''添加副标题'）在解析和渲染阶段被过滤",
         "/api/v1/ppt/ai-merge 和 /api/v1/ppt/rebuild 不再报类型错误",
         "正常教学内容不受影响"
+      ]
+    },
+    {
+      "id": "feat-196",
+      "priority": 196,
+      "category": "backend",
+      "status": "pending",
+      "description": "修复：content_merger.py - 增强 _ensure_slide_content_fields 字段类型安全验证",
+      "design_doc": ".claude-coder/plan/unified-zooming-quiche.md",
+      "depends_on": [],
+      "steps": [
+        "【问题分析】当前 _ensure_slide_content_fields 对 dict 类型处理不完善，优先级字段提取逻辑不健壮",
+        "【实现】增强 _validate_and_convert_points() 方法：定义标准字段提取优先级（text → content → polished → description → item → str()）",
+        "【实现】在 _ensure_slide_content_fields 中调用 _validate_and_convert_points() 统一处理",
+        "【实现】添加日志记录类型转换细节，便于调试",
+        "【测试】本地测试：使用包含混合类型（str/dict/int/None）的 main_points 验证转换逻辑",
+        "【验证】确认所有 normalize_* 方法都调用统一的验证逻辑，无遗漏"
+      ],
+      "artifacts": [
+        "backend/app/services/content_merger.py"
+      ],
+      "acceptance_criteria": [
+        "main_points 中所有元素都确保是字符串，无 dict/int/None 混入",
+        "字典类型按优先级提取字段，不会遗漏或报错",
+        "空字符串和 None 被正确过滤",
+        "边界情况（空列表、超长文本、特殊字符）处理正确"
+      ]
+    },
+    {
+      "id": "feat-197",
+      "priority": 197,
+      "category": "backend",
+      "status": "pending",
+      "description": "修复：content_merger.py - 在解析响应末尾添加最终验证过滤",
+      "design_doc": ".claude-coder/plan/unified-zooming-quiche.md",
+      "depends_on": [
+        "feat-196"
+      ],
+      "steps": [
+        "【实现】在 _parse_single_page_response 方法末尾添加最终验证：确保 new_content.main_points 只包含非空字符串",
+        "【实现】在 _extract_content_by_action 方法末尾添加类似验证",
+        "【实现】在 _merge_slides_response 解析完整合并响应时也添加验证",
+        "【测试】模拟 LLM 返回异常格式（如 {'main_points': [{'text': '...'}]}），验证系统不会崩溃",
+        "【验证】本地测试所有单页操作（polish/expand/rewrite/extract）和多页融合，确认无类型错误"
+      ],
+      "artifacts": [
+        "backend/app/services/content_merger.py"
+      ],
+      "acceptance_criteria": [
+        "所有解析路径都包含最终验证，确保数据纯净",
+        "异常格式被正确过滤或转换，不会导致崩溃",
+        "日志清晰显示类型转换过程，便于追踪问题"
+      ]
+    },
+    {
+      "id": "feat-198",
+      "priority": 198,
+      "category": "test",
+      "status": "pending",
+      "description": "E2E 测试：类型安全修复验证 - 防止 'sequence item 0: expected str instance' 错误",
+      "design_doc": ".claude-coder/plan/unified-zooming-quiche.md",
+      "depends_on": [
+        "feat-197"
+      ],
+      "test_data": {
+        "ppt_normal": "uploads/generated/test_大龙猫.pptx"
+      },
+      "steps": [
+        "【规则】阅读 .claude-coder/assets/test_rule.md",
+        "【环境】curl http://localhost:8000/health 确认后端服务正常",
+        "【P0】browser_navigate http://localhost:3000/merge",
+        "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
+        "【P0】browser_file_upload paths=['uploads/generated/test_大龙猫.pptx']",
+        "【P0】browser_wait_for text='test_大龙猫' timeout=15000",
+        "【P0】browser_file_upload paths=['uploads/generated/empty.pptx']",
+        "【P0】browser_wait_for text='幻灯片池' timeout=15000",
+        "【P0】browser_click ref=[第一张幻灯片]",
+        "【P0】执行 polish 操作：browser_click ref=[润色] → browser_click ref=[执行]",
+        "【P0】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
+        "【P0】browser_wait_for text='✅ AI 内容融合完成！' timeout=60000",
+        "【P0】browser_wait_for text='v2' timeout=10000",
+        "【P0】browser_snapshot 验证预览区渲染成功，无灰色块或错误",
+        "【P1】重复测试 expand/rewrite/extract 操作，验证各种 action 的类型安全",
+        "【P1】执行多页融合：选择 2-3 个幻灯片 → browser_click ref=[融合] → browser_click ref=[执行]",
+        "【P1】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
+        "【P1】browser_wait_for text='✅ 合并完成！' timeout=60000",
+        "【P1】browser_snapshot 验证融合后页面渲染正确",
+        "【验证】检查浏览器控制台无 TypeError，对比修复前后：修复前报 'sequence item 0' 错误，修复后正常"
+      ],
+      "acceptance_criteria": [
+        "所有单页操作和多页融合都不再出现 'sequence item 0: expected str instance' 类型错误",
+        "无论 LLM 返回什么格式，系统都有容错处理，不会崩溃",
+        "日志清晰显示类型转换细节，便于调试和监控"
       ]
     }
   ]
