@@ -516,14 +516,8 @@ class ContentMerger:
             # 根据 action 提取对应的内容字段
             new_content = self._extract_content_by_action(data, action, original)
 
-            # 确保 new_content 包含必要字段
+            # 确保 new_content 包含必要字段（内部已调用 _validate_and_convert_points）
             new_content = self._ensure_slide_content_fields(new_content, original)
-
-            # 最终验证：确保 main_points 只包含非空字符串
-            new_content["main_points"] = self._validate_and_convert_points(
-                new_content.get("main_points", []),
-                "_parse_single_page_response.final"
-            )
 
             return {
                 "action": action,
@@ -565,25 +559,23 @@ class ContentMerger:
         field_name = action_field_map.get(action, "new_content")
         content = data.get(field_name, data.get("new_content", {}))
 
-        # 根据 action 类型标准化内容
+        # 根据 action 类型标准化内容（内部已调用 _validate_and_convert_points）
         if action == "polish":
-            result = self._normalize_polish_content(content, data)
+            return self._normalize_polish_content(content, data)
         elif action == "expand":
-            result = self._normalize_expand_content(content, data)
+            return self._normalize_expand_content(content, data)
         elif action == "rewrite":
-            result = self._normalize_rewrite_content(content, data)
+            return self._normalize_rewrite_content(content, data)
         elif action == "extract":
-            result = self._normalize_extract_content(content, data)
+            return self._normalize_extract_content(content, data)
         else:
+            # 未知 action，返回基本内容并验证
             result = content if isinstance(content, dict) else {}
-
-        # 最终验证：确保 main_points 只包含非空字符串
-        result["main_points"] = self._validate_and_convert_points(
-            result.get("main_points", []),
-            f"_extract_content_by_action.{action}"
-        )
-
-        return result
+            result["main_points"] = self._validate_and_convert_points(
+                result.get("main_points", []),
+                f"_extract_content_by_action.{action}"
+            )
+            return result
 
     def _normalize_polish_content(self, content: Dict[str, Any], data: Dict[str, Any]) -> Dict[str, Any]:
         """标准化润色内容"""
@@ -786,45 +778,28 @@ class ContentMerger:
         priority_fields = ["text", "content", "polished", "description", "item"]
 
         for idx, p in enumerate(points):
-            original_type = type(p).__name__
-
             if p is None:
-                logger.debug(f"[{context}] 要点[{idx}] 为 None，已跳过")
                 continue
 
             if isinstance(p, str):
                 if p.strip():
                     result.append(p.strip())
-                else:
-                    logger.debug(f"[{context}] 要点[{idx}] 为空字符串，已跳过")
 
             elif isinstance(p, dict):
                 # 按优先级提取字段
-                extracted = None
                 for field in priority_fields:
                     if field in p:
                         val = p[field]
                         if isinstance(val, str) and val.strip():
-                            extracted = val.strip()
-                            logger.debug(f"[{context}] 要点[{idx}] dict 提取字段 '{field}': {extracted[:50]}...")
+                            result.append(val.strip())
                             break
                         elif val is not None and not isinstance(val, str):
                             # 非字符串类型（int, float 等），转换为字符串
-                            extracted = str(val)
-                            logger.debug(f"[{context}] 要点[{idx}] dict 提取字段 '{field}' (非字符串): {extracted[:50]}...")
+                            result.append(str(val))
                             break
-                        # 字段值为空字符串或 None，继续检查下一个优先级字段
-
-                if extracted:
-                    result.append(extracted)
-                else:
-                    # 所有优先级字段都为空，跳过该 dict（不使用 str() 转换整个 dict）
-                    logger.debug(f"[{context}] 要点[{idx}] dict 所有优先级字段为空，已跳过")
 
             elif isinstance(p, (int, float, bool)):
-                converted = str(p)
-                result.append(converted)
-                logger.debug(f"[{context}] 要点[{idx}] {original_type} 转换为字符串: {converted}")
+                result.append(str(p))
 
             else:
                 # 其他类型，尝试 str() 转换
@@ -832,13 +807,11 @@ class ContentMerger:
                     converted = str(p)
                     if converted and converted.strip():
                         result.append(converted)
-                        logger.debug(f"[{context}] 要点[{idx}] {original_type} 转换为字符串: {converted[:50]}...")
-                    else:
-                        logger.warning(f"[{context}] 要点[{idx}] {original_type} str() 结果为空，已跳过")
-                except Exception as e:
-                    logger.warning(f"[{context}] 要点[{idx}] {original_type} 无法转换为字符串: {e}")
+                except Exception:
+                    pass
 
-        logger.info(f"[{context}] 类型转换完成: 原始 {len(points)} 项 -> 结果 {len(result)} 项字符串")
+        if len(result) != len(points):
+            logger.debug(f"[{context}] 类型转换: {len(points)} 项 -> {len(result)} 项字符串")
         return result
 
     def _validate_string_list(
@@ -860,11 +833,10 @@ class ContentMerger:
             return []
 
         if not isinstance(items, list):
-            logger.warning(f"[{context}] 不是列表类型: {type(items).__name__}")
             return [str(items)] if items else []
 
         result = []
-        for idx, item in enumerate(items):
+        for item in items:
             if item is None:
                 continue
             if isinstance(item, str):
@@ -884,7 +856,6 @@ class ContentMerger:
                 except Exception:
                     pass
 
-        logger.debug(f"[{context}] 字符串列表验证完成: {len(items)} 项 -> {len(result)} 项")
         return result
 
     def _validate_new_slide(self, slide: Dict[str, Any]) -> Dict[str, Any]:
@@ -946,7 +917,6 @@ class ContentMerger:
 
                 result["elements"].append(validated_elem)
 
-        logger.debug(f"_validate_new_slide: title='{result['title'][:30]}...', elements={len(result['elements'])}项")
         return result
 
     def _ensure_slide_content_fields(
