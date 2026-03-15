@@ -599,6 +599,12 @@ class ContentMerger:
                     title = change.get("polished", "")
                     break
 
+        # feat-198: 优先从 content.main_points 提取要点（LLM 可能直接返回此字段）
+        if not main_points:
+            raw_points = content.get("main_points", [])
+            if raw_points:
+                main_points = self._validate_and_convert_points(raw_points, "_normalize_polish_content.main_points")
+
         # 从 polished_elements 或 changes 中提取要点
         if not main_points:
             elements = content.get("polished_elements", [])

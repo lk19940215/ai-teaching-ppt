@@ -721,7 +721,7 @@
       "id": "feat-198",
       "priority": 198,
       "category": "test",
-      "status": "pending",
+      "status": "done",
       "description": "E2E 测试：类型安全修复验证 - 防止 'sequence item 0: expected str instance' 错误",
       "design_doc": ".claude-coder/plan/unified-zooming-quiche.md",
       "depends_on": [
