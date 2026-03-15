@@ -28,7 +28,7 @@
       },
       "condition": {
         "field": "tool_input.command",
-        "pattern": "\\b(kill|pkill|killall)\\b"
+        "pattern": "\\b(kill|pkill|killall|taskkill|kill-port)\\b"
       }
     }
   ]

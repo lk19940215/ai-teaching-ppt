@@ -1,6 +1,6 @@
 {
   "session_result": "success",
-  "status_before": "pending",
+  "status_before": "done",
   "status_after": "done",
-  "notes": "完成 feat-189：新建 utils 目录，实现 5 个工具函数。\n\n实现内容：\n1. utils/math_utils.py - sum/sub/mul/div/sqrt 五个工具函数\n2. utils/__init__.py - 导出所有函数\n3. div 函数包含除零检查（抛出 ZeroDivisionError）\n4. sqrt 函数包含负数检查（抛出 ValueError）\n\n验证测试：\n- 所有 5 个函数导入正常\n- 功能测试全部通过（sum/sub/mul/div/sqrt）\n- 错误处理正确（除零、负数平方根）\n\n备注：utils 目录及文件之前已存在并被 git 追踪，本次主要更新 tasks.json 和 tests.json。\n\n下一步：feat-186（PptxViewJSRenderer 缓存机制）- 注意依赖 feat-182 不存在"
+  "notes": "成功追加 3 个任务：feat-190（后端修复 content_merger 单页处理返回结构）、feat-191（后端修复 ai_merge_ppts 统一返回格式）、feat-192（E2E 测试验证）。所有任务基于方案文档 .claude-coder/plan/golden-soaring-avalanche.md，解决了单页处理数据结构不明确、渲染灰色块、功能效果不佳的问题。"
 }

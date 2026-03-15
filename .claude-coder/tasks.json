@@ -1,7 +1,7 @@
 {
   "project": "ai-teaching-ppt",
-  "last_updated": "2026-03-13",
-  "next_task_priority": 190,
+  "last_updated": "2026-03-15",
+  "next_task_priority": 193,
   "completed_milestones": [
     {
       "name": "基础设施搭建",
@@ -483,6 +483,94 @@
         "utils 目录存在",
         "5 个函数可正常导入和调用",
         "函数功能正确"
+      ]
+    },
+    {
+      "id": "feat-190",
+      "priority": 190,
+      "category": "backend",
+      "status": "pending",
+      "description": "修复：content_merger.py 单页处理返回结构化 SlideContent",
+      "design_doc": ".claude-coder/plan/golden-soaring-avalanche.md",
+      "steps": [
+        "【问题分析】_parse_single_page_response 解析失败时返回空 dict，缺少必要字段导致前端渲染灰色块",
+        "【实现】修改 _parse_single_page_response：解析失败时，从文本中提取 title 和 main_points",
+        "【实现】确保 new_content 始终包含 title、main_points、additional_content 字段",
+        "【实现】添加 _extract_title_and_points 辅助方法：使用 LLM 或规则从文本中提取结构化内容",
+        "【验证】使用 test_ppt 单页测试 polish/expand/rewrite/extract 四种操作，检查返回字段完整性"
+      ],
+      "artifacts": [
+        "backend/app/services/content_merger.py"
+      ],
+      "acceptance_criteria": [
+        "所有单页操作都返回结构化的 SlideContent，包含 title、main_points、additional_content",
+        "解析失败时有容错处理，不会返回空对象",
+        "前端可正确渲染，不再显示灰色块"
+      ]
+    },
+    {
+      "id": "feat-191",
+      "priority": 191,
+      "category": "backend",
+      "status": "pending",
+      "description": "修复：ai_merge_ppts 路由统一单页模式返回格式为 MergePlan",
+      "depends_on": [
+        "feat-190"
+      ],
+      "design_doc": ".claude-coder/plan/golden-soaring-avalanche.md",
+      "steps": [
+        "【问题分析】单页模式返回的 result 结构与 full/partial 模式不一致，前端无法统一处理",
+        "【实现】修改 ai_merge_ppts 的 single 分支：将 merger.process_single_page 返回值包装为 MergePlan 格式",
+        "【实现】添加 slide_plan 列表，包含单个 SlidePlanItem（action、source、slide_index、new_content、reason）",
+        "【实现】添加 merge_strategy、summary、knowledge_points 等字段以保持结构一致",
+        "【验证】测试单页 polish，确认 SSE 返回的 result 字段与 full 模式一致"
+      ],
+      "artifacts": [
+        "backend/app/api/ppt.py"
+      ],
+      "acceptance_criteria": [
+        "单页模式返回的 result 结构包含 slide_plan、merge_strategy、summary 等字段",
+        "与 full/partial 模式的返回格式一致",
+        "前端可统一处理，无需特殊分支"
+      ]
+    },
+    {
+      "id": "feat-192",
+      "priority": 192,
+      "category": "test",
+      "status": "pending",
+      "description": "E2E 测试：单页处理数据结构修复验证",
+      "depends_on": [
+        "feat-191"
+      ],
+      "design_doc": ".claude-coder/plan/golden-soaring-avalanche.md",
+      "test_data": {
+        "ppt_a": "uploads/generated/test_大龙猫.pptx",
+        "ppt_b": "uploads/generated/empty.pptx"
+      },
+      "steps": [
+        "【规则】阅读 .claude-coder/assets/test_rule.md",
+        "【环境】curl http://localhost:8000/health 确认后端服务正常",
+        "【P0】browser_navigate http://localhost:3000/merge",
+        "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
+        "【P0】browser_file_upload paths=['uploads/generated/test_大龙猫.pptx']",
+        "【P0】browser_wait_for text='test_大龙猫' timeout=15000",
+        "【P0】browser_file_upload paths=['uploads/generated/empty.pptx']",
+        "【P0】browser_wait_for text='幻灯片池' timeout=15000",
+        "【P0】browser_click ref=[第一张幻灯片]",
+        "【P0】browser_wait_for text='润色文字' timeout=10000",
+        "【P0】browser_click ref=[执行润色按钮]",
+        "【P0】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
+        "【P0】browser_wait_for text='✅ AI 内容融合完成！' timeout=60000",
+        "【P0】browser_wait_for text='v2' timeout=10000",
+        "【P0】browser_snapshot 验证 SlideContentRenderer 正确渲染（有蓝色色带和要点列表）",
+        "【P1】重复测试 expand/rewrite/extract 操作，验证各操作的渲染模板正确",
+        "【验证】对比修复前后：修复前显示灰色块，修复后显示结构化内容"
+      ],
+      "acceptance_criteria": [
+        "单页处理后，预览面板正确渲染结构化内容，不再显示灰色块",
+        "所有操作类型（polish/expand/rewrite/extract）都能正确渲染",
+        "前端不再出现解析错误或字段缺失导致的渲染异常"
       ]
     }
   ]

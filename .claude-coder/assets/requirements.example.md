@@ -4,10 +4,11 @@
 > ```bash
 > cp requirements.example.md requirements.md
 > vim requirements.md   # 编辑你的需求
-> claude-coder run
+> claude-coder plan -r requirements.md   # 分解为任务
+> claude-coder run                       # 开始执行
 > ```
-> Agent 会在初始化和每个 session 中自动读取此文件。
-> **你可以随时修改 `requirements.md`**：新增的功能需求会在下次 session 中自动同步到 `tasks.json`；发现需要改进的地方，补充到下方功能需求或「其他要求」即可。
+> Agent 在初始化（`init`）时读取此文件判断技术栈，在编码 session 中读取此文件了解约束和偏好。
+> **修改 `requirements.md` 后**需重新运行 `claude-coder plan -r` 将新需求分解到 `tasks.json`，编码 Agent 不会自动创建任务。
 
 ---
 
