@@ -2139,12 +2139,19 @@ async def ai_merge_ppts(
                     'extract': '知识点提取'
                 }.get(single_page_action, single_page_action)
                 # 从 changes 中提取 reason 字段组成原因说明
+                # 修复：确保 reason 值为字符串类型，避免 join 失败
                 changes_list = single_result.get('changes', [])
                 if changes_list and isinstance(changes_list[0], dict):
-                    reason_parts = [c.get('reason', '') for c in changes_list if c.get('reason')]
+                    reason_parts = []
+                    for c in changes_list:
+                        reason_val = c.get('reason', '')
+                        if isinstance(reason_val, str) and reason_val:
+                            reason_parts.append(reason_val)
+                        elif reason_val:
+                            reason_parts.append(str(reason_val))
                     reason_text = '; '.join(reason_parts[:3]) if reason_parts else f'AI{action_desc}处理'
                 elif changes_list and isinstance(changes_list[0], str):
-                    reason_text = '; '.join(changes_list)
+                    reason_text = '; '.join(str(c) for c in changes_list)
                 else:
                     reason_text = f'AI{action_desc}处理'
                 result = {

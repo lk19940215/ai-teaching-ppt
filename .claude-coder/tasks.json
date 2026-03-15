@@ -538,7 +538,7 @@
       "id": "feat-192",
       "priority": 192,
       "category": "test",
-      "status": "pending",
+      "status": "done",
       "description": "E2E 测试：单页处理数据结构修复验证",
       "depends_on": [
         "feat-191"

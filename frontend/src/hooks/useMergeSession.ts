@@ -434,12 +434,24 @@ export function useMergeSession(): UseMergeSessionReturn {
         }
       }
 
-      if (!finalResult || !finalResult.new_content) {
+      if (!finalResult) {
+        throw new Error('未收到处理结果')
+      }
+
+      // feat-192: 兼容后端返回的两种结构
+      // 结构1: { new_content: {...} } (直接返回)
+      // 结构2: { plan: { slide_plan: [{ new_content: {...}] } } } (单页处理模式)
+      let newContent = finalResult.new_content
+      if (!newContent && finalResult.plan?.slide_plan?.[0]?.new_content) {
+        newContent = finalResult.plan.slide_plan[0].new_content
+      }
+
+      if (!newContent) {
         throw new Error('未收到处理结果')
       }
 
       // 创建新版本
-      const newVersion = createNewVersion(slideItem, action, finalResult.new_content, prompt)
+      const newVersion = createNewVersion(slideItem, action, newContent, prompt)
 
       // 更新幻灯片池
       setSession(prev => {
@@ -448,7 +460,7 @@ export function useMergeSession(): UseMergeSessionReturn {
           ...slideItem,
           versions: [...slideItem.versions, newVersion],
           current_version: newVersion.version_id,
-          display_title: finalResult.new_content.title || slideItem.display_title,
+          display_title: newContent.title || slideItem.display_title,
         }
 
         return {

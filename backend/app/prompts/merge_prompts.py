@@ -609,7 +609,21 @@ def _format_summary(summary: List[Dict]) -> str:
     """格式化摘要输出"""
     lines = []
     for item in summary:
-        points_str = '、'.join(item.get('main_points', [])[:2])
+        # feat-192: 确保 main_points 中的元素都是字符串
+        raw_points = item.get('main_points', [])[:2]
+        str_points = []
+        for p in raw_points:
+            if isinstance(p, str):
+                str_points.append(p)
+            elif isinstance(p, dict):
+                text = p.get('text', p.get('content', p.get('point', '')))
+                if text and isinstance(text, str):
+                    str_points.append(text)
+                else:
+                    str_points.append(str(p))
+            elif p is not None:
+                str_points.append(str(p))
+        points_str = '、'.join(str_points) if str_points else ""
         if points_str:
             points_str = f" - {points_str}"
 
@@ -660,7 +674,9 @@ def _format_pages(pages: List[Dict[str, Any]], label: str) -> str:
                 content_items.append(f"  - [image] {elem.get('description', '图片')}")
             elif elem_type == 'table':
                 headers = elem.get('table_headers', [])
-                content_items.append(f"  - [table] {' | '.join(headers) if headers else '表格'}")
+                # feat-192: 确保 headers 中的元素都是字符串
+                header_str = ' | '.join(str(h) if not isinstance(h, str) else h for h in headers) if headers else '表格'
+                content_items.append(f"  - [table] {header_str}")
 
         if content_items:
             lines.append("内容：")
@@ -707,13 +723,29 @@ def _format_slide_content(slide: Dict[str, Any]) -> str:
         elif elem_type == 'table':
             headers = elem.get('table_headers', [])
             rows = len(elem.get('table_data', []))
-            lines.append(f"  {i}. [表格] {rows} 行，列：{' | '.join(headers) if headers else '未知'}")
+            # feat-192: 确保 headers 中的元素都是字符串
+            header_str = ' | '.join(str(h) if not isinstance(h, str) else h for h in headers) if headers else '未知'
+            lines.append(f"  {i}. [表格] {rows} 行，列：{header_str}")
 
     # 教学内容摘要
     if teaching:
         points = teaching.get('main_points', teaching.get('knowledge_points', []))
         if points:
-            lines.append(f"\n教学要点：{'、'.join(points[:5])}")
+            # feat-192: 确保 points 中的元素都是字符串，避免 join 失败
+            str_points = []
+            for p in points[:5]:
+                if isinstance(p, str):
+                    str_points.append(p)
+                elif isinstance(p, dict):
+                    text = p.get('text', p.get('content', p.get('point', '')))
+                    if text and isinstance(text, str):
+                        str_points.append(text)
+                    else:
+                        str_points.append(str(p))
+                elif p is not None:
+                    str_points.append(str(p))
+            if str_points:
+                lines.append(f"\n教学要点：{'、'.join(str_points)}")
 
     return '\n'.join(lines)
 

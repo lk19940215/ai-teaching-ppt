@@ -588,18 +588,39 @@ class ContentMerger:
         # 从 polished_elements 或 changes 中提取要点
         if not main_points:
             elements = content.get("polished_elements", [])
-            main_points = [e.get("polished", "") for e in elements if e.get("polished")]
+            for e in elements:
+                val = e.get("polished", "")
+                if val:
+                    if isinstance(val, str):
+                        main_points.append(val)
+                    else:
+                        main_points.append(str(val))
 
         # 从 changes 中提取要点（排除标题相关的更改）
         if not main_points and changes:
-            main_points = [
-                c.get("polished", "") for c in changes
-                if c.get("polished") and "标题" not in c.get("location", "")
-            ]
+            for c in changes:
+                val = c.get("polished", "")
+                if val and "标题" not in c.get("location", ""):
+                    if isinstance(val, str):
+                        main_points.append(val)
+                    else:
+                        main_points.append(str(val))
+
+        # 确保 main_points 中的所有元素都是字符串
+        str_points = []
+        for p in main_points:
+            if isinstance(p, str) and p:
+                str_points.append(p)
+            elif isinstance(p, dict):
+                text = p.get("text", p.get("content", p.get("polished", "")))
+                if text:
+                    str_points.append(str(text))
+            elif p is not None:
+                str_points.append(str(p))
 
         return {
             "title": title or "润色后的内容",
-            "main_points": main_points[:6],
+            "main_points": str_points[:6],
             "additional_content": ""
         }
 
@@ -618,13 +639,34 @@ class ContentMerger:
         new_examples = content.get("new_examples", [])
         additional_content = ""
         if new_examples:
-            additional_content = "新增例题：" + "；".join(new_examples[:3])
+            # 确保 new_examples 中的元素都是字符串
+            example_strs = []
+            for ex in new_examples[:3]:
+                if isinstance(ex, str):
+                    example_strs.append(ex)
+                elif isinstance(ex, dict):
+                    example_strs.append(ex.get("content", ex.get("text", str(ex))))
+                else:
+                    example_strs.append(str(ex))
+            additional_content = "新增例题：" + "；".join(example_strs)
 
         additional = content.get("additional_content", additional_content)
 
+        # 确保 main_points 中的元素都是字符串
+        str_points = []
+        for p in main_points:
+            if isinstance(p, str) and p:
+                str_points.append(p)
+            elif isinstance(p, dict):
+                text = p.get("text", p.get("content", p.get("polished", "")))
+                if text:
+                    str_points.append(str(text))
+            elif p is not None:
+                str_points.append(str(p))
+
         return {
             "title": title or "扩展后的内容",
-            "main_points": main_points[:6],
+            "main_points": str_points[:6],
             "additional_content": additional
         }
 
@@ -644,11 +686,30 @@ class ContentMerger:
         style_features = content.get("style_features", [])
         additional_content = ""
         if style_features:
-            additional_content = "风格特点：" + "、".join(style_features)
+            # 确保元素都是字符串
+            feature_strs = []
+            for f in style_features:
+                if isinstance(f, str):
+                    feature_strs.append(f)
+                else:
+                    feature_strs.append(str(f))
+            additional_content = "风格特点：" + "、".join(feature_strs)
+
+        # 确保 main_points 中的元素都是字符串
+        str_points = []
+        for p in main_points:
+            if isinstance(p, str) and p:
+                str_points.append(p)
+            elif isinstance(p, dict):
+                text = p.get("text", p.get("content", ""))
+                if text:
+                    str_points.append(str(text))
+            elif p is not None:
+                str_points.append(str(p))
 
         return {
             "title": title or "改写后的内容",
-            "main_points": main_points,
+            "main_points": str_points,
             "additional_content": additional_content
         }
 
@@ -681,20 +742,38 @@ class ContentMerger:
             name = method.get("name", "")
             steps = method.get("steps", [])
             if name:
-                step_str = "→".join(steps[:3]) if steps else ""
+                # 确保 steps 中的元素都是字符串
+                step_strs = []
+                for s in steps[:3]:
+                    if isinstance(s, str):
+                        step_strs.append(s)
+                    else:
+                        step_strs.append(str(s))
+                step_str = "→".join(step_strs) if step_strs else ""
                 main_points.append(f"【{name}】{step_str}")
 
         # 易错点作为额外内容
         common_mistakes = content.get("common_mistakes", [])
         additional_content = ""
         if common_mistakes:
-            mistakes = [f"{m.get('mistake', '')}→{m.get('correction', '')}" for m in common_mistakes[:3]]
-            additional_content = "易错提醒：" + "；".join(mistakes)
+            mistake_strs = []
+            for m in common_mistakes[:3]:
+                if isinstance(m, dict):
+                    mistake_strs.append(f"{m.get('mistake', '')}→{m.get('correction', '')}")
+                else:
+                    mistake_strs.append(str(m))
+            additional_content = "易错提醒：" + "；".join(mistake_strs)
 
         # 学习建议
         study_suggestions = data.get("study_suggestions", [])
         if study_suggestions and not additional_content:
-            additional_content = "学习建议：" + "；".join(study_suggestions[:3])
+            suggestion_strs = []
+            for s in study_suggestions[:3]:
+                if isinstance(s, str):
+                    suggestion_strs.append(s)
+                else:
+                    suggestion_strs.append(str(s))
+            additional_content = "学习建议：" + "；".join(suggestion_strs)
 
         return {
             "title": title,
@@ -711,9 +790,25 @@ class ContentMerger:
         # 获取原始标题作为备用
         original_title = self._get_original_title(original)
 
+        # 确保 main_points 中的每个元素都是字符串
+        raw_points = content.get("main_points") or []
+        main_points = []
+        for p in raw_points:
+            if isinstance(p, str) and p:
+                main_points.append(p)
+            elif isinstance(p, dict):
+                # 尝试从 dict 中提取文本内容
+                text = p.get("text", p.get("content", p.get("polished", "")))
+                if text and isinstance(text, str):
+                    main_points.append(text)
+                else:
+                    main_points.append(str(p))
+            elif p is not None:
+                main_points.append(str(p))
+
         return {
             "title": content.get("title") or original_title or "处理后的内容",
-            "main_points": content.get("main_points") or [],
+            "main_points": main_points[:6],
             "additional_content": content.get("additional_content") or ""
         }
 
