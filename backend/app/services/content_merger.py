@@ -574,7 +574,7 @@ class ContentMerger:
     def _normalize_polish_content(self, content: Dict[str, Any], data: Dict[str, Any]) -> Dict[str, Any]:
         """标准化润色内容"""
         title = content.get("title", "")
-        main_points = content.get("main_points", [])
+        main_points = []
         changes = data.get("changes", [])
 
         # 优先从 changes 中提取标题
@@ -606,21 +606,12 @@ class ContentMerger:
                     else:
                         main_points.append(str(val))
 
-        # 确保 main_points 中的所有元素都是字符串
-        str_points = []
-        for p in main_points:
-            if isinstance(p, str) and p:
-                str_points.append(p)
-            elif isinstance(p, dict):
-                text = p.get("text", p.get("content", p.get("polished", "")))
-                if text:
-                    str_points.append(str(text))
-            elif p is not None:
-                str_points.append(str(p))
+        # 使用统一验证方法确保所有元素都是字符串
+        main_points = self._validate_and_convert_points(main_points, "_normalize_polish_content")
 
         return {
             "title": title or "润色后的内容",
-            "main_points": str_points[:6],
+            "main_points": main_points[:6],
             "additional_content": ""
         }
 
@@ -639,34 +630,18 @@ class ContentMerger:
         new_examples = content.get("new_examples", [])
         additional_content = ""
         if new_examples:
-            # 确保 new_examples 中的元素都是字符串
-            example_strs = []
-            for ex in new_examples[:3]:
-                if isinstance(ex, str):
-                    example_strs.append(ex)
-                elif isinstance(ex, dict):
-                    example_strs.append(ex.get("content", ex.get("text", str(ex))))
-                else:
-                    example_strs.append(str(ex))
+            # 使用统一验证方法处理例题
+            example_strs = self._validate_and_convert_points(new_examples[:3], "_normalize_expand_content.examples")
             additional_content = "新增例题：" + "；".join(example_strs)
 
         additional = content.get("additional_content", additional_content)
 
-        # 确保 main_points 中的元素都是字符串
-        str_points = []
-        for p in main_points:
-            if isinstance(p, str) and p:
-                str_points.append(p)
-            elif isinstance(p, dict):
-                text = p.get("text", p.get("content", p.get("polished", "")))
-                if text:
-                    str_points.append(str(text))
-            elif p is not None:
-                str_points.append(str(p))
+        # 使用统一验证方法确保所有元素都是字符串
+        main_points = self._validate_and_convert_points(main_points, "_normalize_expand_content")
 
         return {
             "title": title or "扩展后的内容",
-            "main_points": str_points[:6],
+            "main_points": main_points[:6],
             "additional_content": additional
         }
 
@@ -686,30 +661,16 @@ class ContentMerger:
         style_features = content.get("style_features", [])
         additional_content = ""
         if style_features:
-            # 确保元素都是字符串
-            feature_strs = []
-            for f in style_features:
-                if isinstance(f, str):
-                    feature_strs.append(f)
-                else:
-                    feature_strs.append(str(f))
+            # 使用统一验证方法处理风格特点
+            feature_strs = self._validate_and_convert_points(style_features, "_normalize_rewrite_content.style_features")
             additional_content = "风格特点：" + "、".join(feature_strs)
 
-        # 确保 main_points 中的元素都是字符串
-        str_points = []
-        for p in main_points:
-            if isinstance(p, str) and p:
-                str_points.append(p)
-            elif isinstance(p, dict):
-                text = p.get("text", p.get("content", ""))
-                if text:
-                    str_points.append(str(text))
-            elif p is not None:
-                str_points.append(str(p))
+        # 使用统一验证方法确保所有元素都是字符串
+        main_points = self._validate_and_convert_points(main_points, "_normalize_rewrite_content")
 
         return {
             "title": title or "改写后的内容",
-            "main_points": str_points,
+            "main_points": main_points,
             "additional_content": additional_content
         }
 
@@ -742,13 +703,8 @@ class ContentMerger:
             name = method.get("name", "")
             steps = method.get("steps", [])
             if name:
-                # 确保 steps 中的元素都是字符串
-                step_strs = []
-                for s in steps[:3]:
-                    if isinstance(s, str):
-                        step_strs.append(s)
-                    else:
-                        step_strs.append(str(s))
+                # 使用统一验证方法处理步骤
+                step_strs = self._validate_and_convert_points(steps[:3], "_normalize_extract_content.steps")
                 step_str = "→".join(step_strs) if step_strs else ""
                 main_points.append(f"【{name}】{step_str}")
 
@@ -767,19 +723,103 @@ class ContentMerger:
         # 学习建议
         study_suggestions = data.get("study_suggestions", [])
         if study_suggestions and not additional_content:
-            suggestion_strs = []
-            for s in study_suggestions[:3]:
-                if isinstance(s, str):
-                    suggestion_strs.append(s)
-                else:
-                    suggestion_strs.append(str(s))
+            # 使用统一验证方法处理学习建议
+            suggestion_strs = self._validate_and_convert_points(study_suggestions[:3], "_normalize_extract_content.suggestions")
             additional_content = "学习建议：" + "；".join(suggestion_strs)
+
+        # 使用统一验证方法确保所有元素都是字符串
+        main_points = self._validate_and_convert_points(main_points, "_normalize_extract_content")
 
         return {
             "title": title,
             "main_points": main_points[:6],
             "additional_content": additional_content
         }
+
+    def _validate_and_convert_points(
+        self,
+        points: Any,
+        context: str = ""
+    ) -> List[str]:
+        """
+        验证并转换 main_points 中的元素为字符串
+
+        字段提取优先级：text → content → polished → description → item → str()
+
+        Args:
+            points: 原始要点列表（可能包含 str/dict/int/None 等类型）
+            context: 上下文信息，用于日志记录
+
+        Returns:
+            转换后的字符串列表
+        """
+        if points is None:
+            return []
+
+        # 确保 points 是列表
+        if not isinstance(points, list):
+            logger.warning(f"[{context}] main_points 不是列表类型: {type(points).__name__}")
+            return [str(points)] if points else []
+
+        result = []
+        # 字段提取优先级
+        priority_fields = ["text", "content", "polished", "description", "item"]
+
+        for idx, p in enumerate(points):
+            original_type = type(p).__name__
+
+            if p is None:
+                logger.debug(f"[{context}] 要点[{idx}] 为 None，已跳过")
+                continue
+
+            if isinstance(p, str):
+                if p.strip():
+                    result.append(p.strip())
+                else:
+                    logger.debug(f"[{context}] 要点[{idx}] 为空字符串，已跳过")
+
+            elif isinstance(p, dict):
+                # 按优先级提取字段
+                extracted = None
+                for field in priority_fields:
+                    if field in p:
+                        val = p[field]
+                        if isinstance(val, str) and val.strip():
+                            extracted = val.strip()
+                            logger.debug(f"[{context}] 要点[{idx}] dict 提取字段 '{field}': {extracted[:50]}...")
+                            break
+                        elif val is not None and not isinstance(val, str):
+                            # 非字符串类型（int, float 等），转换为字符串
+                            extracted = str(val)
+                            logger.debug(f"[{context}] 要点[{idx}] dict 提取字段 '{field}' (非字符串): {extracted[:50]}...")
+                            break
+                        # 字段值为空字符串或 None，继续检查下一个优先级字段
+
+                if extracted:
+                    result.append(extracted)
+                else:
+                    # 所有优先级字段都为空，跳过该 dict（不使用 str() 转换整个 dict）
+                    logger.debug(f"[{context}] 要点[{idx}] dict 所有优先级字段为空，已跳过")
+
+            elif isinstance(p, (int, float, bool)):
+                converted = str(p)
+                result.append(converted)
+                logger.debug(f"[{context}] 要点[{idx}] {original_type} 转换为字符串: {converted}")
+
+            else:
+                # 其他类型，尝试 str() 转换
+                try:
+                    converted = str(p)
+                    if converted and converted.strip():
+                        result.append(converted)
+                        logger.debug(f"[{context}] 要点[{idx}] {original_type} 转换为字符串: {converted[:50]}...")
+                    else:
+                        logger.warning(f"[{context}] 要点[{idx}] {original_type} str() 结果为空，已跳过")
+                except Exception as e:
+                    logger.warning(f"[{context}] 要点[{idx}] {original_type} 无法转换为字符串: {e}")
+
+        logger.info(f"[{context}] 类型转换完成: 原始 {len(points)} 项 -> 结果 {len(result)} 项字符串")
+        return result
 
     def _ensure_slide_content_fields(
         self,
@@ -790,21 +830,9 @@ class ContentMerger:
         # 获取原始标题作为备用
         original_title = self._get_original_title(original)
 
-        # 确保 main_points 中的每个元素都是字符串
+        # 使用统一的验证方法处理 main_points
         raw_points = content.get("main_points") or []
-        main_points = []
-        for p in raw_points:
-            if isinstance(p, str) and p:
-                main_points.append(p)
-            elif isinstance(p, dict):
-                # 尝试从 dict 中提取文本内容
-                text = p.get("text", p.get("content", p.get("polished", "")))
-                if text and isinstance(text, str):
-                    main_points.append(text)
-                else:
-                    main_points.append(str(p))
-            elif p is not None:
-                main_points.append(str(p))
+        main_points = self._validate_and_convert_points(raw_points, "_ensure_slide_content_fields")
 
         return {
             "title": content.get("title") or original_title or "处理后的内容",

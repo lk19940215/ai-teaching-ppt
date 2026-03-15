@@ -669,7 +669,7 @@
       "id": "feat-196",
       "priority": 196,
       "category": "backend",
-      "status": "pending",
+      "status": "done",
       "description": "修复：content_merger.py - 增强 _ensure_slide_content_fields 字段类型安全验证",
       "design_doc": ".claude-coder/plan/unified-zooming-quiche.md",
       "depends_on": [],
