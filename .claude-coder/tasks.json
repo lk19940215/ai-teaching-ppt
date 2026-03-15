@@ -512,7 +512,7 @@
       "id": "feat-191",
       "priority": 191,
       "category": "backend",
-      "status": "pending",
+      "status": "done",
       "description": "修复：ai_merge_ppts 路由统一单页模式返回格式为 MergePlan",
       "depends_on": [
         "feat-190"

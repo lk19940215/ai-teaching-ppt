@@ -2130,8 +2130,40 @@ async def ai_merge_ppts(
                 slides = source_doc_data.get('slides', [])
                 if single_page_index < 0 or single_page_index >= len(slides):
                     raise ValueError(f'页码超出范围：{single_page_index}')
-                result = merger.process_single_page(slides[single_page_index], single_page_action, custom_prompt)
-                result['merge_type'] = 'single'
+                single_result = merger.process_single_page(slides[single_page_index], single_page_action, custom_prompt)
+                # feat-191: 包装为 MergePlan 格式，与 full/partial 模式保持一致
+                action_desc = {
+                    'polish': '润色',
+                    'expand': '扩展',
+                    'rewrite': '改写',
+                    'extract': '知识点提取'
+                }.get(single_page_action, single_page_action)
+                # 从 changes 中提取 reason 字段组成原因说明
+                changes_list = single_result.get('changes', [])
+                if changes_list and isinstance(changes_list[0], dict):
+                    reason_parts = [c.get('reason', '') for c in changes_list if c.get('reason')]
+                    reason_text = '; '.join(reason_parts[:3]) if reason_parts else f'AI{action_desc}处理'
+                elif changes_list and isinstance(changes_list[0], str):
+                    reason_text = '; '.join(changes_list)
+                else:
+                    reason_text = f'AI{action_desc}处理'
+                result = {
+                    'merge_type': 'single',
+                    'plan': {
+                        'merge_strategy': f'单页{action_desc}操作',
+                        'summary': f'对第 {single_page_index + 1} 页执行 {action_desc}操作',
+                        'knowledge_points': [],
+                        'slide_plan': [{
+                            'action': single_result.get('action', single_page_action),
+                            'source': source_doc,
+                            'slide_index': single_page_index,
+                            'sources': None,
+                            'new_content': single_result.get('new_content'),
+                            'instruction': custom_prompt or f'执行{action_desc}操作',
+                            'reason': reason_text
+                        }]
+                    }
+                }
             elif merge_type == 'partial':
                 pages_a_idx = [int(p.strip()) for p in selected_pages_a.split(',') if p.strip()] if selected_pages_a else []
                 pages_b_idx = [int(p.strip()) for p in selected_pages_b.split(',') if p.strip()] if selected_pages_b else []
