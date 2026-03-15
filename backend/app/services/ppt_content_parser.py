@@ -38,8 +38,9 @@ class PptContentParser:
     }
 
     # 占位符文本列表（PPT 模板中的示例文字）
+    # 注意：仅包含明确的模板占位符，避免误判正常内容
     PLACEHOLDER_TEXTS = [
-        # 中文占位符
+        # 中文占位符（明确是模板提示文字）
         "添加标题",
         "添加标题内容",
         "添加副标题",
@@ -52,19 +53,10 @@ class PptContentParser:
         "点击此处添加文本",
         "在此处输入文本",
         "双击此处添加文本",
-        # 英文占位符
+        # 英文占位符（明确的模板提示）
         "click to add title",
         "click to add text",
         "click to add subtitle",
-        "add title",
-        "add subtitle",
-        "add text",
-        "enter title",
-        "enter subtitle",
-        "enter text",
-        "title",
-        "subtitle",
-        "text",
     ]
 
     def __init__(self, max_image_size: int = 512):
@@ -85,14 +77,20 @@ class PptContentParser:
         Returns:
             是否为占位符文本
         """
+        if not text:
+            return True
+
         # 标准化：移除空格、转小写
         normalized = text.strip().lower().replace(" ", "").replace("\t", "")
 
-        # 检查是否匹配任何占位符模式
+        # 占位符通常很短（<20字符），长文本不可能是占位符
+        if len(normalized) > 20:
+            return False
+
+        # 精确匹配：只匹配完全相同的占位符
         for placeholder in self.PLACEHOLDER_TEXTS:
             normalized_placeholder = placeholder.lower().replace(" ", "").replace("\t", "")
-            # 完全匹配或包含关系（占位符文本通常很短）
-            if normalized == normalized_placeholder or normalized_placeholder in normalized:
+            if normalized == normalized_placeholder:
                 return True
 
         return False
