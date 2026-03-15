@@ -489,7 +489,7 @@
       "id": "feat-190",
       "priority": 190,
       "category": "backend",
-      "status": "pending",
+      "status": "done",
       "description": "修复：content_merger.py 单页处理返回结构化 SlideContent",
       "design_doc": ".claude-coder/plan/golden-soaring-avalanche.md",
       "steps": [

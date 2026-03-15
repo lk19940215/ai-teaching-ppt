@@ -501,28 +501,309 @@ class ContentMerger:
         original: Dict[str, Any],
         action: str
     ) -> Dict[str, Any]:
-        """解析单页处理响应"""
+        """解析单页处理响应
+
+        注意：不同 action 的 LLM 返回格式不同：
+        - polish → polished_content
+        - expand → expanded_content
+        - rewrite → rewritten_content
+        - extract → extracted_knowledge
+        - 通用 → new_content
+        """
         try:
             data = self._extract_json(response)
+
+            # 根据 action 提取对应的内容字段
+            new_content = self._extract_content_by_action(data, action, original)
+
+            # 确保 new_content 包含必要字段
+            new_content = self._ensure_slide_content_fields(new_content, original)
 
             return {
                 "action": action,
                 "original_slide": original,
-                "new_content": data.get('new_content', {}),
+                "new_content": new_content,
                 "changes": data.get('changes', []),
                 "success": True
             }
 
         except Exception as e:
             logger.error(f"解析单页响应失败: {e}")
+            # 解析失败时，尝试从响应文本中提取结构化内容
+            new_content = self._extract_title_and_points(response, original)
+
             return {
                 "action": action,
                 "original_slide": original,
-                "new_content": {},
+                "new_content": new_content,
                 "changes": [],
                 "success": False,
                 "error": str(e)
             }
+
+    def _extract_content_by_action(
+        self,
+        data: Dict[str, Any],
+        action: str,
+        original: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """根据 action 类型提取对应的内容字段并标准化为 SlideContent 格式"""
+        # 不同 action 的字段名映射
+        action_field_map = {
+            "polish": "polished_content",
+            "expand": "expanded_content",
+            "rewrite": "rewritten_content",
+            "extract": "extracted_knowledge"
+        }
+
+        field_name = action_field_map.get(action, "new_content")
+        content = data.get(field_name, data.get("new_content", {}))
+
+        # 根据 action 类型标准化内容
+        if action == "polish":
+            return self._normalize_polish_content(content, data)
+        elif action == "expand":
+            return self._normalize_expand_content(content, data)
+        elif action == "rewrite":
+            return self._normalize_rewrite_content(content, data)
+        elif action == "extract":
+            return self._normalize_extract_content(content, data)
+        else:
+            return content
+
+    def _normalize_polish_content(self, content: Dict[str, Any], data: Dict[str, Any]) -> Dict[str, Any]:
+        """标准化润色内容"""
+        title = content.get("title", "")
+        main_points = content.get("main_points", [])
+        changes = data.get("changes", [])
+
+        # 优先从 changes 中提取标题
+        if not title and changes:
+            for change in changes:
+                location = change.get("location", "")
+                if "标题" in location or location in ["页面标题", "标题"]:
+                    title = change.get("polished", "")
+                    break
+
+        # 从 polished_elements 或 changes 中提取要点
+        if not main_points:
+            elements = content.get("polished_elements", [])
+            main_points = [e.get("polished", "") for e in elements if e.get("polished")]
+
+        # 从 changes 中提取要点（排除标题相关的更改）
+        if not main_points and changes:
+            main_points = [
+                c.get("polished", "") for c in changes
+                if c.get("polished") and "标题" not in c.get("location", "")
+            ]
+
+        return {
+            "title": title or "润色后的内容",
+            "main_points": main_points[:6],
+            "additional_content": ""
+        }
+
+    def _normalize_expand_content(self, content: Dict[str, Any], data: Dict[str, Any]) -> Dict[str, Any]:
+        """标准化扩展内容"""
+        title = content.get("title", "")
+        main_points = content.get("expanded_points", content.get("original_points", []))
+
+        # 合并原有和扩展的要点
+        original_points = content.get("original_points", [])
+        expanded_points = content.get("expanded_points", [])
+        if original_points or expanded_points:
+            main_points = original_points + expanded_points
+
+        # 新增例题作为额外内容
+        new_examples = content.get("new_examples", [])
+        additional_content = ""
+        if new_examples:
+            additional_content = "新增例题：" + "；".join(new_examples[:3])
+
+        additional = content.get("additional_content", additional_content)
+
+        return {
+            "title": title or "扩展后的内容",
+            "main_points": main_points[:6],
+            "additional_content": additional
+        }
+
+    def _normalize_rewrite_content(self, content: Dict[str, Any], data: Dict[str, Any]) -> Dict[str, Any]:
+        """标准化改写内容"""
+        title = content.get("title", "")
+        main_content = content.get("main_content", "")
+
+        # 将主要内容转为要点
+        main_points = []
+        if main_content:
+            # 按句子分割，每句作为一个要点
+            sentences = [s.strip() for s in main_content.replace('。', '。\n').split('\n') if s.strip()]
+            main_points = sentences[:6]
+
+        # 风格特点作为额外内容
+        style_features = content.get("style_features", [])
+        additional_content = ""
+        if style_features:
+            additional_content = "风格特点：" + "、".join(style_features)
+
+        return {
+            "title": title or "改写后的内容",
+            "main_points": main_points,
+            "additional_content": additional_content
+        }
+
+    def _normalize_extract_content(self, content: Dict[str, Any], data: Dict[str, Any]) -> Dict[str, Any]:
+        """标准化提取内容"""
+        # 知识点总结作为标题
+        title = data.get("knowledge_summary", "知识点提取")
+
+        main_points = []
+
+        # 提取核心概念
+        core_concepts = content.get("core_concepts", [])
+        for concept in core_concepts[:3]:
+            concept_name = concept.get("concept", "")
+            definition = concept.get("definition", "")
+            if concept_name:
+                main_points.append(f"【{concept_name}】{definition}")
+
+        # 提取公式
+        formulas = content.get("formulas", [])
+        for formula in formulas[:2]:
+            name = formula.get("name", "")
+            expr = formula.get("formula", "")
+            if name and expr:
+                main_points.append(f"【{name}】{expr}")
+
+        # 提取方法
+        methods = content.get("methods", [])
+        for method in methods[:2]:
+            name = method.get("name", "")
+            steps = method.get("steps", [])
+            if name:
+                step_str = "→".join(steps[:3]) if steps else ""
+                main_points.append(f"【{name}】{step_str}")
+
+        # 易错点作为额外内容
+        common_mistakes = content.get("common_mistakes", [])
+        additional_content = ""
+        if common_mistakes:
+            mistakes = [f"{m.get('mistake', '')}→{m.get('correction', '')}" for m in common_mistakes[:3]]
+            additional_content = "易错提醒：" + "；".join(mistakes)
+
+        # 学习建议
+        study_suggestions = data.get("study_suggestions", [])
+        if study_suggestions and not additional_content:
+            additional_content = "学习建议：" + "；".join(study_suggestions[:3])
+
+        return {
+            "title": title,
+            "main_points": main_points[:6],
+            "additional_content": additional_content
+        }
+
+    def _ensure_slide_content_fields(
+        self,
+        content: Dict[str, Any],
+        original: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """确保 SlideContent 包含必要字段"""
+        # 获取原始标题作为备用
+        original_title = self._get_original_title(original)
+
+        return {
+            "title": content.get("title") or original_title or "处理后的内容",
+            "main_points": content.get("main_points") or [],
+            "additional_content": content.get("additional_content") or ""
+        }
+
+    def _get_original_title(self, original: Dict[str, Any]) -> str:
+        """从原始页面数据中提取标题"""
+        # 尝试从 teaching_content 获取
+        teaching = original.get('teaching_content', {})
+        if teaching.get('title'):
+            return teaching['title']
+
+        # 尝试从 elements 中获取
+        for elem in original.get('elements', []):
+            if elem.get('type') == 'title' and elem.get('text'):
+                return elem['text']
+
+        return ""
+
+    def _extract_title_and_points(
+        self,
+        response_text: str,
+        original: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """从响应文本中提取结构化内容（解析失败时的兜底方案）"""
+        import re
+
+        title = self._get_original_title(original)
+        main_points = []
+        additional_content = ""
+
+        # 尝试提取标题（多种模式）
+        title_patterns = [
+            r'["\']title["\']\s*:\s*["\']([^"\']+)["\']',
+            r'标题[：:]\s*(.+?)(?:\n|$)',
+            r'##\s*(.+?)(?:\n|$)',
+            r'#\s*(.+?)(?:\n|$)'
+        ]
+
+        for pattern in title_patterns:
+            match = re.search(pattern, response_text)
+            if match:
+                title = match.group(1).strip()
+                break
+
+        # 尝试提取要点（列表形式）
+        # 匹配 "- " 或 "• " 或数字编号 "1. " 开头的行
+        list_patterns = [
+            r'^[-•]\s*(.+?)$',
+            r'^\d+[\.、]\s*(.+?)$'
+        ]
+
+        lines = response_text.split('\n')
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            for pattern in list_patterns:
+                match = re.match(pattern, line)
+                if match:
+                    point = match.group(1).strip()
+                    if len(point) > 5:  # 过滤太短的内容
+                        main_points.append(point)
+                    break
+
+        # 如果没有找到列表形式的要点，尝试从 main_points JSON 字段提取
+        if not main_points:
+            mp_match = re.search(r'["\']main_points["\']\s*:\s*\[(.+?)\]', response_text, re.DOTALL)
+            if mp_match:
+                # 提取数组内容
+                points_str = mp_match.group(1)
+                # 匹配引号内的内容
+                point_matches = re.findall(r'["\']([^"\']+)["\']', points_str)
+                main_points = [p.strip() for p in point_matches if len(p.strip()) > 5]
+
+        # 提取额外内容（段落形式）
+        para_match = re.search(r'["\']additional_content["\']\s*:\s*["\']([^"\']+)["\']', response_text)
+        if para_match:
+            additional_content = para_match.group(1).strip()
+
+        # 限制要点数量
+        main_points = main_points[:6]
+
+        # 如果什么都没提取到，至少返回原始标题
+        if not main_points and title:
+            main_points = [f"内容处理完成，请查看预览"]
+
+        return {
+            "title": title or "处理后的内容",
+            "main_points": main_points,
+            "additional_content": additional_content
+        }
 
     def _parse_pages_merge_response(self, response: str) -> Dict[str, Any]:
         """解析多页融合响应"""
