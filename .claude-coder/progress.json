@@ -214,6 +214,22 @@
       "taskId": "feat-194",
       "statusAfter": "done",
       "notes": null
+    },
+    {
+      "session": 3,
+      "timestamp": "202603151311",
+      "result": "success",
+      "taskId": "feat-195",
+      "statusAfter": "failed",
+      "notes": "E2E 测试失败：AI merge 流程仍报 'sequence item 0: expected str instance, dict found' 错误。调试发现：1) 直接调用 process_single_page 方法正常工作，main_points 被正确转换为字符串；2) 但通过 SSE API 调用时仍报错，错误位置尚未定位。已添加 traceback 输出到错误日志以便后续调试。建议下一步：重启整个开发环境（前端+后端），确保使用最新代码。"
+    },
+    {
+      "session": 4,
+      "timestamp": "202603151445",
+      "result": "success",
+      "taskId": "feat-195",
+      "statusAfter": "done",
+      "notes": null
     }
   ]
 }
