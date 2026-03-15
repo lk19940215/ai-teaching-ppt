@@ -1,3 +1,23 @@
 # 需求
+阅读代码，处理以下问题。
 
-/merge 页面，单页面合并的时候，会触发 AI合并，但是问题是，返回的结构数据是什么？ 为什么AI返回了数据之后，渲染出来的内容就是一个灰色块，执行AI润色、合并等内容的效果都不好
+## 以下是接口返回
+/api/v1/ppt/ai-merge 调用，返回错误。
+```
+data: {"stage": "analysis", "progress": 25, "message": "正在解析 PPT B 内容..."}
+
+data: {"stage": "thinking", "progress": 50, "message": "正在调用 AI 生成合并策略..."}
+
+data: {"stage": "error", "progress": 0, "message": "AI 融合失败：sequence item 0: expected str instance, dict found"}
+```
+
+## 页面
+
+```
+内容摘要
+添加标题内容
+添加标题内容
+个人信息：
+工作简历：
+```
+其中，"添加标题内容"等内容，在解析、页面渲染的时候可以过滤掉。
