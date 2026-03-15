@@ -169,6 +169,33 @@
       "taskId": "unknown",
       "statusAfter": "done",
       "notes": "完成 feat-186（PptxViewJSRenderer 缓存机制）验证。\n\n发现：\n1. 缓存机制已在代码中实现（标注为 feat-183）\n2. WeakMap<File, { viewer, slideCount }> 作为缓存存储\n3. getCachedViewer/setCachedViewer 函数已实现\n4. useEffect 中检查缓存并复用逻辑完整\n\n验证方式：\n1. 代码静态分析确认缓存逻辑完整\n2. Playwright 端到端测试验证 /merge 页面渲染正常\n3. 当前环境使用 LibreOffice 后端图片（优先级高于 PptxViewJS）\n\n状态更新：\n- tasks.json 所有任务已完成（feat-171 ~ feat-189）\n- next_task_priority 更新为 190\n- tests.json 新增 feat-186 验证记录\n\n下一步：所有 planned 任务已完成，等待新需求输入。"
+    },
+    {
+      "session": 1,
+      "timestamp": "202603150955",
+      "result": "success",
+      "cost": 6.185244,
+      "taskId": "feat-190",
+      "statusAfter": "done",
+      "notes": null
+    },
+    {
+      "session": 2,
+      "timestamp": "202603151006",
+      "result": "success",
+      "cost": 7.072444000000003,
+      "taskId": "feat-191",
+      "statusAfter": "done",
+      "notes": null
+    },
+    {
+      "session": 3,
+      "timestamp": "202603151100",
+      "result": "success",
+      "cost": 51.73135850000003,
+      "taskId": "feat-192",
+      "statusAfter": "done",
+      "notes": null
     }
   ]
 }

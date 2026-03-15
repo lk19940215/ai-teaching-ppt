@@ -1,6 +1,6 @@
 {
   "session_result": "success",
-  "status_before": "done",
+  "status_before": "pending",
   "status_after": "done",
-  "notes": "成功追加 3 个任务：feat-190（后端修复 content_merger 单页处理返回结构）、feat-191（后端修复 ai_merge_ppts 统一返回格式）、feat-192（E2E 测试验证）。所有任务基于方案文档 .claude-coder/plan/golden-soaring-avalanche.md，解决了单页处理数据结构不明确、渲染灰色块、功能效果不佳的问题。"
+  "notes": ""
 }
