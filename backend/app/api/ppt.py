@@ -4,6 +4,7 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pathlib import Path
 from typing import Optional, AsyncGenerator, List, Dict, Any
 import logging
+import traceback as traceback_module
 import uuid
 import aiofiles
 import asyncio
@@ -2229,6 +2230,7 @@ async def ai_merge_ppts(
             await progress_queue.put({"stage": "error", "progress": 0, "message": f'参数错误：{str(e)}'})
         except Exception as e:
             logger.error(f'AI 融合失败：{e}')
+            logger.error(f'Traceback: {traceback_module.format_exc()}')
             await progress_queue.put({"stage": "error", "progress": 0, "message": f'AI 融合失败：{str(e)}'})
         finally:
             for temp_path in [temp_a, temp_b]:
