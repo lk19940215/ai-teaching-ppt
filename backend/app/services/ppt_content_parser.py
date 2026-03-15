@@ -37,6 +37,36 @@ class PptContentParser:
         MSO_SHAPE_TYPE.MEDIA,      # 音视频
     }
 
+    # 占位符文本列表（PPT 模板中的示例文字）
+    PLACEHOLDER_TEXTS = [
+        # 中文占位符
+        "添加标题",
+        "添加标题内容",
+        "添加副标题",
+        "单击此处添加标题",
+        "单击此处添加副标题",
+        "单击此处编辑标题",
+        "单击此处编辑副标题",
+        "请输入标题",
+        "请输入副标题",
+        "点击此处添加文本",
+        "在此处输入文本",
+        "双击此处添加文本",
+        # 英文占位符
+        "click to add title",
+        "click to add text",
+        "click to add subtitle",
+        "add title",
+        "add subtitle",
+        "add text",
+        "enter title",
+        "enter subtitle",
+        "enter text",
+        "title",
+        "subtitle",
+        "text",
+    ]
+
     def __init__(self, max_image_size: int = 512):
         """
         初始化解析器
@@ -46,6 +76,26 @@ class PptContentParser:
         self.max_image_size = max_image_size
         # 初始化教学语义提取器
         self.semantic_extractor = TeachingSemanticExtractor()
+
+    def _is_placeholder_text(self, text: str) -> bool:
+        """
+        判断文本是否为占位符
+        Args:
+            text: 待检测文本
+        Returns:
+            是否为占位符文本
+        """
+        # 标准化：移除空格、转小写
+        normalized = text.strip().lower().replace(" ", "").replace("\t", "")
+
+        # 检查是否匹配任何占位符模式
+        for placeholder in self.PLACEHOLDER_TEXTS:
+            normalized_placeholder = placeholder.lower().replace(" ", "").replace("\t", "")
+            # 完全匹配或包含关系（占位符文本通常很短）
+            if normalized == normalized_placeholder or normalized_placeholder in normalized:
+                return True
+
+        return False
 
     def parse(self, file_path: Path) -> DocumentData:
         """
@@ -241,7 +291,7 @@ class PptContentParser:
                 raw_shape_type=str(MSO_SHAPE_TYPE.TABLE)
             )
 
-    def _parse_text(self, shape, element_id: str, pos: Position) -> ElementData:
+    def _parse_text(self, shape, element_id: str, pos: Position) -> Optional[ElementData]:
         """解析文本"""
         paragraphs: List[Paragraph] = []
         all_text: List[str] = []
@@ -272,6 +322,12 @@ class PptContentParser:
 
         # 判断文本类型
         full_text = "\n".join(all_text)
+
+        # 优先检查占位符：如果是占位符文本，返回 None 过滤掉
+        if self._is_placeholder_text(full_text):
+            logger.debug(f"检测到占位符文本，已过滤: {full_text[:50]}...")
+            return None
+
         element_type = self._detect_text_type(shape, full_text, pos)
 
         return ElementData(
@@ -309,6 +365,10 @@ class PptContentParser:
 
     def _detect_text_type(self, shape, text: str, pos: Position) -> ElementType:
         """判断文本类型"""
+        # 优先检查占位符（双重保障，_parse_text 已过滤，此处作为防御性检查）
+        if self._is_placeholder_text(text):
+            return ElementType.PLACEHOLDER
+
         # 优先判断列表
         if text.strip().startswith(('•', '-', '·', '◆', '►', '1.', '2.', '3.', '4.', '5.')):
             return ElementType.LIST_ITEM

@@ -601,7 +601,7 @@
       "id": "feat-194",
       "priority": 194,
       "category": "backend",
-      "status": "pending",
+      "status": "done",
       "description": "修复：ppt_content_parser.py 占位符过滤",
       "depends_on": [
         "feat-193"
