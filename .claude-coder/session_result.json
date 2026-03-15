@@ -1,6 +1,6 @@
 {
   "session_result": "success",
-  "status_before": "pending",
+  "status_before": "failed",
   "status_after": "done",
   "notes": ""
 }

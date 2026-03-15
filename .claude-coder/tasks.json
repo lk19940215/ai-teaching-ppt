@@ -629,8 +629,7 @@
       "id": "feat-195",
       "priority": 195,
       "category": "test",
-      "status": "failed",
-      "notes": "E2E 测试失败：AI merge 流程仍报 'sequence item 0: expected str instance, dict found' 错误。直接调用 process_single_page 正常，错误可能发生在 SSE 流处理或其他位置。已添加 traceback 输出到错误日志以便调试。",
+      "status": "done",
       "description": "E2E 测试：类型错误修复 + 占位符过滤验证",
       "depends_on": [
         "feat-194"

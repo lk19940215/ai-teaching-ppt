@@ -2127,8 +2127,14 @@ async def ai_merge_ppts(
         temp_b = None
         try:
             logger.info(f'开始 AI 内容融合：type={merge_type}')
+            import sys
+            sys.stdout.reconfigure(encoding='utf-8')
+            sys.stderr.reconfigure(encoding='utf-8')
             from ..services.ppt_content_parser import parse_pptx_to_structure
             from ..services.content_merger import get_content_merger
+
+            # DEBUG: 测试导入是否正常
+            logger.info('DEBUG: Imports completed successfully')
 
             doc_a = {"slides": []}
             doc_b = {"slides": []}
@@ -2162,16 +2168,42 @@ async def ai_merge_ppts(
                     logger.info(f'PPT B 解析完成：{len(doc_b.get("slides", []))} 页')
 
             await progress_queue.put({"stage": "thinking", "progress": 50, "message": "正在调用 AI 生成合并策略..."})
+            logger.info('DEBUG: About to create merger')
             merger = get_content_merger(provider=provider, api_key=api_key, temperature=temperature, max_tokens=max_tokens)
+            logger.info('DEBUG: Merger created successfully')
             if merge_type == 'full':
+                logger.info('DEBUG: Calling merge_full')
                 plan = merger.merge_full(doc_a, doc_b, custom_prompt)
+                logger.info('DEBUG: merge_full completed')
                 result = {'merge_type': 'full', 'plan': {'merge_strategy': plan.merge_strategy, 'summary': plan.summary, 'knowledge_points': plan.knowledge_points, 'slide_plan': [{'action': p.action.value, 'source': p.source, 'slide_index': p.slide_index, 'sources': p.sources, 'new_content': p.new_content, 'instruction': p.instruction, 'reason': p.reason} for p in plan.slide_plan]}}
             elif merge_type == 'single':
+                logger.info('DEBUG: Entering single merge mode')
                 source_doc_data = doc_a if source_doc == 'A' else doc_b
                 slides = source_doc_data.get('slides', [])
                 if single_page_index < 0 or single_page_index >= len(slides):
                     raise ValueError(f'页码超出范围：{single_page_index}')
-                single_result = merger.process_single_page(slides[single_page_index], single_page_action, custom_prompt)
+
+                # DEBUG: 打印 slide 数据类型
+                slide = slides[single_page_index]
+                tc = slide.get('teaching_content', {})
+                mp = tc.get('main_points', [])
+                logger.info(f'DEBUG: slide teaching_content.main_points type={type(mp)}, value={mp[:2] if mp else []}')
+
+                logger.info('DEBUG: About to call process_single_page')
+                try:
+                    single_result = merger.process_single_page(slide, single_page_action, custom_prompt)
+                    logger.info('DEBUG: process_single_page returned successfully')
+                except Exception as e:
+                    logger.error(f'DEBUG: process_single_page failed with: {e}')
+                    import traceback
+                    logger.error(f'DEBUG: Traceback: {traceback.format_exc()}')
+                    raise
+
+                # DEBUG: 打印结果类型
+                nc = single_result.get('new_content', {})
+                nc_mp = nc.get('main_points', [])
+                logger.info(f'DEBUG: new_content.main_points type={type(nc_mp)}, first_elem_type={type(nc_mp[0]) if nc_mp else None}')
+
                 # feat-191: 包装为 MergePlan 格式，与 full/partial 模式保持一致
                 action_desc = {
                     'polish': '润色',
@@ -2224,14 +2256,32 @@ async def ai_merge_ppts(
                 result['merge_type'] = 'partial'
             else:
                 raise ValueError(f'不支持的合并类型：{merge_type}')
+            logger.info('DEBUG: About to send result to queue')
+            logger.info(f'DEBUG: Result keys: {result.keys()}')
+            # 测试 JSON 序列化
+            try:
+                import json
+                json_test = json.dumps(result, ensure_ascii=False)
+                logger.info(f'DEBUG: JSON serialization succeeded, length: {len(json_test)}')
+            except Exception as json_err:
+                logger.error(f'DEBUG: JSON serialization failed: {json_err}')
+                raise
             await progress_queue.put({"stage": "complete", "progress": 100, "message": "AI 内容融合完成！", "result": result})
         except ValueError as e:
             logger.error(f'参数错误：{e}')
             await progress_queue.put({"stage": "error", "progress": 0, "message": f'参数错误：{str(e)}'})
         except Exception as e:
+            import traceback
+            tb_str = traceback.format_exc()
+            print(f'DEBUG ERROR: AI 融合失败：{e}')
+            print(f'DEBUG Traceback: {tb_str}')
             logger.error(f'AI 融合失败：{e}')
             logger.error(f'Traceback: {traceback_module.format_exc()}')
-            await progress_queue.put({"stage": "error", "progress": 0, "message": f'AI 融合失败：{str(e)}'})
+            # 在错误消息中包含 traceback 的关键行以便调试
+            # 提取错误位置
+            tb_lines = [line.strip() for line in tb_str.split('\n') if line.strip() and ('File' in line or 'Error' in line or 'in ' in line)][:5]
+            error_detail = ' | '.join(tb_lines)
+            await progress_queue.put({"stage": "error", "progress": 0, "message": f'AI 融合失败：{str(e)} [{error_detail}]'})
         finally:
             for temp_path in [temp_a, temp_b]:
                 try:
