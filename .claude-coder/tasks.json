@@ -695,7 +695,7 @@
       "id": "feat-197",
       "priority": 197,
       "category": "backend",
-      "status": "pending",
+      "status": "done",
       "description": "修复：content_merger.py - 在解析响应末尾添加最终验证过滤",
       "design_doc": ".claude-coder/plan/unified-zooming-quiche.md",
       "depends_on": [

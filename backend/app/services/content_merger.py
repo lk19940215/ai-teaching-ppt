@@ -519,6 +519,12 @@ class ContentMerger:
             # 确保 new_content 包含必要字段
             new_content = self._ensure_slide_content_fields(new_content, original)
 
+            # 最终验证：确保 main_points 只包含非空字符串
+            new_content["main_points"] = self._validate_and_convert_points(
+                new_content.get("main_points", []),
+                "_parse_single_page_response.final"
+            )
+
             return {
                 "action": action,
                 "original_slide": original,
@@ -561,15 +567,23 @@ class ContentMerger:
 
         # 根据 action 类型标准化内容
         if action == "polish":
-            return self._normalize_polish_content(content, data)
+            result = self._normalize_polish_content(content, data)
         elif action == "expand":
-            return self._normalize_expand_content(content, data)
+            result = self._normalize_expand_content(content, data)
         elif action == "rewrite":
-            return self._normalize_rewrite_content(content, data)
+            result = self._normalize_rewrite_content(content, data)
         elif action == "extract":
-            return self._normalize_extract_content(content, data)
+            result = self._normalize_extract_content(content, data)
         else:
-            return content
+            result = content if isinstance(content, dict) else {}
+
+        # 最终验证：确保 main_points 只包含非空字符串
+        result["main_points"] = self._validate_and_convert_points(
+            result.get("main_points", []),
+            f"_extract_content_by_action.{action}"
+        )
+
+        return result
 
     def _normalize_polish_content(self, content: Dict[str, Any], data: Dict[str, Any]) -> Dict[str, Any]:
         """标准化润色内容"""
@@ -821,6 +835,114 @@ class ContentMerger:
         logger.info(f"[{context}] 类型转换完成: 原始 {len(points)} 项 -> 结果 {len(result)} 项字符串")
         return result
 
+    def _validate_string_list(
+        self,
+        items: Any,
+        context: str = ""
+    ) -> List[str]:
+        """
+        验证并转换字符串列表
+
+        Args:
+            items: 原始列表（可能包含非字符串类型）
+            context: 上下文信息，用于日志记录
+
+        Returns:
+            转换后的字符串列表
+        """
+        if items is None:
+            return []
+
+        if not isinstance(items, list):
+            logger.warning(f"[{context}] 不是列表类型: {type(items).__name__}")
+            return [str(items)] if items else []
+
+        result = []
+        for idx, item in enumerate(items):
+            if item is None:
+                continue
+            if isinstance(item, str):
+                if item.strip():
+                    result.append(item.strip())
+            elif isinstance(item, dict):
+                # 尝试提取常见字段
+                for field in ["text", "content", "point"]:
+                    if field in item and isinstance(item[field], str) and item[field].strip():
+                        result.append(item[field].strip())
+                        break
+            else:
+                try:
+                    converted = str(item)
+                    if converted.strip():
+                        result.append(converted.strip())
+                except Exception:
+                    pass
+
+        logger.debug(f"[{context}] 字符串列表验证完成: {len(items)} 项 -> {len(result)} 项")
+        return result
+
+    def _validate_new_slide(self, slide: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        验证并清理 new_slide 结构
+
+        确保：
+        - title 是字符串
+        - elements 中每个元素的 content 是字符串
+
+        Args:
+            slide: 原始 slide 数据
+
+        Returns:
+            清理后的 slide 数据
+        """
+        if not slide or not isinstance(slide, dict):
+            return {}
+
+        result = {
+            "title": "",
+            "elements": []
+        }
+
+        # 验证 title
+        title = slide.get("title", "")
+        if isinstance(title, str):
+            result["title"] = title
+        elif title is not None:
+            result["title"] = str(title)
+
+        # 验证 elements
+        elements = slide.get("elements", [])
+        if isinstance(elements, list):
+            for idx, elem in enumerate(elements):
+                if not isinstance(elem, dict):
+                    continue
+
+                validated_elem = {
+                    "type": elem.get("type", "text_body")
+                }
+
+                # 验证 content 字段
+                content = elem.get("content")
+                if content is None:
+                    validated_elem["content"] = ""
+                elif isinstance(content, str):
+                    validated_elem["content"] = content
+                elif isinstance(content, dict):
+                    # content 是 dict 时，尝试提取文本
+                    for field in ["text", "value", "data"]:
+                        if field in content:
+                            validated_elem["content"] = str(content[field])
+                            break
+                    else:
+                        validated_elem["content"] = str(content)
+                else:
+                    validated_elem["content"] = str(content)
+
+                result["elements"].append(validated_elem)
+
+        logger.debug(f"_validate_new_slide: title='{result['title'][:30]}...', elements={len(result['elements'])}项")
+        return result
+
     def _ensure_slide_content_fields(
         self,
         content: Dict[str, Any],
@@ -933,12 +1055,16 @@ class ContentMerger:
         try:
             data = self._extract_json(response)
 
+            # 验证并清理 new_slide 的 elements
+            new_slide = data.get('new_slide', {})
+            new_slide = self._validate_new_slide(new_slide)
+
             return {
                 "merge_strategy": data.get('merge_strategy', ''),
                 "content_relationship": data.get('content_relationship', ''),
-                "new_slide": data.get('new_slide', {}),
-                "preserved_from_a": data.get('preserved_from_a', []),
-                "preserved_from_b": data.get('preserved_from_b', []),
+                "new_slide": new_slide,
+                "preserved_from_a": self._validate_string_list(data.get('preserved_from_a', []), "preserved_from_a"),
+                "preserved_from_b": self._validate_string_list(data.get('preserved_from_b', []), "preserved_from_b"),
                 "success": True
             }
 
