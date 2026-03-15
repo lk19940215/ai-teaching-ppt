@@ -577,7 +577,7 @@
       "id": "feat-193",
       "priority": 193,
       "category": "backend",
-      "status": "pending",
+      "status": "done",
       "description": "修复：api/ppt.py 中类型错误 - safe_join_list 安全连接",
       "design_doc": ".claude-coder/plan/noble-wiggling-shamir.md",
       "steps": [

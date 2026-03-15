@@ -44,6 +44,46 @@ def _compute_file_hash(content: bytes) -> str:
     """计算文件内容的 SHA256 哈希值"""
     return hashlib.sha256(content).hexdigest()
 
+def safe_join_list(items: List[Any], separator: str = '\n') -> str:
+    """
+    安全连接列表元素，处理混合类型（str/dict）。
+
+    Args:
+        items: 可能包含字符串或字典的列表
+        separator: 连接符，默认换行符
+
+    Returns:
+        连接后的字符串
+
+    Examples:
+        >>> safe_join_list(['a', 'b'])
+        'a\\nb'
+        >>> safe_join_list([{'text': 'a'}, {'point': 'b'}])
+        'a\\nb'
+        >>> safe_join_list([])
+        ''
+    """
+    if not items:
+        return ''
+
+    result = []
+    for item in items:
+        if isinstance(item, str):
+            result.append(item)
+        elif isinstance(item, dict):
+            # 尝试提取常见的文本字段：text, content, point, title, value
+            text = (item.get('text') or
+                    item.get('content') or
+                    item.get('point') or
+                    item.get('title') or
+                    item.get('value') or
+                    str(item))
+            result.append(text)
+        else:
+            result.append(str(item))
+
+    return separator.join(result)
+
 def _cleanup_cache():
     """清理过期缓存并执行 LRU 淘汰"""
     current_time = time.time()
@@ -2294,7 +2334,7 @@ async def regenerate_slide(
                 result = merger.process_single_page(source_slide, current_action if current_action != 'keep' else 'polish', prompt)
                 new_slide = {
                     'action': result.get('action', current_action),
-                    'new_content': result.get('new_content', {}).get('title', '') + '\n' + '\n'.join(result.get('new_content', {}).get('main_points', [])),
+                    'new_content': result.get('new_content', {}).get('title', '') + '\n' + safe_join_list(result.get('new_content', {}).get('main_points', [])),
                     'reason': f'基于用户指令重新生成：{prompt[:50]}...' if prompt else 'AI 优化重新生成'
                 }
             else:
@@ -2308,7 +2348,7 @@ async def regenerate_slide(
             )
             new_slide = {
                 'action': 'create',
-                'new_content': result.get('new_content', {}).get('title', '') + '\n' + '\n'.join(result.get('new_content', {}).get('main_points', [])),
+                'new_content': result.get('new_content', {}).get('title', '') + '\n' + safe_join_list(result.get('new_content', {}).get('main_points', [])),
                 'reason': '用户创建的新页面'
             }
 
