@@ -40,10 +40,17 @@ async def log_requests(request: Request, call_next):
     logger.info(f"响应：{request.method} {request.url.path} - {response.status_code}")
     return response
 
-# 配置 CORS
+# 配置 CORS（开发环境支持所有本地端口）
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # 前端开发服务器
+    allow_origins=[
+        "http://localhost:3000",  # Next.js 默认端口
+        "http://localhost:8088",  # 备用开发端口
+        "http://localhost:8000",  # 同源访问
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:8088",
+        "http://127.0.0.1:8000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -43,12 +43,10 @@ yarn-error.log*
 .playwright-mcp/
 
 # Claude Coder（含 API Key 和临时文件）
-.claude-coder/.env
-.claude-coder/test.env
-.claude-coder/.runtime/
-.claude-coder/playwright-auth.json
-.claude-coder/.runtime/browser-profile
 
 # 上传和生成的测试文件
 uploads/
 backend/test_*.pptx
+.claude-coder/*
+!.claude-coder/tasks.json
+!.claude-coder/project_profile.json

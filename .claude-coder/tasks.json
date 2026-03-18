@@ -767,7 +767,7 @@
       "id": "feat-199",
       "priority": 199,
       "category": "backend",
-      "status": "pending",
+      "status": "done",
       "description": "修复：main.py - 更新 CORS 配置支持多端口",
       "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
       "steps": [

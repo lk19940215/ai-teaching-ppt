@@ -187,3 +187,5 @@ ai-teaching-ppt/
 ## License
 
 MIT
+
+claude mcp add chrome-devtools npx -y chrome-devtools-mcp@latest
