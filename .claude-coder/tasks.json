@@ -790,7 +790,7 @@
       "id": "feat-200",
       "priority": 200,
       "category": "frontend",
-      "status": "pending",
+      "status": "done",
       "description": "修复：.env.local - 统一 API 端口配置为 8000",
       "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
       "depends_on": [
