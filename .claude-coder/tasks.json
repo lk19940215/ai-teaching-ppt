@@ -1,7 +1,7 @@
 {
   "project": "ai-teaching-ppt",
-  "last_updated": "2026-03-15",
-  "next_task_priority": 199,
+  "last_updated": "2026-03-18",
+  "next_task_priority": 210,
   "completed_milestones": [
     {
       "name": "基础设施搭建",
@@ -72,6 +72,11 @@
       "name": "PPT 合并增强与版本化预览",
       "summary": "实时预览生成、累积进度、最终PPT生成、兜底渲染",
       "at": "2026-03-11"
+    },
+    {
+      "name": "/merge 问题修复与全流程监控",
+      "summary": "PPT上传CORS修复、数据类型安全、监控系统、E2E测试",
+      "at": "2026-03-18"
     }
   ],
   "features": [
@@ -549,7 +554,7 @@
         "ppt_b": "uploads/generated/empty.pptx"
       },
       "steps": [
-        "【规则】阅读 .claude-coder/assets/test_rule.md",
+        "【规则】阅读 .claude-coder/test_rule.md",
         "【环境】curl http://localhost:8000/health 确认后端服务正常",
         "【P0】browser_navigate http://localhost:3000/merge",
         "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
@@ -640,7 +645,7 @@
         "ppt_normal": "uploads/generated/test_大龙猫.pptx"
       },
       "steps": [
-        "【规则】阅读 .claude-coder/assets/test_rule.md",
+        "【规则】阅读 .claude-coder/test_rule.md",
         "【环境】curl http://localhost:8000/health 确认后端服务正常",
         "【P0】准备测试数据：创建 test_placeholder.pptx（含'添加标题内容''添加副标题'）",
         "【P0】创建 test_dict_main_points.pptx（触发 dict 类型错误）",
@@ -731,7 +736,7 @@
         "ppt_normal": "uploads/generated/test_大龙猫.pptx"
       },
       "steps": [
-        "【规则】阅读 .claude-coder/assets/test_rule.md",
+        "【规则】阅读 .claude-coder/test_rule.md",
         "【环境】curl http://localhost:8000/health 确认后端服务正常",
         "【P0】browser_navigate http://localhost:3000/merge",
         "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
@@ -756,6 +761,323 @@
         "所有单页操作和多页融合都不再出现 'sequence item 0: expected str instance' 类型错误",
         "无论 LLM 返回什么格式，系统都有容错处理，不会崩溃",
         "日志清晰显示类型转换细节，便于调试和监控"
+      ]
+    },
+    {
+      "id": "feat-199",
+      "priority": 199,
+      "category": "backend",
+      "status": "pending",
+      "description": "修复：main.py - 更新 CORS 配置支持多端口",
+      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
+      "steps": [
+        "【问题分析】当前 CORS 仅允许 http://localhost:3000，与前端 .env.local 中的 8088 端口配置冲突",
+        "【实现】修改 backend/app/main.py 第 46 行：allow_origins 添加 http://localhost:8088",
+        "【实现】考虑添加 http://localhost:* 通配符支持所有本地端口（开发环境）",
+        "【验证】启动 backend，使用 curl 测试 OPTIONS 请求确认 CORS 头正确",
+        "【验证】前端访问 /merge 页面上传 PPT 无 CORS 错误"
+      ],
+      "artifacts": [
+        "backend/app/main.py"
+      ],
+      "acceptance_criteria": [
+        "CORS 允许 http://localhost:3000 和 http://localhost:8088",
+        "前端上传 PPT 无 fetch CORS 错误",
+        "OPTIONS 预检请求返回正确 CORS 头"
+      ]
+    },
+    {
+      "id": "feat-200",
+      "priority": 200,
+      "category": "frontend",
+      "status": "pending",
+      "description": "修复：.env.local - 统一 API 端口配置为 8000",
+      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
+      "depends_on": [
+        "feat-199"
+      ],
+      "steps": [
+        "【问题分析】.env.local 中配置的 NEXT_PUBLIC_API_URL=http://localhost:8088 与后端实际端口 8000 不符",
+        "【实现】修改 frontend/.env.local：NEXT_PUBLIC_API_URL=http://localhost:8000",
+        "【验证】重启前端服务，确认环境变量加载正确（console.log(process.env.NEXT_PUBLIC_API_URL)）",
+        "【验证】访问 /merge 页面，network 面板确认 API 调用端口为 8000"
+      ],
+      "artifacts": [
+        "frontend/.env.local"
+      ],
+      "acceptance_criteria": [
+        "环境变量正确指向 http://localhost:8000",
+        "前端所有 API 调用都使用 8000 端口",
+        "无端口配置冲突"
+      ]
+    },
+    {
+      "id": "feat-201",
+      "priority": 201,
+      "category": "backend",
+      "status": "pending",
+      "description": "增强：content_merger.py - 规范化 _normalize_polish_content 响应格式",
+      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
+      "steps": [
+        "【问题分析】_normalize_polish_content 返回的 main_points 可能包含混合类型（str/dict）",
+        "【实现】在 _normalize_polish_content 末尾添加类型规范化逻辑",
+        "【实现】遍历 main_points，将所有元素转换为字符串（提取 text/content 字段或使用 str()）",
+        "【实现】过滤空字符串和 None 值",
+        "【测试】本地测试：使用包含混合类型的测试数据验证转换逻辑",
+        "【验证】确认所有 normalize_* 方法（polish/expand/rewrite/extract）都返回纯净的字符串列表"
+      ],
+      "artifacts": [
+        "backend/app/services/content_merger.py"
+      ],
+      "acceptance_criteria": [
+        "main_points 始终是纯字符串列表",
+        "字典类型正确提取 text/content/point 等字段",
+        "空值被过滤，不会传递到前端"
+      ]
+    },
+    {
+      "id": "feat-202",
+      "priority": 202,
+      "category": "frontend",
+      "status": "pending",
+      "description": "增强：useMergeSession.ts - 增强 main_points 类型处理与调试日志",
+      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
+      "depends_on": [
+        "feat-201"
+      ],
+      "steps": [
+        "【问题分析】processSlide 函数第 441-451 行对 main_points 的处理不健壮",
+        "【实现】修改第 441-460 行：添加健壮的类型转换逻辑（兼容 str/dict/混合类型）",
+        "【实现】添加 console.log 调试信息：记录接收到的原始数据和转换后的数据",
+        "【实现】增强 fetch 错误处理（第 384-391 行）：记录完整的错误详情和 URL",
+        "【实现】增强 SSE 错误处理（第 416-419 行）：记录错误事件详情",
+        "【验证】本地测试：上传 PPT 执行润色操作，检查控制台日志是否清晰",
+        "【验证】使用异常数据测试，确认不会崩溃且有清晰错误提示"
+      ],
+      "artifacts": [
+        "frontend/src/hooks/useMergeSession.ts"
+      ],
+      "acceptance_criteria": [
+        "main_points 正确转换为字符串数组",
+        "混合类型数据被正确处理",
+        "错误日志清晰可追踪",
+        "异常情况下不会崩溃"
+      ]
+    },
+    {
+      "id": "feat-203",
+      "priority": 203,
+      "category": "frontend",
+      "status": "pending",
+      "description": "新建：monitor.ts - 全流程监控工具类",
+      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
+      "steps": [
+        "【设计】定义 MonitorLog 接口：timestamp/type/endpoint/method/data/duration/error/sessionId",
+        "【实现】创建 Monitor 类：私有 logs[] 数组和 sessionId 生成逻辑",
+        "【实现】logRequest() - 记录请求日志并打印到 console",
+        "【实现】logResponse() - 记录响应日志和耗时",
+        "【实现】logError() - 记录错误日志",
+        "【实现】logPerformance() - 记录性能数据",
+        "【实现】exportLogs() - 导出日志为 JSON 文件下载",
+        "【实现】monitoredFetch() - 包装 fetch 函数，自动记录请求/响应/错误",
+        "【验证】本地测试：调用 monitoredFetch 测试日志记录功能",
+        "【验证】测试 exportLogs() 确认文件下载成功"
+      ],
+      "artifacts": [
+        "frontend/src/utils/monitor.ts"
+      ],
+      "acceptance_criteria": [
+        "Monitor 工具类功能完整",
+        "所有请求/响应/错误都被记录",
+        "支持日志导出",
+        "monitoredFetch 透明包装 fetch"
+      ]
+    },
+    {
+      "id": "feat-204",
+      "priority": 204,
+      "category": "frontend",
+      "status": "pending",
+      "description": "新建：monitor-panel.tsx - 监控面板组件",
+      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
+      "depends_on": [
+        "feat-203"
+      ],
+      "steps": [
+        "【设计】组件接口：无 props，内部管理 logs 和 autoRefresh 状态",
+        "【实现】使用 useState 和 useEffect 管理日志状态和自动刷新",
+        "【实现】handleExport() - 调用 monitor.exportLogs()",
+        "【实现】handleClear() - 清空日志",
+        "【实现】formatLog() - 格式化日志为可读字符串（带时间戳、emoji、简短数据）",
+        "【实现】渲染面板：固定在右下角，包含标题、按钮（导出/清空/自动刷新）、日志列表",
+        "【样式】使用 Tailwind CSS：白色背景、边框、阴影、滚动区域、颜色编码（绿色响应/红色错误/黄色性能）",
+        "【验证】本地测试：上传 PPT 触发 API 调用，确认监控面板显示日志"
+      ],
+      "artifacts": [
+        "frontend/src/components/monitor-panel.tsx"
+      ],
+      "acceptance_criteria": [
+        "面板固定在右下角，不遮挡主要内容",
+        "实时显示日志（自动刷新）",
+        "支持导出和清空",
+        "日志格式清晰可读（时间戳/类型/耗时）"
+      ]
+    },
+    {
+      "id": "feat-205",
+      "priority": 205,
+      "category": "frontend",
+      "status": "pending",
+      "description": "集成：useMergeSession.ts - 替换所有 fetch 为 monitoredFetch",
+      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
+      "depends_on": [
+        "feat-204"
+      ],
+      "steps": [
+        "【导入】在文件顶部导入 monitor 和 monitoredFetch",
+        "【替换1】第 97-100 行（parsePptFile）：fetch → monitoredFetch",
+        "【替换2】第 141-143 行（createBackendSession）：fetch → monitoredFetch",
+        "【替换3】第 379-381 行（processSlide）：fetch → monitoredFetch",
+        "【替换4】第 553-555 行（mergeSlides）：fetch → monitoredFetch",
+        "【替换5】第 783-795 行（generateFinal）：fetch → monitoredFetch",
+        "【添加】在关键函数（initSession/processSlide）添加性能监控点",
+        "【验证】本地测试：访问 /merge 页面，检查监控面板显示所有 API 调用日志"
+      ],
+      "artifacts": [
+        "frontend/src/hooks/useMergeSession.ts"
+      ],
+      "acceptance_criteria": [
+        "所有 API 调用都通过 monitoredFetch",
+        "监控面板显示完整的请求/响应日志",
+        "性能数据被记录",
+        "无遗漏的 fetch 调用"
+      ]
+    },
+    {
+      "id": "feat-206",
+      "priority": 206,
+      "category": "frontend",
+      "status": "pending",
+      "description": "集成：merge/page.tsx - 添加监控面板组件",
+      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
+      "depends_on": [
+        "feat-205"
+      ],
+      "steps": [
+        "【导入】在文件顶部导入 MonitorPanel 组件",
+        "【集成】在 return 语句最后添加 <MonitorPanel />",
+        "【验证】访问 /merge 页面，确认监控面板显示在右下角",
+        "【验证】执行 PPT 上传和合并操作，确认面板实时更新日志"
+      ],
+      "artifacts": [
+        "frontend/src/app/merge/page.tsx"
+      ],
+      "acceptance_criteria": [
+        "监控面板正确渲染",
+        "不遮挡主要内容",
+        "实时显示日志",
+        "可正常交互（导出/清空）"
+      ]
+    },
+    {
+      "id": "feat-207",
+      "priority": 207,
+      "category": "backend",
+      "status": "pending",
+      "description": "增强：api/ppt.py - 添加 JSON 序列化调试日志",
+      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
+      "steps": [
+        "【问题分析】后端返回数据可能包含无法 JSON 序列化的字段",
+        "【实现】在 ai-merge 和 rebuild 路由返回前添加 JSON 序列化测试",
+        "【实现】使用 try/except 捕获序列化错误，打印详细错误信息",
+        "【实现】逐字段测试序列化，定位问题字段",
+        "【日志】添加 logger.info 记录序列化成功和耗时",
+        "【验证】本地测试：调用相关 API，检查控制台日志是否清晰"
+      ],
+      "artifacts": [
+        "backend/app/api/ppt.py"
+      ],
+      "acceptance_criteria": [
+        "JSON 序列化错误被捕获并记录",
+        "问题字段被准确定位",
+        "成功序列化的数据有日志记录",
+        "不会影响正常业务流程"
+      ]
+    },
+    {
+      "id": "feat-208",
+      "priority": 208,
+      "category": "test",
+      "status": "pending",
+      "description": "E2E 测试：CORS 修复 + 端口配置验证",
+      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
+      "depends_on": [
+        "feat-200"
+      ],
+      "test_data": {
+        "ppt_a": "uploads/generated/test_大龙猫.pptx",
+        "ppt_b": "uploads/generated/test_模版.pptx"
+      },
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md",
+        "【环境】curl http://localhost:8000/health 确认后端服务正常",
+        "【P0】browser_navigate http://localhost:3000/merge",
+        "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
+        "【P0】browser_file_upload paths=['uploads/generated/test_大龙猫.pptx']",
+        "【P0】browser_wait_for text='test_大龙猫' timeout=15000",
+        "【P0】browser_file_upload paths=['uploads/generated/test_模版.pptx']",
+        "【P0】browser_wait_for text='幻灯片池' timeout=30000",
+        "【P0】browser_snapshot 验证上传成功，无 CORS 错误",
+        "【验证】检查浏览器控制台无 fetch 错误",
+        "【验证】检查 network 面板确认 API 端口为 8000"
+      ],
+      "acceptance_criteria": [
+        "PPT 上传功能正常",
+        "无 CORS 相关错误",
+        "所有 API 调用使用正确端口"
+      ]
+    },
+    {
+      "id": "feat-209",
+      "priority": 209,
+      "category": "test",
+      "status": "pending",
+      "description": "E2E 测试：数据类型安全修复 + 监控系统验证",
+      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
+      "depends_on": [
+        "feat-206",
+        "feat-207"
+      ],
+      "test_data": {
+        "ppt_normal": "uploads/generated/test_大龙猫.pptx"
+      },
+      "steps": [
+        "【规则】阅读 .claude-coder/test_rule.md",
+        "【环境】curl http://localhost:8000/health 确认后端服务正常",
+        "【P0】browser_navigate http://localhost:3000/merge",
+        "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
+        "【P0】browser_file_upload paths=['uploads/generated/test_大龙猫.pptx']",
+        "【P0】browser_wait_for text='test_大龙猫' timeout=15000",
+        "【P0】browser_file_upload paths=['uploads/generated/empty.pptx']",
+        "【P0】browser_wait_for text='幻灯片池' timeout=15000",
+        "【P0】browser_click ref=[第一张幻灯片]",
+        "【P0】执行 polish 操作：browser_click ref=[润色] → browser_click ref=[执行]",
+        "【P0】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
+        "【P0】browser_wait_for text='✅ AI 内容融合完成！' timeout=60000",
+        "【P0】browser_wait_for text='v2' timeout=10000",
+        "【P0】browser_snapshot 验证预览区渲染成功",
+        "【P0】browser_snapshot 验证监控面板显示完整的请求/响应日志",
+        "【P1】点击'导出日志'按钮，验证 JSON 文件下载成功",
+        "【验证】检查浏览器控制台无 TypeError",
+        "【验证】检查后端日志无 JSON 序列化错误",
+        "【对比】导出的前端日志与后端日志数据一致"
+      ],
+      "acceptance_criteria": [
+        "AI 处理流程正常，数据正确提取和渲染",
+        "监控面板实时显示日志",
+        "日志可导出且格式正确",
+        "前后端数据一致",
+        "无类型错误或序列化错误"
       ]
     }
   ]

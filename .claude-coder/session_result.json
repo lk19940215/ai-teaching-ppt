@@ -2,5 +2,5 @@
   "session_result": "success",
   "status_before": "pending",
   "status_after": "done",
-  "notes": ""
+  "notes": "追加了 11 个任务（feat-199 到 feat-209）：\n1. feat-199: 修复 CORS 配置支持多端口（backend）\n2. feat-200: 统一前端 API 端口配置为 8000（frontend）\n3. feat-201: 规范化 content_merger.py 响应格式（backend）\n4. feat-202: 增强 useMergeSession.ts 数据处理和调试日志（frontend）\n5. feat-203: 新建监控工具类 monitor.ts（frontend）\n6. feat-204: 新建监控面板组件 monitor-panel.tsx（frontend）\n7. feat-205: 集成监控到 useMergeSession.ts（frontend）\n8. feat-206: 集成监控面板到 merge/page.tsx（frontend）\n9. feat-207: 增强后端 JSON 序列化调试日志（backend）\n10. feat-208: E2E 测试 CORS 修复（test）\n11. feat-209: E2E 测试数据类型安全 + 监控系统（test）\n\n任务分解覆盖：问题修复 → 监控系统 → 集成测试完整链路"
 }
