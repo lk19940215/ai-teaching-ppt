@@ -1,4 +1,4 @@
-from .upload import router as upload_router
-from .process import router as process_router
+# API 模块
+# 直接从子模块导入，无需在此聚合导出
 
-__all__ = ["upload_router", "process_router"]
+__all__ = []

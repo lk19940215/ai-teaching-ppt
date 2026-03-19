@@ -2,11 +2,10 @@
 LLM 服务商配置模型
 """
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
-from sqlalchemy.orm import declarative_base
 from datetime import datetime
 
-# 使用与 history 相同的 Base，确保表能一起创建
-from .history import Base
+# 使用统一的 Base
+from .database import Base
 
 class LLMConfig(Base):
     """LLM 服务商配置表"""

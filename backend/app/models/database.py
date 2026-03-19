@@ -2,9 +2,11 @@
 数据库连接和会话管理
 """
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
-from .history import Base
+from sqlalchemy.orm import sessionmaker, Session, declarative_base
 from ..config import settings
+
+# 创建 Base 类
+Base = declarative_base()
 
 # 创建数据库引擎
 engine = create_engine(
@@ -19,7 +21,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 def init_db():
     """初始化数据库，创建所有表"""
     # 导入所有模型以确保表被创建
-    from . import history, llm_config
+    from . import llm_config
     Base.metadata.create_all(bind=engine)
 
 

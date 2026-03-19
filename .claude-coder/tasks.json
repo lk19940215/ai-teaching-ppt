@@ -323,7 +323,7 @@
         "验证: python -m py_compile app/api/ppt.py 无错误",
         "验证: curl http://localhost:8000/docs 查看 API 文档正确"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-225"
       ]
