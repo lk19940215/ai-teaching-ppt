@@ -47,6 +47,10 @@ yarn-error.log*
 # 上传和生成的测试文件
 uploads/
 backend/test_*.pptx
+
+# 动态生成的图片预览文件
+public/versions/
+
 .claude-coder/*
 !.claude-coder/tasks.json
 !.claude-coder/project_profile.json

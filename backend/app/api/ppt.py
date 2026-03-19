@@ -103,7 +103,6 @@ def test_json_serialization(data: Any, context: str = "data") -> Dict[str, Any]:
             "duration_ms": float
         }
     """
-    import time
     start_time = time.time()
     result = {
         "success": False,
@@ -128,7 +127,7 @@ def test_json_serialization(data: Any, context: str = "data") -> Dict[str, Any]:
             for key, value in data.items():
                 try:
                     json.dumps({key: value}, ensure_ascii=False, default=str)
-                except TypeError as field_err:
+                except TypeError:
                     result["problematic_fields"].append(f"{key}: {type(value).__name__}")
                     logger.error(f"[JSON序列化] {context}: 字段 '{key}' 无法序列化，类型={type(value).__name__}, 值={repr(value)[:200]}")
 
@@ -144,7 +143,7 @@ def test_json_serialization(data: Any, context: str = "data") -> Dict[str, Any]:
             for i, item in enumerate(data):
                 try:
                     json.dumps(item, ensure_ascii=False, default=str)
-                except TypeError as item_err:
+                except TypeError:
                     result["problematic_fields"].append(f"[{i}]: {type(item).__name__}")
                     logger.error(f"[JSON序列化] {context}: 列表项 [{i}] 无法序列化，类型={type(item).__name__}")
     except Exception as e:
@@ -2478,7 +2477,9 @@ async def regenerate_slide(
 
         # 增强：测试 JSON 序列化
         response_data = {'success': True, 'new_slide': new_slide}
-        test_json_serialization(response_data, context="regenerate_slide")
+        serialization_result = test_json_serialization(response_data, context="regenerate_slide")
+        if not serialization_result["success"]:
+            logger.error(f'[JSON序列化] regenerate_slide 失败字段: {serialization_result["problematic_fields"]}')
 
         return JSONResponse(content=response_data)
 
@@ -2996,7 +2997,9 @@ async def generate_final_ppt(
         }
 
         # 增强：测试 JSON 序列化
-        test_json_serialization(response_data, context="generate_final_ppt")
+        serialization_result = test_json_serialization(response_data, context="generate_final_ppt")
+        if not serialization_result["success"]:
+            logger.error(f'[JSON序列化] generate_final_ppt 失败字段: {serialization_result["problematic_fields"]}')
 
         return JSONResponse(content=response_data)
 
@@ -3073,7 +3076,9 @@ async def get_session_info(session_id: str):
         }
 
         # 增强：测试 JSON 序列化
-        test_json_serialization(response_data, context="get_session_info")
+        serialization_result = test_json_serialization(response_data, context="get_session_info")
+        if not serialization_result["success"]:
+            logger.error(f'[JSON序列化] get_session_info 失败字段: {serialization_result["problematic_fields"]}')
 
         return JSONResponse(content=response_data)
 
