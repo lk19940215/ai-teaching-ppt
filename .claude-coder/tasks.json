@@ -182,7 +182,7 @@
         "验证: pnpm tsc --noEmit 无错误",
         "验证: 页面功能完整"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-217"
       ]

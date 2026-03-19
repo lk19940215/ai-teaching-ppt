@@ -1,0 +1,278 @@
+/**
+ * MergePage 页面状态管理 Hook
+ * 管理步骤状态、文件上传、全局提示语、下载状态等页面级状态
+ */
+
+import { useState, useCallback, useEffect } from 'react'
+import { useMergeSession } from '@/hooks/useMergeSession'
+import type { SlideAction } from '@/types/merge-session'
+
+// 步骤类型
+export type Step = 'upload' | 'merge' | 'confirm'
+
+export interface UseMergePageReturn {
+  // 步骤状态
+  currentStep: Step
+  setCurrentStep: (step: Step) => void
+
+  // 文件状态
+  pptA: File | null
+  pptB: File | null
+  setPptA: (file: File | null) => void
+  setPptB: (file: File | null) => void
+  isInitializing: boolean
+
+  // 错误状态
+  error: string | null
+  setError: (error: string | null) => void
+
+  // 全局提示语
+  globalPrompt: string
+  setGlobalPrompt: (prompt: string) => void
+  showTemplates: boolean
+  setShowTemplates: (show: boolean) => void
+
+  // 下载状态
+  downloadUrl: string | null
+  fileName: string | null
+
+  // 会话状态（来自 useMergeSession）
+  session: ReturnType<typeof useMergeSession>['session']
+  activeSlide: ReturnType<typeof useMergeSession>['activeSlide']
+  activeVersion: ReturnType<typeof useMergeSession>['activeVersion']
+  finalSelectionDetails: ReturnType<typeof useMergeSession>['finalSelectionDetails']
+  isInFinalSelection: boolean
+
+  // 操作方法
+  handleSlideClick: (slideId: string) => void
+  handleSwitchVersion: (versionId: string) => void
+  handleProcess: (action: SlideAction, prompt?: string) => Promise<void>
+  handleAddToFinal: () => void
+  handleRemoveFromFinal: () => void
+  handleMergeSelected: (slideIds: string[]) => Promise<void>
+  handleGenerateFinal: () => Promise<void>
+  handleDownload: () => Promise<void>
+  handleReset: () => void
+  handleStepClick: (step: Step) => void
+  reorderFinal: (fromIndex: number, toIndex: number) => void
+}
+
+export function useMergePage(): UseMergePageReturn {
+  // 步骤状态
+  const [currentStep, setCurrentStep] = useState<Step>('upload')
+  const [error, setError] = useState<string | null>(null)
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
+  const [fileName, setFileName] = useState<string | null>(null)
+
+  // 上传文件状态
+  const [pptA, setPptA] = useState<File | null>(null)
+  const [pptB, setPptB] = useState<File | null>(null)
+  const [isInitializing, setIsInitializing] = useState(false)
+
+  // 全局提示语状态
+  const [globalPrompt, setGlobalPrompt] = useState('')
+  const [showTemplates, setShowTemplates] = useState(false)
+
+  // 使用会话 Hook
+  const {
+    session,
+    activeSlide,
+    activeVersion,
+    finalSelectionDetails,
+    initSession,
+    processSlide,
+    mergeSlides,
+    selectVersion,
+    setActiveSlide,
+    addToFinal,
+    removeFromFinal,
+    reorderFinal,
+    generateFinal,
+    resetSession,
+  } = useMergeSession()
+
+  // 初始化会话
+  useEffect(() => {
+    if (pptA && pptB && !session.session_id && !isInitializing) {
+      setIsInitializing(true)
+      setError(null)
+
+      initSession(pptA, pptB)
+        .then(() => {
+          setCurrentStep('merge')
+        })
+        .catch((err) => {
+          console.error('初始化会话失败:', err)
+          setError(err.message || '初始化失败，请重试')
+        })
+        .finally(() => {
+          setIsInitializing(false)
+        })
+    }
+  }, [pptA, pptB, session.session_id, isInitializing, initSession])
+
+  // 处理幻灯片点击
+  const handleSlideClick = useCallback((slideId: string) => {
+    setActiveSlide(slideId)
+  }, [setActiveSlide])
+
+  // 处理版本切换
+  const handleSwitchVersion = useCallback((versionId: string) => {
+    if (activeSlide) {
+      selectVersion(activeSlide.slide_id, versionId)
+    }
+  }, [activeSlide, selectVersion])
+
+  // 处理幻灯片操作
+  const handleProcess = useCallback(async (action: SlideAction, prompt?: string) => {
+    if (!activeSlide) return
+
+    // 合并全局提示语和局部提示语
+    const finalPrompt = prompt || globalPrompt || undefined
+
+    const result = await processSlide(activeSlide.slide_id, action, finalPrompt)
+    if (!result.success) {
+      setError(result.error || '处理失败')
+    }
+  }, [activeSlide, processSlide, globalPrompt])
+
+  // 添加到最终选择
+  const handleAddToFinal = useCallback(() => {
+    if (activeVersion) {
+      addToFinal(activeVersion.version_id)
+    }
+  }, [activeVersion, addToFinal])
+
+  // 从最终选择移除
+  const handleRemoveFromFinal = useCallback(() => {
+    if (activeVersion) {
+      removeFromFinal(activeVersion.version_id)
+    }
+  }, [activeVersion, removeFromFinal])
+
+  // 处理跨 PPT 融合
+  const handleMergeSelected = useCallback(async (slideIds: string[]) => {
+    if (slideIds.length < 2) {
+      setError('请选择至少两个幻灯片进行融合')
+      return
+    }
+
+    const result = await mergeSlides(slideIds, globalPrompt)
+    if (!result.success) {
+      setError(result.error || '融合失败')
+    }
+  }, [mergeSlides, globalPrompt])
+
+  // 生成最终 PPT
+  const handleGenerateFinal = useCallback(async () => {
+    if (session.final_selection.length === 0) {
+      setError('请至少选择一个幻灯片')
+      return
+    }
+
+    try {
+      const result = await generateFinal(globalPrompt)
+      setDownloadUrl(result.download_url)
+      setFileName(result.file_name)
+      setCurrentStep('confirm')
+    } catch (err: any) {
+      console.error('生成最终 PPT 失败:', err)
+      setError(err.message || '生成失败')
+    }
+  }, [session.final_selection, generateFinal, globalPrompt])
+
+  // 下载处理
+  const handleDownload = useCallback(async () => {
+    if (!downloadUrl) return
+
+    try {
+      const response = await fetch(downloadUrl)
+      if (!response.ok) throw new Error(`下载失败: HTTP ${response.status}`)
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName || `merged_${Date.now()}.pptx`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+    } catch (err: any) {
+      console.error('下载失败:', err)
+      setError(`下载失败: ${err.message}`)
+    }
+  }, [downloadUrl, fileName])
+
+  // 重置状态
+  const handleReset = useCallback(() => {
+    setPptA(null)
+    setPptB(null)
+    setError(null)
+    setDownloadUrl(null)
+    setFileName(null)
+    resetSession()
+    setCurrentStep('upload')
+  }, [resetSession])
+
+  // 步骤回退
+  const handleStepClick = useCallback((step: Step) => {
+    if (step === 'upload') {
+      handleReset()
+    } else if (step === 'merge') {
+      setCurrentStep('merge')
+    }
+  }, [handleReset])
+
+  // 检查当前幻灯片是否在最终选择中
+  const isInFinalSelection = activeVersion
+    ? session.final_selection.includes(activeVersion.version_id)
+    : false
+
+  return {
+    // 步骤状态
+    currentStep,
+    setCurrentStep,
+
+    // 文件状态
+    pptA,
+    pptB,
+    setPptA,
+    setPptB,
+    isInitializing,
+
+    // 错误状态
+    error,
+    setError,
+
+    // 全局提示语
+    globalPrompt,
+    setGlobalPrompt,
+    showTemplates,
+    setShowTemplates,
+
+    // 下载状态
+    downloadUrl,
+    fileName,
+
+    // 会话状态
+    session,
+    activeSlide,
+    activeVersion,
+    finalSelectionDetails,
+    isInFinalSelection,
+
+    // 操作方法
+    handleSlideClick,
+    handleSwitchVersion,
+    handleProcess,
+    handleAddToFinal,
+    handleRemoveFromFinal,
+    handleMergeSelected,
+    handleGenerateFinal,
+    handleDownload,
+    handleReset,
+    handleStepClick,
+    reorderFinal,
+  }
+}
