@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { PptxViewJSRenderer } from "@/components/pptxviewjs-renderer"
+import { PptxViewJSRenderer } from "@/components/merge/renderers/pptxviewjs-renderer"
 
 export interface EnhancedPptPageData {
   index: number

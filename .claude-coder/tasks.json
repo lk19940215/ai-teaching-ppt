@@ -151,19 +151,7 @@
       ]
     },
     {
-      "id": "feat-217",
-      "category": "frontend",
-      "priority": 217,
-      "description": "更新所有组件的 import 路径引用",
-      "steps": [
-        "读取 merge/page.tsx 分析所有 import",
-        "更新所有合并组件的 import 路径为新位置",
-        "更新 useMergeSession hook 中的 import",
-        "更新其他相关文件中的 import",
-        "验证: pnpm tsc --noEmit 无错误",
-        "验证: 前端启动后页面可正常渲染"
-      ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-216"
       ]

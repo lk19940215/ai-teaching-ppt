@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import type { MergeMode } from "./merge-mode-selector"
+import type { MergeMode } from "../controls/merge-mode-selector"
 
 /**
  * 模式引导面板属性

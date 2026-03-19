@@ -33,9 +33,9 @@ import {
   getCurrentVersion,
   getSourceLabel,
 } from "@/types/merge-session"
-import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/ppt-canvas-renderer"
-import { PptxViewJSRenderer } from "@/components/pptxviewjs-renderer"
-import { SlideContentRenderer } from "@/components/slide-content-renderer"
+import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/merge/renderers/ppt-canvas-renderer"
+import { PptxViewJSRenderer } from "@/components/merge/renderers/pptxviewjs-renderer"
+import { SlideContentRenderer } from "@/components/merge/renderers/slide-content-renderer"
 import type { SlideContent } from "@/types/merge-plan"
 import { usePptxFallback, getPptFile } from "@/hooks/use-pptx-fallback"
 

@@ -20,7 +20,7 @@ import type {
   SlideVersion,
 } from "@/types/merge-session"
 import { getSourceLabel } from "@/types/merge-session"
-import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/ppt-canvas-renderer"
+import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/merge/renderers/ppt-canvas-renderer"
 
 export interface FinalSelectionItem {
   version_id: string

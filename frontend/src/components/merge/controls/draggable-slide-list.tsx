@@ -22,7 +22,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { cn } from "@/lib/utils"
-import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/ppt-canvas-renderer"
+import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/merge/renderers/ppt-canvas-renderer"
 import type { SlideStatus } from '@/lib/version-api'
 
 // 页面数据接口（兼容 PptPageData 和 EnhancedPptPageData）

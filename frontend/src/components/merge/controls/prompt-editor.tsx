@@ -5,7 +5,7 @@ import { useState, useRef } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { PptPageData } from "@/components/ppt-preview"
+import { PptPageData } from "@/components/merge/renderers/ppt-preview"
 
 export interface StructuredPagePrompt {
   keep?: string

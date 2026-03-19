@@ -5,7 +5,7 @@ import { useState, useCallback, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { apiBaseUrl } from "@/lib/api"
-import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/ppt-canvas-renderer"
+import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/merge/renderers/ppt-canvas-renderer"
 
 // 单页处理动作类型
 type SinglePageAction = "polish" | "expand" | "rewrite" | "extract"

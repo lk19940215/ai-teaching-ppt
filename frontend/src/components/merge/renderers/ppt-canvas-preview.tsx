@@ -3,10 +3,10 @@
 import * as React from "react"
 import { useState, useRef, useEffect, useCallback } from "react"
 import { cn } from "@/lib/utils"
-import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/ppt-canvas-renderer"
-import { VersionSwitcher } from '@/components/version-switcher'
-import { VersionHistoryPanel } from '@/components/version-history-panel'
-import { DraggableSlideList } from '@/components/draggable-slide-list'
+import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/merge/renderers/ppt-canvas-renderer"
+import { VersionSwitcher } from '@/components/merge/controls/version-switcher'
+import { VersionHistoryPanel } from '@/components/merge/panels/version-history-panel'
+import { DraggableSlideList } from '@/components/merge/controls/draggable-slide-list'
 import type { SlideStatus, SessionData } from '@/lib/version-api'
 import { getSession, getVersionHistory, restoreVersion, toggleSlide } from '@/lib/version-api'
 
