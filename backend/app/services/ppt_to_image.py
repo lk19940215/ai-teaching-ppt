@@ -289,8 +289,9 @@ class PptToImageConverter:
                         continue
 
                     page = doc[page_idx]
-                    # 150 DPI 高清渲染
-                    mat = fitz.Matrix(150 / 72, 150 / 72)
+                    # 根据分辨率设置渲染 DPI
+                    dpi = self.RESOLUTION_DPI.get(self.resolution, 150)
+                    mat = fitz.Matrix(dpi / 72, dpi / 72)
                     pix = page.get_pixmap(matrix=mat)
 
                     # 保存 PNG
@@ -425,3 +426,139 @@ def check_libreoffice() -> Dict[str, Any]:
         "path": path,
         "guide": LibreOfficeDetector.get_install_guide() if not path else None
     }
+
+
+def convert_single_slide_to_image(
+    pptx_path: Path,
+    output_dir: Path,
+    page_index: int = 0,
+    resolution: str = "high"
+) -> Dict[str, Any]:
+    """
+    单页 PPT 转图片便捷函数
+
+    封装 PptToImageConverter 调用，返回标准格式。
+    支持 LibreOffice 未安装时的降级处理。
+
+    Args:
+        pptx_path: PPTX 文件路径
+        output_dir: 输出目录
+        page_index: 页码（0-indexed），默认 0
+        resolution: 分辨率 (high/medium/low)，默认 high
+
+    Returns:
+        {
+            success: bool,
+            url: str | None,      # 图片 URL（如 http://localhost:8000/public/images/xxx.png）
+            path: str | None,     # 图片本地路径
+            width: int | None,    # 图片宽度
+            height: int | None,   # 图片高度
+            error: str | None,    # 错误信息
+            degraded: bool        # 是否降级（LibreOffice 未安装）
+        }
+    """
+    # 检查 LibreOffice 是否安装
+    if not LibreOfficeDetector.is_installed():
+        logger.warning("LibreOffice 未安装，单页转换降级")
+        return {
+            "success": False,
+            "url": None,
+            "path": None,
+            "width": None,
+            "height": None,
+            "error": f"LibreOffice 未安装，无法生成预览图。\n{LibreOfficeDetector.get_install_guide()}",
+            "degraded": True
+        }
+
+    # 检查文件是否存在
+    if not pptx_path.exists():
+        logger.error(f"PPTX 文件不存在：{pptx_path}")
+        return {
+            "success": False,
+            "url": None,
+            "path": None,
+            "width": None,
+            "height": None,
+            "error": f"PPTX 文件不存在：{pptx_path}",
+            "degraded": False
+        }
+
+    try:
+        # 解析分辨率参数
+        res = Resolution(resolution.lower())
+
+        # 创建转换器并执行转换
+        converter = PptToImageConverter(output_dir, res)
+        result = converter.convert_single_page(pptx_path, page_index)
+
+        if not result.success:
+            return {
+                "success": False,
+                "url": None,
+                "path": None,
+                "width": None,
+                "height": None,
+                "error": result.error,
+                "degraded": False
+            }
+
+        # 提取单页结果
+        if not result.images:
+            return {
+                "success": False,
+                "url": None,
+                "path": None,
+                "width": None,
+                "height": None,
+                "error": "转换成功但未生成图片",
+                "degraded": False
+            }
+
+        image_info = result.images[0]
+
+        # 构建标准返回格式
+        # 图片 URL 格式：http://localhost:8000/public/images/{session_id}/{filename}
+        # 如果 output_dir 路径中包含 session_id，使用它构建 URL
+        session_id = output_dir.name
+        image_filename = Path(image_info["path"]).name
+
+        # 检查 URL 是否已经是完整格式
+        if image_info.get("url"):
+            image_url = image_info["url"]
+        else:
+            # 使用 images 路径格式
+            image_url = f"http://localhost:8000/public/images/{session_id}/{image_filename}"
+
+        return {
+            "success": True,
+            "url": image_url,
+            "path": image_info.get("path"),
+            "width": image_info.get("width"),
+            "height": image_info.get("height"),
+            "error": None,
+            "degraded": False
+        }
+
+    except ValueError as e:
+        # 分辨率参数错误
+        logger.error(f"无效的分辨率参数：{resolution}，错误：{e}")
+        return {
+            "success": False,
+            "url": None,
+            "path": None,
+            "width": None,
+            "height": None,
+            "error": f"无效的分辨率参数：{resolution}，支持值：high/medium/low",
+            "degraded": False
+        }
+    except Exception as e:
+        logger.exception(f"单页转换异常：{e}")
+        return {
+            "success": False,
+            "url": None,
+            "path": None,
+            "width": None,
+            "height": None,
+            "error": f"转换异常：{str(e)}",
+            "degraded": False
+        }

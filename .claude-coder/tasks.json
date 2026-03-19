@@ -1113,7 +1113,7 @@
       "id": "feat-211",
       "priority": 211,
       "category": "backend",
-      "status": "pending",
+      "status": "done",
       "description": "增强：ppt_to_image.py - 优化单页转换便捷方法",
       "design_doc": ".claude-coder/plan/jiggly-beaming-eclipse.md#3.3.2",
       "depends_on": [
