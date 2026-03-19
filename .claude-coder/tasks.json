@@ -489,7 +489,7 @@
         "【P1】测试配置测试连接功能",
         "【P2】测试无效 API Key 处理"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-231"
       ]
