@@ -463,7 +463,7 @@
         "【P1】测试移除幻灯片功能",
         "【P1】测试选择状态持久化"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-230"
       ]

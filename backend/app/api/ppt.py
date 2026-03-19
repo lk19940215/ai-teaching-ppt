@@ -247,6 +247,77 @@ async def sse_generator(progress_queue: asyncio.Queue) -> AsyncGenerator[str, No
         raise
 
 
+# ==================== 会话管理端点 ====================
+
+# 内存中的会话存储（简单实现，生产环境应使用数据库）
+_sessions: Dict[str, Dict[str, Any]] = {}
+
+
+@router.post("/session/create")
+async def create_session(
+    ppt_a: UploadFile = File(None, description="PPT A 文件"),
+    ppt_b: UploadFile = File(None, description="PPT B 文件"),
+):
+    """
+    创建合并会话
+
+    接收两个 PPT 文件，创建会话 ID，返回会话信息
+    """
+    if not ppt_a and not ppt_b:
+        raise HTTPException(status_code=400, detail="至少需要上传一个文件")
+
+    session_id = uuid.uuid4().hex[:8]
+    temp_dir = Path(tempfile.gettempdir()) / "ppt_sessions"
+    temp_dir.mkdir(parents=True, exist_ok=True)
+
+    documents = {}
+
+    for ppt_file, key in [(ppt_a, "ppt_a"), (ppt_b, "ppt_b")]:
+        if ppt_file:
+            content = await ppt_file.read()
+            if content:
+                temp_path = temp_dir / f"{session_id}_{uuid.uuid4().hex[:8]}_{ppt_file.filename}"
+                async with aiofiles.open(temp_path, "wb") as f:
+                    await f.write(content)
+
+                # 解析 PPT 获取页数
+                try:
+                    from pptx import Presentation
+                    prs = Presentation(temp_path)
+                    total_slides = len(prs.slides)
+                except Exception:
+                    total_slides = 0
+
+                documents[key] = {
+                    "source_file": str(temp_path),
+                    "total_slides": total_slides,
+                    "slides": {}
+                }
+
+    # 存储会话
+    _sessions[session_id] = {
+        "session_id": session_id,
+        "documents": documents,
+        "created_at": time.time()
+    }
+
+    return JSONResponse(content={
+        "session_id": session_id,
+        "documents": documents
+    })
+
+
+@router.get("/session/{session_id}")
+async def get_session(session_id: str):
+    """
+    获取会话详情
+    """
+    if session_id not in _sessions:
+        raise HTTPException(status_code=404, detail="会话不存在")
+
+    return JSONResponse(content=_sessions[session_id])
+
+
 # ==================== PPT 解析端点 ====================
 
 @router.post("/ppt/parse")
@@ -820,26 +891,60 @@ async def generate_final_ppt(
     from io import BytesIO
     import re
 
-    logger.info(f"生成最终 PPT: session_id={session_id}, title={title}")
+    logger.info(f"生成最终 PPT: session_id={session_id}, title={title}, final_selection={final_selection}")
 
     try:
-        # 简化版：直接使用 content_snapshots 生成
-        if not content_snapshots:
-            raise HTTPException(status_code=400, detail="缺少 content_snapshots 参数")
-
         merged_slides = []
 
-        for version_id, snapshot in content_snapshots.items():
-            if snapshot:
-                merged_slides.append({
-                    "source_pptx": None,
-                    "slide_index": 0,
-                    "content_snapshot": snapshot,
-                    "version": "v1"
-                })
+        # 如果有 content_snapshots，直接使用
+        if content_snapshots:
+            for version_id, snapshot in content_snapshots.items():
+                if snapshot:
+                    merged_slides.append({
+                        "source_pptx": None,
+                        "slide_index": 0,
+                        "content_snapshot": snapshot,
+                        "version": "v1"
+                    })
+
+        # 如果没有快照，从会话中获取原始文件
+        if not merged_slides and session_id in _sessions:
+            session_data = _sessions[session_id]
+            documents = session_data.get("documents", {})
+
+            from ..services.ppt_content_parser import parse_pptx_to_structure
+
+            # 解析 final_selection 格式: "ppt_a_0_v1" -> (ppt_a, 0)
+            for version_id in (final_selection or []):
+                match = re.match(r'^(ppt_[ab])_(\d+)_v\d+$', version_id)
+                if match:
+                    doc_key = match.group(1)  # ppt_a or ppt_b
+                    slide_idx = int(match.group(2))
+
+                    doc_data = documents.get(doc_key, {})
+                    source_file = doc_data.get("source_file")
+
+                    if source_file and Path(source_file).exists():
+                        doc = parse_pptx_to_structure(Path(source_file))
+                        slides = doc.get("slides", [])
+
+                        if slide_idx < len(slides):
+                            slide = slides[slide_idx]
+                            tc = slide.get("teaching_content", {})
+                            merged_slides.append({
+                                "source_pptx": source_file,
+                                "slide_index": slide_idx,
+                                "content_snapshot": {
+                                    "title": tc.get("title", ""),
+                                    "main_points": tc.get("main_points", []),
+                                    "additional_content": tc.get("additional_content", ""),
+                                    "elements": []
+                                },
+                                "version": "v1"
+                            })
 
         if not merged_slides:
-            raise HTTPException(status_code=400, detail="没有可生成的页面")
+            raise HTTPException(status_code=400, detail="没有可生成的页面，请确保已上传文件并选择了幻灯片")
 
         logger.info(f"收集到 {len(merged_slides)} 个页面用于生成最终 PPT")
 

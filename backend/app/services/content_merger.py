@@ -98,8 +98,8 @@ class MultiPageResult(TypedDict, total=False):
     error: Optional[str]
 
 
-# 统一结果类型别名
-MergeResult = Union[SinglePageResult, MultiPageResult, MergePlan]
+# 统一结果类型别名（使用字符串形式避免前向引用问题）
+MergeResult = Union[SinglePageResult, MultiPageResult, "MergePlan"]
 
 
 # ==================== 配置类 ====================
