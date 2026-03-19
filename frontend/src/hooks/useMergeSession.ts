@@ -328,6 +328,7 @@ export function useMergeSession(): UseMergeSessionReturn {
   }, [])
 
   // 处理单页
+  // feat-213: 调用新的 /api/v1/ppt/ai-merge-single API，支持实时 PNG 预览
   const processSlide = useCallback(async (
     slideId: string,
     action: SlideAction,
@@ -370,14 +371,11 @@ export function useMergeSession(): UseMergeSessionReturn {
         throw new Error('PPT 文件不存在')
       }
 
-      // 调用后端 API
+      // feat-213: 调用新的单页处理 API
       const formData = new FormData()
-      formData.append('file_a', source === 'A' ? pptFile : new File([], 'placeholder'))
-      formData.append('file_b', source === 'B' ? pptFile : new File([], 'placeholder'))
-      formData.append('merge_type', 'single')
-      formData.append('single_page_index', slideItem.original_index.toString())
-      formData.append('single_page_action', action)
-      formData.append('source_doc', source)
+      formData.append('file', pptFile)
+      formData.append('page_index', slideItem.original_index.toString())
+      formData.append('action', action)
       formData.append('provider', llmConfig.provider || 'deepseek')
       formData.append('api_key', llmConfig.apiKey)
       formData.append('temperature', '0.3')
@@ -386,8 +384,18 @@ export function useMergeSession(): UseMergeSessionReturn {
         formData.append('custom_prompt', prompt)
       }
 
-      // feat-205: 使用 monitoredFetch 替代 fetch
-      const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/ai-merge`, {
+      // 更新进度
+      setSession(prev => ({
+        ...prev,
+        progress_info: {
+          stage: 'ai_processing',
+          message: '正在调用 AI 处理...',
+          percentage: 40,
+        },
+      }))
+
+      // feat-213: 使用新 API /api/v1/ppt/ai-merge-single（直接返回 JSON，非 SSE）
+      const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/ai-merge-single`, {
         method: 'POST',
         body: formData,
       })
@@ -407,76 +415,24 @@ export function useMergeSession(): UseMergeSessionReturn {
         throw new Error(errorData.detail || `HTTP ${response.status}`)
       }
 
-      // 解析 SSE 响应
-      const reader = response.body?.getReader()
-      if (!reader) {
-        throw new Error('无法读取响应')
+      // feat-213: 解析 JSON 响应（非 SSE）
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || '处理失败')
       }
 
-      const decoder = new TextDecoder()
-      let buffer = ''
-      let finalResult: any = null
+      // 更新进度到完成阶段
+      setSession(prev => ({
+        ...prev,
+        progress_info: {
+          stage: 'complete',
+          message: '处理完成',
+          percentage: 90,
+        },
+      }))
 
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const dataStr = line.slice(6)
-            let event: any
-            try {
-              event = JSON.parse(dataStr)
-            } catch (e) {
-              continue
-            }
-            if (event.type === 'heartbeat') continue
-            // feat-202: 增强 SSE 错误处理，记录错误事件详情
-            if (event.stage === 'error') {
-              console.error('[processSlide] SSE 错误事件:', {
-                stage: event.stage,
-                message: event.message,
-                error: event.error,
-                fullEvent: event
-              })
-              throw new Error(event.message || '处理失败')
-            }
-            if (event.stage === 'complete' && event.result) {
-              finalResult = event.result
-            }
-            if (event.stage) {
-              setSession(prev => ({
-                ...prev,
-                progress_info: {
-                  stage: event.stage,
-                  message: event.message || '处理中...',
-                  percentage: event.progress || 50,
-                },
-              }))
-            }
-          }
-        }
-      }
-
-      if (!finalResult) {
-        throw new Error('未收到处理结果')
-      }
-
-      // feat-192: 兼容后端返回的两种结构
-      // 结构1: { new_content: {...} } (直接返回)
-      // 结构2: { plan: { slide_plan: [{ new_content: {...}] } } } (单页处理模式)
-      let newContent = finalResult.new_content
-      if (!newContent && finalResult.plan?.slide_plan?.[0]?.new_content) {
-        newContent = finalResult.plan.slide_plan[0].new_content
-      }
-
-      if (!newContent) {
-        throw new Error('未收到处理结果')
-      }
+      const newContent = result.content
 
       // feat-202: 增强 main_points 类型处理，兼容 str/dict/混合类型
       if (newContent.main_points && Array.isArray(newContent.main_points)) {
@@ -521,6 +477,17 @@ export function useMergeSession(): UseMergeSessionReturn {
 
       // 创建新版本
       const newVersion = createNewVersion(slideItem, action, newContent, prompt)
+
+      // feat-213: 附加 preview_url 到新版本
+      if (result.preview_url) {
+        newVersion.preview_url = result.preview_url
+        console.log('[processSlide] preview_url 已附加:', result.preview_url)
+      }
+
+      // 记录是否使用了降级模式
+      if (result.degraded) {
+        console.warn('[processSlide] 使用降级模式，图片预览不可用')
+      }
 
       // 更新幻灯片池
       setSession(prev => {

@@ -1174,7 +1174,7 @@
       "id": "feat-213",
       "priority": 213,
       "category": "frontend",
-      "status": "pending",
+      "status": "done",
       "description": "集成：单页操作调用新API并优先渲染PNG图片",
       "design_doc": ".claude-coder/plan/jiggly-beaming-eclipse.md#3.2",
       "depends_on": [
