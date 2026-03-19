@@ -957,7 +957,7 @@
       "id": "feat-206",
       "priority": 206,
       "category": "frontend",
-      "status": "pending",
+      "status": "done",
       "description": "集成：merge/page.tsx - 添加监控面板组件",
       "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
       "depends_on": [
