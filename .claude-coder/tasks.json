@@ -815,7 +815,7 @@
       "id": "feat-201",
       "priority": 201,
       "category": "backend",
-      "status": "pending",
+      "status": "done",
       "description": "增强：content_merger.py - 规范化 _normalize_polish_content 响应格式",
       "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
       "steps": [

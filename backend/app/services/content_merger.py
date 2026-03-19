@@ -578,7 +578,13 @@ class ContentMerger:
             return result
 
     def _normalize_polish_content(self, content: Dict[str, Any], data: Dict[str, Any]) -> Dict[str, Any]:
-        """标准化润色内容"""
+        """标准化润色内容
+
+        确保返回的 main_points 始终是纯字符串列表：
+        1. 字典类型按优先级提取字段（text → content → polished → description → item）
+        2. 空字符串和 None 值被过滤
+        3. 其他类型使用 str() 转换
+        """
         title = content.get("title", "")
         main_points = []
         changes = data.get("changes", [])
@@ -592,34 +598,28 @@ class ContentMerger:
                     break
 
         # feat-198: 优先从 content.main_points 提取要点（LLM 可能直接返回此字段）
-        if not main_points:
-            raw_points = content.get("main_points", [])
-            if raw_points:
-                main_points = self._validate_and_convert_points(raw_points, "_normalize_polish_content.main_points")
+        # 使用统一的验证方法处理，确保类型安全
+        raw_points = content.get("main_points", [])
+        if raw_points:
+            main_points = self._validate_and_convert_points(raw_points, "_normalize_polish_content.main_points")
 
-        # 从 polished_elements 或 changes 中提取要点
+        # 从 polished_elements 中提取要点（统一使用验证方法）
         if not main_points:
             elements = content.get("polished_elements", [])
-            for e in elements:
-                val = e.get("polished", "")
-                if val:
-                    if isinstance(val, str):
-                        main_points.append(val)
-                    else:
-                        main_points.append(str(val))
+            # 提取 polished 字段值，交由 _validate_and_convert_points 统一处理
+            extracted = [e.get("polished") for e in elements if e.get("polished")]
+            if extracted:
+                main_points = self._validate_and_convert_points(extracted, "_normalize_polish_content.polished_elements")
 
-        # 从 changes 中提取要点（排除标题相关的更改）
+        # 从 changes 中提取要点（排除标题相关的更改，统一使用验证方法）
         if not main_points and changes:
-            for c in changes:
-                val = c.get("polished", "")
-                if val and "标题" not in c.get("location", ""):
-                    if isinstance(val, str):
-                        main_points.append(val)
-                    else:
-                        main_points.append(str(val))
+            extracted = [c.get("polished") for c in changes
+                        if c.get("polished") and "标题" not in c.get("location", "")]
+            if extracted:
+                main_points = self._validate_and_convert_points(extracted, "_normalize_polish_content.changes")
 
-        # 使用统一验证方法确保所有元素都是字符串
-        main_points = self._validate_and_convert_points(main_points, "_normalize_polish_content")
+        # 最终验证：确保所有元素都是非空字符串（双重保障）
+        main_points = self._validate_and_convert_points(main_points, "_normalize_polish_content.final")
 
         return {
             "title": title or "润色后的内容",
