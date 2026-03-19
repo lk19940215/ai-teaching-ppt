@@ -1,0 +1,684 @@
+{
+  "version": "2.9",
+  "imports": {
+    "sys": "../system.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "page-root",
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "fill": "$sys:color.bg",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "ref",
+          "id": "section-header",
+          "ref": "sys:header"
+        },
+        {
+          "type": "frame",
+          "id": "section-profile-header",
+          "width": "fill_container",
+          "layout": "vertical",
+          "alignItems": "center",
+          "padding": [48, 0],
+          "gap": 16,
+          "children": [
+            {
+              "type": "ellipse",
+              "id": "avatar",
+              "width": 120,
+              "height": 120,
+              "fill": "#EDE9FE",
+              "stroke": {
+                "align": "inside",
+                "thickness": 3,
+                "fill": "$sys:color.primary"
+              }
+            },
+            {
+              "type": "text",
+              "id": "profile-name",
+              "fill": "$sys:color.text",
+              "content": "张老师",
+              "fontFamily": "Inter, system-ui, sans-serif",
+              "fontSize": 28,
+              "fontWeight": "700",
+              "textAlign": "center"
+            },
+            {
+              "type": "frame",
+              "id": "role-badge",
+              "fill": "#EDE9FE",
+              "cornerRadius": 8,
+              "padding": [6, 12],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "role-text",
+                  "fill": "$sys:color.primary",
+                  "content": "高级用户",
+                  "fontFamily": "Inter, system-ui, sans-serif",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "section-basic-info",
+          "width": 1280,
+          "layout": "vertical",
+          "padding": [32, 80],
+          "gap": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "basic-info-header",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "basic-info-title",
+                  "fill": "$sys:color.text",
+                  "content": "基本信息",
+                  "fontFamily": "Inter, system-ui, sans-serif",
+                  "fontSize": 24,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "ref",
+                  "id": "btn-edit-profile",
+                  "ref": "sys:btn-secondary",
+                  "descendants": {
+                    "btn-secondary-label": {
+                      "content": "编辑资料"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "basic-info-form",
+              "width": "fill_container",
+              "gap": 48,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "form-left-column",
+                  "layout": "vertical",
+                  "width": "fill_container",
+                  "gap": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "field-name",
+                      "layout": "vertical",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "label-name",
+                          "fill": "$sys:color.text-muted",
+                          "content": "姓名",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14
+                        },
+                        {
+                          "type": "frame",
+                          "id": "input-name",
+                          "width": "fill_container",
+                          "height": 40,
+                          "fill": "#FFFFFF",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$sys:color.border"
+                          },
+                          "cornerRadius": 8,
+                          "padding": [0, 12],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "input-name-value",
+                              "fill": "$sys:color.text",
+                              "content": "张老师",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 14
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "field-phone",
+                      "layout": "vertical",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "label-phone",
+                          "fill": "$sys:color.text-muted",
+                          "content": "手机号码",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14
+                        },
+                        {
+                          "type": "frame",
+                          "id": "input-phone",
+                          "width": "fill_container",
+                          "height": 40,
+                          "fill": "#FFFFFF",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$sys:color.border"
+                          },
+                          "cornerRadius": 8,
+                          "padding": [0, 12],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "input-phone-value",
+                              "fill": "$sys:color.text",
+                              "content": "138****8888",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 14
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "field-school",
+                      "layout": "vertical",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "label-school",
+                          "fill": "$sys:color.text-muted",
+                          "content": "所在学校",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14
+                        },
+                        {
+                          "type": "frame",
+                          "id": "input-school",
+                          "width": "fill_container",
+                          "height": 40,
+                          "fill": "#FFFFFF",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$sys:color.border"
+                          },
+                          "cornerRadius": 8,
+                          "padding": [0, 12],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "input-school-value",
+                              "fill": "$sys:color.text",
+                              "content": "北京市第一中学",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 14
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "form-right-column",
+                  "layout": "vertical",
+                  "width": "fill_container",
+                  "gap": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "field-email",
+                      "layout": "vertical",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "label-email",
+                          "fill": "$sys:color.text-muted",
+                          "content": "邮箱地址",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14
+                        },
+                        {
+                          "type": "frame",
+                          "id": "input-email",
+                          "width": "fill_container",
+                          "height": 40,
+                          "fill": "#FFFFFF",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$sys:color.border"
+                          },
+                          "cornerRadius": 8,
+                          "padding": [0, 12],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "input-email-value",
+                              "fill": "$sys:color.text",
+                              "content": "zhanglaoshi@example.com",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 14
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "field-subject",
+                      "layout": "vertical",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "label-subject",
+                          "fill": "$sys:color.text-muted",
+                          "content": "任教科目",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14
+                        },
+                        {
+                          "type": "frame",
+                          "id": "input-subject",
+                          "width": "fill_container",
+                          "height": 40,
+                          "fill": "#FFFFFF",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$sys:color.border"
+                          },
+                          "cornerRadius": 8,
+                          "padding": [0, 12],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "input-subject-value",
+                              "fill": "$sys:color.text",
+                              "content": "语文",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 14
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "field-grade",
+                      "layout": "vertical",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "label-grade",
+                          "fill": "$sys:color.text-muted",
+                          "content": "任教年级",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14
+                        },
+                        {
+                          "type": "frame",
+                          "id": "input-grade",
+                          "width": "fill_container",
+                          "height": 40,
+                          "fill": "#FFFFFF",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "$sys:color.border"
+                          },
+                          "cornerRadius": 8,
+                          "padding": [0, 12],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "input-grade-value",
+                              "fill": "$sys:color.text",
+                              "content": "高一、高二",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 14
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "section-account-settings",
+          "width": 1280,
+          "layout": "vertical",
+          "padding": [32, 80],
+          "gap": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "account-settings-title",
+              "fill": "$sys:color.text",
+              "content": "账户安全",
+              "fontFamily": "Inter, system-ui, sans-serif",
+              "fontSize": 24,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "account-settings-card",
+              "width": "fill_container",
+              "fill": "$sys:color.bg-card",
+              "cornerRadius": 16,
+              "layout": "vertical",
+              "gap": 24,
+              "padding": 32,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "setting-password",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "password-info",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "password-title",
+                          "fill": "$sys:color.text",
+                          "content": "登录密码",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 16,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "password-desc",
+                          "fill": "$sys:color.text-muted",
+                          "content": "定期更换密码可以提高账户安全性",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14
+                        }
+                      ]
+                    },
+                    {
+                      "type": "ref",
+                      "id": "btn-change-password",
+                      "ref": "sys:btn-secondary",
+                      "descendants": {
+                        "btn-secondary-label": {
+                          "content": "修改密码"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "setting-2fa",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "2fa-info",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "2fa-title",
+                          "fill": "$sys:color.text",
+                          "content": "两步验证",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 16,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "2fa-desc",
+                          "fill": "$sys:color.text-muted",
+                          "content": "开启后登录时需要额外验证，提升账户安全性",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "2fa-status",
+                      "fill": "#FEF3C7",
+                      "cornerRadius": 8,
+                      "padding": [6, 12],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "2fa-status-text",
+                          "fill": "#B45309",
+                          "content": "未开启",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "setting-login-history",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "login-history-info",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "login-history-title",
+                          "fill": "$sys:color.text",
+                          "content": "登录记录",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 16,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "login-history-desc",
+                          "fill": "$sys:color.text-muted",
+                          "content": "最近一次登录：2026-03-19 14:30 · 北京市",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14
+                        }
+                      ]
+                    },
+                    {
+                      "type": "ref",
+                      "id": "btn-view-history",
+                      "ref": "sys:btn-secondary",
+                      "descendants": {
+                        "btn-secondary-label": {
+                          "content": "查看详情"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "section-usage-stats",
+          "width": 1280,
+          "layout": "vertical",
+          "padding": [32, 80],
+          "gap": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "usage-stats-title",
+              "fill": "$sys:color.text",
+              "content": "使用统计",
+              "fontFamily": "Inter, system-ui, sans-serif",
+              "fontSize": 24,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "stats-cards",
+              "width": "fill_container",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "stat-card-ppt",
+                  "width": "fill_container",
+                  "fill": "$sys:color.bg-card",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "alignItems": "center",
+                  "gap": 8,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "stat-ppt-value",
+                      "fill": "$sys:color.primary",
+                      "content": "128",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 36,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "stat-ppt-label",
+                      "fill": "$sys:color.text-muted",
+                      "content": "生成 PPT 数量",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 14
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "stat-card-merge",
+                  "width": "fill_container",
+                  "fill": "$sys:color.bg-card",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "alignItems": "center",
+                  "gap": 8,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "stat-merge-value",
+                      "fill": "$sys:color.primary",
+                      "content": "36",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 36,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "stat-merge-label",
+                      "fill": "$sys:color.text-muted",
+                      "content": "PPT 合并次数",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 14
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "stat-card-days",
+                  "width": "fill_container",
+                  "fill": "$sys:color.bg-card",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "alignItems": "center",
+                  "gap": 8,
+                  "padding": 32,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "stat-days-value",
+                      "fill": "$sys:color.primary",
+                      "content": "45",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 36,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "stat-days-label",
+                      "fill": "$sys:color.text-muted",
+                      "content": "累计使用天数",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 14
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "ref",
+          "id": "section-footer",
+          "ref": "sys:footer"
+        }
+      ]
+    }
+  ]
+}

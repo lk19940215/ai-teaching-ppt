@@ -50,3 +50,4 @@ backend/test_*.pptx
 .claude-coder/*
 !.claude-coder/tasks.json
 !.claude-coder/project_profile.json
+!.claude-coder/design/
