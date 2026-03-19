@@ -18,7 +18,7 @@ logging.basicConfig(
 )
 
 from app.config import settings
-from app.api import upload, process, generate, ppt, history, config as config_router
+from app.api import ppt, config as config_router
 
 logger = logging.getLogger(__name__)
 
@@ -57,11 +57,7 @@ app.add_middleware(
 )
 
 # 注册 API 路由
-app.include_router(upload.router)
-app.include_router(process.router)
-app.include_router(generate.router)
 app.include_router(ppt.router)
-app.include_router(history.router)
 app.include_router(config_router.router)
 
 # 静态文件服务
