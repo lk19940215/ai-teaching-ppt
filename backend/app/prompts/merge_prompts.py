@@ -464,7 +464,7 @@ def build_full_merge_prompt(
 {_format_summary(b_summary)}
 
 ## 用户需求
-{custom_prompt if custom_prompt.strip() else default_prompt}
+{(custom_prompt or '').strip() if custom_prompt else default_prompt}
 
 请生成合并计划 JSON。"""
 
@@ -505,7 +505,7 @@ def build_partial_merge_prompt(
 {_format_pages(pages_b, 'B')}
 
 ## 用户需求
-{custom_prompt if custom_prompt.strip() else default_prompt}
+{(custom_prompt or '').strip() if custom_prompt else default_prompt}
 
 请生成融合结果 JSON。"""
 
@@ -564,7 +564,7 @@ def build_single_page_prompt(
 说明：{action_descriptions.get(action, '')}
 
 ## 用户需求
-{custom_prompt if custom_prompt.strip() else default_prompts.get(action, '')}
+{(custom_prompt or '').strip() if custom_prompt else default_prompts.get(action, '')}
 
 请生成处理结果 JSON。"""
 

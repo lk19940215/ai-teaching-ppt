@@ -1141,7 +1141,7 @@
       "id": "feat-212",
       "priority": 212,
       "category": "backend",
-      "status": "pending",
+      "status": "done",
       "description": "新建：api/ppt.py - 新增 /api/v1/ppt/ai-merge-single 单页处理API端点",
       "design_doc": ".claude-coder/plan/jiggly-beaming-eclipse.md#3.3.3",
       "depends_on": [

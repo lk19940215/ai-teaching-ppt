@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Body, UploadFile, File, Form, Query, Request
+from fastapi import APIRouter, HTTPException, Body, UploadFile, File, Form, Query, Request, BackgroundTasks
 from starlette.datastructures import UploadFile as StarletteUploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pathlib import Path
@@ -17,7 +17,8 @@ import psutil
 import os
 import zipfile
 
-from ..services.ppt_generator import get_ppt_generator
+from ..services.ppt_generator import get_ppt_generator, generate_single_slide_pptx
+from ..services.ppt_to_image import convert_single_slide_to_image
 from ..config import settings
 
 router = APIRouter(prefix=settings.API_V1_STR, tags=["ppt"])
@@ -3136,3 +3137,191 @@ async def get_slide_version_history(
     except Exception as e:
         logger.error(f"获取版本历史失败：{e}")
         raise HTTPException(status_code=500, detail=f"获取版本历史失败：{str(e)}")
+
+
+# ==================== feat-212: 单页 AI 处理 + 实时 PPT 图片预览 ====================
+
+@router.post("/ppt/ai-merge-single")
+async def ai_merge_single_page(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(..., description="PPT 文件"),
+    page_index: int = Form(..., description="要处理的页码（0-indexed）"),
+    action: str = Form(..., description="操作类型：polish/expand/rewrite/extract"),
+    custom_prompt: Optional[str] = Form(None, description="自定义提示语"),
+    provider: str = Form("deepseek", description="LLM 服务商"),
+    api_key: str = Form(..., description="API Key"),
+    temperature: float = Form(0.3, description="温度参数"),
+    max_tokens: int = Form(2000, description="最大输出 token"),
+):
+    """
+    feat-212: 单页 AI 处理 + 实时生成 PPT 图片预览
+
+    流程：
+    1. 解析原始 PPT 获取页面结构
+    2. 调用 LLM 进行 AI 处理
+    3. 生成单页 PPTX 文件
+    4. 调用 LibreOffice 转换为 PNG
+    5. 返回处理结果和图片 URL
+
+    Request:
+    - file: PPT 文件
+    - page_index: 要处理的页码（0-indexed）
+    - action: 操作类型（polish/expand/rewrite/extract）
+    - custom_prompt: 可选的自定义提示语
+    - provider: LLM 服务商（默认 deepseek）
+    - api_key: API Key
+
+    Response:
+    {
+        "success": true,
+        "content": { "title": "...", "main_points": [...], ... },
+        "preview_url": "http://localhost:8000/public/images/xxx/page_0.png",
+        "image_path": "/path/to/image.png",
+        "degraded": false
+    }
+    """
+    temp_pptx = None
+    output_pptx = None
+
+    try:
+        logger.info(f"单页处理请求: page={page_index}, action={action}, file={file.filename}")
+
+        # 1. 保存上传文件
+        content = await file.read()
+        if not content:
+            raise HTTPException(status_code=400, detail="上传文件为空")
+
+        temp_dir = Path(tempfile.gettempdir()) / 'ppt_ai_merge_single'
+        temp_dir.mkdir(parents=True, exist_ok=True)
+
+        temp_pptx = temp_dir / f'{uuid.uuid4().hex}_{file.filename}'
+        async with aiofiles.open(temp_pptx, 'wb') as f:
+            await f.write(content)
+
+        logger.info(f"文件已保存: {temp_pptx}")
+
+        # 2. 解析 PPT 获取原始内容
+        from ..services.ppt_content_parser import parse_pptx_to_structure
+
+        doc = parse_pptx_to_structure(temp_pptx)
+        slides = doc.get("slides", [])
+
+        if page_index < 0 or page_index >= len(slides):
+            raise HTTPException(
+                status_code=400,
+                detail=f"页码超出范围：{page_index}，有效范围 0-{len(slides) - 1}"
+            )
+
+        original_slide = slides[page_index]
+        logger.info(f"PPT 解析完成: {len(slides)} 页，处理第 {page_index} 页")
+
+        # 3. 调用 LLM 进行处理
+        from ..services.content_merger import get_content_merger
+
+        merger = get_content_merger(
+            provider=provider,
+            api_key=api_key,
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
+
+        logger.info(f"开始 AI 处理: action={action}")
+        result = merger.process_single_page(original_slide, action, custom_prompt)
+        logger.info(f"AI 处理完成")
+
+        # 提取处理后的内容
+        new_content = result.get("new_content", {})
+
+        # 确保 new_content 包含必要字段
+        if not new_content:
+            new_content = {
+                "title": original_slide.get("teaching_content", {}).get("title", ""),
+                "main_points": [],
+                "additional_content": ""
+            }
+
+        # 类型安全：确保 main_points 是字符串列表
+        main_points = new_content.get("main_points", [])
+        if not isinstance(main_points, list):
+            main_points = []
+        else:
+            safe_points = []
+            for p in main_points:
+                if isinstance(p, str):
+                    safe_points.append(p)
+                elif isinstance(p, dict):
+                    text = (p.get('text') or p.get('content') or p.get('point') or str(p))
+                    safe_points.append(text)
+                else:
+                    safe_points.append(str(p))
+            main_points = safe_points
+
+        new_content["main_points"] = main_points
+
+        # 4. 生成单页 PPTX
+        output_pptx = temp_dir / f'slide_{page_index}_{action}_{uuid.uuid4().hex}.pptx'
+
+        logger.info(f"生成单页 PPTX: {output_pptx}")
+        generate_single_slide_pptx(
+            content=new_content,
+            output_path=output_pptx,
+            slide_index=page_index,
+            layout_type="auto"
+        )
+
+        # 5. 转换为 PNG
+        session_id = uuid.uuid4().hex
+        image_output_dir = settings.PUBLIC_DIR / "images" / session_id
+        image_output_dir.mkdir(parents=True, exist_ok=True)
+
+        logger.info(f"转换为 PNG: {image_output_dir}")
+        image_result = convert_single_slide_to_image(
+            pptx_path=output_pptx,
+            output_dir=image_output_dir,
+            page_index=0,  # 单页 PPTX 只有一页
+            resolution="high"
+        )
+
+        # 6. 构建返回结果
+        response = {
+            "success": True,
+            "content": new_content,
+            "preview_url": image_result.get("url") if image_result and image_result.get("success") else None,
+            "image_path": image_result.get("path") if image_result else None,
+            "degraded": image_result.get("degraded", False) if image_result else True,
+            "error": image_result.get("error") if image_result and not image_result.get("success") else None
+        }
+
+        # 7. 测试 JSON 序列化
+        serialization_result = test_json_serialization(response, context="ai_merge_single_response")
+        if not serialization_result["success"]:
+            logger.error(f"[JSON序列化] ai-merge-single 失败字段: {serialization_result['problematic_fields']}")
+            raise ValueError(f"JSON 序列化失败: {serialization_result['error']}")
+
+        logger.info(f"单页处理完成: preview_url={response.get('preview_url')}")
+
+        # 8. 注册后台清理任务（延迟清理，确保文件可被访问）
+        def cleanup_temp_files():
+            import time
+            time.sleep(30)  # 延迟 30 秒清理，给前端足够时间下载图片
+            for temp_path in [temp_pptx, output_pptx]:
+                try:
+                    if temp_path and temp_path.exists():
+                        temp_path.unlink()
+                        logger.debug(f"已清理临时文件: {temp_path}")
+                except Exception as e:
+                    logger.warning(f"清理临时文件失败: {temp_path}, error={e}")
+
+        background_tasks.add_task(cleanup_temp_files)
+
+        return JSONResponse(content=response)
+
+    except HTTPException:
+        raise
+    except ValueError as e:
+        logger.error(f"参数错误: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"单页处理失败: {e}")
+        logger.error(f"Traceback: {traceback_module.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"单页处理失败: {str(e)}")
