@@ -73,7 +73,7 @@ class SinglePageResult(TypedDict):
     error: Optional[str]
 
 
-class MultiPageResult(TypedDict):
+class MultiPageResult(TypedDict, total=False):
     """多页融合结果"""
     merge_strategy: str
     content_relationship: str
@@ -82,6 +82,10 @@ class MultiPageResult(TypedDict):
     preserved_from_b: List[str]
     success: bool
     error: Optional[str]
+
+
+# 统一结果类型别名
+MergeResult = Union[SinglePageResult, MultiPageResult, MergePlan]
 
 
 # ==================== 配置类 ====================

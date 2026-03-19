@@ -283,7 +283,7 @@
         "保留所有合并策略：sequential、parallel、intelligent",
         "验证: python -m py_compile app/services/content_merger.py 无错误"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-223"
       ]
