@@ -341,7 +341,7 @@
         "验证: python -m py_compile app/api/config.py 无错误",
         "验证: curl http://localhost:8000/api/v1/config/llm 获取配置列表"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-225"
       ]

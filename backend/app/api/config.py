@@ -1,5 +1,13 @@
 """
 LLM 服务商配置管理 API
+
+提供 LLM 服务商（DeepSeek、OpenAI、Claude、GLM）的配置管理功能：
+- 配置 CRUD 操作
+- 默认服务商设置
+- API Key 验证
+- 连接测试
+
+所有端点前缀：/api/v1/config
 """
 from fastapi import APIRouter, Depends, HTTPException, Body
 from fastapi.responses import JSONResponse
@@ -24,10 +32,27 @@ router = APIRouter(prefix="/api/v1", tags=["config"])
 
 logger = logging.getLogger(__name__)
 
+# 支持的 LLM 服务商列表
+SUPPORTED_PROVIDERS = [
+    LLMProvider.DEEPSEEK,
+    LLMProvider.OPENAI,
+    LLMProvider.CLAUDE,
+    LLMProvider.GLM,
+]
+
+# 默认 LLM 参数
+DEFAULT_TEMPERATURE = 0.7
+DEFAULT_MAX_TOKENS = 4000
+CONNECTION_TEST_TIMEOUT = 15
+
 
 @router.get("/config/providers")
 async def list_providers(db: Session = Depends(get_db)):
-    """获取所有已配置的 LLM 服务商"""
+    """
+    获取所有已配置的 LLM 服务商
+
+    返回数据库中所有已保存的服务商配置列表。
+    """
     try:
         configs = get_all_configs(db)
         return JSONResponse(content={
@@ -44,7 +69,12 @@ async def list_providers(db: Session = Depends(get_db)):
 
 @router.get("/config/providers/default")
 async def get_default_provider_config(db: Session = Depends(get_db)):
-    """获取默认服务商配置"""
+    """
+    获取默认服务商配置
+
+    返回当前标记为默认的服务商配置。
+    如果没有设置默认，返回 null。
+    """
     try:
         config = get_default_config(db)
         if not config:
@@ -67,7 +97,12 @@ async def get_default_provider_config(db: Session = Depends(get_db)):
 
 @router.get("/config/providers/{provider}")
 async def get_provider_config(provider: str, db: Session = Depends(get_db)):
-    """获取指定服务商的配置"""
+    """
+    获取指定服务商的配置
+
+    参数：
+    - provider: 服务商标识（deepseek、openai、claude、glm）
+    """
     try:
         config = get_config_by_provider(db, provider)
         if not config:
@@ -100,14 +135,27 @@ async def save_provider_config(
     max_output_tokens: Optional[int] = Body(None, embed=True),
     db: Session = Depends(get_db)
 ):
-    """保存服务商配置"""
+    """
+    保存服务商配置
+
+    支持的服务商：deepseek、openai、claude、glm
+
+    参数：
+    - provider: 服务商标识
+    - api_key: API 密钥
+    - base_url: 自定义 API 地址（可选）
+    - model: 模型名称（可选）
+    - is_default: 是否设为默认服务商
+    - temperature: 生成温度（可选）
+    - max_input_tokens: 最大输入 token（可选）
+    - max_output_tokens: 最大输出 token（可选）
+    """
     try:
-        # 验证 provider 是否合法
-        valid_providers = [LLMProvider.DEEPSEEK, LLMProvider.OPENAI, LLMProvider.CLAUDE, LLMProvider.GLM]
-        if provider not in valid_providers:
+        # 验证服务商是否支持
+        if provider not in SUPPORTED_PROVIDERS:
             return JSONResponse(content={
                 "success": False,
-                "message": f"不支持的服务商：{provider}，支持的：{', '.join(valid_providers)}"
+                "message": f"不支持的服务商：{provider}，支持的服务商：{', '.join(SUPPORTED_PROVIDERS)}"
             }, status_code=400)
 
         # 检查是否已存在配置
@@ -152,7 +200,12 @@ async def save_provider_config(
 
 @router.delete("/config/providers/{provider}")
 async def delete_provider_config(provider: str, db: Session = Depends(get_db)):
-    """删除服务商配置"""
+    """
+    删除服务商配置
+
+    参数：
+    - provider: 服务商标识（deepseek、openai、claude、glm）
+    """
     try:
         success = delete_config(db, provider)
         if not success:
@@ -175,7 +228,14 @@ async def delete_provider_config(provider: str, db: Session = Depends(get_db)):
 
 @router.post("/config/providers/{provider}/set-default")
 async def set_as_default(provider: str, db: Session = Depends(get_db)):
-    """设置默认服务商"""
+    """
+    设置默认服务商
+
+    将指定服务商标记为默认，同时取消其他服务商的默认状态。
+
+    参数：
+    - provider: 服务商标识（deepseek、openai、claude、glm）
+    """
     try:
         config = set_default_provider(db, provider)
         if not config:
@@ -199,7 +259,14 @@ async def set_as_default(provider: str, db: Session = Depends(get_db)):
 
 @router.post("/config/providers/{provider}/validate")
 async def validate_provider_config(provider: str, db: Session = Depends(get_db)):
-    """验证服务商配置"""
+    """
+    验证服务商配置
+
+    检查指定服务商的配置是否存在，并验证 API Key 格式。
+
+    参数：
+    - provider: 服务商标识（deepseek、openai、claude、glm）
+    """
     try:
         result = validate_api_key(db, provider)
         if not result:
@@ -229,11 +296,24 @@ async def test_connection(
     temperature: Optional[float] = Body(None, embed=True),
     max_tokens: Optional[int] = Body(None, embed=True)
 ):
-    """测试 LLM 连接"""
+    """
+    测试 LLM 连接
+
+    使用提供的参数创建 LLM 服务实例并发送测试请求，
+    验证 API Key 和网络连接是否正常。
+
+    参数：
+    - provider: 服务商标识
+    - api_key: API 密钥
+    - base_url: 自定义 API 地址（可选）
+    - model: 模型名称（可选）
+    - temperature: 生成温度（可选，默认 0.7）
+    - max_tokens: 最大 token 数（可选，默认 4000）
+    """
     try:
-        # 使用前端传递的参数，或使用默认值
-        llm_temperature = temperature if temperature is not None else 0.7
-        llm_max_tokens = max_tokens if max_tokens is not None else 4000
+        # 使用传入参数或默认值
+        llm_temperature = temperature if temperature is not None else DEFAULT_TEMPERATURE
+        llm_max_tokens = max_tokens if max_tokens is not None else DEFAULT_MAX_TOKENS
 
         llm_service = LLMService(
             provider=provider,
@@ -247,7 +327,7 @@ async def test_connection(
         # 发送测试请求
         response = llm_service.chat(
             messages=[{"role": "user", "content": "请回复'连接成功'"}],
-            timeout=15
+            timeout=CONNECTION_TEST_TIMEOUT
         )
 
         return JSONResponse(content={
