@@ -245,7 +245,7 @@
         "验证: pip install -r requirements.txt 成功",
         "验证: python -m py_compile app/main.py 无错误"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-221"
       ]
