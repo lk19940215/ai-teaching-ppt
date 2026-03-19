@@ -1,7 +1,7 @@
 {
   "project": "ai-teaching-ppt",
-  "last_updated": "2026-03-18",
-  "next_task_priority": 210,
+  "last_updated": "2026-03-19",
+  "next_task_priority": 214,
   "completed_milestones": [
     {
       "name": "基础设施搭建",
@@ -1078,6 +1078,128 @@
         "日志可导出且格式正确",
         "前后端数据一致",
         "无类型错误或序列化错误"
+      ]
+    },
+    {
+      "id": "feat-210",
+      "priority": 210,
+      "category": "backend",
+      "status": "pending",
+      "description": "增强：ppt_generator.py - 新增 generate_single_slide_pptx 单页生成方法",
+      "design_doc": ".claude-coder/plan/jiggly-beaming-eclipse.md#3.3.1",
+      "depends_on": [],
+      "steps": [
+        "【分析】阅读 backend/app/services/ppt_generator.py 现有结构",
+        "【实现1】添加 generate_single_slide_pptx() 函数：接收 SlideContent 和输出路径，生成单页 PPTX",
+        "【实现2】实现布局智能选择逻辑：根据 content.type 选择 title_only/blank/title_and_content",
+        "【实现3】实现标题区域渲染：使用 pptx 设置 28pt 粗体标题",
+        "【实现4】实现内容区域渲染：将 main_points 转换为段落列表，18pt 深灰色字体",
+        "【实现5】处理异常边界：标题缺失、内容为空、布局不匹配等场景",
+        "【测试】本地测试：创建测试脚本，生成单页 PPTX 并用 PowerPoint 打开验证",
+        "【验证】使用示例数据：{title: '测试标题', main_points: ['要点1', '要点2'], additional_content: '补充说明'}"
+      ],
+      "artifacts": [
+        "backend/app/services/ppt_generator.py"
+      ],
+      "acceptance_criteria": [
+        "单页 PPTX 文件生成成功，可用 PowerPoint 正常打开",
+        "标题显示正确（28pt 粗体）",
+        "要点列表显示正确（18pt 段落）",
+        "支持空标题、空内容的边界情况",
+        "异常情况下不崩溃，有清晰错误提示"
+      ]
+    },
+    {
+      "id": "feat-211",
+      "priority": 211,
+      "category": "backend",
+      "status": "pending",
+      "description": "增强：ppt_to_image.py - 优化单页转换便捷方法",
+      "design_doc": ".claude-coder/plan/jiggly-beaming-eclipse.md#3.3.2",
+      "depends_on": [
+        "feat-210"
+      ],
+      "steps": [
+        "【分析】阅读 backend/app/services/ppt_to_image.py 现有结构，确认 convert_single_page 方法已存在",
+        "【实现】添加 convert_single_slide_to_image() 便捷函数：封装 PptToImageConverter 调用，返回标准格式 {success, url, path, width, height}",
+        "【实现】支持分辨率参数（high/medium/low），默认 high",
+        "【实现】添加错误处理：LibreOffice 未安装时返回降级标记",
+        "【验证】本地测试：调用函数转换单页，验证返回结果格式正确",
+        "【验证】测试 LibreOffice 未安装场景，确认返回降级提示"
+      ],
+      "artifacts": [
+        "backend/app/services/ppt_to_image.py"
+      ],
+      "acceptance_criteria": [
+        "单页转换成功，返回包含 url/path/width/height 的标准格式",
+        "支持多种分辨率配置",
+        "LibreOffice 未安装时有清晰提示，不崩溃",
+        "图片路径格式正确（http://localhost:8000/public/images/xxx.png）"
+      ]
+    },
+    {
+      "id": "feat-212",
+      "priority": 212,
+      "category": "backend",
+      "status": "pending",
+      "description": "新建：api/ppt.py - 新增 /api/v1/ppt/ai-merge-single 单页处理API端点",
+      "design_doc": ".claude-coder/plan/jiggly-beaming-eclipse.md#3.3.3",
+      "depends_on": [
+        "feat-211"
+      ],
+      "steps": [
+        "【设计】定义 API 接口：POST /api/v1/ppt/ai-merge-single，参数（file, page_index, action, custom_prompt, provider, api_key）",
+        "【实现1】添加路由函数 ai_merge_single_page()：保存上传文件、解析原始内容、调用 LLM 处理",
+        "【实现2】集成单页 PPT 生成：调用 generate_single_slide_pptx() 生成 PPTX",
+        "【实现3】集成图片转换：调用 convert_single_slide_to_image() 生成 PNG 预览图",
+        "【实现4】返回标准格式：{success, content, preview_url, image_path}",
+        "【实现5】添加后台任务清理临时文件",
+        "【实现6】添加错误处理和详细日志",
+        "【测试】使用 curl 测试：上传 test.pptx，执行润色操作，验证返回格式",
+        "【验证】检查返回的 preview_url 可访问，PNG 图片能正常显示"
+      ],
+      "artifacts": [
+        "backend/app/api/ppt.py"
+      ],
+      "acceptance_criteria": [
+        "API 端点响应成功（HTTP 200）",
+        "返回包含 preview_url 字段，指向 PNG 图片",
+        "图片可通过浏览器直接访问",
+        "处理流程完整：上传 → AI 处理 → PPT 生成 → 图片转换",
+        "临时文件被正确清理",
+        "错误情况下有清晰提示，不崩溃"
+      ]
+    },
+    {
+      "id": "feat-213",
+      "priority": 213,
+      "category": "frontend",
+      "status": "pending",
+      "description": "集成：单页操作调用新API并优先渲染PNG图片",
+      "design_doc": ".claude-coder/plan/jiggly-beaming-eclipse.md#3.2",
+      "depends_on": [
+        "feat-212"
+      ],
+      "steps": [
+        "【设计】扩展 SlideVersion 接口：添加 preview_url?: string",
+        "【实现1】修改 frontend/src/types/merge-session.ts：在 SlideVersion 添加 preview_url 可选字段",
+        "【实现2】修改 frontend/src/hooks/useMergeSession.ts：在 processSlide 方法中调用新API /api/v1/ppt/ai-merge-single",
+        "【实现3】解析返回结果：将 preview_url 附加到 newVersion 对象",
+        "【实现4】修改 frontend/src/components/slide-preview-panel.tsx：渲染优先级逻辑优先使用 preview_url",
+        "【实现5】添加降级逻辑：preview_url 不存在时回退到 SlideContentRenderer",
+        "【验证】本地测试：上传 PPT，执行润色，检查预览区显示 PNG 图片",
+        "【验证】检查浏览器控制台无错误，network 面板确认 API 调用成功"
+      ],
+      "artifacts": [
+        "frontend/src/types/merge-session.ts",
+        "frontend/src/hooks/useMergeSession.ts",
+        "frontend/src/components/slide-preview-panel.tsx"
+      ],
+      "acceptance_criteria": [
+        "单页处理后显示真实的 PNG 图片预览，非 UI 卡片",
+        "图片渲染正确，与最终生成的 PPT 一致",
+        "降级逻辑工作正常：无 preview_url 时显示 SlideContentRenderer",
+        "无前端错误，API 调用成功"
       ]
     }
   ]
