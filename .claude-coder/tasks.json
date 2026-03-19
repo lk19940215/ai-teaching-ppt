@@ -208,7 +208,7 @@
         "验证: 剩余 API 文件：ppt.py、config.py、main.py",
         "验证: git status 显示已删除上述文件"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     },
     {
@@ -226,7 +226,7 @@
         "验证: 剩余服务文件符合方案要求",
         "验证: python -m py_compile app/main.py 无错误"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-220"
       ]
