@@ -433,7 +433,7 @@
         "【P1】测试不同合并策略",
         "【P2】测试合并失败处理"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-229"
       ]
