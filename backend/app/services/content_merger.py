@@ -22,6 +22,20 @@ from ..prompts.merge_prompts import (
     MERGE_STRATEGY_TEMPLATES
 )
 
+# 导入工具模块
+from .content_merger_utils import (
+    validate_merge_request,
+    validate_multi_page_request,
+    validate_full_merge_request,
+    prepare_merge_context,
+    prepare_single_page_context,
+    prepare_multi_page_context,
+    execute_ai_merge,
+    execute_ai_merge_with_retry,
+    create_error_result,
+    create_success_result
+)
+
 logger = logging.getLogger(__name__)
 
 

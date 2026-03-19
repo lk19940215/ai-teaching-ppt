@@ -304,7 +304,7 @@
         "验证: python -m py_compile app/services/content_merger.py 无错误",
         "验证: python -m py_compile app/services/content_merger_utils.py 无错误"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-224"
       ]
