@@ -145,7 +145,7 @@
         "验证: 所有组件文件正确移动",
         "验证: git status 显示文件重命名"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-215"
       ]
