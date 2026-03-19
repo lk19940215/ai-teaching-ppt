@@ -1041,7 +1041,7 @@
       "id": "feat-209",
       "priority": 209,
       "category": "test",
-      "status": "pending",
+      "status": "done",
       "description": "E2E 测试：数据类型安全修复 + 监控系统验证",
       "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
       "depends_on": [
