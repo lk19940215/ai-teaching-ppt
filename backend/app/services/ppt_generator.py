@@ -6843,3 +6843,291 @@ def _add_placeholder_slide(prs: Presentation, text: str, font_size: int):
     slide.shapes.title.text = "页面加载失败"
     content = slide.placeholders[1]
     content.text = text
+
+
+# =============================================================================
+# 单页 PPT 生成函数（feat-210）
+# =============================================================================
+
+# 深灰色字体颜色
+DARK_GRAY = RGBColor(0x33, 0x33, 0x33)
+
+
+def _select_layout_type(content: Dict[str, Any]) -> str:
+    """
+    根据内容智能选择布局类型
+
+    Args:
+        content: SlideContent 结构，包含 title、main_points、elements 等
+
+    Returns:
+        布局类型：'title_only' | 'blank' | 'title_and_content'
+    """
+    title = content.get("title", "")
+    main_points = content.get("main_points", [])
+    elements = content.get("elements", [])
+    additional_content = content.get("additional_content", "")
+
+    # 有标题但没有内容 → 标题页
+    if title and not main_points and not elements and not additional_content:
+        return "title_only"
+
+    # 有 elements 且无标题 → 空白页（自定义布局）
+    if not title and elements:
+        return "blank"
+
+    # 默认：标题+内容
+    return "title_and_content"
+
+
+def generate_single_slide_pptx(
+    content: Dict[str, Any],
+    output_path: Path,
+    slide_index: int = 0,
+    layout_type: str = "auto"
+) -> Path:
+    """
+    生成单页 PPTX 文件
+
+    Args:
+        content: SlideContent 结构，包含：
+            - title: str (标题)
+            - main_points: List[str] (要点列表)
+            - elements: List[Dict] (可选，结构化元素)
+            - additional_content: str (可选，补充说明)
+        output_path: 输出文件路径
+        slide_index: 页码索引（用于命名，默认 0）
+        layout_type: 布局类型，可选值：
+            - 'auto': 自动选择（默认）
+            - 'title_only': 仅标题
+            - 'blank': 空白页
+            - 'title_and_content': 标题+内容
+
+    Returns:
+        生成的 PPTX 文件路径
+
+    Raises:
+        ValueError: 内容格式无效或输出路径不可写
+
+    Example:
+        >>> content = {
+        ...     'title': '测试标题',
+        ...     'main_points': ['要点1', '要点2'],
+        ...     'additional_content': '补充说明'
+        ... }
+        >>> generate_single_slide_pptx(content, Path('output.pptx'))
+    """
+    # 边界情况处理：空内容
+    if not content:
+        content = {"title": "", "main_points": []}
+
+    # 确保必要字段存在
+    title = content.get("title", "")
+    main_points = content.get("main_points", [])
+    elements = content.get("elements", [])
+    additional_content = content.get("additional_content", "")
+
+    # 类型安全：确保 main_points 是列表
+    if not isinstance(main_points, list):
+        if isinstance(main_points, str):
+            main_points = [main_points] if main_points else []
+        else:
+            logger.warning(f"main_points 类型无效: {type(main_points)}，已重置为空列表")
+            main_points = []
+
+    # 智能布局选择
+    if layout_type == "auto":
+        layout_type = _select_layout_type(content)
+
+    try:
+        # 创建新 PPT
+        prs = Presentation()
+        prs.slide_width = Inches(10)
+        prs.slide_height = Inches(7.5)
+
+        # 根据布局类型选择幻灯片布局
+        if layout_type == "title_only":
+            layout = prs.slide_layouts[5]  # 标题页布局
+        elif layout_type == "blank":
+            layout = prs.slide_layouts[6]  # 空白布局
+        else:
+            layout = prs.slide_layouts[1]  # 标题+内容布局
+
+        slide = prs.slides.add_slide(layout)
+
+        # 设置标题（28pt 粗体）- 通过 run 设置样式
+        if title and hasattr(slide.shapes, 'title') and slide.shapes.title:
+            title_frame = slide.shapes.title.text_frame
+            # 清除默认内容
+            title_frame.clear()
+            # 创建新的 run 并设置样式
+            p = title_frame.paragraphs[0]
+            run = p.add_run()
+            run.text = title
+            run.font.size = Pt(28)
+            run.font.bold = True
+            run.font.color.rgb = DARK_GRAY
+
+        # 设置内容区域（18pt 深灰色）- 通过 run 设置样式
+        if layout_type == "title_and_content" and (main_points or additional_content):
+            try:
+                # 尝试使用占位符
+                if len(slide.placeholders) > 1:
+                    body_shape = slide.placeholders[1]
+                    tf = body_shape.text_frame
+                    tf.clear()  # 清除默认段落
+
+                    # 添加要点
+                    for i, point in enumerate(main_points):
+                        if i == 0:
+                            p = tf.paragraphs[0]
+                        else:
+                            p = tf.add_paragraph()
+                        # 通过 run 设置样式
+                        run = p.add_run()
+                        run.text = point
+                        run.font.size = Pt(18)
+                        run.font.color.rgb = DARK_GRAY
+
+                    # 添加补充说明
+                    if additional_content:
+                        p = tf.add_paragraph()
+                        run = p.add_run()
+                        run.text = additional_content
+                        run.font.size = Pt(16)
+                        run.font.color.rgb = DARK_GRAY
+                        run.font.italic = True
+            except Exception as e:
+                logger.warning(f"使用占位符设置内容失败，回退到文本框: {e}")
+                # 回退方案：手动添加文本框
+                _add_content_textbox(slide, main_points, additional_content)
+
+        elif layout_type == "blank" and elements:
+            # 空白布局：手动渲染 elements
+            _render_elements(slide, elements)
+
+        elif not title and not main_points and layout_type != "blank":
+            # 边界情况：空标题且空内容
+            logger.warning("内容为空，生成空白页面")
+            if hasattr(slide.shapes, 'title') and slide.shapes.title:
+                slide.shapes.title.text_frame.text = "(空页面)"
+
+        # 确保输出目录存在
+        output_path = Path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # 保存文件
+        prs.save(output_path)
+        logger.info(f"单页 PPTX 生成成功: {output_path}")
+
+        return output_path
+
+    except Exception as e:
+        logger.error(f"生成单页 PPTX 失败: {e}", exc_info=True)
+        raise ValueError(f"生成 PPTX 失败: {str(e)}")
+
+
+def _add_content_textbox(
+    slide,
+    main_points: List[str],
+    additional_content: str = ""
+):
+    """
+    手动添加内容文本框（当占位符不可用时使用）
+
+    Args:
+        slide: 幻灯片对象
+        main_points: 要点列表
+        additional_content: 补充说明
+    """
+    y_position = Inches(2.0)  # 从页面中部开始
+
+    # 添加要点
+    for point in main_points:
+        text_shape = slide.shapes.add_textbox(
+            Inches(0.5), y_position, Inches(9), Inches(0.5)
+        )
+        text_frame = text_shape.text_frame
+        text_frame.clear()
+        p = text_frame.paragraphs[0]
+        run = p.add_run()
+        run.text = f"• {point}"
+        run.font.size = Pt(18)
+        run.font.color.rgb = DARK_GRAY
+        y_position += Inches(0.5)
+
+    # 添加补充说明
+    if additional_content:
+        y_position += Inches(0.2)
+        text_shape = slide.shapes.add_textbox(
+            Inches(0.5), y_position, Inches(9), Inches(0.5)
+        )
+        text_frame = text_shape.text_frame
+        text_frame.clear()
+        p = text_frame.paragraphs[0]
+        run = p.add_run()
+        run.text = additional_content
+        run.font.size = Pt(16)
+        run.font.color.rgb = DARK_GRAY
+        run.font.italic = True
+
+
+def _render_elements(slide, elements: List[Dict[str, Any]]):
+    """
+    渲染结构化元素列表
+
+    Args:
+        slide: 幻灯片对象
+        elements: 元素列表，每个元素包含 type 和 content
+    """
+    y_position = Inches(0.5)
+
+    for elem in elements:
+        elem_type = elem.get("type", "text_body")
+        content = elem.get("content", "")
+
+        if not content:
+            continue
+
+        if elem_type == "title":
+            # 标题元素
+            text_shape = slide.shapes.add_textbox(
+                Inches(0.5), y_position, Inches(9), Inches(0.8)
+            )
+            text_frame = text_shape.text_frame
+            text_frame.clear()
+            p = text_frame.paragraphs[0]
+            run = p.add_run()
+            run.text = content
+            run.font.size = Pt(28)
+            run.font.bold = True
+            run.font.color.rgb = DARK_GRAY
+            y_position += Inches(0.9)
+
+        elif elem_type == "list_item":
+            # 列表项
+            text_shape = slide.shapes.add_textbox(
+                Inches(0.5), y_position, Inches(9), Inches(0.5)
+            )
+            text_frame = text_shape.text_frame
+            text_frame.clear()
+            p = text_frame.paragraphs[0]
+            run = p.add_run()
+            run.text = f"• {content}"
+            run.font.size = Pt(18)
+            run.font.color.rgb = DARK_GRAY
+            y_position += Inches(0.5)
+
+        elif elem_type == "text_body":
+            # 正文
+            text_shape = slide.shapes.add_textbox(
+                Inches(0.5), y_position, Inches(9), Inches(0.5)
+            )
+            text_frame = text_shape.text_frame
+            text_frame.clear()
+            p = text_frame.paragraphs[0]
+            run = p.add_run()
+            run.text = content
+            run.font.size = Pt(18)
+            run.font.color.rgb = DARK_GRAY
+            y_position += Inches(0.5)

@@ -1084,7 +1084,7 @@
       "id": "feat-210",
       "priority": 210,
       "category": "backend",
-      "status": "pending",
+      "status": "done",
       "description": "增强：ppt_generator.py - 新增 generate_single_slide_pptx 单页生成方法",
       "design_doc": ".claude-coder/plan/jiggly-beaming-eclipse.md#3.3.1",
       "depends_on": [],
