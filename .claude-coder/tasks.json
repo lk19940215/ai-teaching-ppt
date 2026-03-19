@@ -378,7 +378,7 @@
         "【P1】browser_file_upload paths=['非 PPT 文件'] 测试错误处理",
         "【P1】验证: 错误提示正确显示"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-219",
         "feat-226"
