@@ -983,7 +983,7 @@
       "id": "feat-207",
       "priority": 207,
       "category": "backend",
-      "status": "pending",
+      "status": "done",
       "description": "增强：api/ppt.py - 添加 JSON 序列化调试日志",
       "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
       "steps": [

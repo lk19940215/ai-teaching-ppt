@@ -85,6 +85,76 @@ def safe_join_list(items: List[Any], separator: str = '\n') -> str:
 
     return separator.join(result)
 
+
+def test_json_serialization(data: Any, context: str = "data") -> Dict[str, Any]:
+    """
+    测试 JSON 序列化并返回详细的调试信息。
+
+    Args:
+        data: 要测试的数据
+        context: 上下文描述（用于日志）
+
+    Returns:
+        {
+            "success": bool,
+            "error": str | None,
+            "problematic_fields": List[str],
+            "json_length": int | None,
+            "duration_ms": float
+        }
+    """
+    import time
+    start_time = time.time()
+    result = {
+        "success": False,
+        "error": None,
+        "problematic_fields": [],
+        "json_length": None,
+        "duration_ms": 0
+    }
+
+    try:
+        # 尝试整体序列化
+        json_str = json.dumps(data, ensure_ascii=False, default=str)
+        result["success"] = True
+        result["json_length"] = len(json_str)
+        logger.info(f"[JSON序列化] {context}: 成功，长度 {len(json_str)} 字符")
+    except TypeError as e:
+        result["error"] = str(e)
+        logger.error(f"[JSON序列化] {context}: 失败 - {e}")
+
+        # 逐字段测试，定位问题字段
+        if isinstance(data, dict):
+            for key, value in data.items():
+                try:
+                    json.dumps({key: value}, ensure_ascii=False, default=str)
+                except TypeError as field_err:
+                    result["problematic_fields"].append(f"{key}: {type(value).__name__}")
+                    logger.error(f"[JSON序列化] {context}: 字段 '{key}' 无法序列化，类型={type(value).__name__}, 值={repr(value)[:200]}")
+
+                    # 如果值也是字典，继续深入测试
+                    if isinstance(value, dict):
+                        for sub_key, sub_value in value.items():
+                            try:
+                                json.dumps({sub_key: sub_value}, ensure_ascii=False, default=str)
+                            except TypeError:
+                                result["problematic_fields"].append(f"{key}.{sub_key}: {type(sub_value).__name__}")
+                                logger.error(f"[JSON序列化] {context}: 子字段 '{key}.{sub_key}' 无法序列化，类型={type(sub_value).__name__}")
+        elif isinstance(data, list):
+            for i, item in enumerate(data):
+                try:
+                    json.dumps(item, ensure_ascii=False, default=str)
+                except TypeError as item_err:
+                    result["problematic_fields"].append(f"[{i}]: {type(item).__name__}")
+                    logger.error(f"[JSON序列化] {context}: 列表项 [{i}] 无法序列化，类型={type(item).__name__}")
+    except Exception as e:
+        result["error"] = f"Unexpected error: {e}"
+        logger.error(f"[JSON序列化] {context}: 意外错误 - {e}")
+
+    result["duration_ms"] = round((time.time() - start_time) * 1000, 2)
+    return result
+
+
 def _cleanup_cache():
     """清理过期缓存并执行 LRU 淘汰"""
     current_time = time.time()
@@ -2258,14 +2328,14 @@ async def ai_merge_ppts(
                 raise ValueError(f'不支持的合并类型：{merge_type}')
             logger.info('DEBUG: About to send result to queue')
             logger.info(f'DEBUG: Result keys: {result.keys()}')
-            # 测试 JSON 序列化
-            try:
-                import json
-                json_test = json.dumps(result, ensure_ascii=False)
-                logger.info(f'DEBUG: JSON serialization succeeded, length: {len(json_test)}')
-            except Exception as json_err:
-                logger.error(f'DEBUG: JSON serialization failed: {json_err}')
-                raise
+
+            # 增强：使用 test_json_serialization 进行详细的序列化测试
+            serialization_result = test_json_serialization(result, context="ai_merge_result")
+            if not serialization_result["success"]:
+                logger.error(f'[JSON序列化] ai-merge 失败字段: {serialization_result["problematic_fields"]}')
+                raise ValueError(f"JSON 序列化失败: {serialization_result['error']}")
+            logger.info(f'[JSON序列化] ai-merge 成功，耗时 {serialization_result["duration_ms"]}ms')
+
             await progress_queue.put({"stage": "complete", "progress": 100, "message": "AI 内容融合完成！", "result": result})
         except ValueError as e:
             logger.error(f'参数错误：{e}')
@@ -2405,7 +2475,12 @@ async def regenerate_slide(
             }
 
         logger.info(f'feat-162: 重新生成成功，new_slide={new_slide}')
-        return JSONResponse(content={'success': True, 'new_slide': new_slide})
+
+        # 增强：测试 JSON 序列化
+        response_data = {'success': True, 'new_slide': new_slide}
+        test_json_serialization(response_data, context="regenerate_slide")
+
+        return JSONResponse(content=response_data)
 
     except ValueError as e:
         logger.error(f'feat-162: 参数错误：{e}')
@@ -2913,12 +2988,17 @@ async def generate_final_ppt(
 
         logger.info(f"最终 PPT 生成成功：{file_name}")
 
-        return JSONResponse(content={
+        response_data = {
             "success": True,
             "download_url": f"/uploads/generated/{file_name}",
             "file_name": file_name,
             "total_slides": len(merged_slides)
-        })
+        }
+
+        # 增强：测试 JSON 序列化
+        test_json_serialization(response_data, context="generate_final_ppt")
+
+        return JSONResponse(content=response_data)
 
     except HTTPException:
         raise
@@ -2987,10 +3067,15 @@ async def get_session_info(session_id: str):
                 }
             }
 
-        return JSONResponse(content={
+        response_data = {
             "session_id": session.session_id,
             "documents": documents
-        })
+        }
+
+        # 增强：测试 JSON 序列化
+        test_json_serialization(response_data, context="get_session_info")
+
+        return JSONResponse(content=response_data)
 
     except HTTPException:
         raise

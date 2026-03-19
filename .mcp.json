@@ -1,11 +1,10 @@
 {
   "mcpServers": {
-    "chrome-devtools": {
+    "playwright": {
       "command": "npx",
       "args": [
-        "-y",
-        "chrome-devtools-mcp@latest",
-        "--autoConnect"
+        "@playwright/mcp@latest",
+        "--user-data-dir=.claude-coder/.runtime/browser-profile"
       ]
     }
   }
