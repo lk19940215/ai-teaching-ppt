@@ -201,7 +201,7 @@
         "验证: pnpm tsc --noEmit 无错误",
         "验证: 幻灯片预览功能正常"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-218"
       ]

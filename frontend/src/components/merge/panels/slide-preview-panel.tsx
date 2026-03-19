@@ -3,6 +3,7 @@
  * feat-171: 显示当前幻灯片的大图预览，支持版本切换和操作
  * feat-173: 原始版本使用 PptxViewJSRenderer，AI版本使用 PptCanvasRenderer
  * feat-185: PptxViewJSRenderer 降级到 PptCanvasRenderer 的自动切换
+ * feat-219: 使用统一的渲染决策工具函数
  *
  * 功能：
  * - 大图预览当前幻灯片
@@ -10,11 +11,12 @@
  * - 操作按钮（润色、扩展、改写、提取）- 点击注入模板到全局提示词
  * - 添加到最终选择
  *
- * 渲染优先级（feat-173, feat-185）：
+ * 渲染优先级（feat-173, feat-185, feat-219）：
  * 1. 有 imageUrl（LibreOffice预览图）→ <img>
  * 2. 是原始版本（无 action）且有 PPT file → PptxViewJSRenderer（失败时降级到 PptCanvasRenderer）
  * 3. 是 AI 版本（有 action）→ SlideContentRenderer
- * 4. 兜底 → PptCanvasRenderer / 占位符
+ * 4. 有 content 数据 → PptCanvasRenderer
+ * 5. 兜底 → 占位符
  */
 
 "use client"
@@ -37,7 +39,15 @@ import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/merge/
 import { PptxViewJSRenderer } from "@/components/merge/renderers/pptxviewjs-renderer"
 import { SlideContentRenderer } from "@/components/merge/renderers/slide-content-renderer"
 import type { SlideContent } from "@/types/merge-plan"
-import { usePptxFallback, getPptFile } from "@/hooks/use-pptx-fallback"
+import { usePptxFallback, getPptFile as getPptFileFromHook } from "@/hooks/use-pptx-fallback"
+import {
+  getSlideRenderer,
+  versionToPageData,
+  getPptFile,
+  RENDERER_DEFAULTS,
+  type RenderDecision,
+  type RendererType,
+} from "@/lib/slideRendering"
 
 export interface SlidePreviewPanelProps {
   /** 当前幻灯片 */
@@ -124,54 +134,6 @@ const ACTION_CONFIG: Record<SlideAction, { label: string; description: string; i
 }
 
 /**
- * 将 SlideVersion 转换为 EnhancedPptPageData
- * feat-180: 优先使用保存的 shapes 数据（来自后端增强模式）
- */
-function versionToPageData(version: SlideVersion, pageIndex: number): EnhancedPptPageData {
-  // feat-180: 优先使用保存的 shapes 数据（来自后端增强模式）
-  if (version.shapes && version.shapes.length > 0) {
-    const content = version.content
-    const mainPoints = content.main_points || []
-    return {
-      index: pageIndex,
-      title: content.title || '',
-      content: mainPoints.map(text => ({
-        type: 'text' as const,
-        text,
-      })),
-      shapes: version.shapes,
-      layout: version.layout || { width: 960, height: 540 },
-    }
-  }
-
-  // 降级：从 content 构造简化的 shapes（旧逻辑）
-  const content = version.content
-  const mainPoints = content.main_points || []
-  const additionalContent = content.additional_content || ''
-
-  return {
-    index: pageIndex,
-    title: content.title || '',
-    content: [...mainPoints, additionalContent].filter(Boolean).map(text => ({
-      type: 'text' as const,
-      text,
-    })),
-    shapes: [{
-      type: 'text_box',
-      name: 'main_content',
-      position: { x: 50, y: 100, width: 860, height: 380 },
-      text_content: [{
-        runs: mainPoints.map(text => ({
-          text: text + '\n',
-          font: { size: 18, color: '#333333' },
-        })),
-      }],
-    }],
-    layout: { width: 960, height: 540 },
-  }
-}
-
-/**
  * 版本切换器
  */
 function VersionSwitcher({
@@ -244,6 +206,17 @@ export function SlidePreviewPanel({
     resetDeps: [pptFile, slide?.slide_id]
   })
 
+  // feat-219: 使用统一的渲染决策函数
+  const renderDecision = useMemo<RenderDecision>(() => {
+    return getSlideRenderer({
+      slide,
+      version,
+      imageUrl,
+      pptFile,
+      fallbackMode,
+    })
+  }, [slide, version, imageUrl, pptFile, fallbackMode])
+
   // 处理操作点击 - 设置选中的操作并注入模板
   const handleActionClick = (action: SlideAction) => {
     const template = ACTION_CONFIG[action]?.template
@@ -258,6 +231,74 @@ export function SlidePreviewPanel({
   const handleExecute = () => {
     if (selectedAction) {
       onProcess(selectedAction, globalPrompt || undefined)
+    }
+  }
+
+  // feat-219: 根据 renderDecision 渲染幻灯片内容
+  const renderSlideContent = () => {
+    switch (renderDecision.renderer) {
+      case "image":
+        return (
+          <img
+            src={imageUrl!}
+            alt={slide?.display_title || `幻灯片 ${(slide?.original_index ?? 0) + 1}`}
+            className="w-full h-full object-contain"
+            onError={(e) => {
+              // 图片加载失败时隐藏，触发降级渲染
+              (e.target as HTMLImageElement).style.display = 'none'
+            }}
+          />
+        )
+
+      case "pptxviewjs":
+        return (
+          <PptxViewJSRenderer
+            file={pptFile!}
+            slideIndex={slide!.original_index}
+            width={RENDERER_DEFAULTS.width}
+            height={RENDERER_DEFAULTS.height}
+            quality="high"
+            onError={handlePptxViewJSError}
+          />
+        )
+
+      case "pptxviewjs_fallback":
+        return (
+          <PptCanvasRenderer
+            pageData={versionToPageData(version!, slide!.original_index)}
+            width={RENDERER_DEFAULTS.width}
+            height={RENDERER_DEFAULTS.height}
+            quality={RENDERER_DEFAULTS.quality}
+          />
+        )
+
+      case "slide_content":
+        return (
+          <SlideContentRenderer
+            content={version!.content}
+            action={version!.action}
+            slide={slide!}
+            size="preview"
+          />
+        )
+
+      case "ppt_canvas":
+        return (
+          <PptCanvasRenderer
+            pageData={versionToPageData(version!, slide!.original_index)}
+            width={RENDERER_DEFAULTS.width}
+            height={RENDERER_DEFAULTS.height}
+            quality={RENDERER_DEFAULTS.quality}
+          />
+        )
+
+      case "placeholder":
+      default:
+        return (
+          <div className="w-full h-full flex items-center justify-center text-gray-400">
+            无预览
+          </div>
+        )
     }
   }
 
@@ -309,12 +350,7 @@ export function SlidePreviewPanel({
         </div>
       </div>
 
-      {/* 渲染优先级决策树（feat-177, feat-185）：
-          1. LibreOffice 图片 URL → <img>
-          2. 原始版本（无 action）且有 PPT file → PptxViewJSRenderer（降级时用 PptCanvasRenderer）
-          3. AI 版本（有 action）→ SlideContentRenderer
-          4. 有 content 数据 → PptCanvasRenderer
-          5. 兜底 → 占位符 */}
+      {/* feat-219: 渲染优先级决策使用统一的 getSlideRenderer 函数 */}
       <div className="flex-1 p-4">
         <div className="aspect-video bg-gray-50 rounded-lg overflow-hidden border relative">
           {/* feat-185: 降级提示 Badge */}
@@ -342,58 +378,8 @@ export function SlidePreviewPanel({
                 </div>
               )}
             </div>
-          ) : /* 优先级 1: LibreOffice 图片 URL */
-          imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={slide.display_title || `幻灯片 ${slide.original_index + 1}`}
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                // 图片加载失败时隐藏，触发降级渲染
-                (e.target as HTMLImageElement).style.display = 'none'
-              }}
-            />
-          ) : /* 优先级 2: 原始版本（无 action）且有 PPT file → PptxViewJSRenderer（feat-185: 支持降级）*/
-          !version?.action && pptFile ? (
-            fallbackMode ? (
-              // feat-185: 降级模式 - 使用 PptCanvasRenderer
-              <PptCanvasRenderer
-                pageData={versionToPageData(version, slide.original_index)}
-                width={800}
-                height={450}
-                quality={1.0}
-              />
-            ) : (
-              // 正常模式 - 使用 PptxViewJSRenderer，监听错误
-              <PptxViewJSRenderer
-                file={pptFile}
-                slideIndex={slide.original_index}
-                width={800}
-                height={450}
-                quality="high"
-                onError={handlePptxViewJSError}
-              />
-            )
-          ) : /* 优先级 3: AI 版本（有 action）→ SlideContentRenderer */
-          version?.action && version.content ? (
-            <SlideContentRenderer
-              content={version.content}
-              action={version.action}
-              slide={slide}
-              size="preview"
-            />
-          ) : /* 优先级 4: 有 content 数据 → PptCanvasRenderer（优化版）*/
-          version?.content ? (
-            <PptCanvasRenderer
-              pageData={versionToPageData(version, slide.original_index)}
-              width={800}
-              height={450}
-              quality={1.0}
-            />
-          ) : /* 优先级 5: 兜底 → 占位符 */ (
-            <div className="w-full h-full flex items-center justify-center text-gray-400">
-              无预览
-            </div>
+          ) : (
+            renderSlideContent()
           )}
         </div>
 
