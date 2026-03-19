@@ -151,6 +151,17 @@
       ]
     },
     {
+      "id": "feat-217",
+      "category": "frontend",
+      "priority": 217,
+      "description": "更新 MergePage 组件导入路径并验证功能",
+      "steps": [
+        "读取 frontend/src/app/merge/page.tsx",
+        "更新所有组件导入路径指向新位置",
+        "删除旧的导入路径引用",
+        "验证: pnpm tsc --noEmit 无错误",
+        "验证: 页面加载正常，无控制台错误"
+      ],
       "status": "done",
       "depends_on": [
         "feat-216"
