@@ -13,6 +13,7 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { apiBaseUrl } from '@/lib/api'
+import { monitor, monitoredFetch } from '@/utils/monitor'  // feat-205: 导入监控工具
 import {
   type MergeSession,
   type SlidePoolItem,
@@ -94,7 +95,7 @@ async function parsePptFile(file: File): Promise<OriginalSlideData[]> {
   formData.append('extract_enhanced', 'true')  // feat-180: 启用增强模式
   formData.append('max_image_size', '512')     // 限制图片尺寸
 
-  const response = await fetch(`${apiBaseUrl}/api/v1/ppt/parse`, {
+  const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/parse`, {
     method: 'POST',
     body: formData,
   })
@@ -138,7 +139,7 @@ async function createBackendSession(pptA: File, pptB: File): Promise<{
   formData.append('ppt_b', pptB)
 
   // 创建会话
-  const createResponse = await fetch(`${apiBaseUrl}/api/v1/session/create`, {
+  const createResponse = await monitoredFetch(`${apiBaseUrl}/api/v1/session/create`, {
     method: 'POST',
     body: formData,
   })
@@ -151,7 +152,7 @@ async function createBackendSession(pptA: File, pptB: File): Promise<{
   const sessionId = createResult.session_id
 
   // 获取完整会话数据（包含图片 URL）
-  const sessionResponse = await fetch(`${apiBaseUrl}/api/v1/session/${sessionId}`)
+  const sessionResponse = await monitoredFetch(`${apiBaseUrl}/api/v1/session/${sessionId}`)
 
   if (!sessionResponse.ok) {
     // 如果获取失败，返回空 URL，但继续使用 session_id
@@ -244,6 +245,9 @@ export function useMergeSession(): UseMergeSessionReturn {
 
   // 初始化会话
   const initSession = useCallback(async (pptA: File, pptB: File) => {
+    // feat-205: 性能监控点
+    const startTime = Date.now()
+
     setSession(prev => ({
       ...prev,
       is_processing: true,
@@ -309,6 +313,9 @@ export function useMergeSession(): UseMergeSessionReturn {
         is_processing: false,
         progress_info: undefined,
       })
+
+      // feat-205: 记录 initSession 性能
+      monitor.logPerformance('initSession', Date.now() - startTime)
     } catch (err: any) {
       console.error('初始化会话失败:', err)
       setSession(prev => ({
@@ -326,6 +333,9 @@ export function useMergeSession(): UseMergeSessionReturn {
     action: SlideAction,
     prompt?: string
   ): Promise<ProcessingResult> => {
+    // feat-205: 性能监控点
+    const startTime = Date.now()
+
     const slideItem = session.slide_pool[slideId]
     if (!slideItem) {
       return { success: false, error: '幻灯片不存在' }
@@ -376,7 +386,8 @@ export function useMergeSession(): UseMergeSessionReturn {
         formData.append('custom_prompt', prompt)
       }
 
-      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/ai-merge`, {
+      // feat-205: 使用 monitoredFetch 替代 fetch
+      const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/ai-merge`, {
         method: 'POST',
         body: formData,
       })
@@ -530,6 +541,9 @@ export function useMergeSession(): UseMergeSessionReturn {
         }
       })
 
+      // feat-205: 记录 processSlide 性能
+      monitor.logPerformance(`processSlide_${action}`, Date.now() - startTime)
+
       return {
         success: true,
         new_version: newVersion,
@@ -608,7 +622,8 @@ export function useMergeSession(): UseMergeSessionReturn {
         formData.append('custom_prompt', prompt)
       }
 
-      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/ai-merge`, {
+      // feat-205: 使用 monitoredFetch 替代 fetch
+      const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/ai-merge`, {
         method: 'POST',
         body: formData,
       })
@@ -838,7 +853,8 @@ export function useMergeSession(): UseMergeSessionReturn {
         }
       }
 
-      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/generate-final`, {
+      // feat-205: 使用 monitoredFetch 替代 fetch
+      const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/generate-final`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

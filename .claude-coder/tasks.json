@@ -927,7 +927,7 @@
       "id": "feat-205",
       "priority": 205,
       "category": "frontend",
-      "status": "pending",
+      "status": "done",
       "description": "集成：useMergeSession.ts - 替换所有 fetch 为 monitoredFetch",
       "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
       "depends_on": [
