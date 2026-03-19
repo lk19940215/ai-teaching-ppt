@@ -1008,7 +1008,7 @@
       "id": "feat-208",
       "priority": 208,
       "category": "test",
-      "status": "pending",
+      "status": "done",
       "description": "E2E 测试：CORS 修复 + 端口配置验证",
       "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
       "depends_on": [
