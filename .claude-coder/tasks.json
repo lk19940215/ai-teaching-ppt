@@ -125,7 +125,7 @@
         "验证: pnpm tsc --noEmit 无错误",
         "验证: 手动检查 Header 导航项正确"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-214"
       ]
