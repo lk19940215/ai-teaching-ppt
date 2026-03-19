@@ -381,8 +381,18 @@ export function useMergeSession(): UseMergeSessionReturn {
         body: formData,
       })
 
+      // feat-202: 增强 fetch 错误处理，记录完整错误详情和 URL
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: '请求失败' }))
+        const errorData = await response.json().catch(() => ({
+          detail: `HTTP ${response.status}`,
+          url: response.url
+        }))
+        console.error('[processSlide] API 请求失败:', {
+          status: response.status,
+          statusText: response.statusText,
+          url: response.url,
+          error: errorData
+        })
         throw new Error(errorData.detail || `HTTP ${response.status}`)
       }
 
@@ -414,7 +424,14 @@ export function useMergeSession(): UseMergeSessionReturn {
               continue
             }
             if (event.type === 'heartbeat') continue
+            // feat-202: 增强 SSE 错误处理，记录错误事件详情
             if (event.stage === 'error') {
+              console.error('[processSlide] SSE 错误事件:', {
+                stage: event.stage,
+                message: event.message,
+                error: event.error,
+                fullEvent: event
+              })
               throw new Error(event.message || '处理失败')
             }
             if (event.stage === 'complete' && event.result) {
@@ -448,6 +465,47 @@ export function useMergeSession(): UseMergeSessionReturn {
 
       if (!newContent) {
         throw new Error('未收到处理结果')
+      }
+
+      // feat-202: 增强 main_points 类型处理，兼容 str/dict/混合类型
+      if (newContent.main_points && Array.isArray(newContent.main_points)) {
+        // 记录原始数据，便于调试
+        console.log('[processSlide] main_points 原始数据:', {
+          slideId,
+          action,
+          original_main_points: JSON.stringify(newContent.main_points).slice(0, 500),
+          types: newContent.main_points.map((p: any) => typeof p)
+        })
+
+        // 类型转换逻辑：将所有元素转换为字符串
+        newContent.main_points = newContent.main_points.map((point: any, index: number) => {
+          if (typeof point === 'string') {
+            return point
+          } else if (point && typeof point === 'object') {
+            // 字典类型：按优先级提取字段
+            const extracted = point.text || point.content || point.point || point.description || point.item || null
+            if (extracted && typeof extracted === 'string') {
+              return extracted
+            }
+            // 无法提取则转为 JSON 字符串
+            try {
+              return JSON.stringify(point)
+            } catch {
+              return String(point)
+            }
+          } else if (point === null || point === undefined) {
+            return '' // 空值返回空字符串，后续过滤
+          } else {
+            return String(point)
+          }
+        }).filter((p: string) => p !== '') // 过滤空字符串
+
+        console.log('[processSlide] main_points 转换后:', {
+          slideId,
+          action,
+          converted_main_points: newContent.main_points.slice(0, 3),
+          total_count: newContent.main_points.length
+        })
       }
 
       // 创建新版本

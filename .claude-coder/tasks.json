@@ -839,7 +839,7 @@
       "id": "feat-202",
       "priority": 202,
       "category": "frontend",
-      "status": "pending",
+      "status": "done",
       "description": "增强：useMergeSession.ts - 增强 main_points 类型处理与调试日志",
       "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
       "depends_on": [
