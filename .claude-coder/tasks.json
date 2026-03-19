@@ -508,7 +508,7 @@
         "验证: 所有文档链接正确",
         "验证: 文档内容与代码一致"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-227",
         "feat-232"

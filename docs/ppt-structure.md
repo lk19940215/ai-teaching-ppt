@@ -324,23 +324,29 @@ pixels = emu / 9525  # 假设 96 DPI
 
 ## API 接口
 
-### POST /api/v1/ppt/parse-structured
+### POST /api/v1/ppt/parse
+
+解析上传的 PPTX 文件，返回结构化的幻灯片数据。
 
 **请求**：
 ```
 Content-Type: multipart/form-data
 
 file: <PPTX 文件>
-max_image_size: 512 (可选，图片最大尺寸)
 ```
 
 **响应**：
 ```json
 {
-  "document_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "source_file": "教学PPT.pptx",
-  "total_slides": 10,
-  "slides": [...]
+  "success": true,
+  "pages": [
+    {
+      "index": 0,
+      "title": "页面标题",
+      "content": ["内容段落 1", "内容段落 2"],
+      "shapes": []
+    }
+  ]
 }
 ```
 
