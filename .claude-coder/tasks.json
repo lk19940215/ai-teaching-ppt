@@ -74,1132 +74,445 @@
       "at": "2026-03-11"
     },
     {
-      "name": "/merge 问题修复与全流程监控",
-      "summary": "PPT上传CORS修复、数据类型安全、监控系统、E2E测试",
+      "name": "/merge 问题修复与全流程优化",
+      "summary": "PPT上传CORS修复、数据类型安全、占位符过滤、单页处理、全流程监控",
       "at": "2026-03-18"
+    },
+    {
+      "name": "PPT 渲染优化",
+      "summary": "PptxViewJSRenderer集成、SlideContentRenderer创建、Canvas渲染优化、降级链路、性能缓存、图片base64支持",
+      "at": "2026-03-19"
+    },
+    {
+      "name": "AI 内容渲染与类型安全",
+      "summary": "SlideContentRenderer elements渲染、单页处理结构化返回、路由格式统一、safe_join_list、字段类型验证",
+      "at": "2026-03-19"
+    },
+    {
+      "name": "E2E测试与监控系统",
+      "summary": "类型安全全流程测试、监控面板集成、JSON序列化日志、日志导出功能",
+      "at": "2026-03-19"
     }
   ],
   "features": [
     {
-      "id": "feat-171",
-      "priority": 171,
+      "id": "feat-214",
       "category": "frontend",
-      "status": "done",
-      "description": "阶段一：修复 PptxViewJSRenderer - 核实 API 并修复渲染",
-      "design_doc": "docs/research-frontend-pptx-rendering.md#六、实施路线",
+      "priority": 214,
+      "description": "删除不需要的页面：首页、上传、历史、测试页面",
       "steps": [
-        "【调研】访问 https://gptsci.com/pptxviewjs/ 确认官方文档",
-        "【验证】对比代码中 'loaded' 事件名与官方文档的 'loadComplete'",
-        "【修复】将 'loaded' → 'loadComplete' 事件监听",
-        "【验证】goToSlide(renderIndex, canvas) 方法签名是否正确",
-        "【修复】render(canvas, { quality, scale }) 参数传递",
-        "【本地测试】上传 test_大龙猫.pptx 确认渲染成功"
+        "删除 frontend/src/app/page.tsx",
+        "删除 frontend/src/app/upload/page.tsx",
+        "删除 frontend/src/app/history/page.tsx",
+        "删除 frontend/src/app/home/page.tsx",
+        "删除 frontend/src/app/test-pptxviewjs/page.tsx",
+        "验证剩余页面功能正常",
+        "验证: git status 显示已删除上述文件"
       ],
-      "artifacts": [
-        "frontend/src/components/pptxviewjs-renderer.tsx",
-        "frontend/src/app/layout.tsx",
-        "frontend/public/js/"
-      ],
-      "acceptance_criteria": [
-        "pptxviewjs 正确加载 PPTX 文件",
-        "可渲染任意指定页面",
-        "事件监听正确触发"
-      ]
+      "status": "done",
+      "depends_on": []
     },
     {
-      "id": "feat-172",
-      "priority": 172,
+      "id": "feat-215",
       "category": "frontend",
-      "status": "done",
-      "description": "阶段二：接入 merge 页面 - SlidePoolPanel 缩略图渲染",
+      "priority": 215,
+      "description": "简化 Header 组件，仅保留合并和设置导航",
+      "steps": [
+        "读取 frontend/src/components/header.tsx",
+        "修改 Header 组件，仅保留 /merge 和 /settings 链接",
+        "删除首页、上传、历史相关代码",
+        "更新中文文案",
+        "验证: pnpm tsc --noEmit 无错误",
+        "验证: 手动检查 Header 导航项正确"
+      ],
+      "status": "pending",
       "depends_on": [
-        "feat-171"
-      ],
-      "design_doc": "docs/research-frontend-pptx-rendering.md#六、实施路线",
-      "steps": [
-        "【设计】确定渲染优先级决策树：LibreOffice 图片 URL → PptxViewJSRenderer → SlideContentRenderer → PptCanvasRenderer → 占位符",
-        "【分析】SlidePoolPanel 绑定的 slideImageUrls 数据来源（useMergeSession 不提供）",
-        "【实现】在 SlidePoolPanel 中传入 session.ppt_a_file / session.ppt_b_file 引用",
-        "【实现】缩略图使用 PptxViewJSRenderer 渲染原始版本（v1）",
-        "【实现】AI 版本（v2+）使用占位符或灰色块（暂不实现 SlideContentRenderer）",
-        "【验证】上传 PPT 后缩略图显示真实内容（非灰色占位符）"
-      ],
-      "artifacts": [
-        "frontend/src/components/slide-pool-panel.tsx",
-        "frontend/src/app/merge/page.tsx (传递 PPT file)"
-      ],
-      "acceptance_criteria": [
-        "缩略图显示真实 PPT 内容",
-        "无 LibreOffice 时也能预览",
-        "渲染性能可接受（<500ms/页）"
+        "feat-214"
       ]
     },
     {
-      "id": "feat-173",
-      "priority": 173,
+      "id": "feat-216",
       "category": "frontend",
-      "status": "done",
-      "description": "阶段二：接入 merge 页面 - SlidePreviewPanel 主预览区",
-      "depends_on": [
-        "feat-172"
-      ],
-      "design_doc": "docs/research-frontend-pptx-rendering.md#六、实施路线",
+      "priority": 216,
+      "description": "创建 components/merge/ 目录结构并移动组件",
       "steps": [
-        "【分析】SlidePreviewPanel 传入 imageUrl（来自后端 preview_url）",
-        "【实现】如果 version.action 存在（AI版本），使用 PptCanvasRenderer 渲染",
-        "【实现】如果 version.action 不存在（原始版本）且有 PPT file，使用 PptxViewJSRenderer 渲染",
-        "【验证】点击缩略图后主预览区正确显示真实内容"
+        "创建 frontend/src/components/merge/ 目录",
+        "创建 frontend/src/components/merge/panels/ 子目录",
+        "创建 frontend/src/components/merge/renderers/ 子目录",
+        "创建 frontend/src/components/merge/controls/ 子目录",
+        "创建 frontend/src/components/merge/upload/ 子目录",
+        "移动所有合并相关组件到新目录结构",
+        "验证: 所有组件文件正确移动",
+        "验证: git status 显示文件重命名"
       ],
-      "artifacts": [
-        "frontend/src/components/slide-preview-panel.tsx"
-      ],
-      "acceptance_criteria": [
-        "原始版本显示真实 PPT 内容",
-        "AI 版本正确渲染（使用兜底方案）"
+      "status": "pending",
+      "depends_on": [
+        "feat-215"
       ]
     },
     {
-      "id": "feat-174",
-      "priority": 174,
+      "id": "feat-217",
       "category": "frontend",
-      "status": "done",
-      "description": "阶段三：优化 PptCanvasRenderer - 修复已知问题",
-      "depends_on": [
-        "feat-173"
-      ],
-      "design_doc": "docs/research-frontend-pptx-rendering.md#六、实施路线",
+      "priority": 217,
+      "description": "更新所有组件的 import 路径引用",
       "steps": [
-        "【问题1】修复颜色格式：补 # 前缀（'000000' → '#000000'）",
-        "【问题2】修复段落对齐逻辑：多 run 时 currentX 累加导致错位",
-        "【问题3】启用图片真实渲染：异步加载 base64 + 缓存（避免灰色占位符）",
-        "【问题4】启用 AutoShape 渲染：在 executeRender 中调用",
-        "【验证】对比修复前后渲染效果"
+        "读取 merge/page.tsx 分析所有 import",
+        "更新所有合并组件的 import 路径为新位置",
+        "更新 useMergeSession hook 中的 import",
+        "更新其他相关文件中的 import",
+        "验证: pnpm tsc --noEmit 无错误",
+        "验证: 前端启动后页面可正常渲染"
       ],
-      "artifacts": [
-        "frontend/src/components/ppt-canvas-renderer.tsx"
-      ],
-      "acceptance_criteria": [
-        "颜色正确显示",
-        "段落居中/右对齐正确",
-        "图片显示真实内容（非占位符）"
+      "status": "pending",
+      "depends_on": [
+        "feat-216"
       ]
     },
     {
-      "id": "feat-175",
-      "priority": 175,
+      "id": "feat-218",
       "category": "frontend",
-      "status": "done",
-      "description": "阶段四：新建 SlideContentRenderer - AI 内容美观渲染",
-      "depends_on": [
-        "feat-174"
-      ],
-      "design_doc": "docs/research-ai-content-rendering.md",
+      "priority": 218,
+      "description": "优化 MergePage 组件：提取子组件和简化代码",
       "steps": [
-        "【设计】定义组件接口：SlideContentRendererProps",
-        "【实现】模板选择逻辑：根据 action 选择 BulletTemplate / KnowledgeTemplate / MergeTemplate",
-        "【实现】BulletTemplate（polish/expand）：蓝色色带 + 要点列表 + 补充说明区域",
-        "【实现】KnowledgeTemplate（extract）：知识点网格布局（核心/公式/方法/易错）",
-        "【实现】MergeTemplate（merge）：紫色色带 + elements 内容展示",
-        "【实现】缩略图模式：size='thumbnail' 时截断内容、缩小字体",
-        "【验证】在本地测试组件效果"
+        "读取 frontend/src/app/merge/page.tsx",
+        "提取 UploadSection 为独立组件",
+        "提取 MergeSteps 为独立组件",
+        "将状态管理逻辑提取到独立 hooks",
+        "减少主组件代码量至 400 行以内",
+        "保留所有功能逻辑",
+        "验证: pnpm tsc --noEmit 无错误",
+        "验证: 页面功能完整"
       ],
-      "artifacts": [
-        "frontend/src/components/slide-content-renderer.tsx"
-      ],
-      "acceptance_criteria": [
-        "不同 action 选择正确的模板",
-        "渲染效果美观（符合教学设计规范）",
-        "缩略图模式显示简化内容"
+      "status": "pending",
+      "depends_on": [
+        "feat-217"
       ]
     },
     {
-      "id": "feat-176",
-      "priority": 176,
+      "id": "feat-219",
       "category": "frontend",
-      "status": "done",
-      "description": "阶段四：集成 SlideContentRenderer 到预览面板",
-      "depends_on": [
-        "feat-175"
-      ],
-      "design_doc": "docs/research-ai-content-rendering.md#六、与现有代码的集成",
+      "priority": 219,
+      "description": "创建统一的幻灯片渲染决策工具函数",
       "steps": [
-        "【替换1】SlidePreviewPanel：version.action 存在时，用 SlideContentRenderer 替代 PptCanvasRenderer",
-        "【替换2】SlidePoolPanel：AI 版本缩略图使用 SlideContentRenderer (size='thumbnail')",
-        "【保留】原始版本（v1）仍用 PptxViewJSRenderer 渲染",
-        "【验证】AI 处理后版本渲染美观"
+        "创建 frontend/src/lib/slideRendering.ts",
+        "实现 getSlideRenderer 函数，包含渲染优先级逻辑",
+        "更新组件使用新的渲染决策函数",
+        "添加完整的 TypeScript 类型定义",
+        "编写单元测试",
+        "验证: pnpm tsc --noEmit 无错误",
+        "验证: 幻灯片预览功能正常"
       ],
-      "artifacts": [
-        "frontend/src/components/slide-preview-panel.tsx",
-        "frontend/src/components/slide-pool-panel.tsx"
-      ],
-      "acceptance_criteria": [
-        "AI 版本使用 React 模板渲染（非 Canvas）",
-        "原始版本仍可用 PptxViewJSRenderer 渲染"
+      "status": "pending",
+      "depends_on": [
+        "feat-218"
       ]
     },
     {
-      "id": "feat-177",
-      "priority": 177,
-      "category": "frontend",
-      "status": "done",
-      "description": "阶段四：更新渲染优先级决策树",
-      "depends_on": [
-        "feat-176"
-      ],
-      "design_doc": "docs/research-frontend-pptx-rendering.md#七、渲染优先级决策树",
+      "id": "feat-220",
+      "category": "backend",
+      "priority": 220,
+      "description": "删除不需要的后端 API 文件",
       "steps": [
-        "【实现】渲染优先级逻辑（以 SlidePreviewPanel 为例）：",
-        "1. 有 imageUrl → 使用 <img> 显示",
-        "2. 是原始版本（无 action）且有 PPT file → PptxViewJSRenderer",
-        "3. 是 AI 版本（有 action）→ SlideContentRenderer",
-        "4. 有 EnhancedPptPageData → PptCanvasRenderer（优化版）",
-        "5. 兜底：占位符（页码 + 灰色背景）",
-        "【验证】所有场景渲染正确"
+        "删除 backend/app/api/generate.py",
+        "删除 backend/app/api/upload.py",
+        "删除 backend/app/api/history.py",
+        "删除 backend/app/api/process.py",
+        "验证: 剩余 API 文件：ppt.py、config.py、main.py",
+        "验证: git status 显示已删除上述文件"
       ],
-      "artifacts": [
-        "frontend/src/components/slide-preview-panel.tsx",
-        "frontend/src/components/slide-pool-panel.tsx"
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-221",
+      "category": "backend",
+      "priority": 221,
+      "description": "删除不需要的后端服务文件",
+      "steps": [
+        "删除 backend/app/services/pdf_parser.py",
+        "删除 backend/app/services/ocr.py",
+        "删除 backend/app/services/text_processor.py",
+        "删除 backend/app/models/history.py",
+        "删除 backend/app/models/upload.py",
+        "保留 content_merger.py、llm.py、ppt_generator.py、ppt_to_image.py",
+        "验证: 剩余服务文件符合方案要求",
+        "验证: python -m py_compile app/main.py 无错误"
       ],
-      "acceptance_criteria": [
-        "渲染优先级逻辑正确",
-        "所有场景（原始版/新版/无图片）都有降级方案"
+      "status": "pending",
+      "depends_on": [
+        "feat-220"
       ]
     },
     {
-      "id": "feat-178",
-      "priority": 178,
+      "id": "feat-222",
+      "category": "backend",
+      "priority": 222,
+      "description": "清理后端 requirements.txt 依赖",
+      "steps": [
+        "读取 backend/requirements.txt",
+        "移除 pdfminer.six 依赖",
+        "移除 pytesseract 依赖",
+        "移除不需要的 pillow 版本（保留基础版本）",
+        "验证: 保留的依赖：fastapi、sqlalchemy、anthropic、openai、python-pptx、pymupdf",
+        "验证: pip install -r requirements.txt 成功",
+        "验证: python -m py_compile app/main.py 无错误"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-221"
+      ]
+    },
+    {
+      "id": "feat-223",
+      "category": "backend",
+      "priority": 223,
+      "description": "精简 backend/app/main.py API 路由",
+      "steps": [
+        "读取 backend/app/main.py",
+        "删除 upload_router、generate_router、history_router、process_router 的 include",
+        "仅保留 ppt_router 和 config_router",
+        "验证路由前缀和标签正确",
+        "验证: python -m py_compile app/main.py 无错误",
+        "验证: curl http://localhost:8000/health 返回 200"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-222"
+      ]
+    },
+    {
+      "id": "feat-224",
+      "category": "backend",
+      "priority": 224,
+      "description": "重构 content_merger.py 为清晰的类结构",
+      "steps": [
+        "读取 backend/app/services/content_merger.py",
+        "创建 MergeConfig 配置类",
+        "定义类型别名：SlideContent、MergeResult",
+        "重构 ContentMerger 类，提取公共方法",
+        "实现 merge_single_slide 和 merge_multiple_slides 方法",
+        "提取构建提示词、调用 LLM、解析响应的私有方法",
+        "保留所有合并策略：sequential、parallel、intelligent",
+        "验证: python -m py_compile app/services/content_merger.py 无错误"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-223"
+      ]
+    },
+    {
+      "id": "feat-225",
+      "category": "backend",
+      "priority": 225,
+      "description": "创建 content_merger_utils.py 工具模块",
+      "steps": [
+        "创建 backend/app/services/content_merger_utils.py",
+        "实现 validate_merge_request 函数",
+        "实现 prepare_merge_context 函数",
+        "实现 execute_ai_merge 函数",
+        "添加完整的类型注解",
+        "编写文档字符串",
+        "更新 content_merger.py 引用新工具模块",
+        "验证: python -m py_compile app/services/content_merger.py 无错误",
+        "验证: python -m py_compile app/services/content_merger_utils.py 无错误"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-224"
+      ]
+    },
+    {
+      "id": "feat-226",
+      "category": "backend",
+      "priority": 226,
+      "description": "优化 ppt.py API 路由组织",
+      "steps": [
+        "读取 backend/app/api/ppt.py",
+        "删除无关端点（如果有）",
+        "确认保留端点：/ai-merge-single、/ai-merge、/generate-final",
+        "优化路由前缀为 /api/v1/ppt",
+        "添加正确的 tags 和文档",
+        "验证: python -m py_compile app/api/ppt.py 无错误",
+        "验证: curl http://localhost:8000/docs 查看 API 文档正确"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-225"
+      ]
+    },
+    {
+      "id": "feat-227",
+      "category": "backend",
+      "priority": 227,
+      "description": "优化 config.py API，保留 LLM 配置功能",
+      "steps": [
+        "读取 backend/app/api/config.py",
+        "验证所有 LLM 配置端点保留",
+        "优化代码结构和注释",
+        "确保支持 DeepSeek、OpenAI、Claude、GLM",
+        "验证: python -m py_compile app/api/config.py 无错误",
+        "验证: curl http://localhost:8000/api/v1/config/llm 获取配置列表"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-225"
+      ]
+    },
+    {
+      "id": "feat-228",
       "category": "test",
-      "status": "done",
-      "description": "阶段五：集成测试 - 渲染效果与降级链路",
-      "depends_on": [
-        "feat-177"
-      ],
-      "design_doc": "docs/research-frontend-pptx-rendering.md#六、实施路线",
-      "test_data": {
-        "ppt_a": "uploads/generated/test_大龙猫.pptx",
-        "ppt_b": "uploads/generated/test_模版.pptx"
-      },
+      "priority": 228,
+      "description": "编写文件上传和会话初始化测试",
       "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md 第五节（多轮 browser_wait_for）",
-        "【环境】curl http://localhost:8000/health 确认后端服务正常（失败则停止）",
+        "【规则】阅读 .claude-coder/testing-rules.md",
+        "【环境】curl http://localhost:8000/health",
         "【P0】browser_navigate http://localhost:3000/merge",
         "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
-        "【P0】browser_file_upload paths=['uploads/generated/test_大龙猫.pptx']",
-        "【P0】browser_wait_for text='test_大龙猫' timeout=15000",
-        "【P0】browser_file_upload paths=['uploads/generated/test_模版.pptx']",
-        "【P0】browser_wait_for text='幻灯片池' timeout=30000",
-        "【P0】browser_snapshot 验证缩略图显示真实内容（pptxviewjs 渲染）",
-        "【P0】browser_click ref=[第一张幻略图]",
-        "【P0】browser_snapshot 验证主预览区显示真实内容",
-        "【P0】browser_click ref=[润色操作按钮]",
-        "【P0】browser_click ref=[执行润色按钮]",
-        "【P0】browser_wait_for text='v2' timeout=60000（阶段1：AI处理）",
-        "【P0】browser_snapshot 验证 AI 版本使用 SlideContentRenderer 美观渲染",
-        "【验证】降级链路正确：LibreOffice → pptxviewjs → SlideContentRenderer → PptCanvasRenderer → 占位符",
-        "【性能】记录渲染时间，50 页 PPT < 5s"
+        "【P0】browser_file_upload paths=['测试 PPT A']",
+        "【P0】browser_wait_for text='共 N 页' timeout=10000 (阶段1：解析)",
+        "【P0】browser_file_upload paths=['测试 PPT B']",
+        "【P0】browser_wait_for text='共 N 页' timeout=10000 (阶段2：解析)",
+        "【P0】browser_snapshot 验证两个 PPT 都已解析",
+        "【P0】验证: 幻灯片池显示正确数量的幻灯片",
+        "【P1】browser_file_upload paths=['空 PPT'] 测试错误处理",
+        "【P1】验证: 错误提示正确显示",
+        "【P1】browser_file_upload paths=['非 PPT 文件'] 测试错误处理",
+        "【P1】验证: 错误提示正确显示"
       ],
-      "acceptance_criteria": [
-        "不同复杂度的教学 PPT 渲染正确",
-        "降级链路完整",
-        "50 页 PPT 渲染时间 < 5s"
-      ]
-    },
-    {
-      "id": "feat-179",
-      "priority": 179,
-      "category": "frontend",
-      "status": "done",
-      "description": "优化：SlidePoolPanel 传递 PPT file 引用",
+      "status": "pending",
       "depends_on": [
-        "feat-171"
-      ],
-      "design_doc": "docs/research-frontend-pptx-rendering.md#六、实施路线",
-      "steps": [
-        "【分析】useMergeSession 返回值添加 ppt_a_file / ppt_b_file 引用",
-        "【修复】SlidePoolPanel 接收 fileA / fileB 参数",
-        "【优化】根据 slide.original_source 选择对应的 PPT file",
-        "【验证】缩略图可正确渲染"
-      ],
-      "artifacts": [
-        "frontend/src/hooks/useMergeSession.ts",
-        "frontend/src/components/slide-pool-panel.tsx"
-      ],
-      "acceptance_criteria": [
-        "SlidePoolPanel 可访问到 PPT file",
-        "缩略图渲染成功"
+        "feat-219",
+        "feat-226"
       ]
     },
     {
-      "id": "feat-180",
-      "priority": 180,
-      "category": "backend",
-      "status": "done",
-      "description": "后端优化：/api/v1/ppt/parse 增强返回完整 EnhancedPptPageData",
-      "design_doc": "docs/research-frontend-pptx-rendering.md#二、项目现有前端渲染组件",
+      "id": "feat-229",
+      "category": "test",
+      "priority": 229,
+      "description": "编写单页处理功能测试",
       "steps": [
-        "【分析】当前 /api/v1/ppt/parse 返回简化数据（title, content, shapes）",
-        "【问题】PptCanvasRenderer 需要完整的 EnhancedPptPageData（含 text_content runs）",
-        "【实现】修改后端 parse PPTX 逻辑，提取完整的文本运行信息（font/color/size/alignment）",
-        "【实现】返回结构增加 text_content runs 数组",
-        "【验证】前端调用后能正确渲染详细内容（非简化模式）"
+        "【规则】阅读 .claude-coder/testing-rules.md",
+        "【环境】curl http://localhost:8000/health",
+        "【P0】browser_navigate http://localhost:3000/merge",
+        "【P0】上传两个测试 PPT 文件",
+        "【P0】browser_click 选择第一个幻灯片",
+        "【P0】browser_click Polish 按钮",
+        "【P0】browser_click 处理按钮",
+        "【P0】browser_wait_for text='正在处理' timeout=5000 (阶段1：开始)",
+        "【P0】browser_wait_for text='处理完成' timeout=60000 (阶段2：AI 处理)",
+        "【P0】browser_snapshot 验证处理结果",
+        "【P0】验证: 版本历史记录正确",
+        "【P1】重复测试 Expand 动作",
+        "【P1】重复测试 Rewrite 动作",
+        "【P1】重复测试 Extract 动作",
+        "【P2】测试自定义提示词功能",
+        "【P2】测试处理失败重试功能"
       ],
-      "artifacts": [
-        "backend/app/api/ppt.py",
-        "backend/app/services/ppt_parser.py (新建)"
-      ],
-      "acceptance_criteria": [
-        "API 返回完整的 EnhancedPptPageData",
-        "包含 text_content runs（字体/颜色/大小/对齐）",
-        "前端渲染效果正确"
-      ]
-    },
-    {
-      "id": "feat-181",
-      "priority": 181,
-      "category": "backend",
-      "status": "done",
-      "description": "后端优化：/api/v1/ppt/parse 支持图片 base64 提取",
+      "status": "pending",
       "depends_on": [
-        "feat-180"
-      ],
-      "design_doc": "docs/research-frontend-pptx-rendering.md#2.1 PptCanvasRenderer",
-      "steps": [
-        "【问题】PptCanvasRenderer 的图片渲染问题3：'图片仅绘制占位符（灰色矩形 + 🖼 图标），不加载真实图片'",
-        "【分析】需要后端提取 PPTX 中的图片并返回 base64",
-        "【实现】修改 PPTX 解析逻辑，提取图片并转换为 base64 字符串",
-        "【实现】在 EnhancedPptPageData 中添加 image_base64 字段",
-        "【优化】添加图片压缩（最大宽度 512px）减少传输大小",
-        "【验证】前端调用后 Canvas 正确显示真实图片"
-      ],
-      "artifacts": [
-        "backend/app/api/ppt.py",
-        "backend/app/services/ppt_parser.py"
-      ],
-      "acceptance_criteria": [
-        "API 返回图片 base64 数据",
-        "图片已压缩（<512px）",
-        "前端渲染显示真实图片"
+        "feat-228"
       ]
     },
     {
-      "id": "feat-185",
-      "priority": 185,
-      "category": "frontend",
-      "status": "done",
-      "description": "兜底方案：PptxViewJSRenderer 降级到 PptCanvasRenderer 的自动切换",
+      "id": "feat-230",
+      "category": "test",
+      "priority": 230,
+      "description": "编写多页合并功能测试",
+      "steps": [
+        "【规则】阅读 .claude-coder/testing-rules.md",
+        "【环境】curl http://localhost:8000/health",
+        "【P0】browser_navigate http://localhost:3000/merge",
+        "【P0】上传两个测试 PPT",
+        "【P0】browser_click 选择第一个幻灯片",
+        "【P0】browser_click 选择第二个幻灯片（多选）",
+        "【P0】browser_click 合并选中按钮",
+        "【P0】browser_wait_for text='正在合并' timeout=5000 (阶段1：开始)",
+        "【P0】browser_wait_for text='合并完成' timeout=60000 (阶段2：AI 合并)",
+        "【P0】browser_snapshot 验证合并结果",
+        "【P0】验证: 合并结果出现在幻灯片池",
+        "【P1】测试选择 3+ 个幻灯片合并",
+        "【P1】测试不同合并策略",
+        "【P2】测试合并失败处理"
+      ],
+      "status": "pending",
       "depends_on": [
-        "feat-181"
-      ],
-      "design_doc": "docs/research-frontend-pptx-rendering.md#五、推荐方案",
-      "steps": [
-        "【问题】PptxViewJSRenderer 可能因兼容性（浏览器不支持）或内存问题失败",
-        "【实现1】SlidePoolPanel 中监听 PptxViewJSRenderer 的 onError 事件",
-        "【实现2】错误发生时将 fallbackMode 置为 true",
-        "【实现3】使用三元表达式切换渲染器：fallbackMode ? PptCanvasRenderer : PptxViewJSRenderer",
-        "【实现4】降级时显示提示（使用 Badge 组件 '渲染降级：使用简化模式'）",
-        "【测试1】浏览器控制台禁用 Canvas API（Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', { value: null })）",
-        "【测试2】browser_snapshot 验证降级提示出现",
-        "【测试3】browser_snapshot 验证使用 PptCanvasRenderer 渲染",
-        "【测试4】恢复 Canvas 支持后重新上传，验证正常渲染"
-      ],
-      "artifacts": [
-        "frontend/src/components/slide-pool-panel.tsx"
-      ],
-      "acceptance_criteria": [
-        "PptxViewJSRenderer 失败时自动降级",
-        "降级后使用 PptCanvasRenderer 渲染",
-        "用户能看到降级提示",
-        "恢复后可重新使用 PptxViewJSRenderer"
+        "feat-229"
       ]
     },
     {
-      "id": "feat-186",
-      "priority": 186,
-      "category": "frontend",
-      "status": "done",
-      "description": "性能优化：PptxViewJSRenderer 缓存机制",
+      "id": "feat-231",
+      "category": "test",
+      "priority": 231,
+      "description": "编写最终选择和 PPT 生成测试",
+      "steps": [
+        "【规则】阅读 .claude-coder/testing-rules.md",
+        "【环境】curl http://localhost:8000/health",
+        "【P0】browser_navigate http://localhost:3000/merge",
+        "【P0】上传两个测试 PPT",
+        "【P0】处理几个幻灯片（单页或合并）",
+        "【P0】browser_click 合并结果项",
+        "【P0】browser_click '添加到最终选择' 按钮",
+        "【P0】验证: 最终选择栏显示选中的幻灯片",
+        "【P0】browser_drag 拖拽重新排序",
+        "【P0】验证: 排序正确",
+        "【P0】browser_click 生成最终 PPT 按钮",
+        "【P0】browser_wait_for text='正在生成' timeout=5000 (阶段1：开始)",
+        "【P0】browser_wait_for text='生成完成' timeout=30000 (阶段2：生成)",
+        "【P0】验证: 下载链接出现",
+        "【P0】browser_click 下载链接",
+        "【P0】验证: 文件下载成功",
+        "【P1】测试移除幻灯片功能",
+        "【P1】测试选择状态持久化"
+      ],
+      "status": "pending",
       "depends_on": [
-        "feat-182"
-      ],
-      "design_doc": "docs/research-frontend-pptx-rendering.md#六、实施路线",
-      "steps": [
-        "【问题】每次渲染都重新解析 PPTX，20 页幻灯片池性能差",
-        "【实现】使用 WeakMap 缓存 PPTXViewer 实例（无上限，自动垃圾回收）",
-        "【实现】缓存键：`${file.name}_${file.size}`",
-        "【实现】useEffect 检查缓存，存在则复用",
-        "【实现】页面卸载时调用 viewer.destroy() 清理",
-        "【测试】上传 PPT 后快速切换不同页面，记录渲染时间",
-        "【验证】首次渲染 500ms，后续渲染 <100ms"
-      ],
-      "artifacts": [
-        "frontend/src/components/pptxviewjs-renderer.tsx"
-      ],
-      "acceptance_criteria": [
-        "PPTX 实例被缓存复用",
-        "连续渲染同一 PPT 速度更快",
-        "内存占用可控（无固定上限）"
+        "feat-230"
       ]
     },
     {
-      "id": "feat-188",
-      "priority": 188,
-      "category": "frontend",
-      "status": "done",
-      "description": "优化：SlideContentRenderer 支持 SlideContent elements 渲染",
+      "id": "feat-232",
+      "category": "test",
+      "priority": 232,
+      "description": "编写 LLM 配置页面测试",
+      "steps": [
+        "【规则】阅读 .claude-coder/testing-rules.md",
+        "【环境】curl http://localhost:8000/health",
+        "【P0】browser_navigate http://localhost:3000/settings",
+        "【P0】browser_wait_for text='LLM 配置' timeout=10000",
+        "【P0】browser_type DeepSeek API Key",
+        "【P0】browser_click 保存按钮",
+        "【P0】验证: 配置保存成功提示",
+        "【P0】browser_navigate http://localhost:3000/settings",
+        "【P0】验证: 配置已加载",
+        "【P1】重复测试 OpenAI 配置",
+        "【P1】重复测试 Claude 配置",
+        "【P1】重复测试 GLM 配置",
+        "【P1】测试配置测试连接功能",
+        "【P2】测试无效 API Key 处理"
+      ],
+      "status": "pending",
       "depends_on": [
-        "feat-176"
-      ],
-      "design_doc": "docs/research-ai-content-rendering.md#2.2 后端 content_snapshot 完整格式",
-      "steps": [
-        "【问题】merge action 返回的格式与普通 action 不同（含 elements[]）",
-        "【实现】MergeTemplate 支持渲染 elements（type: text_body / list_item / title）",
-        "【实现】根据 element.type 选择不同渲染方式",
-        "【实现】支持合并来源标记（'融合自 A:P2 + B:P3'）",
-        "【验证】merge action 的 AI 版本渲染正确"
-      ],
-      "artifacts": [
-        "frontend/src/components/slide-content-renderer.tsx"
-      ],
-      "acceptance_criteria": [
-        "支持 elements 渲染",
-        "显示融合来源标记",
-        "不同类型元素渲染正确"
+        "feat-231"
       ]
     },
     {
-      "id": "feat-189",
-      "priority": 189,
+      "id": "feat-233",
       "category": "infra",
-      "status": "done",
-      "description": "新建 utils 目录，实现 5 个工具函数",
-      "design_doc": "requirements.md",
+      "priority": 233,
+      "description": "清理和优化项目文档",
       "steps": [
-        "【实现】新建 utils 目录，实现 sum 函数",
-        "【实现】实现 sub 函数",
-        "【实现】实现 mul 函数",
-        "【实现】实现 div 函数",
-        "【实现】实现 sqrt 函数"
+        "更新 README.md 说明简化后的功能",
+        "更新 API 文档注释",
+        "删除不需要的文档引用",
+        "保留核心文档：canvas-preview.md、ppt-structure.md",
+        "创建优化后的用户使用指南",
+        "验证: 所有文档链接正确",
+        "验证: 文档内容与代码一致"
       ],
-      "artifacts": [
-        "utils/__init__.py",
-        "utils/math_utils.py"
-      ],
-      "acceptance_criteria": [
-        "utils 目录存在",
-        "5 个函数可正常导入和调用",
-        "函数功能正确"
-      ]
-    },
-    {
-      "id": "feat-190",
-      "priority": 190,
-      "category": "backend",
-      "status": "done",
-      "description": "修复：content_merger.py 单页处理返回结构化 SlideContent",
-      "design_doc": ".claude-coder/plan/golden-soaring-avalanche.md",
-      "steps": [
-        "【问题分析】_parse_single_page_response 解析失败时返回空 dict，缺少必要字段导致前端渲染灰色块",
-        "【实现】修改 _parse_single_page_response：解析失败时，从文本中提取 title 和 main_points",
-        "【实现】确保 new_content 始终包含 title、main_points、additional_content 字段",
-        "【实现】添加 _extract_title_and_points 辅助方法：使用 LLM 或规则从文本中提取结构化内容",
-        "【验证】使用 test_ppt 单页测试 polish/expand/rewrite/extract 四种操作，检查返回字段完整性"
-      ],
-      "artifacts": [
-        "backend/app/services/content_merger.py"
-      ],
-      "acceptance_criteria": [
-        "所有单页操作都返回结构化的 SlideContent，包含 title、main_points、additional_content",
-        "解析失败时有容错处理，不会返回空对象",
-        "前端可正确渲染，不再显示灰色块"
-      ]
-    },
-    {
-      "id": "feat-191",
-      "priority": 191,
-      "category": "backend",
-      "status": "done",
-      "description": "修复：ai_merge_ppts 路由统一单页模式返回格式为 MergePlan",
+      "status": "pending",
       "depends_on": [
-        "feat-190"
-      ],
-      "design_doc": ".claude-coder/plan/golden-soaring-avalanche.md",
-      "steps": [
-        "【问题分析】单页模式返回的 result 结构与 full/partial 模式不一致，前端无法统一处理",
-        "【实现】修改 ai_merge_ppts 的 single 分支：将 merger.process_single_page 返回值包装为 MergePlan 格式",
-        "【实现】添加 slide_plan 列表，包含单个 SlidePlanItem（action、source、slide_index、new_content、reason）",
-        "【实现】添加 merge_strategy、summary、knowledge_points 等字段以保持结构一致",
-        "【验证】测试单页 polish，确认 SSE 返回的 result 字段与 full 模式一致"
-      ],
-      "artifacts": [
-        "backend/app/api/ppt.py"
-      ],
-      "acceptance_criteria": [
-        "单页模式返回的 result 结构包含 slide_plan、merge_strategy、summary 等字段",
-        "与 full/partial 模式的返回格式一致",
-        "前端可统一处理，无需特殊分支"
-      ]
-    },
-    {
-      "id": "feat-192",
-      "priority": 192,
-      "category": "test",
-      "status": "done",
-      "description": "E2E 测试：单页处理数据结构修复验证",
-      "depends_on": [
-        "feat-191"
-      ],
-      "design_doc": ".claude-coder/plan/golden-soaring-avalanche.md",
-      "test_data": {
-        "ppt_a": "uploads/generated/test_大龙猫.pptx",
-        "ppt_b": "uploads/generated/empty.pptx"
-      },
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【环境】curl http://localhost:8000/health 确认后端服务正常",
-        "【P0】browser_navigate http://localhost:3000/merge",
-        "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
-        "【P0】browser_file_upload paths=['uploads/generated/test_大龙猫.pptx']",
-        "【P0】browser_wait_for text='test_大龙猫' timeout=15000",
-        "【P0】browser_file_upload paths=['uploads/generated/empty.pptx']",
-        "【P0】browser_wait_for text='幻灯片池' timeout=15000",
-        "【P0】browser_click ref=[第一张幻灯片]",
-        "【P0】browser_wait_for text='润色文字' timeout=10000",
-        "【P0】browser_click ref=[执行润色按钮]",
-        "【P0】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
-        "【P0】browser_wait_for text='✅ AI 内容融合完成！' timeout=60000",
-        "【P0】browser_wait_for text='v2' timeout=10000",
-        "【P0】browser_snapshot 验证 SlideContentRenderer 正确渲染（有蓝色色带和要点列表）",
-        "【P1】重复测试 expand/rewrite/extract 操作，验证各操作的渲染模板正确",
-        "【验证】对比修复前后：修复前显示灰色块，修复后显示结构化内容"
-      ],
-      "acceptance_criteria": [
-        "单页处理后，预览面板正确渲染结构化内容，不再显示灰色块",
-        "所有操作类型（polish/expand/rewrite/extract）都能正确渲染",
-        "前端不再出现解析错误或字段缺失导致的渲染异常"
-      ]
-    },
-    {
-      "id": "feat-193",
-      "priority": 193,
-      "category": "backend",
-      "status": "done",
-      "description": "修复：api/ppt.py 中类型错误 - safe_join_list 安全连接",
-      "design_doc": ".claude-coder/plan/noble-wiggling-shamir.md",
-      "steps": [
-        "【问题分析】第2297行和第2311行的 '\\n'.join(main_points) 可能遇到 dict 元素导致 TypeError",
-        "【实现】在 api/ppt.py 中添加 safe_join_list() 辅助函数：处理 List[str]、List[Dict]、混合类型",
-        "【实现】将第2297行 '... + '\\n'.join(result.get('main_points', []))' 替换为 safe_join_list() 调用",
-        "【实现】将第2311行同理替换",
-        "【实现】测试边界情况：空列表、纯字符串、字典列表、混合类型",
-        "【验证】本地启动 backend，使用包含 dict 的 test PPT 调用 /api/v1/ppt/rebuild 无报错"
-      ],
-      "artifacts": [
-        "backend/app/api/ppt.py"
-      ],
-      "acceptance_criteria": [
-        "所有 join() 操作都使用 safe_join_list() 包装",
-        "处理 List[str]、List[Dict]、混合类型时不报错",
-        "字典元素正确提取 text/content/point 字段"
-      ]
-    },
-    {
-      "id": "feat-194",
-      "priority": 194,
-      "category": "backend",
-      "status": "done",
-      "description": "修复：ppt_content_parser.py 占位符过滤",
-      "depends_on": [
-        "feat-193"
-      ],
-      "design_doc": ".claude-coder/plan/noble-wiggling-shamir.md",
-      "steps": [
-        "【实现】在 PptContentParser 类中添加 PLACEHOLDER_TEXTS 常量列表（中文/英文占位符）",
-        "【实现】添加 _is_placeholder_text(text) 私有方法：判断是否为占位符（忽略大小写/空格）",
-        "【实现】修改 _parse_text() 方法：在判断文本类型前检查占位符，如果是则返回 None",
-        "【实现】修改 _detect_text_type() 方法：优先检查占位符，标记为 ElementType.PLACEHOLDER",
-        "【验证】准备包含占位符的 test PPT，调用 parse() 确认占位符元素被过滤或标记",
-        "【验证】正常教学内容（非占位符）不被误判"
-      ],
-      "artifacts": [
-        "backend/app/services/ppt_content_parser.py",
-        "backend/app/models/ppt_structure.py (可选：添加 PLACEHOLDER 枚举)"
-      ],
-      "acceptance_criteria": [
-        "占位符文本在解析阶段被过滤或标记为 PLACEHOLDER",
-        "正常教学内容不被误判",
-        "占位符检测忽略大小写和空格"
-      ]
-    },
-    {
-      "id": "feat-195",
-      "priority": 195,
-      "category": "test",
-      "status": "done",
-      "description": "E2E 测试：类型错误修复 + 占位符过滤验证",
-      "depends_on": [
-        "feat-194"
-      ],
-      "design_doc": ".claude-coder/plan/noble-wiggling-shamir.md",
-      "test_data": {
-        "ppt_with_placeholder": "uploads/generated/test_placeholder.pptx",
-        "ppt_normal": "uploads/generated/test_大龙猫.pptx"
-      },
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【环境】curl http://localhost:8000/health 确认后端服务正常",
-        "【P0】准备测试数据：创建 test_placeholder.pptx（含'添加标题内容''添加副标题'）",
-        "【P0】创建 test_dict_main_points.pptx（触发 dict 类型错误）",
-        "【P0】browser_navigate http://localhost:3000/merge",
-        "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
-        "【P0】browser_file_upload paths=['uploads/generated/test_placeholder.pptx']",
-        "【P0】browser_wait_for text='幻灯片池' timeout=15000",
-        "【P0】browser_snapshot 验证缩略图不显示占位符文本",
-        "【P0】browser_click ref=[第一张幻灯片]",
-        "【P0】browser_click ref=[润色操作按钮]",
-        "【P0】browser_click ref=[执行润色按钮]",
-        "【P0】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
-        "【P0】browser_wait_for text='✅ AI 内容融合完成！' timeout=60000",
-        "【P0】browser_wait_for text='v2' timeout=10000",
-        "【P0】browser_snapshot 验证预览区内容中无占位符",
-        "【P0】使用 test_dict_main_points.pptx 重复上述流程，验证无 'sequence item 0: expected str instance' 错误",
-        "【验证】对比修复前后：修复前报类型错误/显示占位符，修复后正常"
-      ],
-      "acceptance_criteria": [
-        "占位符文本（'添加标题内容''添加副标题'）在解析和渲染阶段被过滤",
-        "/api/v1/ppt/ai-merge 和 /api/v1/ppt/rebuild 不再报类型错误",
-        "正常教学内容不受影响"
-      ]
-    },
-    {
-      "id": "feat-196",
-      "priority": 196,
-      "category": "backend",
-      "status": "done",
-      "description": "修复：content_merger.py - 增强 _ensure_slide_content_fields 字段类型安全验证",
-      "design_doc": ".claude-coder/plan/unified-zooming-quiche.md",
-      "depends_on": [],
-      "steps": [
-        "【问题分析】当前 _ensure_slide_content_fields 对 dict 类型处理不完善，优先级字段提取逻辑不健壮",
-        "【实现】增强 _validate_and_convert_points() 方法：定义标准字段提取优先级（text → content → polished → description → item → str()）",
-        "【实现】在 _ensure_slide_content_fields 中调用 _validate_and_convert_points() 统一处理",
-        "【实现】添加日志记录类型转换细节，便于调试",
-        "【测试】本地测试：使用包含混合类型（str/dict/int/None）的 main_points 验证转换逻辑",
-        "【验证】确认所有 normalize_* 方法都调用统一的验证逻辑，无遗漏"
-      ],
-      "artifacts": [
-        "backend/app/services/content_merger.py"
-      ],
-      "acceptance_criteria": [
-        "main_points 中所有元素都确保是字符串，无 dict/int/None 混入",
-        "字典类型按优先级提取字段，不会遗漏或报错",
-        "空字符串和 None 被正确过滤",
-        "边界情况（空列表、超长文本、特殊字符）处理正确"
-      ]
-    },
-    {
-      "id": "feat-197",
-      "priority": 197,
-      "category": "backend",
-      "status": "done",
-      "description": "修复：content_merger.py - 在解析响应末尾添加最终验证过滤",
-      "design_doc": ".claude-coder/plan/unified-zooming-quiche.md",
-      "depends_on": [
-        "feat-196"
-      ],
-      "steps": [
-        "【实现】在 _parse_single_page_response 方法末尾添加最终验证：确保 new_content.main_points 只包含非空字符串",
-        "【实现】在 _extract_content_by_action 方法末尾添加类似验证",
-        "【实现】在 _merge_slides_response 解析完整合并响应时也添加验证",
-        "【测试】模拟 LLM 返回异常格式（如 {'main_points': [{'text': '...'}]}），验证系统不会崩溃",
-        "【验证】本地测试所有单页操作（polish/expand/rewrite/extract）和多页融合，确认无类型错误"
-      ],
-      "artifacts": [
-        "backend/app/services/content_merger.py"
-      ],
-      "acceptance_criteria": [
-        "所有解析路径都包含最终验证，确保数据纯净",
-        "异常格式被正确过滤或转换，不会导致崩溃",
-        "日志清晰显示类型转换过程，便于追踪问题"
-      ]
-    },
-    {
-      "id": "feat-198",
-      "priority": 198,
-      "category": "test",
-      "status": "done",
-      "description": "E2E 测试：类型安全修复验证 - 防止 'sequence item 0: expected str instance' 错误",
-      "design_doc": ".claude-coder/plan/unified-zooming-quiche.md",
-      "depends_on": [
-        "feat-197"
-      ],
-      "test_data": {
-        "ppt_normal": "uploads/generated/test_大龙猫.pptx"
-      },
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【环境】curl http://localhost:8000/health 确认后端服务正常",
-        "【P0】browser_navigate http://localhost:3000/merge",
-        "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
-        "【P0】browser_file_upload paths=['uploads/generated/test_大龙猫.pptx']",
-        "【P0】browser_wait_for text='test_大龙猫' timeout=15000",
-        "【P0】browser_file_upload paths=['uploads/generated/empty.pptx']",
-        "【P0】browser_wait_for text='幻灯片池' timeout=15000",
-        "【P0】browser_click ref=[第一张幻灯片]",
-        "【P0】执行 polish 操作：browser_click ref=[润色] → browser_click ref=[执行]",
-        "【P0】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
-        "【P0】browser_wait_for text='✅ AI 内容融合完成！' timeout=60000",
-        "【P0】browser_wait_for text='v2' timeout=10000",
-        "【P0】browser_snapshot 验证预览区渲染成功，无灰色块或错误",
-        "【P1】重复测试 expand/rewrite/extract 操作，验证各种 action 的类型安全",
-        "【P1】执行多页融合：选择 2-3 个幻灯片 → browser_click ref=[融合] → browser_click ref=[执行]",
-        "【P1】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
-        "【P1】browser_wait_for text='✅ 合并完成！' timeout=60000",
-        "【P1】browser_snapshot 验证融合后页面渲染正确",
-        "【验证】检查浏览器控制台无 TypeError，对比修复前后：修复前报 'sequence item 0' 错误，修复后正常"
-      ],
-      "acceptance_criteria": [
-        "所有单页操作和多页融合都不再出现 'sequence item 0: expected str instance' 类型错误",
-        "无论 LLM 返回什么格式，系统都有容错处理，不会崩溃",
-        "日志清晰显示类型转换细节，便于调试和监控"
-      ]
-    },
-    {
-      "id": "feat-199",
-      "priority": 199,
-      "category": "backend",
-      "status": "done",
-      "description": "修复：main.py - 更新 CORS 配置支持多端口",
-      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
-      "steps": [
-        "【问题分析】当前 CORS 仅允许 http://localhost:3000，与前端 .env.local 中的 8088 端口配置冲突",
-        "【实现】修改 backend/app/main.py 第 46 行：allow_origins 添加 http://localhost:8088",
-        "【实现】考虑添加 http://localhost:* 通配符支持所有本地端口（开发环境）",
-        "【验证】启动 backend，使用 curl 测试 OPTIONS 请求确认 CORS 头正确",
-        "【验证】前端访问 /merge 页面上传 PPT 无 CORS 错误"
-      ],
-      "artifacts": [
-        "backend/app/main.py"
-      ],
-      "acceptance_criteria": [
-        "CORS 允许 http://localhost:3000 和 http://localhost:8088",
-        "前端上传 PPT 无 fetch CORS 错误",
-        "OPTIONS 预检请求返回正确 CORS 头"
-      ]
-    },
-    {
-      "id": "feat-200",
-      "priority": 200,
-      "category": "frontend",
-      "status": "done",
-      "description": "修复：.env.local - 统一 API 端口配置为 8000",
-      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
-      "depends_on": [
-        "feat-199"
-      ],
-      "steps": [
-        "【问题分析】.env.local 中配置的 NEXT_PUBLIC_API_URL=http://localhost:8088 与后端实际端口 8000 不符",
-        "【实现】修改 frontend/.env.local：NEXT_PUBLIC_API_URL=http://localhost:8000",
-        "【验证】重启前端服务，确认环境变量加载正确（console.log(process.env.NEXT_PUBLIC_API_URL)）",
-        "【验证】访问 /merge 页面，network 面板确认 API 调用端口为 8000"
-      ],
-      "artifacts": [
-        "frontend/.env.local"
-      ],
-      "acceptance_criteria": [
-        "环境变量正确指向 http://localhost:8000",
-        "前端所有 API 调用都使用 8000 端口",
-        "无端口配置冲突"
-      ]
-    },
-    {
-      "id": "feat-201",
-      "priority": 201,
-      "category": "backend",
-      "status": "done",
-      "description": "增强：content_merger.py - 规范化 _normalize_polish_content 响应格式",
-      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
-      "steps": [
-        "【问题分析】_normalize_polish_content 返回的 main_points 可能包含混合类型（str/dict）",
-        "【实现】在 _normalize_polish_content 末尾添加类型规范化逻辑",
-        "【实现】遍历 main_points，将所有元素转换为字符串（提取 text/content 字段或使用 str()）",
-        "【实现】过滤空字符串和 None 值",
-        "【测试】本地测试：使用包含混合类型的测试数据验证转换逻辑",
-        "【验证】确认所有 normalize_* 方法（polish/expand/rewrite/extract）都返回纯净的字符串列表"
-      ],
-      "artifacts": [
-        "backend/app/services/content_merger.py"
-      ],
-      "acceptance_criteria": [
-        "main_points 始终是纯字符串列表",
-        "字典类型正确提取 text/content/point 等字段",
-        "空值被过滤，不会传递到前端"
-      ]
-    },
-    {
-      "id": "feat-202",
-      "priority": 202,
-      "category": "frontend",
-      "status": "done",
-      "description": "增强：useMergeSession.ts - 增强 main_points 类型处理与调试日志",
-      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
-      "depends_on": [
-        "feat-201"
-      ],
-      "steps": [
-        "【问题分析】processSlide 函数第 441-451 行对 main_points 的处理不健壮",
-        "【实现】修改第 441-460 行：添加健壮的类型转换逻辑（兼容 str/dict/混合类型）",
-        "【实现】添加 console.log 调试信息：记录接收到的原始数据和转换后的数据",
-        "【实现】增强 fetch 错误处理（第 384-391 行）：记录完整的错误详情和 URL",
-        "【实现】增强 SSE 错误处理（第 416-419 行）：记录错误事件详情",
-        "【验证】本地测试：上传 PPT 执行润色操作，检查控制台日志是否清晰",
-        "【验证】使用异常数据测试，确认不会崩溃且有清晰错误提示"
-      ],
-      "artifacts": [
-        "frontend/src/hooks/useMergeSession.ts"
-      ],
-      "acceptance_criteria": [
-        "main_points 正确转换为字符串数组",
-        "混合类型数据被正确处理",
-        "错误日志清晰可追踪",
-        "异常情况下不会崩溃"
-      ]
-    },
-    {
-      "id": "feat-203",
-      "priority": 203,
-      "category": "frontend",
-      "status": "done",
-      "description": "新建：monitor.ts - 全流程监控工具类",
-      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
-      "steps": [
-        "【设计】定义 MonitorLog 接口：timestamp/type/endpoint/method/data/duration/error/sessionId",
-        "【实现】创建 Monitor 类：私有 logs[] 数组和 sessionId 生成逻辑",
-        "【实现】logRequest() - 记录请求日志并打印到 console",
-        "【实现】logResponse() - 记录响应日志和耗时",
-        "【实现】logError() - 记录错误日志",
-        "【实现】logPerformance() - 记录性能数据",
-        "【实现】exportLogs() - 导出日志为 JSON 文件下载",
-        "【实现】monitoredFetch() - 包装 fetch 函数，自动记录请求/响应/错误",
-        "【验证】本地测试：调用 monitoredFetch 测试日志记录功能",
-        "【验证】测试 exportLogs() 确认文件下载成功"
-      ],
-      "artifacts": [
-        "frontend/src/utils/monitor.ts"
-      ],
-      "acceptance_criteria": [
-        "Monitor 工具类功能完整",
-        "所有请求/响应/错误都被记录",
-        "支持日志导出",
-        "monitoredFetch 透明包装 fetch"
-      ]
-    },
-    {
-      "id": "feat-204",
-      "priority": 204,
-      "category": "frontend",
-      "status": "done",
-      "description": "新建：monitor-panel.tsx - 监控面板组件",
-      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
-      "depends_on": [
-        "feat-203"
-      ],
-      "steps": [
-        "【设计】组件接口：无 props，内部管理 logs 和 autoRefresh 状态",
-        "【实现】使用 useState 和 useEffect 管理日志状态和自动刷新",
-        "【实现】handleExport() - 调用 monitor.exportLogs()",
-        "【实现】handleClear() - 清空日志",
-        "【实现】formatLog() - 格式化日志为可读字符串（带时间戳、emoji、简短数据）",
-        "【实现】渲染面板：固定在右下角，包含标题、按钮（导出/清空/自动刷新）、日志列表",
-        "【样式】使用 Tailwind CSS：白色背景、边框、阴影、滚动区域、颜色编码（绿色响应/红色错误/黄色性能）",
-        "【验证】本地测试：上传 PPT 触发 API 调用，确认监控面板显示日志"
-      ],
-      "artifacts": [
-        "frontend/src/components/monitor-panel.tsx"
-      ],
-      "acceptance_criteria": [
-        "面板固定在右下角，不遮挡主要内容",
-        "实时显示日志（自动刷新）",
-        "支持导出和清空",
-        "日志格式清晰可读（时间戳/类型/耗时）"
-      ]
-    },
-    {
-      "id": "feat-205",
-      "priority": 205,
-      "category": "frontend",
-      "status": "done",
-      "description": "集成：useMergeSession.ts - 替换所有 fetch 为 monitoredFetch",
-      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
-      "depends_on": [
-        "feat-204"
-      ],
-      "steps": [
-        "【导入】在文件顶部导入 monitor 和 monitoredFetch",
-        "【替换1】第 97-100 行（parsePptFile）：fetch → monitoredFetch",
-        "【替换2】第 141-143 行（createBackendSession）：fetch → monitoredFetch",
-        "【替换3】第 379-381 行（processSlide）：fetch → monitoredFetch",
-        "【替换4】第 553-555 行（mergeSlides）：fetch → monitoredFetch",
-        "【替换5】第 783-795 行（generateFinal）：fetch → monitoredFetch",
-        "【添加】在关键函数（initSession/processSlide）添加性能监控点",
-        "【验证】本地测试：访问 /merge 页面，检查监控面板显示所有 API 调用日志"
-      ],
-      "artifacts": [
-        "frontend/src/hooks/useMergeSession.ts"
-      ],
-      "acceptance_criteria": [
-        "所有 API 调用都通过 monitoredFetch",
-        "监控面板显示完整的请求/响应日志",
-        "性能数据被记录",
-        "无遗漏的 fetch 调用"
-      ]
-    },
-    {
-      "id": "feat-206",
-      "priority": 206,
-      "category": "frontend",
-      "status": "done",
-      "description": "集成：merge/page.tsx - 添加监控面板组件",
-      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
-      "depends_on": [
-        "feat-205"
-      ],
-      "steps": [
-        "【导入】在文件顶部导入 MonitorPanel 组件",
-        "【集成】在 return 语句最后添加 <MonitorPanel />",
-        "【验证】访问 /merge 页面，确认监控面板显示在右下角",
-        "【验证】执行 PPT 上传和合并操作，确认面板实时更新日志"
-      ],
-      "artifacts": [
-        "frontend/src/app/merge/page.tsx"
-      ],
-      "acceptance_criteria": [
-        "监控面板正确渲染",
-        "不遮挡主要内容",
-        "实时显示日志",
-        "可正常交互（导出/清空）"
-      ]
-    },
-    {
-      "id": "feat-207",
-      "priority": 207,
-      "category": "backend",
-      "status": "done",
-      "description": "增强：api/ppt.py - 添加 JSON 序列化调试日志",
-      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
-      "steps": [
-        "【问题分析】后端返回数据可能包含无法 JSON 序列化的字段",
-        "【实现】在 ai-merge 和 rebuild 路由返回前添加 JSON 序列化测试",
-        "【实现】使用 try/except 捕获序列化错误，打印详细错误信息",
-        "【实现】逐字段测试序列化，定位问题字段",
-        "【日志】添加 logger.info 记录序列化成功和耗时",
-        "【验证】本地测试：调用相关 API，检查控制台日志是否清晰"
-      ],
-      "artifacts": [
-        "backend/app/api/ppt.py"
-      ],
-      "acceptance_criteria": [
-        "JSON 序列化错误被捕获并记录",
-        "问题字段被准确定位",
-        "成功序列化的数据有日志记录",
-        "不会影响正常业务流程"
-      ]
-    },
-    {
-      "id": "feat-208",
-      "priority": 208,
-      "category": "test",
-      "status": "done",
-      "description": "E2E 测试：CORS 修复 + 端口配置验证",
-      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
-      "depends_on": [
-        "feat-200"
-      ],
-      "test_data": {
-        "ppt_a": "uploads/generated/test_大龙猫.pptx",
-        "ppt_b": "uploads/generated/test_模版.pptx"
-      },
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【环境】curl http://localhost:8000/health 确认后端服务正常",
-        "【P0】browser_navigate http://localhost:3000/merge",
-        "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
-        "【P0】browser_file_upload paths=['uploads/generated/test_大龙猫.pptx']",
-        "【P0】browser_wait_for text='test_大龙猫' timeout=15000",
-        "【P0】browser_file_upload paths=['uploads/generated/test_模版.pptx']",
-        "【P0】browser_wait_for text='幻灯片池' timeout=30000",
-        "【P0】browser_snapshot 验证上传成功，无 CORS 错误",
-        "【验证】检查浏览器控制台无 fetch 错误",
-        "【验证】检查 network 面板确认 API 端口为 8000"
-      ],
-      "acceptance_criteria": [
-        "PPT 上传功能正常",
-        "无 CORS 相关错误",
-        "所有 API 调用使用正确端口"
-      ]
-    },
-    {
-      "id": "feat-209",
-      "priority": 209,
-      "category": "test",
-      "status": "done",
-      "description": "E2E 测试：数据类型安全修复 + 监控系统验证",
-      "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
-      "depends_on": [
-        "feat-206",
-        "feat-207"
-      ],
-      "test_data": {
-        "ppt_normal": "uploads/generated/test_大龙猫.pptx"
-      },
-      "steps": [
-        "【规则】阅读 .claude-coder/test_rule.md",
-        "【环境】curl http://localhost:8000/health 确认后端服务正常",
-        "【P0】browser_navigate http://localhost:3000/merge",
-        "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
-        "【P0】browser_file_upload paths=['uploads/generated/test_大龙猫.pptx']",
-        "【P0】browser_wait_for text='test_大龙猫' timeout=15000",
-        "【P0】browser_file_upload paths=['uploads/generated/empty.pptx']",
-        "【P0】browser_wait_for text='幻灯片池' timeout=15000",
-        "【P0】browser_click ref=[第一张幻灯片]",
-        "【P0】执行 polish 操作：browser_click ref=[润色] → browser_click ref=[执行]",
-        "【P0】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000",
-        "【P0】browser_wait_for text='✅ AI 内容融合完成！' timeout=60000",
-        "【P0】browser_wait_for text='v2' timeout=10000",
-        "【P0】browser_snapshot 验证预览区渲染成功",
-        "【P0】browser_snapshot 验证监控面板显示完整的请求/响应日志",
-        "【P1】点击'导出日志'按钮，验证 JSON 文件下载成功",
-        "【验证】检查浏览器控制台无 TypeError",
-        "【验证】检查后端日志无 JSON 序列化错误",
-        "【对比】导出的前端日志与后端日志数据一致"
-      ],
-      "acceptance_criteria": [
-        "AI 处理流程正常，数据正确提取和渲染",
-        "监控面板实时显示日志",
-        "日志可导出且格式正确",
-        "前后端数据一致",
-        "无类型错误或序列化错误"
-      ]
-    },
-    {
-      "id": "feat-210",
-      "priority": 210,
-      "category": "backend",
-      "status": "done",
-      "description": "增强：ppt_generator.py - 新增 generate_single_slide_pptx 单页生成方法",
-      "design_doc": ".claude-coder/plan/jiggly-beaming-eclipse.md#3.3.1",
-      "depends_on": [],
-      "steps": [
-        "【分析】阅读 backend/app/services/ppt_generator.py 现有结构",
-        "【实现1】添加 generate_single_slide_pptx() 函数：接收 SlideContent 和输出路径，生成单页 PPTX",
-        "【实现2】实现布局智能选择逻辑：根据 content.type 选择 title_only/blank/title_and_content",
-        "【实现3】实现标题区域渲染：使用 pptx 设置 28pt 粗体标题",
-        "【实现4】实现内容区域渲染：将 main_points 转换为段落列表，18pt 深灰色字体",
-        "【实现5】处理异常边界：标题缺失、内容为空、布局不匹配等场景",
-        "【测试】本地测试：创建测试脚本，生成单页 PPTX 并用 PowerPoint 打开验证",
-        "【验证】使用示例数据：{title: '测试标题', main_points: ['要点1', '要点2'], additional_content: '补充说明'}"
-      ],
-      "artifacts": [
-        "backend/app/services/ppt_generator.py"
-      ],
-      "acceptance_criteria": [
-        "单页 PPTX 文件生成成功，可用 PowerPoint 正常打开",
-        "标题显示正确（28pt 粗体）",
-        "要点列表显示正确（18pt 段落）",
-        "支持空标题、空内容的边界情况",
-        "异常情况下不崩溃，有清晰错误提示"
-      ]
-    },
-    {
-      "id": "feat-211",
-      "priority": 211,
-      "category": "backend",
-      "status": "done",
-      "description": "增强：ppt_to_image.py - 优化单页转换便捷方法",
-      "design_doc": ".claude-coder/plan/jiggly-beaming-eclipse.md#3.3.2",
-      "depends_on": [
-        "feat-210"
-      ],
-      "steps": [
-        "【分析】阅读 backend/app/services/ppt_to_image.py 现有结构，确认 convert_single_page 方法已存在",
-        "【实现】添加 convert_single_slide_to_image() 便捷函数：封装 PptToImageConverter 调用，返回标准格式 {success, url, path, width, height}",
-        "【实现】支持分辨率参数（high/medium/low），默认 high",
-        "【实现】添加错误处理：LibreOffice 未安装时返回降级标记",
-        "【验证】本地测试：调用函数转换单页，验证返回结果格式正确",
-        "【验证】测试 LibreOffice 未安装场景，确认返回降级提示"
-      ],
-      "artifacts": [
-        "backend/app/services/ppt_to_image.py"
-      ],
-      "acceptance_criteria": [
-        "单页转换成功，返回包含 url/path/width/height 的标准格式",
-        "支持多种分辨率配置",
-        "LibreOffice 未安装时有清晰提示，不崩溃",
-        "图片路径格式正确（http://localhost:8000/public/images/xxx.png）"
-      ]
-    },
-    {
-      "id": "feat-212",
-      "priority": 212,
-      "category": "backend",
-      "status": "done",
-      "description": "新建：api/ppt.py - 新增 /api/v1/ppt/ai-merge-single 单页处理API端点",
-      "design_doc": ".claude-coder/plan/jiggly-beaming-eclipse.md#3.3.3",
-      "depends_on": [
-        "feat-211"
-      ],
-      "steps": [
-        "【设计】定义 API 接口：POST /api/v1/ppt/ai-merge-single，参数（file, page_index, action, custom_prompt, provider, api_key）",
-        "【实现1】添加路由函数 ai_merge_single_page()：保存上传文件、解析原始内容、调用 LLM 处理",
-        "【实现2】集成单页 PPT 生成：调用 generate_single_slide_pptx() 生成 PPTX",
-        "【实现3】集成图片转换：调用 convert_single_slide_to_image() 生成 PNG 预览图",
-        "【实现4】返回标准格式：{success, content, preview_url, image_path}",
-        "【实现5】添加后台任务清理临时文件",
-        "【实现6】添加错误处理和详细日志",
-        "【测试】使用 curl 测试：上传 test.pptx，执行润色操作，验证返回格式",
-        "【验证】检查返回的 preview_url 可访问，PNG 图片能正常显示"
-      ],
-      "artifacts": [
-        "backend/app/api/ppt.py"
-      ],
-      "acceptance_criteria": [
-        "API 端点响应成功（HTTP 200）",
-        "返回包含 preview_url 字段，指向 PNG 图片",
-        "图片可通过浏览器直接访问",
-        "处理流程完整：上传 → AI 处理 → PPT 生成 → 图片转换",
-        "临时文件被正确清理",
-        "错误情况下有清晰提示，不崩溃"
-      ]
-    },
-    {
-      "id": "feat-213",
-      "priority": 213,
-      "category": "frontend",
-      "status": "done",
-      "description": "集成：单页操作调用新API并优先渲染PNG图片",
-      "design_doc": ".claude-coder/plan/jiggly-beaming-eclipse.md#3.2",
-      "depends_on": [
-        "feat-212"
-      ],
-      "steps": [
-        "【设计】扩展 SlideVersion 接口：添加 preview_url?: string",
-        "【实现1】修改 frontend/src/types/merge-session.ts：在 SlideVersion 添加 preview_url 可选字段",
-        "【实现2】修改 frontend/src/hooks/useMergeSession.ts：在 processSlide 方法中调用新API /api/v1/ppt/ai-merge-single",
-        "【实现3】解析返回结果：将 preview_url 附加到 newVersion 对象",
-        "【实现4】修改 frontend/src/components/slide-preview-panel.tsx：渲染优先级逻辑优先使用 preview_url",
-        "【实现5】添加降级逻辑：preview_url 不存在时回退到 SlideContentRenderer",
-        "【验证】本地测试：上传 PPT，执行润色，检查预览区显示 PNG 图片",
-        "【验证】检查浏览器控制台无错误，network 面板确认 API 调用成功"
-      ],
-      "artifacts": [
-        "frontend/src/types/merge-session.ts",
-        "frontend/src/hooks/useMergeSession.ts",
-        "frontend/src/components/slide-preview-panel.tsx"
-      ],
-      "acceptance_criteria": [
-        "单页处理后显示真实的 PNG 图片预览，非 UI 卡片",
-        "图片渲染正确，与最终生成的 PPT 一致",
-        "降级逻辑工作正常：无 preview_url 时显示 SlideContentRenderer",
-        "无前端错误，API 调用成功"
+        "feat-227",
+        "feat-232"
       ]
     }
   ]
