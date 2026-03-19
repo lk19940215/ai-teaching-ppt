@@ -407,7 +407,7 @@
         "【P2】测试自定义提示词功能",
         "【P2】测试处理失败重试功能"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-228"
       ]
