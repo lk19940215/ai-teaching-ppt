@@ -22,6 +22,7 @@ import { useMergeSession } from '@/hooks/useMergeSession'
 import { SlidePoolPanel } from '@/components/slide-pool-panel'
 import { SlidePreviewPanel } from '@/components/slide-preview-panel'
 import { FinalSelectionBar } from '@/components/final-selection-bar'
+import { MonitorPanel } from '@/components/monitor-panel' // feat-204: 监控面板
 import type { SlideAction } from '@/types/merge-session'
 
 // 步骤类型
@@ -663,6 +664,9 @@ export default function MergePage() {
           onRestart={handleReset}
         />
       )}
+
+      {/* feat-204: 监控面板 */}
+      <MonitorPanel />
     </div>
   )
 }

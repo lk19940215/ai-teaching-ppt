@@ -897,7 +897,7 @@
       "id": "feat-204",
       "priority": 204,
       "category": "frontend",
-      "status": "pending",
+      "status": "done",
       "description": "新建：monitor-panel.tsx - 监控面板组件",
       "design_doc": ".claude-coder/plan/inherited-exploring-stearns.md",
       "depends_on": [
