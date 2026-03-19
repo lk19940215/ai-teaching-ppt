@@ -260,20 +260,10 @@ export function versionToPageData(version: SlideVersion, pageIndex: number): Enh
 /**
  * 获取对应的 PPT 文件
  *
- * @param originalSource 幻灯片来源
- * @param fileA PPT A 文件
- * @param fileB PPT B 文件
- * @returns 对应的 File 或 null
+ * 重导出自 use-pptx-fallback.ts，避免代码重复
+ * feat-219: 统一的渲染决策逻辑
  */
-export function getPptFile(
-  originalSource: string | undefined,
-  fileA?: File | null,
-  fileB?: File | null
-): File | null {
-  if (originalSource === "ppt_a") return fileA ?? null
-  if (originalSource === "ppt_b") return fileB ?? null
-  return null
-}
+export { getPptFile } from "@/hooks/use-pptx-fallback"
 
 /**
  * 判断是否应该使用 PptxViewJSRenderer

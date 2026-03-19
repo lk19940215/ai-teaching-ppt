@@ -39,7 +39,7 @@ import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/merge/
 import { PptxViewJSRenderer } from "@/components/merge/renderers/pptxviewjs-renderer"
 import { SlideContentRenderer } from "@/components/merge/renderers/slide-content-renderer"
 import type { SlideContent } from "@/types/merge-plan"
-import { usePptxFallback, getPptFile as getPptFileFromHook } from "@/hooks/use-pptx-fallback"
+import { usePptxFallback } from "@/hooks/use-pptx-fallback"
 import {
   getSlideRenderer,
   versionToPageData,

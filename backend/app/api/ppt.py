@@ -249,7 +249,14 @@ async def sse_generator(progress_queue: asyncio.Queue) -> AsyncGenerator[str, No
 
 # ==================== 会话管理端点 ====================
 
-# 内存中的会话存储（简单实现，生产环境应使用数据库）
+# 内存中的会话存储
+# 注意：这是简单实现，存在以下限制：
+# 1. 会话数据在服务重启后丢失
+# 2. 无 TTL 过期机制，可能导致内存泄漏
+# 生产环境建议：
+# - 使用数据库（如 SQLite）持久化会话
+# - 添加定时清理任务清理过期会话
+# - 或限制最大会话数并使用 LRU 淘汰
 _sessions: Dict[str, Dict[str, Any]] = {}
 
 
@@ -914,6 +921,9 @@ async def generate_final_ppt(
 
             from ..services.ppt_content_parser import parse_pptx_to_structure
 
+            # 预解析缓存，避免 N+1 问题：同一 PPT 文件只解析一次
+            parsed_docs: dict = {}
+
             # 解析 final_selection 格式: "ppt_a_0_v1" -> (ppt_a, 0)
             for version_id in (final_selection or []):
                 match = re.match(r'^(ppt_[ab])_(\d+)_v\d+$', version_id)
@@ -924,8 +934,16 @@ async def generate_final_ppt(
                     doc_data = documents.get(doc_key, {})
                     source_file = doc_data.get("source_file")
 
-                    if source_file and Path(source_file).exists():
-                        doc = parse_pptx_to_structure(Path(source_file))
+                    if source_file:
+                        # 使用缓存的解析结果，避免重复解析同一文件
+                        if doc_key not in parsed_docs:
+                            try:
+                                parsed_docs[doc_key] = parse_pptx_to_structure(Path(source_file))
+                            except Exception as e:
+                                logger.warning(f"解析 PPT 失败: {source_file}, {e}")
+                                continue
+
+                        doc = parsed_docs[doc_key]
                         slides = doc.get("slides", [])
 
                         if slide_idx < len(slides):
