@@ -9,38 +9,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { monitor, MonitorLog } from '@/utils/monitor'
 
 /**
- * 格式化日志为可读字符串
- * @param log 日志对象
- * @returns 格式化后的字符串
- */
-function formatLog(log: MonitorLog): string {
-  const time = new Date(log.timestamp).toLocaleTimeString('zh-CN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
-
-  // 截断数据预览
-  const dataPreview = log.data
-    ? JSON.stringify(log.data).slice(0, 80) + (JSON.stringify(log.data).length > 80 ? '...' : '')
-    : ''
-
-  switch (log.type) {
-    case 'request':
-      return `[${time}] 📤 ${log.method} ${log.endpoint} ${dataPreview}`
-    case 'response':
-      return `[${time}] 📥 ${log.method} ${log.endpoint} ${log.duration}ms`
-    case 'error':
-      const errorMsg = log.error?.message || log.error?.detail || JSON.stringify(log.error)
-      return `[${time}] ❌ ${log.method} ${log.endpoint} ${errorMsg}`
-    case 'performance':
-      return `[${time}] ⏱️ ${log.endpoint} ${log.duration}ms`
-    default:
-      return `[${time}] ${log.type} ${log.endpoint}`
-  }
-}
-
-/**
  * 获取日志类型对应的样式类名
  * @param type 日志类型
  * @returns Tailwind 类名字符串

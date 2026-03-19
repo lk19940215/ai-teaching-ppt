@@ -478,7 +478,7 @@ export function useMergeSession(): UseMergeSessionReturn {
         })
 
         // 类型转换逻辑：将所有元素转换为字符串
-        newContent.main_points = newContent.main_points.map((point: any, index: number) => {
+        newContent.main_points = newContent.main_points.map((point: any) => {
           if (typeof point === 'string') {
             return point
           } else if (point && typeof point === 'object') {
