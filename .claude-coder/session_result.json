@@ -1,6 +1,6 @@
 {
   "session_result": "success",
-  "status_before": "N/A",
-  "status_after": "N/A",
-  "notes": "已修复 tasks.json 数据问题：feat-217 原条目缺少 id、description、category、priority、steps 等必要字段，导致前端任务依赖链断裂（feat-218→feat-217 无法解析）。已补全 feat-217 定义（更新 MergePage 组件导入路径并验证功能），任务依赖链恢复正常。当前待处理任务：feat-218（优化 MergePage 组件）。"
+  "status_before": "pending",
+  "status_after": "done",
+  "notes": ""
 }
