@@ -605,7 +605,8 @@
         "【P1】测试扩展操作返回完整的教学增强内容",
         "【P2】测试不同学科的教学增强内容适配"
       ],
-      "status": "pending",
+      "status": "failed",
+      "notes": "阻断：LLM API Key 已过期（DeepSeek/GLM 均返回 401 令牌过期错误），需更新测试凭证后重试",
       "depends_on": [
         "feat-236",
         "feat-237"

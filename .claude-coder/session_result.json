@@ -1,6 +1,6 @@
 {
-  "session_result": "success",
+  "session_result": "failed",
   "status_before": "pending",
-  "status_after": "done",
-  "notes": ""
+  "status_after": "failed",
+  "notes": "LLM API Key 已过期（DeepSeek/GLM 均返回 401 令牌过期错误），无法完成教学增强功能的端到端测试。需更新测试凭证后重试。"
 }
