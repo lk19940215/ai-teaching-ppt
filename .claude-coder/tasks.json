@@ -528,7 +528,7 @@
         "验证: 访问 http://localhost:3000/ 自动重定向到 /merge",
         "验证: 润色接口调用成功，无 404 或 CORS 错误"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": []
     },
     {
