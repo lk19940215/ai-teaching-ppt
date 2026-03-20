@@ -5,6 +5,7 @@ import { useState, useCallback, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { apiBaseUrl } from "@/lib/api"
+import { requireLLMConfig } from "@/lib/llmConfig"  // feat-240: 从后端获取 LLM 配置
 import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/merge/renderers/ppt-canvas-renderer"
 
 // 单页处理动作类型
@@ -171,39 +172,26 @@ export function SinglePageProcessor({
     setResult(null)
     onProcessingStart?.()
 
-    const llmConfigStr = localStorage.getItem("llm_config")
-    if (!llmConfigStr) {
-      setIsProcessing(false)
-      setProgress(null)
-      onProcessingError?.("请先在设置页配置 LLM API Key")
-      return
-    }
-
-    const llmConfig = JSON.parse(llmConfigStr)
-    if (!llmConfig.apiKey) {
-      setIsProcessing(false)
-      setProgress(null)
-      onProcessingError?.("LLM API Key 未配置")
-      return
-    }
-
-    const formData = new FormData()
-    formData.append("file_a", source === "A" ? pptFile : new File([], "placeholder"))
-    formData.append("file_b", source === "B" ? pptFile : new File([], "placeholder"))
-    formData.append("merge_type", "single")
-    formData.append("single_page_index", pageData.index.toString())
-    formData.append("single_page_action", selectedAction)
-    formData.append("source_doc", source)
-    formData.append("provider", llmConfig.provider || "deepseek")
-    formData.append("api_key", llmConfig.apiKey)
-    formData.append("temperature", "0.3")
-    formData.append("max_tokens", "3000")
-
-    if (customPrompt) {
-      formData.append("custom_prompt", customPrompt)
-    }
-
     try {
+      // feat-240: 从后端获取 LLM 配置，避免 localStorage 配置丢失
+      const llmConfig = await requireLLMConfig()
+
+      const formData = new FormData()
+      formData.append("file_a", source === "A" ? pptFile : new File([], "placeholder"))
+      formData.append("file_b", source === "B" ? pptFile : new File([], "placeholder"))
+      formData.append("merge_type", "single")
+      formData.append("single_page_index", pageData.index.toString())
+      formData.append("single_page_action", selectedAction)
+      formData.append("source_doc", source)
+      formData.append("provider", llmConfig.provider || "deepseek")
+      formData.append("api_key", llmConfig.apiKey)
+      formData.append("temperature", "0.3")
+      formData.append("max_tokens", "3000")
+
+      if (customPrompt) {
+        formData.append("custom_prompt", customPrompt)
+      }
+
       const response = await fetch(`${apiBaseUrl}/api/v1/ppt/ai-merge`, {
         method: "POST",
         body: formData

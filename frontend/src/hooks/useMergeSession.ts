@@ -14,6 +14,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { apiBaseUrl } from '@/lib/api'
 import { monitor, monitoredFetch } from '@/utils/monitor'  // feat-205: 导入监控工具
+import { requireLLMConfig } from '@/lib/llmConfig'  // feat-240: 从后端获取 LLM 配置
 import {
   type MergeSession,
   type SlidePoolItem,
@@ -355,12 +356,8 @@ export function useMergeSession(): UseMergeSessionReturn {
     }))
 
     try {
-      // 获取 LLM 配置
-      const llmConfigStr = localStorage.getItem('llm_config')
-      if (!llmConfigStr) {
-        throw new Error('请先配置 LLM API Key')
-      }
-      const llmConfig = JSON.parse(llmConfigStr)
+      // feat-240: 从后端获取 LLM 配置，避免 localStorage 配置丢失
+      const llmConfig = await requireLLMConfig()
 
       // 确定来源文档
       const source = slideItem.original_source === 'ppt_a' ? 'A' :
@@ -552,12 +549,8 @@ export function useMergeSession(): UseMergeSessionReturn {
     }))
 
     try {
-      // 获取 LLM 配置
-      const llmConfigStr = localStorage.getItem('llm_config')
-      if (!llmConfigStr) {
-        throw new Error('请先配置 LLM API Key')
-      }
-      const llmConfig = JSON.parse(llmConfigStr)
+      // feat-240: 从后端获取 LLM 配置，避免 localStorage 配置丢失
+      const llmConfig = await requireLLMConfig()
 
       // 分离 A/B 来源
       const pagesA: number[] = []

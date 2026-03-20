@@ -95,6 +95,47 @@ async def get_default_provider_config(db: Session = Depends(get_db)):
         }, status_code=500)
 
 
+@router.get("/config/providers/default/active")
+async def get_active_provider_config(db: Session = Depends(get_db)):
+    """
+    获取默认服务商的完整配置（包含 API Key）
+
+    此端点供前端调用 LLM 功能时使用，返回完整的配置信息包括 API Key。
+    如果没有设置默认服务商，返回错误。
+
+    注意：此路由必须放在 /config/providers/{provider} 之前，
+    否则 'default' 会被当作 provider 参数匹配。
+
+    Returns:
+        - provider: 服务商标识
+        - api_key: API 密钥
+        - base_url: API 基础 URL
+        - model: 模型名称
+        - temperature: 温度参数
+        - max_input_tokens: 最大输入 token
+        - max_output_tokens: 最大输出 token
+    """
+    try:
+        config = get_default_config(db)
+        if not config:
+            return JSONResponse(content={
+                "success": False,
+                "message": "请先在设置页面配置 LLM API Key"
+            }, status_code=404)
+
+        # 返回完整配置（包含 API Key）
+        return JSONResponse(content={
+            "success": True,
+            "data": config.to_full_dict()
+        })
+    except Exception as e:
+        logger.error(f"获取活动配置失败：{e}")
+        return JSONResponse(content={
+            "success": False,
+            "message": f"获取活动配置失败：{str(e)}"
+        }, status_code=500)
+
+
 @router.get("/config/providers/{provider}")
 async def get_provider_config(provider: str, db: Session = Depends(get_db)):
     """

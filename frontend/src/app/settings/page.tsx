@@ -132,8 +132,8 @@ export default function SettingsPage() {
         setTestResult({ success: true, message: "配置保存成功" })
         // 重新加载配置列表
         await loadSavedConfigs()
-        // 同时也保存到 localStorage（兼容旧版）
-        localStorage.setItem("llm_config", JSON.stringify(config))
+        // feat-240: 不再写入 localStorage，配置由后端数据库管理
+        // 前端通过 /config/providers/default/active API 获取配置
       } else {
         setTestResult({ success: false, message: result.message || "保存失败" })
       }

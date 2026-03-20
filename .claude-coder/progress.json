@@ -670,6 +670,24 @@
       "taskId": "feat-238",
       "statusAfter": "failed",
       "notes": "外部依赖阻断：test.env 配置了 aliyun 服务商，但前端 UI 不支持该服务商选项。需要用户在设置页面手动配置 DeepSeek/OpenAI/Claude/GLM 中任一服务商的有效 API Key 后重试。前置代码任务 feat-235/236/237 已全部完成。"
+    },
+    {
+      "session": 1,
+      "timestamp": "202603201214",
+      "result": "success",
+      "cost": 11.385068500000001,
+      "taskId": "feat-240",
+      "statusAfter": "done",
+      "notes": "LLM API Key 配置逻辑修复完成。关键修改：1) 后端新增 /config/providers/default/active 端点返回完整配置；2) 前端 llmConfig.ts 从后端获取配置；3) 修复 .env.local 环境变量（注释掉 NEXT_PUBLIC_API_URL 以使用 Next.js rewrite 代理）。测试验证：润色功能已成功调用 LLM API，报错为 '令牌已过期'（测试 API Key 失效，非代码问题）。"
+    },
+    {
+      "session": 2,
+      "timestamp": "202603201225",
+      "result": "failed",
+      "cost": 9.101821,
+      "taskId": "feat-238",
+      "statusAfter": "failed",
+      "notes": "E2E 测试阻塞：GLM API Key 过期返回 401。验证通过：文件上传、PPT解析、润色API调用链路正确；代码审查确认教学增强字段实现完整。需有效 API Key 完成 E2E 测试。"
     }
   ]
 }
