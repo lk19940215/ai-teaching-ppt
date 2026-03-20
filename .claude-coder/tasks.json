@@ -582,7 +582,7 @@
         "验证: pnpm tsc --noEmit 无错误",
         "验证: 预览组件正确渲染新增的教学增强字段"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-235"
       ]

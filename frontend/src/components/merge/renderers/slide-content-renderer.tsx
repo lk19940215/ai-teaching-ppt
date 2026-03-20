@@ -1,12 +1,14 @@
 /**
  * AI 内容渲染器组件
  * feat-175: 将 AI 产出的结构化内容渲染为美观的教学幻灯片预览卡片
+ * feat-237: 支持教学增强内容渲染（互动提示、练习题、教学笔记、关键词汇）
  *
  * 功能：
  * - 根据 action 类型自动选择布局模板
  * - BulletTemplate: 要点列表模板（polish/expand）
  * - KnowledgeTemplate: 知识卡片模板（extract）
  * - MergeTemplate: 融合结果模板（merge）
+ * - TeachingEnhancement: 教学增强区域（折叠面板、练习题等）
  * - 支持缩略图模式（简化内容、缩小字体）
  *
  * 设计文档：docs/research-ai-content-rendering.md
@@ -16,7 +18,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import type { SlideContent } from "@/types/merge-plan"
+import type { SlideContent, ExerciseItem, VocabularyItem } from "@/types/merge-plan"
 import type { SlidePoolItem, SlideAction } from "@/types/merge-session"
 
 // ============ 组件接口定义 ============
@@ -490,6 +492,255 @@ function ContentTemplate({ content, isThumbnail }: ContentTemplateProps) {
   )
 }
 
+// ============ TeachingEnhancement: 教学增强区域 ============
+// feat-237: 支持教学增强内容渲染
+
+interface TeachingEnhancementProps {
+  content: SlideContent
+  isThumbnail: boolean
+}
+
+/**
+ * 题型标签映射
+ */
+const EXERCISE_TYPE_LABELS: Record<string, { label: string; color: string; icon: string }> = {
+  choice: { label: "选择题", color: "blue", icon: "🔘" },
+  fill_blank: { label: "填空题", color: "green", icon: "✏️" },
+  short_answer: { label: "简答题", color: "purple", icon: "📝" },
+  judgment: { label: "判断题", color: "amber", icon: "✓✗" },
+}
+
+/**
+ * 教学笔记折叠面板
+ * feat-237: 默认折叠，点击展开
+ */
+function TeachingNotesPanel({ notes, isThumbnail }: { notes: string; isThumbnail: boolean }) {
+  const [isExpanded, setIsExpanded] = React.useState(false)
+
+  if (isThumbnail) return null
+
+  return (
+    <div className="border border-amber-200 rounded-md overflow-hidden">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between p-2 bg-amber-50 hover:bg-amber-100 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-sm">📋</span>
+          <span className="text-xs font-medium text-amber-700">教学笔记</span>
+        </div>
+        <span className={cn("text-amber-500 transition-transform", isExpanded && "rotate-180")}>
+          ▼
+        </span>
+      </button>
+      {isExpanded && (
+        <div className="p-3 bg-white border-t border-amber-100">
+          <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">{notes}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * 互动提示区域
+ * feat-237: 显示课堂互动环节设计
+ */
+function InteractionPromptsSection({ prompts, isThumbnail }: { prompts: string[]; isThumbnail: boolean }) {
+  if (!prompts || prompts.length === 0) return null
+
+  const displayPrompts = isThumbnail ? prompts.slice(0, 1) : prompts
+
+  return (
+    <div className={cn("rounded-md border border-indigo-200", isThumbnail ? "p-1.5" : "p-3 bg-indigo-50")}>
+      <div className="flex items-center gap-2 mb-2">
+        <span className={isThumbnail ? "text-[9px]" : "text-sm"}>💬</span>
+        <span className={cn("font-medium text-indigo-700", isThumbnail ? "text-[8px]" : "text-xs")}>
+          互动提示
+        </span>
+      </div>
+      <ul className={cn("space-y-1", isThumbnail ? "text-[8px]" : "text-xs")}>
+        {displayPrompts.map((prompt, idx) => (
+          <li key={idx} className="flex items-start gap-1.5 text-indigo-600">
+            <span className="flex-shrink-0">•</span>
+            <span className={isThumbnail ? "truncate" : ""}>{truncateText(prompt, isThumbnail ? 20 : 80)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+/**
+ * 练习题区域
+ * feat-237: 显示练习题，答案默认折叠
+ */
+function ExerciseQuestionsSection({ questions, isThumbnail }: { questions: ExerciseItem[]; isThumbnail: boolean }) {
+  const [expandedAnswers, setExpandedAnswers] = React.useState<Set<number>>(new Set())
+
+  if (!questions || questions.length === 0) return null
+
+  const displayQuestions = isThumbnail ? questions.slice(0, 1) : questions
+
+  const toggleAnswer = (idx: number) => {
+    setExpandedAnswers((prev) => {
+      const next = new Set(prev)
+      if (next.has(idx)) {
+        next.delete(idx)
+      } else {
+        next.add(idx)
+      }
+      return next
+    })
+  }
+
+  return (
+    <div className={cn("rounded-md border border-teal-200", isThumbnail ? "p-1.5" : "p-3 bg-teal-50")}>
+      <div className="flex items-center gap-2 mb-2">
+        <span className={isThumbnail ? "text-[9px]" : "text-sm"}>✍️</span>
+        <span className={cn("font-medium text-teal-700", isThumbnail ? "text-[8px]" : "text-xs")}>
+          练习题
+        </span>
+      </div>
+      <div className={cn("space-y-2", isThumbnail ? "text-[8px]" : "text-xs")}>
+        {displayQuestions.map((q, idx) => {
+          const typeInfo = EXERCISE_TYPE_LABELS[q.type] || { label: q.type, color: "gray", icon: "❓" }
+          const isAnswerExpanded = expandedAnswers.has(idx)
+
+          return (
+            <div key={idx} className="bg-white rounded p-2 border border-teal-100">
+              {/* 题型标签和题目 */}
+              <div className="flex items-start gap-2">
+                <span
+                  className={cn(
+                    "flex-shrink-0 px-1.5 py-0.5 rounded text-[10px]",
+                    typeInfo.color === "blue" && "bg-blue-100 text-blue-700",
+                    typeInfo.color === "green" && "bg-green-100 text-green-700",
+                    typeInfo.color === "purple" && "bg-purple-100 text-purple-700",
+                    typeInfo.color === "amber" && "bg-amber-100 text-amber-700"
+                  )}
+                >
+                  {typeInfo.icon} {typeInfo.label}
+                </span>
+                <p className="flex-1 text-gray-700">{truncateText(q.question, isThumbnail ? 30 : 100)}</p>
+              </div>
+
+              {/* 选项（选择题） */}
+              {!isThumbnail && q.options && q.options.length > 0 && (
+                <div className="mt-1.5 ml-6 space-y-0.5">
+                  {q.options.map((opt, optIdx) => (
+                    <p key={optIdx} className="text-gray-500 text-[11px]">
+                      {String.fromCharCode(65 + optIdx)}. {opt}
+                    </p>
+                  ))}
+                </div>
+              )}
+
+              {/* 答案和解析（非缩略图模式，点击展开） */}
+              {!isThumbnail && (
+                <div className="mt-2 pt-2 border-t border-teal-100">
+                  <button
+                    onClick={() => toggleAnswer(idx)}
+                    className="text-teal-600 text-[10px] hover:text-teal-700 flex items-center gap-1"
+                  >
+                    <span className={cn("transition-transform", isAnswerExpanded && "rotate-90")}>▶</span>
+                    {isAnswerExpanded ? "收起答案" : "查看答案"}
+                  </button>
+                  {isAnswerExpanded && (
+                    <div className="mt-1.5 pl-3 space-y-1">
+                      <p className="text-green-700 font-medium">答案：{q.answer}</p>
+                      {q.explanation && (
+                        <p className="text-gray-500 text-[11px]">解析：{q.explanation}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * 关键词汇区域
+ * feat-237: 显示本页核心术语
+ */
+function KeyVocabularySection({ vocabulary, isThumbnail }: { vocabulary: VocabularyItem[]; isThumbnail: boolean }) {
+  if (!vocabulary || vocabulary.length === 0) return null
+
+  const displayVocab = isThumbnail ? vocabulary.slice(0, 2) : vocabulary
+
+  return (
+    <div className={cn("rounded-md border border-rose-200", isThumbnail ? "p-1.5" : "p-3 bg-rose-50")}>
+      <div className="flex items-center gap-2 mb-2">
+        <span className={isThumbnail ? "text-[9px]" : "text-sm"}>📚</span>
+        <span className={cn("font-medium text-rose-700", isThumbnail ? "text-[8px]" : "text-xs")}>
+          关键词汇
+        </span>
+      </div>
+      <div className={cn("flex flex-wrap gap-1.5", isThumbnail ? "text-[8px]" : "text-xs")}>
+        {displayVocab.map((v, idx) => (
+          <span
+            key={idx}
+            className="inline-flex items-center gap-1 px-2 py-0.5 bg-white rounded-full border border-rose-200"
+          >
+            <span className="font-medium text-rose-600">{v.word}</span>
+            {!isThumbnail && <span className="text-gray-400">:</span>}
+            {!isThumbnail && (
+              <span className="text-gray-600">{truncateText(v.definition, 20)}</span>
+            )}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * 教学增强主组件
+ * feat-237: 整合所有教学增强区域的渲染
+ */
+function TeachingEnhancement({ content, isThumbnail }: TeachingEnhancementProps) {
+  // 缩略图模式下不显示教学增强区域
+  if (isThumbnail) return null
+
+  // 检查是否有任何教学增强内容
+  const hasEnhancement =
+    content.teaching_notes ||
+    (content.interaction_prompts && content.interaction_prompts.length > 0) ||
+    (content.exercise_questions && content.exercise_questions.length > 0) ||
+    (content.key_vocabulary && content.key_vocabulary.length > 0)
+
+  if (!hasEnhancement) return null
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
+      {/* 教学笔记（折叠面板） */}
+      {content.teaching_notes && (
+        <TeachingNotesPanel notes={content.teaching_notes} isThumbnail={isThumbnail} />
+      )}
+
+      {/* 互动提示 */}
+      {content.interaction_prompts && content.interaction_prompts.length > 0 && (
+        <InteractionPromptsSection prompts={content.interaction_prompts} isThumbnail={isThumbnail} />
+      )}
+
+      {/* 练习题 */}
+      {content.exercise_questions && content.exercise_questions.length > 0 && (
+        <ExerciseQuestionsSection questions={content.exercise_questions} isThumbnail={isThumbnail} />
+      )}
+
+      {/* 关键词汇 */}
+      {content.key_vocabulary && content.key_vocabulary.length > 0 && (
+        <KeyVocabularySection vocabulary={content.key_vocabulary} isThumbnail={isThumbnail} />
+      )}
+    </div>
+  )
+}
+
 // ============ 主组件 ============
 
 /**
@@ -552,6 +803,9 @@ export function SlideContentRenderer({
       <div className={cn("h-full", isThumbnail ? "min-h-[60px]" : "min-h-[200px]")}>
         {renderContent()}
       </div>
+
+      {/* 教学增强区域 - feat-237 */}
+      <TeachingEnhancement content={content} isThumbnail={isThumbnail} />
 
       {/* 底部标记（缩略图模式隐藏） */}
       {!isThumbnail && (
