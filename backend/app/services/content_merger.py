@@ -69,12 +69,39 @@ class MergeStrategy(Enum):
 
 # ==================== 类型别名定义 ====================
 
+class ExerciseItem(TypedDict, total=False):
+    """练习题项
+    feat-235: 支持教学增强功能
+    """
+    type: str          # 题型：choice/fill_blank/short_answer/judgment
+    question: str      # 题目内容
+    answer: str        # 参考答案
+    explanation: str   # 解析说明
+    options: List[str] # 选项（选择题专用）
+
+
+class VocabularyItem(TypedDict, total=False):
+    """词汇项
+    feat-235: 支持教学增强功能
+    """
+    word: str          # 词汇
+    definition: str    # 释义/解释
+    example: str       # 例句（可选）
+
+
 class SlideContent(TypedDict, total=False):
-    """幻灯片内容结构"""
+    """幻灯片内容结构
+    feat-235: 扩展支持教学增强字段
+    """
     title: str
     main_points: List[str]
     additional_content: str
     elements: List[Dict[str, Any]]
+    # feat-235: 教学增强字段
+    teaching_notes: str            # 教学笔记：教师授课要点和提示
+    interaction_prompts: List[str] # 互动提示：课堂互动环节设计
+    exercise_questions: List[ExerciseItem]  # 练习题列表
+    key_vocabulary: List[VocabularyItem]    # 关键词汇列表
 
 
 class SinglePageResult(TypedDict):

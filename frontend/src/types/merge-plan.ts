@@ -14,8 +14,45 @@ export interface MergeSource {
 }
 
 /**
+ * 练习题类型
+ * feat-235: 支持教学增强功能
+ */
+export type ExerciseType = 'choice' | 'fill_blank' | 'short_answer' | 'judgment'
+
+/**
+ * 练习题项
+ * feat-235: 支持教学增强功能
+ */
+export interface ExerciseItem {
+  /** 题型：选择/填空/简答/判断 */
+  type: ExerciseType
+  /** 题目内容 */
+  question: string
+  /** 参考答案 */
+  answer: string
+  /** 解析说明 */
+  explanation?: string
+  /** 选项（选择题专用） */
+  options?: string[]
+}
+
+/**
+ * 词汇项
+ * feat-235: 支持教学增强功能
+ */
+export interface VocabularyItem {
+  /** 词汇 */
+  word: string
+  /** 释义/解释 */
+  definition: string
+  /** 例句（可选） */
+  example?: string
+}
+
+/**
  * 结构化的幻灯片内容
  * feat-171: 将 new_content 从 JSON 字符串改为结构化对象
+ * feat-235: 扩展支持教学增强字段
  */
 export interface SlideContent {
   title?: string
@@ -24,6 +61,14 @@ export interface SlideContent {
   layout_type?: 'title' | 'content' | 'two_column' | 'image_left' | 'image_right'
   /** 融合结果中的结构化元素列表 */
   elements?: Array<{ type: string; content: string }>
+  /** 教学笔记：教师授课要点和提示 */
+  teaching_notes?: string
+  /** 互动提示：课堂互动环节设计 */
+  interaction_prompts?: string[]
+  /** 练习题列表 */
+  exercise_questions?: ExerciseItem[]
+  /** 关键词汇列表 */
+  key_vocabulary?: VocabularyItem[]
 }
 
 /**
