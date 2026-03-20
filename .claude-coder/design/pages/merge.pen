@@ -1,0 +1,1971 @@
+{
+  "version": "2.9",
+  "imports": { "sys": "../system.lib.pen" },
+  "children": [
+    {
+      "type": "frame",
+      "id": "page-root",
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "fill": "$sys:color.bg",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "section-header",
+          "width": "fill_container",
+          "padding": [32, 24],
+          "layout": "vertical",
+          "gap": 8,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "page-title",
+              "fill": "$sys:color.text",
+              "content": "PPT 智能合并",
+              "fontFamily": "Inter, system-ui, sans-serif",
+              "fontSize": 30,
+              "fontWeight": "700",
+              "textAlign": "center"
+            },
+            {
+              "type": "text",
+              "id": "page-desc",
+              "fill": "$sys:color.text-muted",
+              "content": "上传两个 PPT 文件，灵活处理每个页面，自由组合生成新的教学课件",
+              "fontFamily": "Inter, system-ui, sans-serif",
+              "fontSize": 16,
+              "textAlign": "center",
+              "textGrowth": "fixed-width",
+              "width": 800
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "section-step-indicator",
+          "width": "fill_container",
+          "padding": [0, 24, 24, 24],
+          "children": [
+            {
+              "type": "frame",
+              "id": "step-indicator-container",
+              "width": "fill_container",
+              "fill": "$sys:color.bg-card",
+              "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+              "cornerRadius": 8,
+              "padding": 16,
+              "gap": 16,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "step-1",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "step-1-circle",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "$sys:color.primary",
+                      "cornerRadius": 16,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "step-1-number",
+                          "fill": "#FFFFFF",
+                          "content": "1",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "step-1-label",
+                      "fill": "$sys:color.primary",
+                      "content": "上传 PPT",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "step-divider-1",
+                  "width": 32,
+                  "height": 1,
+                  "fill": "$sys:color.border"
+                },
+                {
+                  "type": "frame",
+                  "id": "step-2",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "step-2-circle",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "#F3F4F6",
+                      "cornerRadius": 16,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "step-2-number",
+                          "fill": "$sys:color.text-muted",
+                          "content": "2",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "step-2-label",
+                      "fill": "$sys:color.text-muted",
+                      "content": "合并设置",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "step-divider-2",
+                  "width": 32,
+                  "height": 1,
+                  "fill": "$sys:color.border"
+                },
+                {
+                  "type": "frame",
+                  "id": "step-3",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "step-3-circle",
+                      "width": 32,
+                      "height": 32,
+                      "fill": "#F3F4F6",
+                      "cornerRadius": 16,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "step-3-number",
+                          "fill": "$sys:color.text-muted",
+                          "content": "3",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "step-3-label",
+                      "fill": "$sys:color.text-muted",
+                      "content": "完成下载",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "section-upload",
+          "width": "fill_container",
+          "padding": [0, 24, 24, 24],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "upload-card",
+              "width": 672,
+              "fill": "$sys:color.bg-card",
+              "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+              "cornerRadius": 8,
+              "padding": 32,
+              "layout": "vertical",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "upload-title",
+                  "fill": "$sys:color.text",
+                  "content": "上传 PPT 文件",
+                  "fontFamily": "Inter, system-ui, sans-serif",
+                  "fontSize": 20,
+                  "fontWeight": "600",
+                  "textAlign": "center"
+                },
+                {
+                  "type": "frame",
+                  "id": "upload-grid",
+                  "width": "fill_container",
+                  "gap": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "upload-area-a",
+                      "width": "fill_container",
+                      "fill": "#FFFFFF",
+                      "stroke": { "align": "inside", "thickness": 2, "fill": "$sys:color.border" },
+                      "cornerRadius": 8,
+                      "padding": 24,
+                      "layout": "vertical",
+                      "gap": 12,
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "upload-icon-a",
+                          "width": 48,
+                          "height": 48,
+                          "fill": "#F3F4F6",
+                          "cornerRadius": 24,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "upload-icon-a-symbol",
+                              "fill": "#9CA3AF",
+                              "content": "⬆",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 24
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "upload-label-a",
+                          "fill": "$sys:color.text",
+                          "content": "PPT A（基础课件）",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "upload-desc-a",
+                          "fill": "$sys:color.text-muted",
+                          "content": "上传主要教学内容的 PPT",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 12,
+                          "textGrowth": "fixed-width",
+                          "width": 280
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "upload-area-b",
+                      "width": "fill_container",
+                      "fill": "#FFFFFF",
+                      "stroke": { "align": "inside", "thickness": 2, "fill": "$sys:color.border" },
+                      "cornerRadius": 8,
+                      "padding": 24,
+                      "layout": "vertical",
+                      "gap": 12,
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "upload-icon-b",
+                          "width": 48,
+                          "height": 48,
+                          "fill": "#F3F4F6",
+                          "cornerRadius": 24,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "upload-icon-b-symbol",
+                              "fill": "#9CA3AF",
+                              "content": "⬆",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 24
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "upload-label-b",
+                          "fill": "$sys:color.text",
+                          "content": "PPT B（补充内容）",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "upload-desc-b",
+                          "fill": "$sys:color.text-muted",
+                          "content": "上传补充例题或扩展内容的 PPT",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 12,
+                          "textGrowth": "fixed-width",
+                          "width": 280
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "section-merge-layout",
+          "width": "fill_container",
+          "padding": [0, 24, 24, 24],
+          "layout": "vertical",
+          "gap": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "merge-control-bar",
+              "width": "fill_container",
+              "fill": "$sys:color.bg-card",
+              "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+              "cornerRadius": 8,
+              "padding": 12,
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "control-left",
+                  "gap": 16,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "btn-back",
+                      "width": 100,
+                      "height": 32,
+                      "fill": "$sys:color.bg-card",
+                      "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+                      "cornerRadius": 6,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "btn-back-label",
+                          "fill": "$sys:color.text",
+                          "content": "← 返回上传",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 12
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "file-names",
+                      "fill": "$sys:color.text-muted",
+                      "content": "课件A.pptx + 课件B.pptx",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 12
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "btn-reset",
+                  "width": 60,
+                  "height": 32,
+                  "fill": "$sys:color.bg-card",
+                  "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+                  "cornerRadius": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "btn-reset-label",
+                      "fill": "$sys:color.text",
+                      "content": "重置",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 12
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "merge-three-columns",
+              "width": "fill_container",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "column-left",
+                  "width": 300,
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "slide-pool-panel",
+                      "width": "fill_container",
+                      "fill": "$sys:color.bg-card",
+                      "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+                      "cornerRadius": 8,
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "slide-pool-header",
+                          "width": "fill_container",
+                          "height": 40,
+                          "fill": "#F9FAFB",
+                          "cornerRadius": [8, 8, 0, 0],
+                          "padding": [0, 12],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "slide-pool-title",
+                              "fill": "$sys:color.text",
+                              "content": "幻灯片池",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "slide-pool-stats",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "slide-count",
+                                  "fill": "$sys:color.text-muted",
+                                  "content": "共 10 页",
+                                  "fontFamily": "Inter, system-ui, sans-serif",
+                                  "fontSize": 12
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "selected-badge",
+                                  "width": 56,
+                                  "height": 20,
+                                  "fill": "$sys:color.primary",
+                                  "cornerRadius": 10,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "selected-count",
+                                      "fill": "#FFFFFF",
+                                      "content": "已选 3",
+                                      "fontFamily": "Inter, system-ui, sans-serif",
+                                      "fontSize": 10,
+                                      "fontWeight": "500"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "slide-pool-content",
+                          "width": "fill_container",
+                          "padding": 8,
+                          "layout": "vertical",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "slide-group-label",
+                              "fill": "$sys:color.text",
+                              "content": "PPT A",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "slide-thumbnails-row",
+                              "width": "fill_container",
+                              "gap": 8,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "thumb-1",
+                                  "width": "fill_container",
+                                  "height": 80,
+                                  "fill": "#FFFFFF",
+                                  "stroke": { "align": "inside", "thickness": 2, "fill": "$sys:color.primary" },
+                                  "cornerRadius": 6,
+                                  "layout": "vertical",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "thumb-1-preview",
+                                      "width": "fill_container",
+                                      "height": 60,
+                                      "fill": "#F9FAFB"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "thumb-1-info",
+                                      "width": "fill_container",
+                                      "height": 20,
+                                      "padding": [4, 6],
+                                      "justifyContent": "space_between",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "thumb-1-title",
+                                          "fill": "$sys:color.text",
+                                          "content": "第 1 页",
+                                          "fontFamily": "Inter, system-ui, sans-serif",
+                                          "fontSize": 10,
+                                          "fontWeight": "500"
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "thumb-1-badge",
+                                          "width": 20,
+                                          "height": 14,
+                                          "fill": "#DBEAFE",
+                                          "cornerRadius": 4,
+                                          "justifyContent": "center",
+                                          "alignItems": "center",
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "thumb-1-badge-text",
+                                              "fill": "#1D4ED8",
+                                              "content": "A",
+                                              "fontFamily": "Inter, system-ui, sans-serif",
+                                              "fontSize": 8,
+                                              "fontWeight": "600"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "thumb-2",
+                                  "width": "fill_container",
+                                  "height": 80,
+                                  "fill": "#FFFFFF",
+                                  "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+                                  "cornerRadius": 6,
+                                  "layout": "vertical",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "thumb-2-preview",
+                                      "width": "fill_container",
+                                      "height": 60,
+                                      "fill": "#F9FAFB"
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "thumb-2-info",
+                                      "width": "fill_container",
+                                      "height": 20,
+                                      "padding": [4, 6],
+                                      "justifyContent": "space_between",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "thumb-2-title",
+                                          "fill": "$sys:color.text",
+                                          "content": "第 2 页",
+                                          "fontFamily": "Inter, system-ui, sans-serif",
+                                          "fontSize": 10,
+                                          "fontWeight": "500"
+                                        },
+                                        {
+                                          "type": "frame",
+                                          "id": "thumb-2-badge",
+                                          "width": 20,
+                                          "height": 14,
+                                          "fill": "#DBEAFE",
+                                          "cornerRadius": 4,
+                                          "justifyContent": "center",
+                                          "alignItems": "center",
+                                          "children": [
+                                            {
+                                              "type": "text",
+                                              "id": "thumb-2-badge-text",
+                                              "fill": "#1D4ED8",
+                                              "content": "A",
+                                              "fontFamily": "Inter, system-ui, sans-serif",
+                                              "fontSize": 8,
+                                              "fontWeight": "600"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "slide-pool-footer",
+                          "width": "fill_container",
+                          "height": 32,
+                          "fill": "#F9FAFB",
+                          "cornerRadius": [0, 0, 8, 8],
+                          "padding": [0, 12],
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "slide-pool-hint",
+                              "fill": "$sys:color.text-muted",
+                              "content": "💡 Ctrl/Cmd + 点击可多选页面进行融合",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 10
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "column-center",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "slide-preview-panel",
+                      "width": "fill_container",
+                      "fill": "$sys:color.bg-card",
+                      "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+                      "cornerRadius": 8,
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "preview-header",
+                          "width": "fill_container",
+                          "height": 44,
+                          "fill": "#F9FAFB",
+                          "cornerRadius": [8, 8, 0, 0],
+                          "padding": [0, 12],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "preview-header-left",
+                              "gap": 8,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "preview-title",
+                                  "fill": "$sys:color.text",
+                                  "content": "第 1 页",
+                                  "fontFamily": "Inter, system-ui, sans-serif",
+                                  "fontSize": 14,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "preview-badge",
+                                  "width": 40,
+                                  "height": 20,
+                                  "fill": "#DBEAFE",
+                                  "cornerRadius": 10,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "preview-badge-text",
+                                      "fill": "#1D4ED8",
+                                      "content": "A P1",
+                                      "fontFamily": "Inter, system-ui, sans-serif",
+                                      "fontSize": 10,
+                                      "fontWeight": "500"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "version-switcher",
+                              "gap": 4,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "version-v1",
+                                  "width": 28,
+                                  "height": 24,
+                                  "fill": "#EEF2FF",
+                                  "cornerRadius": 4,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "version-v1-text",
+                                      "fill": "$sys:color.primary",
+                                      "content": "v1",
+                                      "fontFamily": "Inter, system-ui, sans-serif",
+                                      "fontSize": 10,
+                                      "fontWeight": "600"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "preview-content",
+                          "width": "fill_container",
+                          "padding": 16,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "preview-frame",
+                              "width": "fill_container",
+                              "height": 340,
+                              "fill": "#F9FAFB",
+                              "cornerRadius": 8,
+                              "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "preview-placeholder",
+                                  "fill": "$sys:color.text-muted",
+                                  "content": "幻灯片预览区域",
+                                  "fontFamily": "Inter, system-ui, sans-serif",
+                                  "fontSize": 14
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "preview-footer",
+                          "width": "fill_container",
+                          "fill": "#F9FAFB",
+                          "cornerRadius": [0, 0, 8, 8],
+                          "padding": 12,
+                          "layout": "vertical",
+                          "gap": 12,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "action-label",
+                              "fill": "$sys:color.text-muted",
+                              "content": "选择操作类型",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 12
+                            },
+                            {
+                              "type": "frame",
+                              "id": "action-buttons",
+                              "width": "fill_container",
+                              "gap": 8,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "action-polish",
+                                  "width": "fill_container",
+                                  "height": 48,
+                                  "fill": "$sys:color.primary",
+                                  "cornerRadius": 6,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "action-polish-icon",
+                                      "fill": "#FFFFFF",
+                                      "content": "✨",
+                                      "fontFamily": "Inter, system-ui, sans-serif",
+                                      "fontSize": 16
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "action-polish-label",
+                                      "fill": "#FFFFFF",
+                                      "content": "润色",
+                                      "fontFamily": "Inter, system-ui, sans-serif",
+                                      "fontSize": 10,
+                                      "fontWeight": "500"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "action-expand",
+                                  "width": "fill_container",
+                                  "height": 48,
+                                  "fill": "$sys:color.bg-card",
+                                  "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+                                  "cornerRadius": 6,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "action-expand-icon",
+                                      "fill": "$sys:color.text",
+                                      "content": "📈",
+                                      "fontFamily": "Inter, system-ui, sans-serif",
+                                      "fontSize": 16
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "action-expand-label",
+                                      "fill": "$sys:color.text",
+                                      "content": "扩展",
+                                      "fontFamily": "Inter, system-ui, sans-serif",
+                                      "fontSize": 10,
+                                      "fontWeight": "500"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "action-rewrite",
+                                  "width": "fill_container",
+                                  "height": 48,
+                                  "fill": "$sys:color.bg-card",
+                                  "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+                                  "cornerRadius": 6,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "action-rewrite-icon",
+                                      "fill": "$sys:color.text",
+                                      "content": "📝",
+                                      "fontFamily": "Inter, system-ui, sans-serif",
+                                      "fontSize": 16
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "action-rewrite-label",
+                                      "fill": "$sys:color.text",
+                                      "content": "改写",
+                                      "fontFamily": "Inter, system-ui, sans-serif",
+                                      "fontSize": 10,
+                                      "fontWeight": "500"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "action-extract",
+                                  "width": "fill_container",
+                                  "height": 48,
+                                  "fill": "$sys:color.bg-card",
+                                  "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+                                  "cornerRadius": 6,
+                                  "layout": "vertical",
+                                  "gap": 4,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "action-extract-icon",
+                                      "fill": "$sys:color.text",
+                                      "content": "🎯",
+                                      "fontFamily": "Inter, system-ui, sans-serif",
+                                      "fontSize": 16
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "action-extract-label",
+                                      "fill": "$sys:color.text",
+                                      "content": "提取",
+                                      "fontFamily": "Inter, system-ui, sans-serif",
+                                      "fontSize": 10,
+                                      "fontWeight": "500"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "btn-add-final",
+                              "width": "fill_container",
+                                "height": 40,
+                                "fill": "$sys:color.primary",
+                                "cornerRadius": 6,
+                                "justifyContent": "center",
+                                "alignItems": "center",
+                                "children": [
+                                  {
+                                    "type": "text",
+                                    "id": "btn-add-final-label",
+                                    "fill": "#FFFFFF",
+                                    "content": "+ 添加到最终选择",
+                                    "fontFamily": "Inter, system-ui, sans-serif",
+                                    "fontSize": 14,
+                                    "fontWeight": "600"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "column-right",
+                  "width": 280,
+                  "layout": "vertical",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "prompt-panel",
+                      "width": "fill_container",
+                      "fill": "$sys:color.bg-card",
+                      "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+                      "cornerRadius": 8,
+                      "padding": 12,
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "prompt-header",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "prompt-title",
+                              "fill": "$sys:color.text",
+                              "content": "合并策略",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "prompt-toggle",
+                              "fill": "$sys:color.primary",
+                              "content": "展开模板",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 10
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "prompt-input",
+                          "width": "fill_container",
+                          "height": 80,
+                          "fill": "#F9FAFB",
+                          "cornerRadius": 6,
+                          "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+                          "padding": 8,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "prompt-placeholder",
+                              "fill": "$sys:color.text-muted",
+                              "content": "输入合并策略或选择上方模板...",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 12
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "final-stats-panel",
+                      "width": "fill_container",
+                      "fill": "$sys:color.bg-card",
+                      "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+                      "cornerRadius": 8,
+                      "padding": 12,
+                      "layout": "vertical",
+                      "gap": 12,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "final-stats-title",
+                          "fill": "$sys:color.text",
+                          "content": "最终 PPT",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "final-stats-number",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "final-count",
+                              "fill": "$sys:color.primary",
+                              "content": "3",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 30,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "final-label",
+                              "fill": "$sys:color.text-muted",
+                              "content": "页已选中",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 12
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "instructions-panel",
+                      "width": "fill_container",
+                      "fill": "#F9FAFB",
+                      "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+                      "cornerRadius": 8,
+                      "padding": 12,
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "instructions-title",
+                          "fill": "$sys:color.text",
+                          "content": "使用说明",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "instructions-list",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "instruction-1",
+                              "fill": "$sys:color.text-muted",
+                              "content": "1. 点击左侧幻灯片选择",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 10
+                            },
+                            {
+                              "type": "text",
+                              "id": "instruction-2",
+                              "fill": "$sys:color.text-muted",
+                              "content": "2. 在中间面板选择操作类型",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 10
+                            },
+                            {
+                              "type": "text",
+                              "id": "instruction-3",
+                              "fill": "$sys:color.text-muted",
+                              "content": "3. 点击「执行」按钮处理当前页",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 10
+                            },
+                            {
+                              "type": "text",
+                              "id": "instruction-4",
+                              "fill": "$sys:color.text-muted",
+                              "content": "4. 点击「添加到最终选择」",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 10
+                            },
+                            {
+                              "type": "text",
+                              "id": "instruction-5",
+                              "fill": "$sys:color.text-muted",
+                              "content": "5. 底部点击「生成最终 PPT」",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 10
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "final-selection-bar",
+              "width": "fill_container",
+              "fill": "$sys:color.bg-card",
+              "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+              "cornerRadius": 8,
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "final-bar-header",
+                  "width": "fill_container",
+                  "height": 36,
+                  "fill": "#F9FAFB",
+                  "cornerRadius": [8, 8, 0, 0],
+                  "padding": [0, 12],
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "final-bar-title",
+                      "fill": "$sys:color.text",
+                      "content": "最终 PPT 页面顺序",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "final-bar-count",
+                      "fill": "$sys:color.text-muted",
+                      "content": "(3 页)",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 12
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "final-bar-content",
+                  "width": "fill_container",
+                  "padding": 12,
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "drag-hint",
+                      "fill": "$sys:color.text-muted",
+                      "content": "↕ 拖拽调整顺序，点击 × 移除",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 10
+                    },
+                    {
+                      "type": "frame",
+                      "id": "selected-slides",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "selected-slide-1",
+                          "width": 100,
+                          "height": 70,
+                          "fill": "#FFFFFF",
+                          "stroke": { "align": "inside", "thickness": 2, "fill": "$sys:color.border" },
+                          "cornerRadius": 6,
+                          "layout": "vertical",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "selected-1-number",
+                              "x": -4,
+                              "y": -4,
+                              "width": 20,
+                              "height": 20,
+                              "fill": "$sys:color.primary",
+                              "cornerRadius": 10,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "selected-1-num-text",
+                                  "fill": "#FFFFFF",
+                                  "content": "1",
+                                  "fontFamily": "Inter, system-ui, sans-serif",
+                                  "fontSize": 10,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "selected-1-preview",
+                              "width": "fill_container",
+                              "height": 50,
+                              "fill": "#F9FAFB"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "selected-1-label",
+                              "width": "fill_container",
+                              "height": 20,
+                              "fill": "#DBEAFE",
+                              "cornerRadius": [0, 0, 6, 6],
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "selected-1-label-text",
+                                  "fill": "#1D4ED8",
+                                  "content": "A",
+                                  "fontFamily": "Inter, system-ui, sans-serif",
+                                  "fontSize": 8,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "selected-slide-2",
+                          "width": 100,
+                          "height": 70,
+                          "fill": "#FFFFFF",
+                          "stroke": { "align": "inside", "thickness": 2, "fill": "$sys:color.border" },
+                          "cornerRadius": 6,
+                          "layout": "vertical",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "selected-2-number",
+                              "x": -4,
+                              "y": -4,
+                              "width": 20,
+                              "height": 20,
+                              "fill": "$sys:color.primary",
+                              "cornerRadius": 10,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "selected-2-num-text",
+                                  "fill": "#FFFFFF",
+                                  "content": "2",
+                                  "fontFamily": "Inter, system-ui, sans-serif",
+                                  "fontSize": 10,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "selected-2-preview",
+                              "width": "fill_container",
+                              "height": 50,
+                              "fill": "#F9FAFB"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "selected-2-label",
+                              "width": "fill_container",
+                              "height": 20,
+                              "fill": "#DCFCE7",
+                              "cornerRadius": [0, 0, 6, 6],
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "selected-2-label-text",
+                                  "fill": "#16A34A",
+                                  "content": "B",
+                                  "fontFamily": "Inter, system-ui, sans-serif",
+                                  "fontSize": 8,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "selected-slide-3",
+                          "width": 100,
+                          "height": 70,
+                          "fill": "#FFFFFF",
+                          "stroke": { "align": "inside", "thickness": 2, "fill": "$sys:color.border" },
+                          "cornerRadius": 6,
+                          "layout": "vertical",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "selected-3-number",
+                              "x": -4,
+                              "y": -4,
+                              "width": 20,
+                              "height": 20,
+                              "fill": "$sys:color.primary",
+                              "cornerRadius": 10,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "selected-3-num-text",
+                                  "fill": "#FFFFFF",
+                                  "content": "3",
+                                  "fontFamily": "Inter, system-ui, sans-serif",
+                                  "fontSize": 10,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "selected-3-preview",
+                              "width": "fill_container",
+                              "height": 50,
+                              "fill": "#F9FAFB"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "selected-3-label",
+                              "width": "fill_container",
+                              "height": 20,
+                              "fill": "#DBEAFE",
+                              "cornerRadius": [0, 0, 6, 6],
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "selected-3-label-text",
+                                  "fill": "#1D4ED8",
+                                  "content": "A",
+                                  "fontFamily": "Inter, system-ui, sans-serif",
+                                  "fontSize": 8,
+                                  "fontWeight": "600"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "btn-generate",
+                      "width": "fill_container",
+                      "height": 40,
+                      "fill": "#16A34A",
+                      "cornerRadius": 6,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "btn-generate-label",
+                          "fill": "#FFFFFF",
+                          "content": "⬇ 生成最终 PPT（3 页）",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "section-download-complete",
+          "width": "fill_container",
+          "padding": [0, 24, 48, 24],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "download-card",
+              "width": 448,
+              "fill": "$sys:color.bg-card",
+              "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+              "cornerRadius": 8,
+              "padding": 32,
+              "layout": "vertical",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "success-icon",
+                  "width": 64,
+                  "height": 64,
+                  "fill": "#DCFCE7",
+                  "cornerRadius": 32,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "success-icon-symbol",
+                      "fill": "#16A34A",
+                      "content": "✓",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 32,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "download-title",
+                  "fill": "$sys:color.text",
+                  "content": "✅ 合并完成！",
+                  "fontFamily": "Inter, system-ui, sans-serif",
+                  "fontSize": 20,
+                  "fontWeight": "700",
+                  "textAlign": "center"
+                },
+                {
+                  "type": "text",
+                  "id": "download-desc",
+                  "fill": "$sys:color.text-muted",
+                  "content": "您的 PPT 已成功生成，点击下方按钮下载文件",
+                  "fontFamily": "Inter, system-ui, sans-serif",
+                  "fontSize": 14,
+                  "textAlign": "center",
+                  "textGrowth": "fixed-width",
+                  "width": 360
+                },
+                {
+                  "type": "frame",
+                  "id": "file-info",
+                  "width": "fill_container",
+                  "fill": "#F9FAFB",
+                  "cornerRadius": 8,
+                  "padding": 16,
+                  "layout": "vertical",
+                  "gap": 4,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "file-label",
+                      "fill": "$sys:color.text-muted",
+                      "content": "文件名",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 10
+                    },
+                    {
+                      "type": "text",
+                      "id": "file-name",
+                      "fill": "$sys:color.text",
+                      "content": "智能合并课件.pptx",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "download-buttons",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "btn-download",
+                      "width": "fill_container",
+                      "height": 44,
+                      "fill": "$sys:color.primary",
+                      "cornerRadius": 8,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "btn-download-label",
+                          "fill": "#FFFFFF",
+                          "content": "⬇ 下载 PPT",
+                          "fontFamily": "Inter, system-ui, sans-serif",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "secondary-buttons",
+                      "width": "fill_container",
+                      "gap": 12,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "btn-back-step",
+                          "width": "fill_container",
+                          "height": 36,
+                          "fill": "$sys:color.bg-card",
+                          "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+                          "cornerRadius": 6,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "btn-back-step-label",
+                              "fill": "$sys:color.text",
+                              "content": "← 返回上一步",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 12
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "btn-restart",
+                          "width": "fill_container",
+                          "height": 36,
+                          "fill": "$sys:color.bg-card",
+                          "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+                          "cornerRadius": 6,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "btn-restart-label",
+                              "fill": "$sys:color.text",
+                              "content": "重新合并",
+                              "fontFamily": "Inter, system-ui, sans-serif",
+                              "fontSize": 12
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "monitor-panel",
+      "x": 1540,
+      "y": 0,
+      "width": 384,
+      "fill": "$sys:color.bg-card",
+      "stroke": { "align": "inside", "thickness": 1, "fill": "$sys:color.border" },
+      "cornerRadius": 8,
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "monitor-header",
+          "width": "fill_container",
+          "height": 36,
+          "fill": "#F9FAFB",
+          "cornerRadius": [8, 8, 0, 0],
+          "padding": [0, 8],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "monitor-header-left",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "monitor-icon",
+                  "fill": "$sys:color.text",
+                  "content": "📊",
+                  "fontFamily": "Inter, system-ui, sans-serif",
+                  "fontSize": 16
+                },
+                {
+                  "type": "text",
+                  "id": "monitor-title",
+                  "fill": "$sys:color.text",
+                  "content": "监控面板",
+                  "fontFamily": "Inter, system-ui, sans-serif",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "monitor-count",
+                  "fill": "$sys:color.text-muted",
+                  "content": "(5 条)",
+                  "fontFamily": "Inter, system-ui, sans-serif",
+                  "fontSize": 10
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "monitor-toggle",
+              "fill": "$sys:color.text-muted",
+              "content": "📕",
+              "fontFamily": "Inter, system-ui, sans-serif",
+              "fontSize": 12
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "monitor-toolbar",
+          "width": "fill_container",
+          "height": 36,
+          "fill": "#FAFAFA",
+          "padding": [0, 8],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "toolbar-buttons",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "btn-export",
+                  "width": 60,
+                  "height": 24,
+                  "fill": "#3B82F6",
+                  "cornerRadius": 4,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "btn-export-label",
+                      "fill": "#FFFFFF",
+                      "content": "📥 导出",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 10
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "btn-clear",
+                  "width": 60,
+                  "height": 24,
+                  "fill": "#EF4444",
+                  "cornerRadius": 4,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "btn-clear-label",
+                      "fill": "#FFFFFF",
+                      "content": "🗑️ 清空",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 10
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "auto-refresh",
+              "fill": "$sys:color.text-muted",
+              "content": "☑ 自动刷新",
+              "fontFamily": "Inter, system-ui, sans-serif",
+              "fontSize": 10
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "monitor-stats",
+          "width": "fill_container",
+          "height": 24,
+          "fill": "#FAFAFA",
+          "padding": [0, 8],
+          "gap": 8,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "stat-request",
+              "fill": "$sys:color.text-muted",
+              "content": "📤 2",
+              "fontFamily": "Inter, system-ui, sans-serif",
+              "fontSize": 10
+            },
+            {
+              "type": "text",
+              "id": "stat-response",
+              "fill": "#16A34A",
+              "content": "📥 2",
+              "fontFamily": "Inter, system-ui, sans-serif",
+              "fontSize": 10
+            },
+            {
+              "type": "text",
+              "id": "stat-error",
+              "fill": "#EF4444",
+              "content": "❌ 1",
+              "fontFamily": "Inter, system-ui, sans-serif",
+              "fontSize": 10
+            },
+            {
+              "type": "text",
+              "id": "stat-duration",
+              "fill": "$sys:color.text-muted",
+              "content": "平均 120ms",
+              "fontFamily": "Inter, system-ui, sans-serif",
+              "fontSize": 10
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "monitor-logs",
+          "width": "fill_container",
+          "padding": 8,
+          "layout": "vertical",
+          "gap": 4,
+          "children": [
+            {
+              "type": "frame",
+              "id": "log-item-1",
+              "width": "fill_container",
+              "fill": "#F9FAFB",
+              "stroke": { "align": "inside", "thickness": 0, "fill": "$sys:color.border" },
+              "cornerRadius": 4,
+              "padding": 6,
+              "gap": 4,
+              "alignItems": "start",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "log-1-icon",
+                  "fill": "$sys:color.text-muted",
+                  "content": "📤",
+                  "fontFamily": "Inter, system-ui, sans-serif",
+                  "fontSize": 10
+                },
+                {
+                  "type": "frame",
+                  "id": "log-1-content",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "log-1-title",
+                      "fill": "$sys:color.text",
+                      "content": "POST /api/merge",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 10,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "log-1-detail",
+                      "fill": "$sys:color.text-muted",
+                      "content": "120ms",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 8
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "log-item-2",
+              "width": "fill_container",
+              "fill": "#DCFCE7",
+              "cornerRadius": 4,
+              "padding": 6,
+              "gap": 4,
+              "alignItems": "start",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "log-2-icon",
+                  "fill": "#16A34A",
+                  "content": "📥",
+                  "fontFamily": "Inter, system-ui, sans-serif",
+                  "fontSize": 10
+                },
+                {
+                  "type": "frame",
+                  "id": "log-2-content",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "log-2-title",
+                      "fill": "#16A34A",
+                      "content": "GET /api/slides",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 10,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "log-2-detail",
+                      "fill": "#16A34A",
+                      "content": "85ms",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 8
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "log-item-3",
+              "width": "fill_container",
+              "fill": "#FEE2E2",
+              "cornerRadius": 4,
+              "padding": 6,
+              "gap": 4,
+              "alignItems": "start",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "log-3-icon",
+                  "fill": "#EF4444",
+                  "content": "❌",
+                  "fontFamily": "Inter, system-ui, sans-serif",
+                  "fontSize": 10
+                },
+                {
+                  "type": "frame",
+                  "id": "log-3-content",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "log-3-title",
+                      "fill": "#EF4444",
+                      "content": "POST /api/generate",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 10,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "log-3-detail",
+                      "fill": "#EF4444",
+                      "content": "API Key 无效",
+                      "fontFamily": "Inter, system-ui, sans-serif",
+                      "fontSize": 8
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "monitor-footer",
+          "width": "fill_container",
+          "height": 24,
+          "fill": "#FAFAFA",
+          "cornerRadius": [0, 0, 8, 8],
+          "padding": [0, 8],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "session-id",
+              "fill": "$sys:color.text-muted",
+              "content": "Session: abc123...",
+              "fontFamily": "Inter, system-ui, sans-serif",
+              "fontSize": 10
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

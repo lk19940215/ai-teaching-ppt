@@ -2,17 +2,9 @@
   "version": 1,
   "designSystem": "system.lib.pen",
   "pages": {
-    "home": {
-      "pen": "pages/home.pen",
-      "description": "首页 - AI 教学 PPT 生成器欢迎页，展示产品介绍和使用流程"
-    },
-    "settings": {
-      "pen": "pages/settings.pen",
-      "description": "设置页 - LLM 服务商配置，支持 API Key 管理、高级参数调整"
-    },
-    "profile": {
-      "pen": "pages/profile.pen",
-      "description": "个人资料页 - 用户信息管理，包含基本信息编辑、账户安全设置、使用统计展示"
+    "merge": {
+      "pen": "pages/merge.pen",
+      "description": "PPT 智能合并页面 - 上传两个 PPT 文件，灵活处理每个页面，自由组合生成新的教学课件"
     }
   }
 }
