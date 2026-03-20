@@ -1,6 +1,6 @@
 {
   "session_result": "failed",
-  "status_before": "pending",
+  "status_before": "failed",
   "status_after": "failed",
-  "notes": "LLM API Key 已过期（DeepSeek/GLM 均返回 401 令牌过期错误），无法完成教学增强功能的端到端测试。需更新测试凭证后重试。"
+  "notes": "外部依赖阻断：test.env 配置了 aliyun 服务商，但前端 UI 不支持该服务商选项。需要用户在设置页面手动配置 DeepSeek/OpenAI/Claude/GLM 中任一服务商的有效 API Key 后重试。前置代码任务 feat-235/236/237 已全部完成。"
 }

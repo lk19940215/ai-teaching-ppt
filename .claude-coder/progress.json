@@ -598,6 +598,78 @@
       "taskId": "feat-234",
       "statusAfter": "done",
       "notes": null
+    },
+    {
+      "session": 1,
+      "timestamp": "202603201103",
+      "result": "success",
+      "cost": 0.7904760000000001,
+      "taskId": "feat-235",
+      "statusAfter": "done",
+      "notes": null
+    },
+    {
+      "session": 2,
+      "timestamp": "202603201107",
+      "result": "success",
+      "cost": 1.0188780000000002,
+      "taskId": "feat-236",
+      "statusAfter": "done",
+      "notes": null
+    },
+    {
+      "session": 3,
+      "timestamp": "202603201111",
+      "result": "success",
+      "cost": 1.3105275,
+      "taskId": "feat-237",
+      "statusAfter": "done",
+      "notes": null
+    },
+    {
+      "session": 4,
+      "timestamp": "202603201118",
+      "result": "success",
+      "cost": 3.430851,
+      "taskId": "feat-238",
+      "statusAfter": "failed",
+      "notes": "LLM API Key 已过期（DeepSeek/GLM 均返回 401 令牌过期错误），无法完成教学增强功能的端到端测试。需更新测试凭证后重试。"
+    },
+    {
+      "session": 5,
+      "timestamp": "202603201121",
+      "result": "success",
+      "cost": 1.211459,
+      "taskId": "feat-238",
+      "statusAfter": "failed",
+      "notes": "LLM API Key 已过期（DeepSeek 返回 401 令牌过期错误），无法完成教学增强功能的端到端测试。前置任务 feat-235/236/237 已全部完成，测试代码已就绪，需更新 DeepSeek API Key 后重试。"
+    },
+    {
+      "session": 6,
+      "timestamp": "202603201124",
+      "result": "success",
+      "cost": 1.8800964999999996,
+      "taskId": "feat-238",
+      "statusAfter": "failed",
+      "notes": "所有 LLM API Key 均已过期（DeepSeek 和 GLM 均返回 401 令牌过期错误），无法完成教学增强功能的端到端测试。前置任务 feat-235/236/237 已全部完成，测试代码已就绪，需更新任意一个有效的 LLM API Key 后重试。"
+    },
+    {
+      "session": 7,
+      "timestamp": "202603201124",
+      "result": "success",
+      "cost": 0.33111050000000003,
+      "taskId": "feat-238",
+      "statusAfter": "failed",
+      "notes": "外部依赖阻断：所有 LLM API Key 均已过期（DeepSeek/GLM 返回 401），无法执行端到端测试。前置代码任务 feat-235/236/237 已全部完成并通过类型检查。需用户在设置页面更新有效的 API Key 后重试测试。"
+    },
+    {
+      "session": 8,
+      "timestamp": "202603201127",
+      "result": "success",
+      "cost": 1.8462275,
+      "taskId": "feat-238",
+      "statusAfter": "failed",
+      "notes": "外部依赖阻断：test.env 配置了 aliyun 服务商，但前端 UI 不支持该服务商选项。需要用户在设置页面手动配置 DeepSeek/OpenAI/Claude/GLM 中任一服务商的有效 API Key 后重试。前置代码任务 feat-235/236/237 已全部完成。"
     }
   ]
 }
