@@ -1,7 +1,7 @@
 {
   "project": "ai-teaching-ppt",
-  "last_updated": "2026-03-19",
-  "next_task_priority": 214,
+  "last_updated": "2026-03-20",
+  "next_task_priority": 240,
   "completed_milestones": [
     {
       "name": "基础设施搭建",
@@ -513,6 +513,121 @@
         "feat-227",
         "feat-232"
       ]
+    },
+    {
+      "id": "feat-234",
+      "category": "frontend",
+      "priority": 234,
+      "description": "修复根页面 404 和润色接口调用问题",
+      "steps": [
+        "创建 frontend/src/app/page.tsx，使用 redirect 重定向到 /merge",
+        "修改 frontend/src/lib/api.ts，开发环境使用相对路径通过 Next.js rewrite 代理",
+        "创建 frontend/.env.development 配置空 API URL",
+        "创建 frontend/.env.production 配置生产环境 API URL 模板",
+        "验证: pnpm tsc --noEmit 无错误",
+        "验证: 访问 http://localhost:3000/ 自动重定向到 /merge",
+        "验证: 润色接口调用成功，无 404 或 CORS 错误"
+      ],
+      "status": "pending",
+      "depends_on": []
+    },
+    {
+      "id": "feat-235",
+      "category": "fullstack",
+      "priority": 235,
+      "description": "扩展 SlideContent 类型支持教学增强字段",
+      "steps": [
+        "修改 frontend/src/types/merge-plan.ts，添加 teaching_notes、interaction_prompts、exercise_questions、key_vocabulary 字段",
+        "修改 backend/app/services/content_merger.py 的 SlideContent TypedDict，同步新增字段",
+        "添加 ExerciseItem 类型定义（题型、题目、答案、解析）",
+        "更新类型注释和文档字符串",
+        "验证: pnpm tsc --noEmit 无错误",
+        "验证: python -m py_compile app/services/content_merger.py 无错误"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-234"
+      ]
+    },
+    {
+      "id": "feat-236",
+      "category": "backend",
+      "priority": 236,
+      "description": "增强提示词模板支持教学场景增强",
+      "steps": [
+        "读取 backend/app/prompts/merge_prompts.py",
+        "添加 TEACHING_ENHANCEMENT_PROMPT 常量，包含互动环节设计、练习题生成、教学笔记",
+        "更新 build_single_page_prompt 函数，集成教学增强提示词",
+        "添加练习题生成模板（基础练习、变式练习）",
+        "添加互动提示模板（思考问题、课堂讨论）",
+        "验证: python -m py_compile app/prompts/merge_prompts.py 无错误",
+        "验证: 润色/扩展操作返回包含教学增强字段的内容"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-235"
+      ]
+    },
+    {
+      "id": "feat-237",
+      "category": "frontend",
+      "priority": 237,
+      "description": "优化预览组件渲染增强内容展示",
+      "steps": [
+        "读取 frontend/src/components/merge/renderers/slide-content-renderer.tsx",
+        "实现分区渲染：主要内容区、互动区、练习区",
+        "添加视觉层次样式：不同颜色/样式区分内容类型",
+        "实现教学笔记折叠面板，默认折叠点击展开",
+        "添加练习题渲染样式（题型标签、题目、答案折叠显示）",
+        "验证: pnpm tsc --noEmit 无错误",
+        "验证: 预览组件正确渲染新增的教学增强字段"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-235"
+      ]
+    },
+    {
+      "id": "feat-238",
+      "category": "test",
+      "priority": 238,
+      "description": "编写教学增强功能测试",
+      "steps": [
+        "【规则】阅读 .claude-coder/assets/test_rule.md",
+        "【环境】curl http://localhost:8000/health",
+        "【P0】browser_navigate http://localhost:3000/merge",
+        "【P0】上传测试 PPT 并执行润色操作",
+        "【P0】browser_wait_for text='处理完成' timeout=60000",
+        "【P0】browser_snapshot 验证返回内容包含教学增强字段",
+        "【P0】验证: 预览区正确显示互动提示、练习题、教学笔记",
+        "【P1】browser_click 展开教学笔记折叠面板",
+        "【P1】验证: 折叠面板正确展开显示内容",
+        "【P1】测试扩展操作返回完整的教学增强内容",
+        "【P2】测试不同学科的教学增强内容适配"
+      ],
+      "status": "pending",
+      "depends_on": [
+        "feat-236",
+        "feat-237"
+      ]
+    },
+    {
+      "id": "feat-239",
+      "category": "backend",
+      "priority": 239,
+      "description": "创建内容质量评估器模块",
+      "steps": [
+        "创建 backend/app/services/content_quality_evaluator.py",
+        "定义评估维度：内容完整性、逻辑连贯性、表达准确性、教学适配性",
+        "实现 ContentQualityEvaluator 类，支持 0-1 评分",
+        "实现 evaluate_slide_content 方法评估单页内容",
+        "实现 generate_quality_report 方法生成评估报告",
+        "添加单元测试验证评估逻辑",
+        "验证: python -m py_compile app/services/content_quality_evaluator.py 无错误",
+        "验证: 单元测试通过"
+      ],
+      "status": "pending",
+      "depends_on": []
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "session_result": "success",
-  "status_before": "pending",
-  "status_after": "done",
-  "notes": ""
+  "status_before": "N/A",
+  "status_after": "N/A",
+  "notes": "追加了 6 个新任务：feat-234 (根页面/API修复)、feat-235 (类型扩展)、feat-236 (提示词增强)、feat-237 (预览组件优化)、feat-238 (增强功能测试)、feat-239 (质量评估器)。依赖关系形成 DAG，无循环。"
 }
