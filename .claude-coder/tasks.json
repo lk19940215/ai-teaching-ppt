@@ -563,7 +563,7 @@
         "验证: python -m py_compile app/prompts/merge_prompts.py 无错误",
         "验证: 润色/扩展操作返回包含教学增强字段的内容"
       ],
-      "status": "pending",
+      "status": "done",
       "depends_on": [
         "feat-235"
       ]
