@@ -2,12 +2,16 @@
 LLM 服务商配置管理 API
 
 提供 LLM 服务商（DeepSeek、OpenAI、Claude、GLM）的配置管理功能：
-- 配置 CRUD 操作
-- 默认服务商设置
-- API Key 验证
-- 连接测试
+- 从环境变量获取默认配置
+- API Key 验证和连接测试
+- 配置元数据管理（不再保存 API Key 到数据库）
 
 所有端点前缀：/api/v1/config
+
+重要变更（feat-001/feat-002）：
+- API Key 不再保存到数据库，由前端 localStorage 管理
+- 新增 /config/default 端点返回环境变量中的默认配置
+- /config/providers/default/active 改为返回环境变量配置
 """
 from fastapi import APIRouter, Depends, HTTPException, Body
 from fastapi.responses import JSONResponse
@@ -27,6 +31,7 @@ from ..models.llm_config_crud import (
     validate_api_key,
 )
 from ..services.llm import LLMService, LLMProvider
+from ..config import settings
 
 router = APIRouter(prefix="/api/v1", tags=["config"])
 
@@ -44,6 +49,44 @@ SUPPORTED_PROVIDERS = [
 DEFAULT_TEMPERATURE = 0.7
 DEFAULT_MAX_TOKENS = 4000
 CONNECTION_TEST_TIMEOUT = 15
+
+
+@router.get("/config/default")
+async def get_default_llm_config():
+    """
+    获取环境变量中的默认 LLM 配置
+
+    从 LLM_CONFIG 环境变量读取配置，供前端初始化使用。
+    如果未配置环境变量，返回 404。
+
+    Returns:
+        - provider: 服务商标识
+        - apiKey: API 密钥
+        - baseUrl: API 基础 URL
+        - model: 模型名称
+        - temperature: 温度参数
+        - maxInputTokens: 最大输入 token
+        - maxOutputTokens: 最大输出 token
+    """
+    try:
+        default_config = settings.get_default_llm_config()
+        if not default_config:
+            return JSONResponse(content={
+                "success": False,
+                "message": "未配置默认 LLM（请设置 LLM_CONFIG 环境变量）"
+            }, status_code=404)
+
+        logger.info("[get_default_llm_config] 成功返回环境变量配置")
+        return JSONResponse(content={
+            "success": True,
+            "data": default_config
+        })
+    except Exception as e:
+        logger.error(f"获取默认配置失败：{e}")
+        return JSONResponse(content={
+            "success": False,
+            "message": f"获取默认配置失败：{str(e)}"
+        }, status_code=500)
 
 
 @router.get("/config/providers")
@@ -96,38 +139,40 @@ async def get_default_provider_config(db: Session = Depends(get_db)):
 
 
 @router.get("/config/providers/default/active")
-async def get_active_provider_config(db: Session = Depends(get_db)):
+async def get_active_provider_config():
     """
-    获取默认服务商的完整配置（包含 API Key）
+    获取默认 LLM 配置（从环境变量读取）
 
-    此端点供前端调用 LLM 功能时使用，返回完整的配置信息包括 API Key。
-    如果没有设置默认服务商，返回错误。
+    此端点供前端调用 LLM 功能时使用。
+    优先返回环境变量 LLM_CONFIG 中的配置。
 
     注意：此路由必须放在 /config/providers/{provider} 之前，
     否则 'default' 会被当作 provider 参数匹配。
 
     Returns:
         - provider: 服务商标识
-        - api_key: API 密钥
-        - base_url: API 基础 URL
+        - apiKey: API 密钥
+        - baseUrl: API 基础 URL
         - model: 模型名称
         - temperature: 温度参数
-        - max_input_tokens: 最大输入 token
-        - max_output_tokens: 最大输出 token
+        - maxInputTokens: 最大输入 token
+        - maxOutputTokens: 最大输出 token
     """
     try:
-        config = get_default_config(db)
-        if not config:
+        # 优先从环境变量获取配置
+        default_config = settings.get_default_llm_config()
+        if default_config:
+            logger.info("[get_active_provider_config] 返回环境变量配置")
             return JSONResponse(content={
-                "success": False,
-                "message": "请先在设置页面配置 LLM API Key"
-            }, status_code=404)
+                "success": True,
+                "data": default_config
+            })
 
-        # 返回完整配置（包含 API Key）
+        # 如果环境变量未配置，返回错误提示
         return JSONResponse(content={
-            "success": True,
-            "data": config.to_full_dict()
-        })
+            "success": False,
+            "message": "请先在设置页面配置 LLM API Key"
+        }, status_code=404)
     except Exception as e:
         logger.error(f"获取活动配置失败：{e}")
         return JSONResponse(content={
@@ -174,22 +219,28 @@ async def save_provider_config(
     temperature: Optional[float] = Body(None, embed=True),
     max_input_tokens: Optional[int] = Body(None, embed=True),
     max_output_tokens: Optional[int] = Body(None, embed=True),
-    db: Session = Depends(get_db)
 ):
     """
-    保存服务商配置
+    验证并保存服务商配置元数据
+
+    注意（feat-002）：API Key 不再保存到数据库，由前端 localStorage 管理。
+    此端点仅用于验证 API Key 格式和测试连接。
 
     支持的服务商：deepseek、openai、claude、glm
 
     参数：
     - provider: 服务商标识
-    - api_key: API 密钥
+    - api_key: API 密钥（仅用于验证，不保存）
     - base_url: 自定义 API 地址（可选）
     - model: 模型名称（可选）
-    - is_default: 是否设为默认服务商
+    - is_default: 是否设为默认服务商（保留兼容性）
     - temperature: 生成温度（可选）
     - max_input_tokens: 最大输入 token（可选）
     - max_output_tokens: 最大输出 token（可选）
+
+    Returns:
+        - success: True 表示验证通过
+        - message: 提示信息
     """
     try:
         # 验证服务商是否支持
@@ -199,43 +250,28 @@ async def save_provider_config(
                 "message": f"不支持的服务商：{provider}，支持的服务商：{', '.join(SUPPORTED_PROVIDERS)}"
             }, status_code=400)
 
-        # 检查是否已存在配置
-        existing = get_config_by_provider(db, provider)
-        if existing:
-            # 更新配置
-            config = update_config(
-                db, provider,
-                api_key=api_key,
-                base_url=base_url,
-                model=model,
-                is_default=is_default,
-                temperature=temperature,
-                max_input_tokens=max_input_tokens,
-                max_output_tokens=max_output_tokens
-            )
-        else:
-            # 创建配置
-            config = create_config(
-                db, provider,
-                api_key=api_key,
-                base_url=base_url,
-                model=model,
-                is_default=is_default,
-                temperature=temperature,
-                max_input_tokens=max_input_tokens,
-                max_output_tokens=max_output_tokens
-            )
+        # API Key 仅保存在前端 localStorage，此处仅验证格式
+        if not api_key or len(api_key) < 8:
+            return JSONResponse(content={
+                "success": False,
+                "message": "API Key 格式无效"
+            }, status_code=400)
+
+        logger.info(f"[save_provider_config] 验证通过，provider={provider}")
 
         return JSONResponse(content={
             "success": True,
-            "message": "配置保存成功",
-            "data": config.to_dict()
+            "message": "配置验证成功（API Key 由浏览器本地存储管理）",
+            "data": {
+                "provider": provider,
+                "api_key_masked": f"{api_key[:4]}...{api_key[-4:]}" if len(api_key) > 8 else "***"
+            }
         })
     except Exception as e:
-        logger.error(f"保存配置失败：{e}")
+        logger.error(f"验证配置失败：{e}")
         return JSONResponse(content={
             "success": False,
-            "message": f"保存配置失败：{str(e)}"
+            "message": f"验证配置失败：{str(e)}"
         }, status_code=500)
 
 
@@ -388,3 +424,4 @@ async def test_connection(
             "success": False,
             "message": f"连接测试失败：{str(e)}"
         }, status_code=400)
+
