@@ -6,9 +6,28 @@
  * - 所有幻灯片（原始/处理后的/融合生成的）统一存储在幻灯片池中
  * - 每个幻灯片可以有多个版本（原始版本、润色版本、扩展版本等）
  * - 最终 PPT 从幻灯片池中选择任意版本的页面组合
+ *
+ * feat-245: 重新导出后端生成的类型定义
  */
 
 import type { SlideContent } from './merge-plan'
+
+// feat-245: 从 generated.ts 重新导出后端同步的类型
+export type {
+  ElementType,
+  SlideType,
+  TeachingRole,
+  SlideStatus,
+  Position,
+  Style,
+  Paragraph,
+  ElementData,
+  TeachingContent,
+  SlideData,
+  DocumentData,
+} from './generated'
+
+export { type SlideVersion as BackendSlideVersion, type SlideState, type DocumentState, type SessionData } from './generated'
 
 /** 幻灯片来源类型 */
 export type SlideSourceType = 'ppt_a' | 'ppt_b' | 'merge' | 'generated'

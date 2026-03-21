@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate:types": "cd ../backend && python scripts/generate_types.py"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

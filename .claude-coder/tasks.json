@@ -158,7 +158,7 @@
                 "验证: 生成的 TypeScript 类型与 Python Pydantic 模型一致",
                 "验证: pnpm tsc --noEmit 无错误"
             ],
-            "status": "pending",
+            "status": "done",
             "depends_on": [
                 "feat-244"
             ]
