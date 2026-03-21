@@ -5,34 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
+import {
+  getLLMConfigFromLocalStorage,
+  saveLLMConfigToLocalStorage,
+  clearLLMConfigFromLocalStorage,
+  getDefaultLLMConfig,
+  type LLMConfig
+} from '@/lib/llmConfig'
 import { apiBaseUrl } from '@/lib/api'
-
-// 配置类型
-interface LLMConfig {
-  provider: string
-  apiKey: string
-  baseUrl: string
-  model: string
-  temperature?: number
-  maxInputTokens?: number
-  maxOutputTokens?: number
-  isDefault?: boolean
-  isActive?: boolean
-}
-
-// 服务商配置（后端返回的格式）
-interface ServerProviderConfig {
-  id?: number
-  provider: string
-  api_key_masked?: string
-  base_url?: string
-  model?: string
-  temperature?: number
-  max_input_tokens?: number
-  max_output_tokens?: number
-  is_default?: boolean
-  is_active?: boolean
-}
 
 // 服务商配置（前端选项格式）
 interface ProviderOption {
@@ -61,48 +41,42 @@ const DEFAULT_CONFIG: LLMConfig = {
 
 export default function SettingsPage() {
   const [config, setConfig] = useState<LLMConfig>(DEFAULT_CONFIG)
-  const [savedConfigs, setSavedConfigs] = useState<ServerProviderConfig[]>([])
-  const [defaultProvider, setDefaultProvider] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [hasLocalConfig, setHasLocalConfig] = useState(false)
 
   const API_BASE = `${apiBaseUrl}/api/v1`
 
-  // 加载已保存的配置
+  // 初始化加载配置：优先 localStorage，其次后端默认配置
   useEffect(() => {
-    loadSavedConfigs()
-  }, [])
+    const loadConfig = async () => {
+      setIsLoading(true)
 
-  const loadSavedConfigs = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/config/providers`)
-      const result = await response.json()
-      if (result.success) {
-        setSavedConfigs(result.data || [])
-        // 查找默认服务商
-        const defaultConfig = (result.data || []).find((c: ServerProviderConfig) => c.is_default)
-        if (defaultConfig) {
-          setDefaultProvider(defaultConfig.provider)
-          setConfig({
-            provider: defaultConfig.provider,
-            apiKey: "", // 不加载完整 API Key
-            baseUrl: defaultConfig.base_url || "",
-            model: defaultConfig.model || "",
-            temperature: defaultConfig.temperature ?? 0.7,
-            maxInputTokens: defaultConfig.max_input_tokens ?? 8000,
-            maxOutputTokens: defaultConfig.max_output_tokens ?? 4000,
-          })
-        }
+      // 1. 优先从 localStorage 获取用户配置
+      const localConfig = getLLMConfigFromLocalStorage()
+      if (localConfig) {
+        setConfig(localConfig)
+        setHasLocalConfig(true)
+        setIsLoading(false)
+        return
       }
-    } catch (error) {
-      console.error("加载配置失败:", error)
-    } finally {
+
+      // 2. 从后端获取环境变量默认配置
+      const defaultConfig = await getDefaultLLMConfig()
+      if (defaultConfig) {
+        setConfig(defaultConfig)
+        setHasLocalConfig(false)
+      }
+
       setIsLoading(false)
     }
-  }
 
+    loadConfig()
+  }, [])
+
+  // 保存配置到 localStorage
   const handleSave = async () => {
     if (!config.apiKey) {
       setTestResult({ success: false, message: "API Key 不能为空" })
@@ -113,30 +87,10 @@ export default function SettingsPage() {
     setTestResult(null)
 
     try {
-      const response = await fetch(`${API_BASE}/config/providers/${config.provider}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          api_key: config.apiKey,
-          base_url: config.baseUrl || undefined,
-          model: config.model || undefined,
-          is_default: true, // 保存时设为默认
-          temperature: config.temperature,
-          max_input_tokens: config.maxInputTokens,
-          max_output_tokens: config.maxOutputTokens,
-        }),
-      })
-
-      const result = await response.json()
-      if (result.success) {
-        setTestResult({ success: true, message: "配置保存成功" })
-        // 重新加载配置列表
-        await loadSavedConfigs()
-        // feat-240: 不再写入 localStorage，配置由后端数据库管理
-        // 前端通过 /config/providers/default/active API 获取配置
-      } else {
-        setTestResult({ success: false, message: result.message || "保存失败" })
-      }
+      // 保存到 localStorage
+      saveLLMConfigToLocalStorage(config)
+      setHasLocalConfig(true)
+      setTestResult({ success: true, message: "配置保存成功（已保存到浏览器本地存储）" })
     } catch (error) {
       setTestResult({ success: false, message: "保存失败" })
     } finally {
@@ -145,6 +99,7 @@ export default function SettingsPage() {
     }
   }
 
+  // 测试连接
   const handleTest = async () => {
     if (!config.apiKey) {
       setTestResult({ success: false, message: "请先输入 API Key" })
@@ -175,238 +130,209 @@ export default function SettingsPage() {
     }
   }
 
-  const handleSetDefault = async (provider: string) => {
-    try {
-      const response = await fetch(`${API_BASE}/config/providers/${provider}/set-default`, {
-        method: "POST",
-      })
-      const result = await response.json()
-      if (result.success) {
-        setDefaultProvider(provider)
-        await loadSavedConfigs()
-      }
-    } catch (error) {
-      console.error("设置默认服务商失败:", error)
-    }
+  // 清除配置
+  const handleClear = () => {
+    clearLLMConfigFromLocalStorage()
+    setConfig(DEFAULT_CONFIG)
+    setHasLocalConfig(false)
+    setTestResult({ success: true, message: "配置已清除" })
+    setTimeout(() => setTestResult(null), 3000)
   }
 
+  // 服务商切换
   const handleProviderChange = (provider: string) => {
     const providerConfig = PROVIDER_OPTIONS.find(p => p.provider === provider)
-    const savedConfig = savedConfigs.find((c: ServerProviderConfig) => c.provider === provider)
 
     if (providerConfig) {
       setConfig({
         provider,
-        apiKey: "", // 不自动填充 API Key
-        baseUrl: savedConfig?.base_url || providerConfig.baseUrl,
-        model: savedConfig?.model || providerConfig.model,
-        temperature: savedConfig?.temperature ?? 0.7,
-        maxInputTokens: savedConfig?.max_input_tokens ?? 8000,
-        maxOutputTokens: savedConfig?.max_output_tokens ?? 4000,
+        apiKey: "", // 切换服务商时清空 API Key
+        baseUrl: providerConfig.baseUrl,
+        model: providerConfig.model,
+        temperature: 0.7,
+        maxInputTokens: 8000,
+        maxOutputTokens: 4000,
       })
     }
-  }
-
-  const isConfigured = (provider: string) => {
-    return savedConfigs.some((c: ServerProviderConfig) => c.provider === provider && c.is_active)
   }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">设置</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        {/* 左侧：服务商列表 */}
-        <div className="md:col-span-1">
-          <div className="bg-white rounded-xl border p-4 shadow-sm">
-            <h2 className="text-lg font-semibold mb-4">已配置的服务商</h2>
-            {isLoading ? (
-              <p className="text-gray-500">加载中...</p>
-            ) : savedConfigs.length === 0 ? (
-              <p className="text-gray-500 text-sm">暂无已配置的服务商</p>
-            ) : (
-              <ul className="space-y-2">
-                {savedConfigs.map((c: ServerProviderConfig) => (
-                  <li
-                    key={c.provider}
-                    className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                      c.provider === config.provider
-                        ? "bg-indigo-50 border-indigo-200"
-                        : "bg-white hover:bg-gray-50"
-                    }`}
-                    onClick={() => handleProviderChange(c.provider)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-gray-900">{c.provider}</p>
-                        <p className="text-xs text-gray-500">{c.api_key_masked || "未配置 API Key"}</p>
-                      </div>
-                      {c.is_default && (
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">默认</span>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+      {/* 配置状态提示 */}
+      {hasLocalConfig && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+          <p className="text-green-800 text-sm">
+            ✓ 已保存配置到浏览器本地存储，服务商：{config.provider}
+          </p>
         </div>
+      )}
 
-        {/* 右侧：配置表单 */}
-        <div className="md:col-span-2">
-          <div className="bg-white rounded-xl border p-6 shadow-sm">
-            <h2 className="text-xl font-semibold mb-4">LLM 服务商配置</h2>
+      <div className="bg-white rounded-xl border p-6 shadow-sm">
+        <h2 className="text-xl font-semibold mb-4">LLM 服务商配置</h2>
 
-            <div className="space-y-4">
-              {/* 服务商选择 */}
-              <div>
-                <Label htmlFor="provider">服务商</Label>
-                <Select
-                  id="provider"
-                  value={config.provider}
-                  onChange={(e) => handleProviderChange(e.target.value)}
-                >
-                  {PROVIDER_OPTIONS.map((option) => (
-                    <option key={option.provider} value={option.provider}>
-                      {option.name} {isConfigured(option.provider) && "✓"}
-                    </option>
-                  ))}
-                </Select>
-              </div>
+        {isLoading ? (
+          <p className="text-gray-500">加载中...</p>
+        ) : (
+          <div className="space-y-4">
+            {/* 服务商选择 */}
+            <div>
+              <Label htmlFor="provider">服务商</Label>
+              <Select
+                id="provider"
+                value={config.provider}
+                onChange={(e) => handleProviderChange(e.target.value)}
+              >
+                {PROVIDER_OPTIONS.map((option) => (
+                  <option key={option.provider} value={option.provider}>
+                    {option.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
 
-              {/* API Key */}
-              <div>
-                <Label htmlFor="apiKey">API Key</Label>
-                <Input
-                  id="apiKey"
-                  type="password"
-                  value={config.apiKey}
-                  onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
-                  placeholder="请输入 API Key"
+            {/* API Key */}
+            <div>
+              <Label htmlFor="apiKey">API Key</Label>
+              <Input
+                id="apiKey"
+                type="password"
+                value={config.apiKey}
+                onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
+                placeholder="请输入 API Key"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                API Key 仅保存在浏览器本地存储中，不会上传到服务器。
+              </p>
+            </div>
+
+            {/* Base URL（可选） */}
+            <div>
+              <Label htmlFor="baseUrl">API Base URL（可选）</Label>
+              <Input
+                id="baseUrl"
+                value={config.baseUrl}
+                onChange={(e) => setConfig({ ...config, baseUrl: e.target.value })}
+                placeholder={PROVIDER_OPTIONS.find(p => p.provider === config.provider)?.baseUrl}
+              />
+            </div>
+
+            {/* 模型名称（可选） */}
+            <div>
+              <Label htmlFor="model">模型名称（可选）</Label>
+              <Input
+                id="model"
+                value={config.model}
+                onChange={(e) => setConfig({ ...config, model: e.target.value })}
+                placeholder={PROVIDER_OPTIONS.find(p => p.provider === config.provider)?.model}
+              />
+            </div>
+
+            {/* 高级 LLM 参数配置 */}
+            <div className="pt-4 border-t">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">高级 LLM 参数配置</h3>
+
+              {/* 温度滑块 */}
+              <div className="mb-4">
+                <Label htmlFor="temperature">温度（Temperature）: {config.temperature?.toFixed(1)}</Label>
+                <input
+                  id="temperature"
+                  type="range"
+                  min="0"
+                  max="2"
+                  step="0.1"
+                  value={config.temperature || 0.7}
+                  onChange={(e) => setConfig({ ...config, temperature: parseFloat(e.target.value) })}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                 />
-                <p className="text-sm text-gray-500 mt-1">
-                  您的 API Key 将加密存储在服务器数据库中。
-                </p>
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>0（确定）</span>
+                  <span>1（平衡）</span>
+                  <span>2（随机）</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">温度越低输出越确定，越高越有创造力。建议值：0.5-0.8</p>
               </div>
 
-              {/* Base URL（可选） */}
-              <div>
-                <Label htmlFor="baseUrl">API Base URL（可选）</Label>
+              {/* 最大输入 Token */}
+              <div className="mb-4">
+                <Label htmlFor="maxInputTokens">最大输入 Token 数</Label>
                 <Input
-                  id="baseUrl"
-                  value={config.baseUrl}
-                  onChange={(e) => setConfig({ ...config, baseUrl: e.target.value })}
-                  placeholder={PROVIDER_OPTIONS.find(p => p.provider === config.provider)?.baseUrl}
+                  id="maxInputTokens"
+                  type="number"
+                  min="1000"
+                  max="128000"
+                  step="1000"
+                  value={config.maxInputTokens || 8000}
+                  onChange={(e) => setConfig({ ...config, maxInputTokens: parseInt(e.target.value) || 8000 })}
+                  placeholder="8000"
                 />
+                <p className="text-xs text-gray-500 mt-1">限制发送给 LLM 的最大输入 token 数（提示词 + 历史消息）</p>
               </div>
 
-              {/* 模型名称（可选） */}
-              <div>
-                <Label htmlFor="model">模型名称（可选）</Label>
+              {/* 最大输出 Token */}
+              <div className="mb-4">
+                <Label htmlFor="maxOutputTokens">最大输出 Token 数</Label>
                 <Input
-                  id="model"
-                  value={config.model}
-                  onChange={(e) => setConfig({ ...config, model: e.target.value })}
-                  placeholder={PROVIDER_OPTIONS.find(p => p.provider === config.provider)?.model}
+                  id="maxOutputTokens"
+                  type="number"
+                  min="100"
+                  max="32000"
+                  step="100"
+                  value={config.maxOutputTokens || 4000}
+                  onChange={(e) => setConfig({ ...config, maxOutputTokens: parseInt(e.target.value) || 4000 })}
+                  placeholder="4000"
                 />
+                <p className="text-xs text-gray-500 mt-1">限制 LLM 返回的最大 token 数，较大的值可能生成更长的响应</p>
               </div>
+            </div>
 
-              {/* 高级 LLM 参数配置 */}
-              <div className="pt-4 border-t">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">高级 LLM 参数配置</h3>
-
-                {/* 温度滑块 */}
-                <div className="mb-4">
-                  <Label htmlFor="temperature">温度（Temperature）: {config.temperature?.toFixed(1)}</Label>
-                  <input
-                    id="temperature"
-                    type="range"
-                    min="0"
-                    max="2"
-                    step="0.1"
-                    value={config.temperature || 0.7}
-                    onChange={(e) => setConfig({ ...config, temperature: parseFloat(e.target.value) })}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>0（确定）</span>
-                    <span>1（平衡）</span>
-                    <span>2（随机）</span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">温度越低输出越确定，越高越有创造力。建议值：0.5-0.8</p>
-                </div>
-
-                {/* 最大输入 Token */}
-                <div className="mb-4">
-                  <Label htmlFor="maxInputTokens">最大输入 Token 数</Label>
-                  <Input
-                    id="maxInputTokens"
-                    type="number"
-                    min="1000"
-                    max="128000"
-                    step="1000"
-                    value={config.maxInputTokens || 8000}
-                    onChange={(e) => setConfig({ ...config, maxInputTokens: parseInt(e.target.value) || 8000 })}
-                    placeholder="8000"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">限制发送给 LLM 的最大输入 token 数（提示词 + 历史消息）</p>
-                </div>
-
-                {/* 最大输出 Token */}
-                <div className="mb-4">
-                  <Label htmlFor="maxOutputTokens">最大输出 Token 数</Label>
-                  <Input
-                    id="maxOutputTokens"
-                    type="number"
-                    min="100"
-                    max="32000"
-                    step="100"
-                    value={config.maxOutputTokens || 4000}
-                    onChange={(e) => setConfig({ ...config, maxOutputTokens: parseInt(e.target.value) || 4000 })}
-                    placeholder="4000"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">限制 LLM 返回的最大 token 数，较大的值可能生成更长的响应</p>
-                </div>
-              </div>
-
-              {/* 按钮组 */}
-              <div className="flex gap-4 pt-4">
+            {/* 按钮组 */}
+            <div className="flex gap-4 pt-4">
+              <Button
+                onClick={handleSave}
+                disabled={isSaving || !config.apiKey}
+                className="flex-1"
+              >
+                {isSaving ? "保存中..." : "保存配置"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleTest}
+                disabled={isTesting || !config.apiKey}
+                className="flex-1"
+              >
+                {isTesting ? "测试中..." : "测试连接"}
+              </Button>
+              {hasLocalConfig && (
                 <Button
-                  onClick={handleSave}
-                  disabled={isSaving || !config.apiKey}
+                  variant="destructive"
+                  onClick={handleClear}
                   className="flex-1"
                 >
-                  {isSaving ? "保存中..." : "保存配置"}
+                  清除配置
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleTest}
-                  disabled={isTesting || !config.apiKey}
-                  className="flex-1"
-                >
-                  {isTesting ? "测试中..." : "测试连接"}
-                </Button>
-              </div>
-
-              {/* 测试结果 */}
-              {testResult && (
-                <div
-                  className={`mt-4 p-4 rounded-lg ${
-                    testResult.success
-                      ? "bg-green-50 text-green-800"
-                      : "bg-red-50 text-red-800"
-                  }`}
-                >
-                  {testResult.message}
-                </div>
               )}
             </div>
+
+            {/* 测试结果 */}
+            {testResult && (
+              <div
+                className={`mt-4 p-4 rounded-lg ${
+                  testResult.success
+                    ? "bg-green-50 text-green-800"
+                    : "bg-red-50 text-red-800"
+                }`}
+              >
+                {testResult.message}
+              </div>
+            )}
           </div>
-        </div>
+        )}
       </div>
 
       {/* 关于说明 */}
-      <div className="bg-white rounded-xl border p-6 shadow-sm">
+      <div className="bg-white rounded-xl border p-6 shadow-sm mt-6">
         <h2 className="text-xl font-semibold mb-4">关于</h2>
         <p className="text-gray-600">
           AI 教学 PPT 生成器使用 LLM 服务来生成教学内容。
@@ -416,7 +342,7 @@ export default function SettingsPage() {
           支持的服务商：DeepSeek、OpenAI、Claude、智谱 GLM
         </p>
         <p className="text-gray-600 mt-2 text-sm">
-          配置保存后会在所有页面中使用，无需重复配置。
+          配置仅保存在浏览器本地存储中，刷新页面后仍可使用。清除浏览器数据后需要重新配置。
         </p>
       </div>
     </div>

@@ -723,7 +723,7 @@
                 "验证: pnpm tsc --noEmit 无错误",
                 "验证: 设置页面保存后 localStorage 存在 llm_config 键"
             ],
-            "status": "pending",
+            "status": "done",
             "depends_on": [
                 "feat-003"
             ]
