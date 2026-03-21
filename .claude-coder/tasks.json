@@ -268,7 +268,7 @@
                 "验证: 文档与代码实现一致",
                 "验证: 文档链接正确无死链"
             ],
-            "status": "pending",
+            "status": "done",
             "depends_on": [
                 "feat-248",
                 "feat-249"
