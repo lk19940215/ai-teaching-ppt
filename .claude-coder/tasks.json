@@ -137,7 +137,7 @@
                 "验证: python -m py_compile app/models/ppt_structure.py 无错误",
                 "验证: to_dict 函数与 Pydantic model_dump 兼容"
             ],
-            "status": "pending",
+            "status": "done",
             "depends_on": [
                 "feat-242"
             ]
