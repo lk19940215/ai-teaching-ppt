@@ -1,33 +1,33 @@
 {
   "name": "ai-teaching-ppt",
-  "detected_at": "2026-03-12T16:13:00",
+  "detected_at": "2026-03-21T23:16:00",
   "project_type": "existing",
   "tech_stack": {
-    "languages": ["typescript", "python"],
+    "languages": ["python", "typescript"],
     "backend": {
       "framework": "fastapi",
       "runtime": "uvicorn",
       "entry": "app.main:app"
     },
     "frontend": {
-      "framework": "nextjs",
+      "framework": "react",
       "bundler": "next",
       "dir": "frontend"
     },
     "database": "sqlite",
-    "package_managers": ["pnpm", "pip"]
+    "package_managers": ["pip", "pnpm"]
   },
   "services": [
     {
       "name": "backend",
-      "command": "uvicorn app.main:app --reload --port 8000",
+      "command": "cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload",
       "port": 8000,
       "health_check": "http://localhost:8000/health",
       "cwd": "backend"
     },
     {
       "name": "frontend",
-      "command": "pnpm dev",
+      "command": "cd frontend && pnpm dev",
       "port": 3000,
       "health_check": "http://localhost:3000",
       "cwd": "frontend"
@@ -40,25 +40,22 @@
   "existing_docs": [
     "README.md",
     ".claude/CLAUDE.md",
-    "docs/canvas-preview.md",
-    "docs/ppt-structure.md",
-    "docs/code-review-merge-flow.md",
-    "docs/research-ai-content-rendering.md",
-    "docs/research-frontend-pptx-rendering.md"
+    "docs/technical-spec.md",
+    "docs/refactor-plan.md"
   ],
-  "has_tests": true,
+  "has_tests": false,
   "has_docker": true,
   "mcp_tools": {
-    "playwright": true
+    "web_test_tool": "playwright"
   },
   "custom_init": [],
   "scan_files_checked": [
-    "package.json",
-    "requirements.txt",
-    "docker-compose.yml",
-    "README.md",
-    ".claude/CLAUDE.md",
+    "backend/requirements.txt",
     "backend/app/main.py",
-    ".mcp.json"
+    "backend/app/config.py",
+    "frontend/package.json",
+    "docs/technical-spec.md",
+    "docs/refactor-plan.md",
+    ".claude-coder/.env"
   ]
 }

@@ -1,215 +1,82 @@
-# Claude Coding Agent Guide
+# AI Teaching PPT
 
-## Project
+## WHAT（做什么）
 
-AI Teaching PPT Generator: converts teaching materials (text/image/PDF) into interactive PPTX slides.
+一个基于 Web 的 PPT 处理工具：用户上传 PPTX 文件，系统解析内容在浏览器中展示，用户选择页面进行 AI 润色/改写/扩展/提取，最终导出保留原始格式的 PPTX 文件。
 
-Stack:
+## WHY（为什么做）
 
-* Frontend: Next.js 15 + TypeScript + Tailwind (`frontend/`)
-* Backend: FastAPI + python-pptx + OOXML (`backend/`)
-* DB: SQLite (history)
+帮助教师和内容创作者快速优化 PPT 内容，无需手动逐页编辑。AI 处理保持原有格式（字体、颜色、动画），只修改文字内容。
 
-Pipeline:
-input → LLM structured content → python-pptx PPTX → animation/interaction injection.
+## HOW（怎么做）
 
-Important constraints:
+### 技术架构
 
-* PPT generation MUST run in backend (python-pptx supports animations; frontend libraries do not).
-* Long generation (60–180s) uses SSE progress streaming.
-* API keys are stored in frontend localStorage (single-user desktop app).
-
----
-
-## Repository Navigation
-
-Explore in this order:
-
-1. `glob` → understand structure
-2. `grep` → locate symbols
-3. read only necessary files
-
-Key paths:
-
-* Upload / generate page
-  `frontend/src/app/upload/page.tsx`
-
-* History UI
-  `frontend/src/app/history/page.tsx`
-
-* Settings
-  `frontend/src/app/settings/page.tsx`
-
-* Generate API
-  `backend/app/api/v1/generate.py`
-
-* Content generation
-  `backend/app/services/content_generator.py`
-
-* PPTX generation
-  `backend/app/services/ppt_generator.py`
-
-* Animation injection
-  `backend/app/services/pptx_animator.py`
-
-* History API
-  `backend/app/api/v1/history.py`
-
-* Canvas 预览组件
-  `frontend/src/components/ppt-canvas-renderer.tsx`
-  `frontend/src/components/ppt-canvas-preview.tsx`
-
-* PPT 合并页面
-  `frontend/src/app/merge/page.tsx`
-
-* Canvas 文档
-  `docs/canvas-preview.md`
-
----
-
-## Development Commands
-
-Backend:
-
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
-
-Frontend:
-
-cd frontend
-pnpm install
-pnpm dev
-
----
-
-## Validation
-
-After changes:
-
-Frontend:
-pnpm tsc --noEmit
-
-Backend:
-python -m py_compile app/main.py
-
-Health check:
-
-curl http://localhost:8000/health
-
-E2E tests:
-
-cd frontend
-pnpm exec playwright test
-
----
-
-## Editing Rules
-
-* Make minimal changes.
-* Avoid modifying unrelated files.
-* Preserve architecture and API contracts.
-
-Never modify:
-
-* `requirements.md`
-* `.claude-coder/playwright-auth.json`
-
-UI language: Chinese.
-Code comments: Chinese.
-
----
-
-## Playwright MCP
-
-Playwright MCP is configured.
-
-Authentication requires:
-
---isolated
---storage-state
-
-Both flags must be used together or localStorage will not load.
-
-Config:
-`.mcp.json`
-
-Auth state:
-`.claude-coder/playwright-auth.json`
-
----
-
-## Execution Strategy
-
-For non-trivial tasks:
-
-1. explore repository
-2. create a short plan
-3. implement step-by-step
-4. validate with type check / compile / tests
-
-Minimize tool calls and avoid reading large files unless required.
-
----
-
-## Testing Guidelines
-
-### Playwright MCP Waiting Strategy (Multi-stage `browser_wait_for`)
-
-For long-running tasks (SSE streaming, AI generation, file processing), use **multi-stage `browser_wait_for`** instead of single long timeout:
-
-```json
-{
-  "steps": [
-    "【环境】curl http://localhost:8000/health",
-    "【P0】browser_navigate http://localhost:3000/merge",
-    "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
-    "【P0】browser_file_upload paths=['PPT *.pptx']",
-    "【P0】browser_wait_for text='共 5 页' timeout=10000",
-    "【P0】browser_file_upload paths=['PPT *.pptx']",
-    "【P0】browser_wait_for text='共 5 页' timeout=10000",
-    "【P0】browser_click ref=[合并按钮ref]",
-    "【P0】browser_wait_for text='📚 正在解析 PPT 内容...' timeout=10000 (阶段1：解析)",
-    "【P0】browser_wait_for text='🤖 正在调用 AI 生成合并策略...' timeout=60000 (阶段2：AI)",
-    "【P0】browser_wait_for text='🔧 正在执行智能合并...' timeout=60000 (阶段3：合并)",
-    "【P0】browser_wait_for text='✅ 合并完成！' timeout=60000 (阶段4：完成)",
-    "【P0】browser_snapshot 验证下载链接"
-  ]
-}
+```
+Frontend (Next.js 15)     Backend (FastAPI)      AI (OpenAI 兼容 API)
+     │                         │                        │
+     │   1. 上传 PPTX          │                        │
+     ├────────────────────────►│                        │
+     │                         │   2. PPTXReader 解析   │
+     │   3. 返回结构化数据      │                        │
+     │◄────────────────────────┤                        │
+     │                         │                        │
+     │   4. 选择页面+AI操作     │                        │
+     ├────────────────────────►│   5. 调用 LLM          │
+     │                         ├───────────────────────►│
+     │                         │   6. 返回修改指令       │
+     │   7. 返回修改预览        │◄───────────────────────┤
+     │◄────────────────────────┤                        │
+     │                         │                        │
+     │   8. 确认修改            │                        │
+     ├────────────────────────►│   9. PPTXWriter 写回   │
+     │   10. 下载链接          │                        │
+     │◄────────────────────────┤                        │
 ```
 
-**Rationale**:
-- `browser_wait_for` has an internal 30s limit, but **multi-stage waiting works around this**
-- Each stage has realistic timeout based on actual processing time
-- Provides better visibility into where failures occur
-- Aligns with SSE progress events (10% → 50% → 75% → 100%)
+### 核心模块
 
-**Stage-specific timeouts**:
-- File upload/parse: 10s
-- LLM strategy generation: 60s (API call + response)
-- PPT merging: 60s
-- Final completion: 60s
+| 模块 | 路径 | 职责 |
+|------|------|------|
+| PPTXReader | backend/app/core/pptx_reader.py | 解析 PPTX 为结构化 JSON |
+| ContentExtractor | backend/app/core/content_extractor.py | 提取 AI 友好文本 |
+| AIProcessor | backend/app/ai/processor.py | LLM 处理编排 |
+| PPTXWriter | backend/app/core/pptx_writer.py | Run 级别写回，保留格式 |
 
-**Total**: ~190s coverage vs single 180s timeout
+### API 端点
 
----
+| 端点 | 方法 | 功能 |
+|------|------|------|
+| /api/v1/ppt/upload | POST | 上传 PPTX，返回解析结果 |
+| /api/v1/ppt/process | POST | AI 处理选定页面 |
+| /api/v1/ppt/apply | POST | 确认修改，生成新 PPTX |
+| /api/v1/ppt/download/{session_id} | GET | 下载生成的文件 |
+| /api/v1/config/llm | GET/POST | 获取/保存 LLM 配置 |
 
-## Troubleshooting
+### 启动命令
 
-### Known Issues
+```bash
+# 后端（端口 8000）
+cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-**SSE Progress Stuck at 40%**:
-- Symptom: Progress shows "正在连接生成服务..." and hangs
-- Root cause: Backend uvicorn process blocked on async queue
-- Fix: Restart backend service (`npx kill-port 8000` then restart uvicorn)
+# 前端（端口 3000）
+cd frontend && pnpm dev
+```
 
-**browser_wait_for Timeouts Early**:
-- Symptom: Set timeout=180000 but actual wait is ~30s
-- Root cause: Playwright MCP internal 30s hard limit
-- Workaround: Use multi-stage `browser_wait_for` as shown above
-- Alternative: Use `browser_run_code` with custom polling logic
+### 数据模型（三层管道）
 
-**Downloaded PPT Cannot Open**:
-- Symptom: File downloads but PowerPoint shows "文件损坏"
-- Root cause: Incorrect Content-Type or corrupted file write
-- Fix: Use `fetch + blob` download method instead of direct link
+1. **PPTX 解析模型** (ParsedPresentation)：完整表示 PPTX 结构
+2. **AI 友好内容模型** (SlideContent)：纯文本 + 源映射
+3. **修改指令模型** (ProcessingResult)：精确描述改什么、改成什么
+
+详细定义见 docs/technical-spec.md。
+
+### 关键技术点
+
+- **Run 级别文本替换**：只修改 <a:t> 节点，保留 <a:rPr> 格式属性
+- **shape_index 映射**：通过索引定位原始 Shape 进行修改
+- **OpenAI 兼容协议**：支持 DeepSeek、GLM、Claude 等多家模型
+
+### 项目状态
+
+当前处于重构阶段，详见 docs/refactor-plan.md。

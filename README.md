@@ -1,128 +1,74 @@
-# AI 教学 PPT 智能合并工具
+# AI Teaching PPT
 
-> **Built with [Claude Coder](https://github.com/lk19940215/claude-coder)** — 纯 AI Agent 驱动开发
-
-将多个教学 PPT 智能合并，支持页面级润色、扩展、改写、知识点提取，生成可编辑的 .pptx 文件。
-
-## 功能特点
-
-- **PPT 智能合并**：上传两个 PPT，AI 分析内容后智能合并
-- **单页处理**：润色、扩展、改写、知识点提取
-- **多页融合**：合并多个页面内容为一张新幻灯片
-- **Canvas 预览**：真实的 PPT 页面 Canvas 渲染
-- **版本管理**：每个幻灯片支持多版本预览和切换
-- **标准格式输出**：生成 .pptx 文件，WPS / PowerPoint 均可编辑
-- **多 AI 模型**：支持 DeepSeek / OpenAI / Claude / 智谱 GLM
+一个基于 Web 的 PPT 处理工具，支持 AI 润色/改写/扩展/提取，保留原始格式导出。
 
 ## 技术栈
 
-| 层 | 技术 |
-|---|---|
-| 前端 | Next.js 15 + TypeScript + Tailwind CSS |
-| 后端 | Python FastAPI + SQLite |
-| PPT 生成 | python-pptx + OOXML |
-| Canvas 预览 | 原生 Canvas 2D + LRU 缓存 |
-| 测试 | Playwright E2E |
+| 层级 | 技术 |
+|------|------|
+| 后端 | Python 3.x + FastAPI + uvicorn |
+| 前端 | Next.js 15 + React 18 + TypeScript + Tailwind CSS |
+| 数据库 | SQLite |
+| AI | OpenAI 兼容 API (DeepSeek/GLM/Claude 等) |
+| PPTX | python-pptx (读写) + PyMuPDF (预览) |
+
+## 目录结构
+
+```
+ai-teaching-ppt/
+├── backend/                 # 后端服务
+│   ├── app/
+│   │   ├── main.py         # 入口
+│   │   ├── config.py       # 配置
+│   │   ├── api/            # HTTP 接口
+│   │   ├── core/           # PPTX 解析/写回
+│   │   ├── ai/             # LLM 处理
+│   │   └── models/         # 数据库模型
+│   ├── requirements.txt
+│   └── .env                # LLM 配置
+├── frontend/               # 前端服务
+│   ├── src/
+│   │   ├── app/           # Next.js App Router
+│   │   ├── components/    # React 组件
+│   │   └── hooks/         # 自定义 Hooks
+│   └── package.json
+├── docs/                   # 技术文档
+│   ├── technical-spec.md  # 技术规范
+│   └── refactor-plan.md   # 重构计划
+└── .claude/               # Claude Code 配置
+    └── CLAUDE.md          # 项目指令
+```
 
 ## 快速开始
 
-### 环境要求
-
-| 依赖 | 版本 | 说明 |
-|---|---|---|
-| Python | 3.11+ | 后端服务 |
-| Node.js | 20+ | 前端服务 |
-| pnpm | latest | 前端包管理 |
-
-### 开发环境启动
+### 1. 后端
 
 ```bash
-git clone https://github.com/lk19940215/ai-teaching-ppt.git
-cd ai-teaching-ppt
-
-# 后端
-cd backend && python -m venv ../.venv
-# Windows
-..\..venv\Scripts\activate
-# Linux/macOS
-source ../.venv/bin/activate
+cd backend
+python -m venv .venv
+.venv\Scripts\activate  # Windows
 pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
 
-# 前端
-cd ../frontend && pnpm install && pnpm dev
+# 配置 LLM (编辑 .env)
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
+
+### 2. 前端
+
+```bash
+cd frontend
+pnpm install
+pnpm dev
+```
+
+### 3. 访问
 
 - 前端：http://localhost:3000
 - 后端 API 文档：http://localhost:8000/docs
 
-## 使用指南
+## 功能
 
-### 1. 配置 LLM
-
-访问 `/settings` 页面，配置 AI 模型的 API Key：
-
-- DeepSeek（推荐，性价比高）
-- OpenAI
-- Claude
-- 智谱 GLM
-
-### 2. 上传 PPT
-
-访问 `/merge` 页面，上传两个 PPTX 文件。系统会自动解析并显示预览。
-
-### 3. 处理幻灯片
-
-选中幻灯片后可进行以下操作：
-
-| 操作 | 说明 |
-|---|---|
-| 润色 | 优化文字表达，保持原意 |
-| 扩展 | 补充更多细节和示例 |
-| 改写 | 以不同风格重写内容 |
-| 提取 | 提取知识点和关键信息 |
-
-### 4. 合并页面
-
-选中多个幻灯片后点击「合并」，AI 会智能融合内容为一张新幻灯片。
-
-### 5. 生成最终 PPT
-
-将处理好的幻灯片添加到最终选择栏，点击「生成最终 PPT」下载。
-
-## Canvas 预览
-
-Canvas 预览功能使用原生 Canvas 2D 渲染 PPT 页面：
-
-| 元素 | 支持程度 |
-|---|---|
-| 文本 | ✅ 完全支持（字体、颜色、对齐） |
-| 图片 | ✅ 完全支持 |
-| 表格 | ✅ 完全支持 |
-| 形状 | ✅ 支持 |
-
-详细文档：[docs/canvas-preview.md](docs/canvas-preview.md)
-
-## 项目结构
-
-```
-ai-teaching-ppt/
-├── backend/
-│   ├── app/api/          # API 路由
-│   └── app/services/     # 业务逻辑
-├── frontend/
-│   ├── src/app/          # 页面路由
-│   └── src/components/   # UI 组件
-├── docs/                 # 技术文档
-└── requirements.md       # 需求文档
-```
-
-## 文档
-
-- [用户指南](docs/user-guide.md) - 详细使用教程
-- [Canvas 预览功能](docs/canvas-preview.md) - Canvas 渲染技术文档
-- [PPT 数据结构](docs/ppt-structure.md) - 解析/AI处理/渲染三阶段数据结构定义
-
-## License
-
-MIT
+- 上传 PPTX 文件，解析展示
+- 选择页面进行 AI 处理（润色/改写/扩展/提取）
+- 预览修改内容，确认后导出
+- 保留原始格式（字体、颜色、动画）
