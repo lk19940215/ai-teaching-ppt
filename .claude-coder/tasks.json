@@ -231,7 +231,7 @@
                 "验证: python -m py_compile app/services/llm.py 无错误",
                 "验证: 修改 base_url 后单例正确重建而非复用旧实例"
             ],
-            "status": "pending",
+            "status": "done",
             "depends_on": []
         },
         {

@@ -414,12 +414,20 @@ def get_llm_service(
     temperature: float = 0.7,
     max_tokens: int = 4000
 ) -> LLMService:
-    """获取 LLM 服务单例"""
+    """获取 LLM 服务单例
+
+    feat-248: 添加 base_url 和 model 参数检查，确保配置变更时重建单例
+    """
     global _llm_service_instance
     if _llm_service_instance is None or \
        _llm_service_instance.api_key != api_key or \
        _llm_service_instance.provider != provider or \
+       _llm_service_instance.base_url != base_url or \
+       _llm_service_instance.model != model or \
        _llm_service_instance.temperature != temperature or \
        _llm_service_instance.max_tokens != max_tokens:
+        logger.info(f"[get_llm_service] 创建新的 LLM 服务实例: provider={provider}, base_url={base_url or 'default'}, model={model or 'default'}")
         _llm_service_instance = LLMService(provider, api_key, base_url, model, temperature, max_tokens)
+    else:
+        logger.debug(f"[get_llm_service] 复用现有 LLM 服务实例: provider={provider}")
     return _llm_service_instance
