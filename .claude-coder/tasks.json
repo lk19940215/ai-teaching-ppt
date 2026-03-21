@@ -1,7 +1,7 @@
 {
     "project": "ai-teaching-ppt",
     "last_updated": "2026-03-21",
-    "next_task_priority": 7,
+    "next_task_priority": 253,
     "completed_milestones": [
         {
             "name": "基础设施与核心流程",
@@ -215,6 +215,63 @@
             "depends_on": [
                 "feat-245",
                 "feat-246"
+            ]
+        },
+        {
+            "id": "feat-248",
+            "category": "backend",
+            "priority": 250,
+            "description": "修复 LLM 服务单例缓存不检查 base_url/model 的问题",
+            "steps": [
+                "读取方案文档 .claude-coder/plan/sunny-enchanting-marshmallow.md 第2.1节",
+                "读取 backend/app/services/llm.py 第409-425行 get_llm_service 函数",
+                "在单例判断条件中添加 base_url 参数检查",
+                "在单例判断条件中添加 model 参数检查",
+                "添加日志记录单例创建/复用情况",
+                "验证: python -m py_compile app/services/llm.py 无错误",
+                "验证: 修改 base_url 后单例正确重建而非复用旧实例"
+            ],
+            "status": "pending",
+            "depends_on": []
+        },
+        {
+            "id": "feat-249",
+            "category": "backend",
+            "priority": 251,
+            "description": "增强 LLM 服务调用错误日志",
+            "steps": [
+                "读取方案文档 .claude-coder/plan/sunny-enchanting-marshmallow.md 第2.2节",
+                "读取 backend/app/api/ppt.py 第715行附近 ai_merge_single_page 函数",
+                "在函数入口添加详细日志：page_index, action, provider, base_url, model",
+                "在创建 ContentMerger 前添加日志记录配置参数",
+                "在 LLM 调用异常捕获中添加更详细的错误上下文",
+                "验证: python -m py_compile app/api/ppt.py 无错误",
+                "验证: 触发错误后日志包含完整请求参数信息"
+            ],
+            "status": "pending",
+            "depends_on": [
+                "feat-248"
+            ]
+        },
+        {
+            "id": "feat-250",
+            "category": "infra",
+            "priority": 252,
+            "description": "创建 API 数据流文档",
+            "steps": [
+                "读取方案文档 .claude-coder/plan/sunny-enchanting-marshmallow.md 第3节",
+                "创建 docs/api-data-flow.md 文件",
+                "编写 /api/v1/ppt/ai-merge-single 完整请求格式（FormData 参数说明）",
+                "编写响应格式（AiMergeSingleResponse、UnifiedSlideContent 结构）",
+                "编写各 action 的返回格式差异表格",
+                "编写错误响应格式规范（HTTP 400/500）",
+                "验证: 文档与代码实现一致",
+                "验证: 文档链接正确无死链"
+            ],
+            "status": "pending",
+            "depends_on": [
+                "feat-248",
+                "feat-249"
             ]
         }
     ]

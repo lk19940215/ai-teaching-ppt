@@ -850,6 +850,42 @@
       "taskId": "feat-243",
       "statusAfter": "done",
       "notes": null
+    },
+    {
+      "session": 10,
+      "timestamp": "202603210418",
+      "result": "success",
+      "cost": 1.3151835,
+      "taskId": "feat-244",
+      "statusAfter": "done",
+      "notes": null
+    },
+    {
+      "session": 11,
+      "timestamp": "202603210423",
+      "result": "success",
+      "cost": 2.5342580000000003,
+      "taskId": "feat-245",
+      "statusAfter": "done",
+      "notes": null
+    },
+    {
+      "session": 12,
+      "timestamp": "202603210427",
+      "result": "success",
+      "cost": 0.976978,
+      "taskId": "feat-246",
+      "statusAfter": "done",
+      "notes": null
+    },
+    {
+      "session": 13,
+      "timestamp": "202603210440",
+      "result": "success",
+      "cost": 6.163096499999999,
+      "taskId": "feat-247",
+      "statusAfter": "done",
+      "notes": "测试受限于 API Key 无效未能完成端到端验证。修复了后端 API 缺少 base_url/model 参数的 bug，前端现在正确传递自定义 API 配置。curl 测试确认参数传递到 LLM 服务，返回 401 认证错误证明参数传递链路正常。"
     }
   ]
 }
