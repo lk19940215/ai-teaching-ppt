@@ -702,7 +702,7 @@
                 "修改 requireLLMConfig() 使用新的获取逻辑",
                 "验证: pnpm tsc --noEmit 无错误"
             ],
-            "status": "pending",
+            "status": "done",
             "depends_on": [
                 "feat-002"
             ]
