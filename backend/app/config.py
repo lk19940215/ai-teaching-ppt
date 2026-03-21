@@ -1,6 +1,13 @@
+import json
+import logging
 import os
 from pathlib import Path
+from typing import Any, Dict, Optional
+
 from pydantic_settings import BaseSettings
+
+logger = logging.getLogger(__name__)
+
 
 class Settings(BaseSettings):
     # 项目根目录
@@ -25,6 +32,10 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "deepseek-chat"
 
+    # LLM 默认配置（从环境变量读取，JSON 格式）
+    # 格式: {"provider":"xxx","apiKey":"xxx","baseUrl":"xxx","model":"xxx",...}
+    LLM_CONFIG: str = ""
+
     # PPT 模板配置
     TEMPLATE_DIR: Path = BASE_DIR / "app" / "templates"
 
@@ -34,6 +45,24 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+
+    def get_default_llm_config(self) -> Optional[Dict[str, Any]]:
+        """
+        从环境变量解析默认 LLM 配置
+
+        Returns:
+            解析后的配置字典，如果未配置或解析失败则返回 None
+        """
+        if not self.LLM_CONFIG:
+            return None
+        try:
+            config = json.loads(self.LLM_CONFIG)
+            logger.info("[get_default_llm_config] 成功解析 LLM_CONFIG 环境变量")
+            return config
+        except json.JSONDecodeError as e:
+            logger.warning(f"[get_default_llm_config] LLM_CONFIG 环境变量 JSON 解析失败: {e}")
+            return None
+
 
 settings = Settings()
 

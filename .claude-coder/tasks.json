@@ -664,7 +664,7 @@
                 "验证: python -m py_compile app/config.py 无错误",
                 "验证: curl http://localhost:8000/health 返回 200"
             ],
-            "status": "pending",
+            "status": "done",
             "depends_on": []
         },
         {
