@@ -104,6 +104,27 @@ class SlideContent(TypedDict, total=False):
     key_vocabulary: List[VocabularyItem]    # 关键词汇列表
 
 
+class UnifiedSlideContent(TypedDict, total=False):
+    """统一幻灯片内容结构
+    feat-241: 统一 content_snapshot 数据结构格式
+
+    所有 action（polish/expand/rewrite/extract）返回的内容统一为此格式，
+    确保前端渲染逻辑一致。
+
+    结构说明：
+    - title: 幻灯片标题
+    - main_points: 主要要点列表（最多 6 条）
+    - additional_content: 额外内容（向后兼容，与 metadata.additional_content 同步）
+    - elements: 元素列表（可选，用于保留原始元素）
+    - metadata: 元数据（action、原始信息、额外内容等）
+    """
+    title: str
+    main_points: List[str]
+    additional_content: str  # 向后兼容字段
+    elements: List[Dict[str, Any]]
+    metadata: Dict[str, Any]  # 包含 action, additional_content, 原始信息等
+
+
 class SinglePageResult(TypedDict):
     """单页处理结果"""
     action: str
@@ -672,8 +693,11 @@ class ContentMerger:
         data: Dict[str, Any],
         action: str,
         original: Dict[str, Any]
-    ) -> SlideContent:
-        """根据 action 类型提取对应的内容字段并标准化为 SlideContent 格式"""
+    ) -> UnifiedSlideContent:
+        """根据 action 类型提取对应的内容字段并标准化为 UnifiedSlideContent 格式
+
+        feat-241: 统一返回 UnifiedSlideContent 格式
+        """
         # 不同 action 的字段名映射
         action_field_map = {
             "polish": "polished_content",
@@ -696,14 +720,26 @@ class ContentMerger:
             return self._normalize_extract_content(content, data)
         else:
             result = content if isinstance(content, dict) else {}
-            result["main_points"] = self._validate_and_convert_points(
+            main_points = self._validate_and_convert_points(
                 result.get("main_points", []),
                 f"_extract_content_by_action.{action}"
             )
-            return result
+            additional = result.get("additional_content", "")
+            return {
+                "title": result.get("title", ""),
+                "main_points": main_points[:6],
+                "additional_content": additional,
+                "elements": result.get("elements", []),
+                "metadata": {
+                    "action": action,
+                    "additional_content": additional
+                }
+            }
 
-    def _normalize_polish_content(self, content: Dict[str, Any], data: Dict[str, Any]) -> SlideContent:
-        """标准化润色内容"""
+    def _normalize_polish_content(self, content: Dict[str, Any], data: Dict[str, Any]) -> UnifiedSlideContent:
+        """标准化润色内容
+        feat-241: 返回 UnifiedSlideContent 格式
+        """
         title = content.get("title", "")
         main_points = []
         changes = data.get("changes", [])
@@ -741,11 +777,19 @@ class ContentMerger:
         return {
             "title": title or "润色后的内容",
             "main_points": main_points[:6],
-            "additional_content": ""
+            "additional_content": "",
+            "elements": [],
+            "metadata": {
+                "action": "polish",
+                "additional_content": "",
+                "changes": changes
+            }
         }
 
-    def _normalize_expand_content(self, content: Dict[str, Any], data: Dict[str, Any]) -> SlideContent:
-        """标准化扩展内容"""
+    def _normalize_expand_content(self, content: Dict[str, Any], data: Dict[str, Any]) -> UnifiedSlideContent:
+        """标准化扩展内容
+        feat-241: 返回 UnifiedSlideContent 格式
+        """
         title = content.get("title", "")
         main_points = content.get("expanded_points", content.get("original_points", []))
 
@@ -769,11 +813,21 @@ class ContentMerger:
         return {
             "title": title or "扩展后的内容",
             "main_points": main_points[:6],
-            "additional_content": additional
+            "additional_content": additional,
+            "elements": [],
+            "metadata": {
+                "action": "expand",
+                "additional_content": additional,
+                "original_points": original_points,
+                "expanded_points": expanded_points,
+                "new_examples": new_examples
+            }
         }
 
-    def _normalize_rewrite_content(self, content: Dict[str, Any], data: Dict[str, Any]) -> SlideContent:
-        """标准化改写内容"""
+    def _normalize_rewrite_content(self, content: Dict[str, Any], data: Dict[str, Any]) -> UnifiedSlideContent:
+        """标准化改写内容
+        feat-241: 返回 UnifiedSlideContent 格式
+        """
         title = content.get("title", "")
         main_content = content.get("main_content", "")
 
@@ -795,11 +849,19 @@ class ContentMerger:
         return {
             "title": title or "改写后的内容",
             "main_points": main_points,
-            "additional_content": additional_content
+            "additional_content": additional_content,
+            "elements": [],
+            "metadata": {
+                "action": "rewrite",
+                "additional_content": additional_content,
+                "style_features": style_features
+            }
         }
 
-    def _normalize_extract_content(self, content: Dict[str, Any], data: Dict[str, Any]) -> SlideContent:
-        """标准化提取内容"""
+    def _normalize_extract_content(self, content: Dict[str, Any], data: Dict[str, Any]) -> UnifiedSlideContent:
+        """标准化提取内容
+        feat-241: 返回 UnifiedSlideContent 格式
+        """
         title = data.get("knowledge_summary", "知识点提取")
         main_points = []
 
@@ -852,7 +914,16 @@ class ContentMerger:
         return {
             "title": title,
             "main_points": main_points[:6],
-            "additional_content": additional_content
+            "additional_content": additional_content,
+            "elements": [],
+            "metadata": {
+                "action": "extract",
+                "additional_content": additional_content,
+                "core_concepts": core_concepts,
+                "formulas": formulas,
+                "methods": methods,
+                "common_mistakes": common_mistakes
+            }
         }
 
     # ==================== 私有方法：验证与清理 ====================
@@ -996,17 +1067,30 @@ class ContentMerger:
         self,
         content: Dict[str, Any],
         original: Dict[str, Any]
-    ) -> SlideContent:
-        """确保 SlideContent 包含必要字段"""
+    ) -> UnifiedSlideContent:
+        """确保 UnifiedSlideContent 包含必要字段
+        feat-241: 更新为返回 UnifiedSlideContent 格式
+        """
         original_title = self._get_original_title(original)
 
         raw_points = content.get("main_points") or []
         main_points = self._validate_and_convert_points(raw_points, "_ensure_slide_content_fields")
 
+        # 兼容旧格式：从 content 中提取 additional_content
+        additional_content = content.get("additional_content") or ""
+        if not additional_content:
+            metadata = content.get("metadata", {})
+            additional_content = metadata.get("additional_content", "")
+
         return {
             "title": content.get("title") or original_title or "处理后的内容",
             "main_points": main_points[:6],
-            "additional_content": content.get("additional_content") or ""
+            "additional_content": additional_content,
+            "elements": content.get("elements", []),
+            "metadata": {
+                "action": content.get("metadata", {}).get("action", ""),
+                "additional_content": additional_content
+            }
         }
 
     def _get_original_title(self, original: Dict[str, Any]) -> str:
@@ -1025,8 +1109,10 @@ class ContentMerger:
         self,
         response_text: str,
         original: Dict[str, Any]
-    ) -> SlideContent:
-        """从响应文本中提取结构化内容（解析失败时的兜底方案）"""
+    ) -> UnifiedSlideContent:
+        """从响应文本中提取结构化内容（解析失败时的兜底方案）
+        feat-241: 返回 UnifiedSlideContent 格式
+        """
         title = self._get_original_title(original)
         main_points = []
         additional_content = ""
@@ -1085,7 +1171,12 @@ class ContentMerger:
         return {
             "title": title or "处理后的内容",
             "main_points": main_points,
-            "additional_content": additional_content
+            "additional_content": additional_content,
+            "elements": [],
+            "metadata": {
+                "action": "",
+                "additional_content": additional_content
+            }
         }
 
     def _extract_json(self, text: str) -> Dict[str, Any]:

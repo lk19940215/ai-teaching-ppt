@@ -1,6 +1,6 @@
 {
   "session_result": "success",
-  "status_before": "N/A",
-  "status_after": "N/A",
-  "notes": "追加了 7 个任务（feat-241 ~ feat-247）：统一 content_snapshot 格式、增强样式提取、增强 AI 响应解析鲁棒性、Pydantic 模型重构、前后端类型同步、文档更新、全流程验证。方案文档已写入 .claude-coder/plan/async-dreaming-micali.md"
+  "status_before": "pending",
+  "status_after": "done",
+  "notes": ""
 }

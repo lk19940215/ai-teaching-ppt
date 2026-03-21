@@ -4,123 +4,33 @@
     "next_task_priority": 7,
     "completed_milestones": [
         {
-            "name": "基础设施搭建",
-            "summary": "后端 FastAPI、前端 Next.js、Docker 部署",
-            "at": "2026-03-02"
-        },
-        {
-            "name": "核心生成流程",
-            "summary": "文件上传/OCR、LLM 内容生成、PPTX 生成",
-            "at": "2026-03-02"
-        },
-        {
-            "name": "学科增强与自适应",
-            "summary": "英语专属页面、年级自适应、K-12 扩展",
-            "at": "2026-03-03"
-        },
-        {
-            "name": "历史记录与 LLM 配置",
-            "summary": "生成历史、LLM 服务商切换、参数配置",
-            "at": "2026-03-03"
-        },
-        {
-            "name": "PPT 质量优化",
-            "summary": "提示词优化、模板优化、动画效果、点击显示答案",
-            "at": "2026-03-04"
-        },
-        {
-            "name": "学科深度优化",
-            "summary": "提示词引擎、语文/数学/理科/文科/英语专属",
-            "at": "2026-03-04"
-        },
-        {
-            "name": "教学设计科学化",
-            "summary": "认知负荷、布鲁姆分类、情境创设、差异化教学",
+            "name": "基础设施与核心流程",
+            "summary": "FastAPI/Next.js/Docker搭建、文件上传/OCR、LLM生成、PPTX输出、SSE流式反馈",
             "at": "2026-03-05"
         },
         {
-            "name": "前端优化与修复",
-            "summary": "Dark Mode、交互动画、API 环境变量、进度反馈",
+            "name": "学科与教学优化",
+            "summary": "K-12扩展、学科专属提示词、认知负荷/布鲁姆分类、互动环节、练习题生成",
             "at": "2026-03-05"
         },
         {
-            "name": "后端优化与修复",
-            "summary": "JSON 解析、Playwright 测试、E2E 测试",
-            "at": "2026-03-06"
-        },
-        {
-            "name": "SSE 流式反馈",
-            "summary": "SSE 流式生成进度推送",
-            "at": "2026-03-05"
-        },
-        {
-            "name": "/merge 基础测试与修复",
-            "summary": "核心流程测试、多场景测试、错误处理",
-            "at": "2026-03-08"
-        },
-        {
-            "name": "/merge 增强 - Canvas 与提示词",
-            "summary": "Canvas 预览重构、提示词编辑器、AI 合并",
-            "at": "2026-03-09"
-        },
-        {
-            "name": "AI 内容级合并",
-            "summary": "PPT 解析、AI 融合引擎、真实渲染预览、单页编辑",
-            "at": "2026-03-10"
-        },
-        {
-            "name": "PPT 合并增强与版本化预览",
-            "summary": "实时预览生成、累积进度、最终PPT生成、兜底渲染",
-            "at": "2026-03-11"
-        },
-        {
-            "name": "/merge 问题修复与全流程优化",
-            "summary": "PPT上传CORS修复、数据类型安全、占位符过滤、单页处理、全流程监控",
+            "name": "PPT合并功能",
+            "summary": "Canvas预览重构、AI融合引擎、单页编辑、版本化预览、最终PPT生成、CORS修复",
             "at": "2026-03-18"
         },
         {
-            "name": "PPT 渲染优化",
-            "summary": "PptxViewJSRenderer集成、SlideContentRenderer创建、Canvas渲染优化、降级链路、性能缓存、图片base64支持",
+            "name": "渲染与类型安全",
+            "summary": "PptxViewJS集成、SlideContentRenderer、降级链路、图片base64、JSON序列化、字段验证",
             "at": "2026-03-19"
         },
         {
-            "name": "AI 内容渲染与类型安全",
-            "summary": "SlideContentRenderer elements渲染、单页处理结构化返回、路由格式统一、safe_join_list、字段类型验证",
-            "at": "2026-03-19"
-        },
-        {
-            "name": "E2E测试与监控系统",
-            "summary": "类型安全全流程测试、监控面板集成、JSON序列化日志、日志导出功能",
-            "at": "2026-03-19"
-        },
-        {
-            "name": "前端架构清理与重构",
-            "summary": "删除冗余页面、简化导航、组件目录重构、渲染工具函数抽取",
+            "name": "架构重构",
+            "summary": "删除冗余页面/API/服务、导航简化、组件目录重组、content_merger重构、依赖清理",
             "at": "2026-03-21"
         },
         {
-            "name": "后端架构清理与重构",
-            "summary": "删除冗余API/服务、依赖清理、路由精简、content_merger重构、工具模块抽取",
-            "at": "2026-03-21"
-        },
-        {
-            "name": "E2E测试套件",
-            "summary": "文件上传测试、单页处理测试、多页合并测试、最终选择测试、LLM配置测试",
-            "at": "2026-03-21"
-        },
-        {
-            "name": "教学增强功能",
-            "summary": "SlideContent类型扩展、提示词模板增强、预览组件优化、质量评估器",
-            "at": "2026-03-21"
-        },
-        {
-            "name": "API Key 配置重构",
-            "summary": "环境变量支持、默认配置API、localStorage优先策略、设置页面本地保存",
-            "at": "2026-03-21"
-        },
-        {
-            "name": "文档与修复",
-            "summary": "项目文档清理、根页面404修复、润色接口代理配置",
+            "name": "配置与测试体系",
+            "summary": "API Key localStorage策略、环境变量配置、E2E测试套件、监控面板、文档更新",
             "at": "2026-03-21"
         }
     ],
@@ -164,7 +74,7 @@
                 "验证: python -m py_compile app/services/content_merger.py 无错误",
                 "验证: 四种 action 返回的 content_snapshot 结构一致"
             ],
-            "status": "pending",
+            "status": "done",
             "depends_on": []
         },
         {
