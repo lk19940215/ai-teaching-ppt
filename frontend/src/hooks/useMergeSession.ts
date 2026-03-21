@@ -329,7 +329,7 @@ export function useMergeSession(): UseMergeSessionReturn {
   }, [])
 
   // 处理单页
-  // feat-213: 调用新的 /api/v1/ppt/ai-merge-single API，支持实时 PNG 预览
+  // feat-252: 优化数据流，直接传递已解析的内容，无需传文件
   const processSlide = useCallback(async (
     slideId: string,
     action: SlideAction,
@@ -341,6 +341,12 @@ export function useMergeSession(): UseMergeSessionReturn {
     const slideItem = session.slide_pool[slideId]
     if (!slideItem) {
       return { success: false, error: '幻灯片不存在' }
+    }
+
+    // 获取当前版本的内容
+    const currentVersion = getCurrentVersion(slideItem)
+    if (!currentVersion) {
+      return { success: false, error: '幻灯片版本不存在' }
     }
 
     // 设置处理状态
@@ -359,35 +365,6 @@ export function useMergeSession(): UseMergeSessionReturn {
       // feat-240: 从后端获取 LLM 配置，避免 localStorage 配置丢失
       const llmConfig = await requireLLMConfig()
 
-      // 确定来源文档
-      const source = slideItem.original_source === 'ppt_a' ? 'A' :
-                     slideItem.original_source === 'ppt_b' ? 'B' : 'A'
-      const pptFile = source === 'A' ? session.ppt_a_file : session.ppt_b_file
-
-      if (!pptFile) {
-        throw new Error('PPT 文件不存在')
-      }
-
-      // feat-213: 调用新的单页处理 API
-      const formData = new FormData()
-      formData.append('file', pptFile)
-      formData.append('page_index', slideItem.original_index.toString())
-      formData.append('action', action)
-      formData.append('provider', llmConfig.provider || 'deepseek')
-      formData.append('api_key', llmConfig.apiKey)
-      // feat-247: 传递自定义 Base URL 和模型名称
-      if (llmConfig.baseUrl) {
-        formData.append('base_url', llmConfig.baseUrl)
-      }
-      if (llmConfig.model) {
-        formData.append('model', llmConfig.model)
-      }
-      formData.append('temperature', '0.3')
-      formData.append('max_tokens', '3000')
-      if (prompt) {
-        formData.append('custom_prompt', prompt)
-      }
-
       // 更新进度
       setSession(prev => ({
         ...prev,
@@ -398,10 +375,30 @@ export function useMergeSession(): UseMergeSessionReturn {
         },
       }))
 
-      // feat-213: 使用新 API /api/v1/ppt/ai-merge-single（直接返回 JSON，非 SSE）
+      // feat-252: 使用已解析的内容，不再传文件
+      // 从当前版本的 content 中获取已解析的内容
+      const slideContent = {
+        title: currentVersion.content.title || '',
+        content: currentVersion.content.main_points || [],
+        shapes: currentVersion.shapes,  // 可选，用于增强渲染
+      }
+
+      const requestBody = {
+        slide_content: slideContent,
+        action: action,
+        custom_prompt: prompt || undefined,
+        provider: llmConfig.provider || 'deepseek',
+        api_key: llmConfig.apiKey,
+        base_url: llmConfig.baseUrl || undefined,
+        model: llmConfig.model || undefined,
+        temperature: 0.3,
+        max_tokens: 3000,
+      }
+
       const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/ai-merge-single`, {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
       })
 
       // feat-202: 增强 fetch 错误处理，记录完整错误详情和 URL
@@ -419,7 +416,7 @@ export function useMergeSession(): UseMergeSessionReturn {
         throw new Error(errorData.detail || `HTTP ${response.status}`)
       }
 
-      // feat-213: 解析 JSON 响应（非 SSE）
+      // 解析 JSON 响应
       const result = await response.json()
 
       if (!result.success) {
@@ -532,7 +529,7 @@ export function useMergeSession(): UseMergeSessionReturn {
         error: err.message || '处理失败',
       }
     }
-  }, [session.slide_pool, session.ppt_a_file, session.ppt_b_file])
+  }, [session.slide_pool])
 
   // 融合多个幻灯片
   const mergeSlides = useCallback(async (
@@ -574,25 +571,45 @@ export function useMergeSession(): UseMergeSessionReturn {
         }
       }
 
-      // 调用后端 API
-      const formData = new FormData()
-      formData.append('file_a', session.ppt_a_file || new File([], 'placeholder'))
-      formData.append('file_b', session.ppt_b_file || new File([], 'placeholder'))
-      formData.append('merge_type', 'partial')
-      formData.append('selected_pages_a', pagesA.join(','))
-      formData.append('selected_pages_b', pagesB.join(','))
-      formData.append('provider', llmConfig.provider || 'deepseek')
-      formData.append('api_key', llmConfig.apiKey)
-      formData.append('temperature', '0.3')
-      formData.append('max_tokens', '3000')
-      if (prompt) {
-        formData.append('custom_prompt', prompt)
+      // 将文件转换为 Base64
+      const fileToBase64 = async (file: File | null): Promise<string | undefined> => {
+        if (!file) return undefined
+        const fileBuffer = await file.arrayBuffer()
+        const uint8Array = new Uint8Array(fileBuffer)
+        let base64 = ''
+        const chunkSize = 8192
+        for (let i = 0; i < uint8Array.length; i += chunkSize) {
+          const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length))
+          base64 += String.fromCharCode.apply(null, Array.from(chunk))
+        }
+        return btoa(base64)
+      }
+
+      const fileAContent = await fileToBase64(session.ppt_a_file)
+      const fileBContent = await fileToBase64(session.ppt_b_file)
+
+      const requestBody = {
+        file_a_content: fileAContent,
+        file_a_name: session.ppt_a_file?.name || 'PPT_A.pptx',
+        file_b_content: fileBContent,
+        file_b_name: session.ppt_b_file?.name || 'PPT_B.pptx',
+        merge_type: 'partial',
+        selected_pages_a: pagesA,
+        selected_pages_b: pagesB,
+        custom_prompt: prompt || undefined,
+        provider: llmConfig.provider || 'deepseek',
+        api_key: llmConfig.apiKey,
+        base_url: llmConfig.baseUrl || undefined,
+        model: llmConfig.model || undefined,
+        temperature: 0.3,
+        max_tokens: 3000,
       }
 
       // feat-205: 使用 monitoredFetch 替代 fetch
       const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/ai-merge`, {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
       })
 
       if (!response.ok) {
@@ -648,7 +665,8 @@ export function useMergeSession(): UseMergeSessionReturn {
         }
       }
 
-      if (!finalResult || !finalResult.new_slide) {
+      // 适配响应格式
+      if (!finalResult) {
         throw new Error('未收到融合结果')
       }
 
@@ -664,12 +682,14 @@ export function useMergeSession(): UseMergeSessionReturn {
         }
       })
 
+      // 从结果中提取内容
+      const resultContent = finalResult.new_slide || finalResult
       const newSlide = createMergedSlidePoolItem(
         mergedIndex,
         sources,
         {
-          title: finalResult.new_slide.title,
-          main_points: finalResult.new_slide.elements?.map((e: any) => e.content) || [],
+          title: resultContent.title || '融合幻灯片',
+          main_points: resultContent.main_points || resultContent.elements?.map((e: any) => e.content) || [],
         }
       )
 
@@ -705,7 +725,7 @@ export function useMergeSession(): UseMergeSessionReturn {
         error: err.message || '融合失败',
       }
     }
-  }, [session.slide_pool, session.ppt_a_file, session.ppt_b_file])
+  }, [session.slide_pool])
 
   // 切换版本
   const selectVersion = useCallback((slideId: string, versionId: string) => {

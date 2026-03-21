@@ -30,20 +30,14 @@ from ..models.llm_config_crud import (
     set_default_provider,
     validate_api_key,
 )
-from ..services.llm import LLMService, LLMProvider
+from ..ai.llm_client import LLMClient
 from ..config import settings
 
 router = APIRouter(prefix="/api/v1", tags=["config"])
 
 logger = logging.getLogger(__name__)
 
-# 支持的 LLM 服务商列表
-SUPPORTED_PROVIDERS = [
-    LLMProvider.DEEPSEEK,
-    LLMProvider.OPENAI,
-    LLMProvider.CLAUDE,
-    LLMProvider.GLM,
-]
+SUPPORTED_PROVIDERS = ["deepseek", "openai", "claude", "glm"]
 
 # 默认 LLM 参数
 DEFAULT_TEMPERATURE = 0.7
@@ -392,19 +386,18 @@ async def test_connection(
         llm_temperature = temperature if temperature is not None else DEFAULT_TEMPERATURE
         llm_max_tokens = max_tokens if max_tokens is not None else DEFAULT_MAX_TOKENS
 
-        llm_service = LLMService(
+        llm_client = LLMClient(
             provider=provider,
             api_key=api_key,
             base_url=base_url,
             model=model,
             temperature=llm_temperature,
-            max_tokens=llm_max_tokens
+            max_tokens=llm_max_tokens,
+            timeout=CONNECTION_TEST_TIMEOUT,
         )
 
-        # 发送测试请求
-        response = llm_service.chat(
+        response = llm_client.chat(
             messages=[{"role": "user", "content": "请回复'连接成功'"}],
-            timeout=CONNECTION_TEST_TIMEOUT
         )
 
         return JSONResponse(content={

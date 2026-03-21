@@ -122,8 +122,6 @@ interface SinglePageProcessorProps {
   source: "A" | "B" | null
   sessionId: string | null
   documentId: "ppt_a" | "ppt_b" | null
-  // PPT 文件（用于调用 API）
-  pptFile: File | null
   // 是否正在处理
   isProcessing?: boolean
   // 回调
@@ -139,7 +137,6 @@ export function SinglePageProcessor({
   source,
   sessionId,
   documentId,
-  pptFile,
   isProcessing: externalProcessing = false,
   onProcessingStart,
   onProcessingComplete,
@@ -161,8 +158,9 @@ export function SinglePageProcessor({
   const processing = isProcessing || externalProcessing
 
   // 执行单页处理
+  // feat-252: 优化数据流，直接传递已解析的内容
   const handleProcess = useCallback(async () => {
-    if (!selectedAction || !pageData || !pptFile || !source) {
+    if (!selectedAction || !pageData || !source) {
       onProcessingError?.("缺少必要参数")
       return
     }
@@ -176,25 +174,30 @@ export function SinglePageProcessor({
       // feat-240: 从后端获取 LLM 配置，避免 localStorage 配置丢失
       const llmConfig = await requireLLMConfig()
 
-      const formData = new FormData()
-      formData.append("file_a", source === "A" ? pptFile : new File([], "placeholder"))
-      formData.append("file_b", source === "B" ? pptFile : new File([], "placeholder"))
-      formData.append("merge_type", "single")
-      formData.append("single_page_index", pageData.index.toString())
-      formData.append("single_page_action", selectedAction)
-      formData.append("source_doc", source)
-      formData.append("provider", llmConfig.provider || "deepseek")
-      formData.append("api_key", llmConfig.apiKey)
-      formData.append("temperature", "0.3")
-      formData.append("max_tokens", "3000")
-
-      if (customPrompt) {
-        formData.append("custom_prompt", customPrompt)
+      // feat-252: 使用已解析的内容，不再传文件
+      const slideContent = {
+        title: pageData.title || '',
+        content: pageData.content || [],
       }
 
-      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/ai-merge`, {
+      const requestBody = {
+        slide_content: slideContent,
+        action: selectedAction,
+        custom_prompt: customPrompt || undefined,
+        provider: llmConfig.provider || "deepseek",
+        api_key: llmConfig.apiKey,
+        base_url: llmConfig.baseUrl || undefined,
+        model: llmConfig.model || undefined,
+        temperature: 0.3,
+        max_tokens: 3000,
+      }
+
+      setProgress({ stage: "thinking", message: "AI 正在处理..." })
+
+      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/ai-merge-single`, {
         method: "POST",
-        body: formData
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
       })
 
       if (!response.ok) {
@@ -202,65 +205,22 @@ export function SinglePageProcessor({
         throw new Error(errorData.detail || `HTTP ${response.status}`)
       }
 
-      const reader = response.body?.getReader()
-      if (!reader) {
-        throw new Error("无法读取响应流")
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || "处理失败")
       }
 
-      const decoder = new TextDecoder()
-      let buffer = ""
-      let finalResult: ProcessingResult | null = null
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split("\n")
-        buffer = lines.pop() || ""
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const dataStr = line.slice(6)
-            try {
-              const event = JSON.parse(dataStr)
-
-              if (event.type === "heartbeat") continue
-
-              if (event.stage) {
-                const stageMessages: Record<string, string> = {
-                  parsing: "正在解析页面内容...",
-                  calling_llm: "正在调用 AI...",
-                  thinking: "AI 正在思考...",
-                  merging: "正在处理内容...",
-                  complete: "处理完成！"
-                }
-                setProgress({
-                  stage: event.stage,
-                  message: event.message || stageMessages[event.stage] || "处理中..."
-                })
-              }
-
-              if (event.stage === "error") {
-                throw new Error(event.message || "处理失败")
-              }
-
-              if (event.stage === "complete" && event.result) {
-                finalResult = event.result as ProcessingResult
-              }
-            } catch (e) {
-              console.warn("解析 SSE 事件失败:", e)
-            }
-          }
-        }
+      // 转换结果格式
+      const finalResult: ProcessingResult = {
+        action: selectedAction,
+        original_summary: pageData.title,
+        new_content: result.content,
+        changes: []
       }
 
-      if (finalResult) {
-        setResult(finalResult)
-        onProcessingComplete?.(finalResult)
-      } else {
-        throw new Error("未收到处理结果")
-      }
+      setResult(finalResult)
+      onProcessingComplete?.(finalResult)
     } catch (err: any) {
       console.error("单页处理失败:", err)
       onProcessingError?.(err.message || "单页处理失败，请重试")
@@ -268,7 +228,7 @@ export function SinglePageProcessor({
       setIsProcessing(false)
       setProgress(null)
     }
-  }, [selectedAction, pageData, pptFile, source, customPrompt, onProcessingStart, onProcessingComplete, onProcessingError])
+  }, [selectedAction, pageData, source, customPrompt, onProcessingStart, onProcessingComplete, onProcessingError])
 
   // 应用结果
   const handleApply = useCallback(() => {

@@ -50,9 +50,11 @@ backend/test_*.pptx
 
 # 动态生成的图片预览文件
 public/versions/
+public/images/
 
 .claude-coder/*
 !.claude-coder/tasks.json
 !.claude-coder/project_profile.json
 !.claude-coder/design/
 !.claude-coder/design_origin/
+!.claude-coder/harness_state.json
