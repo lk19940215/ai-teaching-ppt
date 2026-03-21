@@ -742,7 +742,8 @@ async def ai_merge_single_page(
     output_pptx = None
 
     try:
-        logger.info(f"单页处理请求: page={page_index}, action={action}, file={file.filename}")
+        # feat-249: 增强入口日志，记录完整请求参数
+        logger.info(f"单页处理请求: page={page_index}, action={action}, file={file.filename}, provider={provider}, base_url={base_url or 'default'}, model={model or 'default'}")
 
         # 保存上传文件
         content = await file.read()
@@ -772,6 +773,9 @@ async def ai_merge_single_page(
 
         # 调用 LLM 处理
         from ..services.content_merger import get_content_merger
+
+        # feat-249: 记录 LLM 配置参数
+        logger.info(f"创建 ContentMerger: provider={provider}, base_url={base_url or 'default'}, model={model or 'default'}, temperature={temperature}, max_tokens={max_tokens}")
 
         merger = get_content_merger(
             provider=provider,
@@ -866,10 +870,12 @@ async def ai_merge_single_page(
     except HTTPException:
         raise
     except ValueError as e:
-        logger.error(f"参数错误: {e}")
+        # feat-249: 增强错误日志，包含请求上下文
+        logger.error(f"参数错误: {e}, 请求参数: page={page_index}, action={action}, provider={provider}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.error(f"单页处理失败: {e}")
+        # feat-249: 增强错误日志，包含完整请求上下文
+        logger.error(f"单页处理失败: {e}, 请求参数: page={page_index}, action={action}, file={file.filename}, provider={provider}, base_url={base_url}, model={model}")
         logger.error(traceback_module.format_exc())
         raise HTTPException(status_code=500, detail=f"单页处理失败: {str(e)}")
 

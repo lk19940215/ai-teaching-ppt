@@ -248,7 +248,7 @@
                 "验证: python -m py_compile app/api/ppt.py 无错误",
                 "验证: 触发错误后日志包含完整请求参数信息"
             ],
-            "status": "pending",
+            "status": "done",
             "depends_on": [
                 "feat-248"
             ]
