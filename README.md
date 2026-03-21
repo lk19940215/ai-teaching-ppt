@@ -121,7 +121,7 @@ ai-teaching-ppt/
 
 - [用户指南](docs/user-guide.md) - 详细使用教程
 - [Canvas 预览功能](docs/canvas-preview.md) - Canvas 渲染技术文档
-- [PPT 数据结构](docs/ppt-structure.md) - 中间数据结构定义
+- [PPT 数据结构](docs/ppt-structure.md) - 解析/AI处理/渲染三阶段数据结构定义
 
 ## License
 
