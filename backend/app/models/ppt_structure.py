@@ -57,13 +57,22 @@ class Position:
 
 @dataclass
 class Style:
-    """文本样式"""
+    """文本样式
+    feat-242: 增强样式提取能力
+    """
+    # 基础字体样式
     font_name: Optional[str] = None
     font_size: Optional[float] = None  # pt
     bold: Optional[bool] = None
     italic: Optional[bool] = None
     underline: Optional[bool] = None
-    color: Optional[str] = None  # #RRGGBB
+    color: Optional[str] = None  # #RRGGBB 或主题色名称
+
+    # feat-242: 新增样式字段
+    alignment: Optional[str] = None      # 对齐方式: left/center/right/justify
+    line_spacing: Optional[float] = None  # 行距倍数（1.0 = 单倍行距）
+    background_color: Optional[str] = None  # 背景色: #RRGGBB
+    indent_level: Optional[int] = None    # 缩进级别（0-8）
 
 
 @dataclass

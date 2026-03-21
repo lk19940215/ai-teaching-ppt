@@ -290,7 +290,9 @@ class PptContentParser:
             )
 
     def _parse_text(self, shape, element_id: str, pos: Position) -> Optional[ElementData]:
-        """解析文本"""
+        """解析文本
+        feat-242: 保留更多样式信息
+        """
         paragraphs: List[Paragraph] = []
         all_text: List[str] = []
         style: Optional[Style] = None
@@ -302,12 +304,27 @@ class PptContentParser:
 
             all_text.append(para_text)
 
-            # 提取样式（从第一个 run）
+            # feat-242: 提取段落样式（包含对齐、行距、缩进）
             para_style = None
             for run in para.runs:
                 if run.text:
-                    para_style = self._extract_style(run.font)
+                    # 传递 font, paragraph, shape 参数
+                    para_style = self._extract_style(run.font, paragraph=para, shape=shape)
                     break
+
+            # 如果没有 run，从段落本身创建样式
+            if para_style is None and hasattr(para, 'paragraph_format'):
+                para_style = Style()
+                # 提取段落级别样式
+                from pptx.enum.text import PP_PARAGRAPH_ALIGNMENT
+                alignment_map = {
+                    PP_PARAGRAPH_ALIGNMENT.LEFT: 'left',
+                    PP_PARAGRAPH_ALIGNMENT.CENTER: 'center',
+                    PP_PARAGRAPH_ALIGNMENT.RIGHT: 'right',
+                    PP_PARAGRAPH_ALIGNMENT.JUSTIFY: 'justify',
+                }
+                if hasattr(para, 'alignment') and para.alignment is not None:
+                    para_style.alignment = alignment_map.get(para.alignment, 'left')
 
             paragraphs.append(Paragraph(
                 text=para_text,
@@ -328,6 +345,22 @@ class PptContentParser:
 
         element_type = self._detect_text_type(shape, full_text, pos)
 
+        # feat-242: 为整体样式添加背景色（从 shape 提取）
+        if style is None:
+            style = Style()
+
+        # 提取 shape 背景色
+        try:
+            if hasattr(shape, 'fill') and shape.fill:
+                fill = shape.fill
+                if hasattr(fill, 'fore_color') and fill.fore_color:
+                    fore_color = fill.fore_color
+                    if hasattr(fore_color, 'rgb') and fore_color.rgb:
+                        rgb = fore_color.rgb
+                        style.background_color = f"#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}"
+        except Exception:
+            pass
+
         return ElementData(
             element_id=element_id,
             type=element_type,
@@ -338,11 +371,27 @@ class PptContentParser:
             raw_shape_type=str(shape.shape_type)
         )
 
-    def _extract_style(self, font) -> Optional[Style]:
-        """提取字体样式"""
+    def _extract_style(
+        self,
+        font,
+        paragraph=None,
+        shape=None
+    ) -> Optional[Style]:
+        """提取字体样式
+        feat-242: 增强样式提取能力
+
+        Args:
+            font: python-pptx Font 对象
+            paragraph: 段落对象（可选，用于提取对齐和行距）
+            shape: Shape 对象（可选，用于提取背景色）
+
+        Returns:
+            Style 对象
+        """
         try:
             style = Style()
 
+            # 基础字体样式
             if font.name:
                 style.font_name = font.name
             if font.size:
@@ -353,9 +402,85 @@ class PptContentParser:
                 style.italic = font.italic
             if font.underline is not None:
                 style.underline = font.underline
-            if font.color and hasattr(font.color, 'rgb') and font.color.rgb:
-                rgb = font.color.rgb
-                style.color = f"#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}"
+
+            # feat-242: 颜色提取（包括主题色）
+            if font.color:
+                # 检查颜色类型
+                color_type = getattr(font.color, 'type', None)
+                if color_type is not None:
+                    # 主题色
+                    if str(color_type) == 'THEME':
+                        # 尝试获取主题色索引
+                        theme_color = getattr(font.color, 'theme_color', None)
+                        if theme_color is not None:
+                            # 将主题色索引映射为名称
+                            theme_color_names = {
+                                0: 'theme_dark1',      # 深色1
+                                1: 'theme_light1',     # 浅色1
+                                2: 'theme_dark2',      # 深色2
+                                3: 'theme_light2',     # 浅色2
+                                4: 'theme_accent1',    # 强调色1
+                                5: 'theme_accent2',    # 强调色2
+                                6: 'theme_accent3',    # 强调色3
+                                7: 'theme_accent4',    # 强调色4
+                                8: 'theme_accent5',    # 强调色5
+                                9: 'theme_accent6',    # 强调色6
+                                10: 'theme_hyperlink', # 超链接
+                                11: 'theme_followed_hyperlink',  # 已访问超链接
+                            }
+                            style.color = theme_color_names.get(theme_color, f'theme_{theme_color}')
+                        else:
+                            style.color = 'theme_color'
+                    # RGB 颜色
+                    elif hasattr(font.color, 'rgb') and font.color.rgb:
+                        rgb = font.color.rgb
+                        style.color = f"#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}"
+                elif hasattr(font.color, 'rgb') and font.color.rgb:
+                    rgb = font.color.rgb
+                    style.color = f"#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}"
+
+            # feat-242: 从段落提取对齐方式和行距
+            if paragraph is not None:
+                # 对齐方式
+                from pptx.enum.text import PP_PARAGRAPH_ALIGNMENT
+                alignment_map = {
+                    PP_PARAGRAPH_ALIGNMENT.LEFT: 'left',
+                    PP_PARAGRAPH_ALIGNMENT.CENTER: 'center',
+                    PP_PARAGRAPH_ALIGNMENT.RIGHT: 'right',
+                    PP_PARAGRAPH_ALIGNMENT.JUSTIFY: 'justify',
+                    PP_PARAGRAPH_ALIGNMENT.DISTRIBUTE: 'distribute',
+                }
+                if hasattr(paragraph, 'alignment') and paragraph.alignment is not None:
+                    style.alignment = alignment_map.get(paragraph.alignment, 'left')
+
+                # 行距
+                if hasattr(paragraph, 'paragraph_format') and paragraph.paragraph_format:
+                    pf = paragraph.paragraph_format
+                    # line_spacing 可能为 None、倍数或磅值
+                    if pf.line_spacing is not None:
+                        # 判断是否为倍数（如果小于5则认为是倍数）
+                        if pf.line_spacing < 5:
+                            style.line_spacing = pf.line_spacing
+                        else:
+                            # 磅值转倍数（假设基础行距为 12pt）
+                            style.line_spacing = round(pf.line_spacing / 12, 2)
+
+                    # 缩进级别
+                    if pf.level is not None:
+                        style.indent_level = pf.level
+
+            # feat-242: 从 shape 提取背景色
+            if shape is not None:
+                try:
+                    if hasattr(shape, 'fill') and shape.fill:
+                        fill = shape.fill
+                        if hasattr(fill, 'fore_color') and fill.fore_color:
+                            fore_color = fill.fore_color
+                            if hasattr(fore_color, 'rgb') and fore_color.rgb:
+                                rgb = fore_color.rgb
+                                style.background_color = f"#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}"
+                except Exception:
+                    pass  # 背景色提取失败不影响整体
 
             return style
         except Exception:

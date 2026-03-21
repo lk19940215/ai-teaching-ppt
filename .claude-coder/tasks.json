@@ -93,7 +93,7 @@
                 "验证: python -m py_compile app/services/ppt_content_parser.py 无错误",
                 "验证: 解析复杂 PPT 后 Style 结构包含完整样式"
             ],
-            "status": "pending",
+            "status": "done",
             "depends_on": [
                 "feat-241"
             ]

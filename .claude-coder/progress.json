@@ -823,6 +823,15 @@
       "taskId": "feat-006",
       "statusAfter": "N/A",
       "notes": "追加了 7 个任务（feat-241 ~ feat-247）：统一 content_snapshot 格式、增强样式提取、增强 AI 响应解析鲁棒性、Pydantic 模型重构、前后端类型同步、文档更新、全流程验证。方案文档已写入 .claude-coder/plan/async-dreaming-micali.md"
+    },
+    {
+      "session": 7,
+      "timestamp": "202603210407",
+      "result": "success",
+      "cost": 2.63798,
+      "taskId": "feat-241",
+      "statusAfter": "done",
+      "notes": null
     }
   ]
 }
