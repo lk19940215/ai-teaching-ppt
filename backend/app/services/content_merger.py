@@ -220,6 +220,51 @@ class ContentMerger:
         "extract": "提取知识点，总结关键信息"
     }
 
+    # feat-243: JSON Schema 约束，用于系统提示词
+    JSON_SCHEMA_CONSTRAINT = """
+## JSON 输出要求
+
+你的输出必须是合法的 JSON 格式，遵循以下规范：
+
+### 基本要求
+1. 输出必须是单个 JSON 对象，不要包含任何 JSON 之外的文字
+2. 所有字符串必须使用双引号，不支持单引号
+3. 不要在 JSON 中添加注释
+4. 确保所有括号正确配对
+
+### 必须包含的字段
+根据不同的 action 类型，输出必须包含对应的内容字段：
+
+- **polish**: 必须包含 `polished_content` 对象，其中有 `title` 和 `main_points` 数组
+- **expand**: 必须包含 `expanded_content` 对象，其中有 `title`、`original_points`、`expanded_points` 数组
+- **rewrite**: 必须包含 `rewritten_content` 对象，其中有 `title` 和 `main_content` 字符串
+- **extract**: 必须包含 `extracted_knowledge` 对象，其中有 `core_concepts`、`formulas`、`methods` 数组
+
+### 字段类型规范
+- `title`: 字符串类型，不能为空
+- `main_points`: 字符串数组，每个元素必须是字符串
+- `changes`: 字符串数组（可选），说明做了哪些修改
+- `success`: 布尔值（可选），表示处理是否成功
+
+### 示例格式
+```json
+{
+  "action": "polish",
+  "polished_content": {
+    "title": "润色后的标题",
+    "main_points": ["要点1", "要点2", "要点3"]
+  },
+  "changes": ["修改了标题", "优化了表达"]
+}
+```
+
+请确保输出严格遵循以上格式，否则系统将无法正确解析。
+"""
+
+    # feat-243: 重试配置
+    MAX_RETRIES = 3
+    RETRY_DELAY = 1.0  # 秒
+
     def __init__(self, config: Optional[MergeConfig] = None, **kwargs):
         """
         初始化融合引擎
@@ -302,6 +347,77 @@ class ContentMerger:
         result = self._parse_single_page_response(response, slide_data, action)
 
         return result
+
+    def merge_single_slide_with_retry(
+        self,
+        slide_data: Dict[str, Any],
+        action: str,
+        custom_prompt: str = "",
+        max_retries: int = None
+    ) -> SinglePageResult:
+        """
+        处理单个幻灯片（带重试机制）
+        feat-243: 增强 AI 响应解析鲁棒性
+
+        Args:
+            slide_data: 单页数据
+            action: 动作 (polish/expand/rewrite/extract)
+            custom_prompt: 自定义提示语
+            max_retries: 最大重试次数（默认使用类配置）
+
+        Returns:
+            SinglePageResult 处理结果
+        """
+        if action not in self.SINGLE_PAGE_ACTIONS:
+            raise ValueError(f"不支持的动作: {action}，支持的动作: {list(self.SINGLE_PAGE_ACTIONS.keys())}")
+
+        max_retries = max_retries or self.MAX_RETRIES
+        last_error = None
+
+        for attempt in range(max_retries):
+            try:
+                logger.info(f"单页处理尝试 {attempt + 1}/{max_retries}: action={action}")
+
+                # 构建提示词（第一次之后的尝试添加 JSON 格式强调）
+                system_prompt, user_prompt = self._build_single_page_prompts(
+                    slide_data, action, custom_prompt
+                )
+
+                # 第一次之后的尝试，在系统提示词中添加 JSON Schema 约束
+                if attempt > 0:
+                    system_prompt = self.JSON_SCHEMA_CONSTRAINT + "\n\n" + system_prompt
+                    logger.info(f"重试时添加 JSON Schema 约束")
+
+                # 调用 LLM
+                response = self._call_llm(system_prompt, user_prompt)
+                logger.info(f"LLM 响应 (尝试 {attempt + 1}): {response[:200]}...")
+
+                # 解析响应
+                result = self._parse_single_page_response(response, slide_data, action)
+
+                # 验证结果完整性
+                if self._validate_result(result, action):
+                    logger.info(f"单页处理成功: action={action}, 尝试次数={attempt + 1}")
+                    return result
+                else:
+                    logger.warning(f"结果验证失败 (尝试 {attempt + 1}): 缺少必要字段")
+
+            except ValueError as e:
+                last_error = e
+                logger.warning(f"解析失败 (尝试 {attempt + 1}): {e}")
+
+            except Exception as e:
+                last_error = e
+                logger.error(f"处理异常 (尝试 {attempt + 1}): {e}")
+
+            # 重试前等待
+            if attempt < max_retries - 1:
+                import time
+                time.sleep(self.RETRY_DELAY)
+
+        # 所有重试都失败，返回兜底结果
+        logger.error(f"所有重试失败，返回兜底结果: action={action}, last_error={last_error}")
+        return self._create_fallback_result(slide_data, action, str(last_error))
 
     def merge_multiple_slides(
         self,
@@ -982,6 +1098,120 @@ class ContentMerger:
             logger.debug(f"[{context}] 类型转换: {len(points)} 项 -> {len(result)} 项字符串")
         return result
 
+    def _validate_result(
+        self,
+        result: SinglePageResult,
+        action: str
+    ) -> bool:
+        """
+        验证处理结果的完整性
+        feat-243: 增强 AI 响应解析鲁棒性
+
+        Args:
+            result: 处理结果
+            action: 动作类型
+
+        Returns:
+            是否验证通过
+        """
+        if not result:
+            logger.warning("[_validate_result] 结果为空")
+            return False
+
+        # 检查必要字段
+        if not result.get("success"):
+            logger.warning(f"[_validate_result] success 字段为 False: {result.get('error')}")
+            return False
+
+        new_content = result.get("new_content")
+        if not new_content:
+            logger.warning("[_validate_result] new_content 为空")
+            return False
+
+        # 检查 new_content 的必要字段
+        title = new_content.get("title")
+        if not title or not isinstance(title, str):
+            logger.warning("[_validate_result] title 缺失或类型错误")
+            return False
+
+        main_points = new_content.get("main_points")
+        if not main_points or not isinstance(main_points, list):
+            logger.warning("[_validate_result] main_points 缺失或类型错误")
+            return False
+
+        # 检查 main_points 不全为空
+        valid_points = [p for p in main_points if p and isinstance(p, str) and p.strip()]
+        if not valid_points:
+            logger.warning("[_validate_result] main_points 全为空")
+            return False
+
+        logger.debug(f"[_validate_result] 验证通过: action={action}, title={title[:20]}...")
+        return True
+
+    def _create_fallback_result(
+        self,
+        slide_data: Dict[str, Any],
+        action: str,
+        error_message: str
+    ) -> SinglePageResult:
+        """
+        创建兜底结果（解析失败时返回原始内容）
+        feat-243: 增强 AI 响应解析鲁棒性
+
+        Args:
+            slide_data: 原始幻灯片数据
+            action: 动作类型
+            error_message: 错误信息
+
+        Returns:
+            SinglePageResult 兜底结果
+        """
+        logger.warning(f"[_create_fallback_result] 创建兜底结果: action={action}, error={error_message}")
+
+        # 从原始数据提取标题和内容
+        original_title = self._get_original_title(slide_data)
+        main_points = []
+
+        # 尝试从原始数据提取要点
+        teaching_content = slide_data.get('teaching_content', {})
+        if teaching_content.get('main_points'):
+            main_points = teaching_content['main_points'][:6]
+        elif teaching_content.get('knowledge_points'):
+            main_points = teaching_content['knowledge_points'][:6]
+
+        # 从 elements 提取文本作为备选
+        if not main_points:
+            for elem in slide_data.get('elements', []):
+                text = elem.get('text', '')
+                if text and len(text) > 5 and elem.get('type') not in ['title', 'subtitle']:
+                    main_points.append(text[:100])
+
+        if not main_points:
+            main_points = ["内容处理遇到问题，已保留原始内容"]
+
+        # 构建兜底内容
+        fallback_content: UnifiedSlideContent = {
+            "title": original_title or "处理失败的内容",
+            "main_points": main_points,
+            "additional_content": f"处理失败原因：{error_message}",
+            "elements": [],
+            "metadata": {
+                "action": action,
+                "additional_content": f"处理失败原因：{error_message}",
+                "fallback": True,
+                "error": error_message
+            }
+        }
+
+        return {
+            "action": action,
+            "original_slide": slide_data,
+            "new_content": fallback_content,
+            "changes": [],
+            "success": False,
+            "error": error_message
+        }
+
     def _validate_string_list(
         self,
         items: Any,
@@ -1180,30 +1410,55 @@ class ContentMerger:
         }
 
     def _extract_json(self, text: str) -> Dict[str, Any]:
-        """从文本中提取 JSON"""
+        """从文本中提取 JSON
+        feat-243: 增强错误日志记录
+
+        Args:
+            text: 响应文本
+
+        Returns:
+            解析后的 JSON 字典
+
+        Raises:
+            ValueError: 无法提取有效 JSON
+        """
+        # 记录原始响应长度，用于调试
+        text_len = len(text)
+        logger.debug(f"[_extract_json] 尝试解析响应，长度={text_len}")
+
         # 尝试直接解析
         try:
-            return json.loads(text)
-        except json.JSONDecodeError:
-            pass
+            result = json.loads(text)
+            logger.debug("[_extract_json] 直接解析成功")
+            return result
+        except json.JSONDecodeError as e:
+            logger.debug(f"[_extract_json] 直接解析失败: {e.msg} at pos {e.pos}")
 
         # 尝试提取 markdown 代码块中的 JSON
         json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', text)
         if json_match:
             try:
-                return json.loads(json_match.group(1))
-            except json.JSONDecodeError:
-                pass
+                result = json.loads(json_match.group(1))
+                logger.debug("[_extract_json] 从 markdown 代码块解析成功")
+                return result
+            except json.JSONDecodeError as e:
+                logger.debug(f"[_extract_json] markdown 代码块解析失败: {e.msg}")
 
         # 尝试提取 { } 之间的内容
         brace_match = re.search(r'\{[\s\S]*\}', text)
         if brace_match:
             try:
-                return json.loads(brace_match.group(0))
-            except json.JSONDecodeError:
-                pass
+                result = json.loads(brace_match.group(0))
+                logger.debug("[_extract_json] 从大括号提取解析成功")
+                return result
+            except json.JSONDecodeError as e:
+                logger.debug(f"[_extract_json] 大括号提取解析失败: {e.msg}")
 
-        raise ValueError("无法从响应中提取有效 JSON")
+        # 所有方法都失败，记录详细错误信息
+        error_preview = text[:200] if len(text) > 200 else text
+        logger.error(f"[_extract_json] 无法从响应中提取有效 JSON，响应预览: {error_preview}")
+
+        raise ValueError(f"无法从响应中提取有效 JSON。响应长度: {text_len}，预览: {error_preview}")
 
     # ==================== 兼容方法（保持向后兼容） ====================
 

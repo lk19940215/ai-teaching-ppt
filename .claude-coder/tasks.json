@@ -114,7 +114,7 @@
                 "验证: python -m py_compile app/services/content_merger.py 无错误",
                 "验证: 测试无效 JSON 响应时返回兜底结果而非抛出异常"
             ],
-            "status": "pending",
+            "status": "done",
             "depends_on": [
                 "feat-241"
             ]
