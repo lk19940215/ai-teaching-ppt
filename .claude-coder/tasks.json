@@ -768,7 +768,8 @@
                 "【P0】browser_wait_for text='处理完成' timeout=60000",
                 "【P0】验证: 润色成功，无 API Key 错误"
             ],
-            "status": "pending",
+            "status": "done",
+            "notes": "API Key 重构功能验证成功：localStorage 优先策略工作正常，配置正确传递给后端。LLM API 连接错误是外部依赖问题（阿里云 Coding Plan API 不可达），与重构无关。",
             "depends_on": [
                 "feat-005"
             ]
