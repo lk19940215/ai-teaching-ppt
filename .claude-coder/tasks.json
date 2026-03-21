@@ -773,6 +773,165 @@
             "depends_on": [
                 "feat-005"
             ]
+        },
+        {
+            "id": "feat-241",
+            "category": "backend",
+            "priority": 243,
+            "description": "统一 content_snapshot 数据结构格式",
+            "steps": [
+                "读取方案文档 .claude-coder/plan/async-dreaming-micali.md 第3节",
+                "读取 backend/app/services/content_merger.py 中的 _extract_content_by_action 方法",
+                "创建 UnifiedSlideContent 数据类，包含 title、main_points、elements、metadata 字段",
+                "修改 _normalize_polish_content 返回 UnifiedSlideContent",
+                "修改 _normalize_expand_content 返回 UnifiedSlideContent",
+                "修改 _normalize_rewrite_content 返回 UnifiedSlideContent",
+                "修改 _normalize_extract_content 返回 UnifiedSlideContent",
+                "更新 content_snapshot 的 action 字段保留，其余内容统一为 UnifiedSlideContent",
+                "验证: python -m py_compile app/services/content_merger.py 无错误",
+                "验证: 四种 action 返回的 content_snapshot 结构一致"
+            ],
+            "status": "pending",
+            "depends_on": []
+        },
+        {
+            "id": "feat-242",
+            "category": "backend",
+            "priority": 244,
+            "description": "增强 PPT 样式提取能力",
+            "steps": [
+                "读取方案文档 .claude-coder/plan/async-dreaming-micali.md 第2节",
+                "读取 backend/app/services/ppt_content_parser.py 中的 _extract_style 方法",
+                "扩展 Style 数据类，添加 alignment（对齐）、line_spacing（行距）字段",
+                "添加主题色提取逻辑：处理 font.color.type == THEME 情况",
+                "提取段落级别样式：对齐方式、缩进",
+                "添加背景色提取（如果 shape 有填充）",
+                "修改 _parse_text 方法保留更多样式信息",
+                "验证: python -m py_compile app/services/ppt_content_parser.py 无错误",
+                "验证: 解析复杂 PPT 后 Style 结构包含完整样式"
+            ],
+            "status": "pending",
+            "depends_on": [
+                "feat-241"
+            ]
+        },
+        {
+            "id": "feat-243",
+            "category": "backend",
+            "priority": 245,
+            "description": "增强 AI 响应解析鲁棒性",
+            "steps": [
+                "读取方案文档 .claude-coder/plan/async-dreaming-micali.md 第8.2节",
+                "读取 backend/app/services/content_merger.py 中的 _extract_json 方法",
+                "添加 JSON Schema 约束到系统提示词",
+                "实现 merge_single_slide_with_retry 方法，支持最多3次重试",
+                "添加响应完整性验证 _validate_result 方法",
+                "实现 _create_fallback_result 兜底方案（解析失败时返回原始内容）",
+                "添加详细错误日志记录",
+                "验证: python -m py_compile app/services/content_merger.py 无错误",
+                "验证: 测试无效 JSON 响应时返回兜底结果而非抛出异常"
+            ],
+            "status": "pending",
+            "depends_on": [
+                "feat-241"
+            ]
+        },
+        {
+            "id": "feat-244",
+            "category": "backend",
+            "priority": 246,
+            "description": "使用 Pydantic 重构数据结构模型",
+            "steps": [
+                "读取方案文档 .claude-coder/plan/async-dreaming-micali.md 第8.2节",
+                "读取 backend/app/models/ppt_structure.py 现有 dataclass 定义",
+                "添加 pydantic 到 requirements.txt（如未安装）",
+                "重构 Position 为 Pydantic BaseModel",
+                "重构 Style 为 Pydantic BaseModel，添加 Field 验证",
+                "重构 ElementData 为 Pydantic BaseModel，标记必填/选填字段",
+                "重构 SlideData 为 Pydantic BaseModel",
+                "重构 DocumentData 为 Pydantic BaseModel",
+                "添加 model_config = ConfigDict(exclude_none=True)",
+                "验证: python -m py_compile app/models/ppt_structure.py 无错误",
+                "验证: to_dict 函数与 Pydantic model_dump 兼容"
+            ],
+            "status": "pending",
+            "depends_on": [
+                "feat-242"
+            ]
+        },
+        {
+            "id": "feat-245",
+            "category": "fullstack",
+            "priority": 247,
+            "description": "前后端类型定义自动同步",
+            "steps": [
+                "读取方案文档 .claude-coder/plan/async-dreaming-micali.md 第8.2节",
+                "安装 pydantic-to-typescript 或类似工具：pip install pydantic-to-typescript",
+                "创建 backend/scripts/generate_types.py 脚本",
+                "配置需要导出的类型：Position、Style、ElementData、SlideData、DocumentData",
+                "生成 TypeScript 类型到 frontend/src/types/generated.ts",
+                "更新 frontend/src/types/merge-session.ts 引用 generated.ts",
+                "添加 npm script \"generate:types\" 到 frontend/package.json",
+                "验证: 生成的 TypeScript 类型与 Python Pydantic 模型一致",
+                "验证: pnpm tsc --noEmit 无错误"
+            ],
+            "status": "pending",
+            "depends_on": [
+                "feat-244"
+            ]
+        },
+        {
+            "id": "feat-246",
+            "category": "infra",
+            "priority": 248,
+            "description": "更新 PPT 数据结构技术文档",
+            "steps": [
+                "将方案文档 .claude-coder/plan/async-dreaming-micali.md 内容整合到 docs/ppt-structure.md",
+                "更新 docs/ppt-structure.md 添加 AI 处理阶段和渲染阶段数据结构",
+                "添加完整 JSON 示例到文档",
+                "添加数据流转约定章节",
+                "添加 AI 内容组合策略章节",
+                "更新 README.md 引用更新后的文档",
+                "验证: 文档链接正确无死链",
+                "验证: 文档内容与代码实现一致"
+            ],
+            "status": "pending",
+            "depends_on": [
+                "feat-241",
+                "feat-242",
+                "feat-243"
+            ]
+        },
+        {
+            "id": "feat-247",
+            "category": "test",
+            "priority": 249,
+            "description": "验证统一数据结构后全流程正常工作",
+            "steps": [
+                "【规则】阅读 E:\\nvm\\v20.20.0\\node_modules\\claude-coder\\templates\\other\\test_rule.md",
+                "【环境】重启后端服务",
+                "【环境】curl http://localhost:8000/health",
+                "【P0】browser_navigate http://localhost:3000/merge",
+                "【P0】上传测试 PPT 文件",
+                "【P0】browser_click 选择幻灯片",
+                "【P0】browser_click Polish 按钮",
+                "【P0】browser_wait_for text='处理完成' timeout=60000",
+                "【P0】browser_snapshot 验证 content_snapshot 格式正确",
+                "【P0】browser_click Expand 按钮",
+                "【P0】browser_wait_for text='处理完成' timeout=60000",
+                "【P0】验证: Expand 返回 content_snapshot 结构与 Polish 一致",
+                "【P1】browser_click Rewrite 按钮",
+                "【P1】browser_wait_for text='处理完成' timeout=60000",
+                "【P1】验证: Rewrite 返回 content_snapshot 结构一致",
+                "【P1】browser_click Extract 按钮",
+                "【P1】browser_wait_for text='处理完成' timeout=60000",
+                "【P1】验证: Extract 返回 content_snapshot 结构一致"
+            ],
+            "status": "pending",
+            "depends_on": [
+                "feat-245",
+                "feat-246"
+            ]
         }
     ]
 }
