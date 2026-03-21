@@ -1,7 +1,7 @@
 {
     "project": "ai-teaching-ppt",
-    "last_updated": "2026-03-20",
-    "next_task_priority": 240,
+    "last_updated": "2026-03-21",
+    "next_task_priority": 7,
     "completed_milestones": [
         {
             "name": "基础设施搭建",
@@ -650,6 +650,128 @@
             ],
             "status": "done",
             "depends_on": []
+        },
+        {
+            "id": "feat-001",
+            "category": "backend",
+            "priority": 1,
+            "description": "后端添加 LLM_CONFIG 环境变量支持",
+            "steps": [
+                "读取 backend/app/config.py",
+                "添加 LLM_CONFIG: str = '' 环境变量字段",
+                "添加 get_default_llm_config() 方法解析 JSON 配置",
+                "添加 import json 和 typing 导入",
+                "验证: python -m py_compile app/config.py 无错误",
+                "验证: curl http://localhost:8000/health 返回 200"
+            ],
+            "status": "pending",
+            "depends_on": []
+        },
+        {
+            "id": "feat-002",
+            "category": "backend",
+            "priority": 2,
+            "description": "后端新增默认配置 API 端点",
+            "steps": [
+                "读取 backend/app/api/config.py",
+                "新增 GET /config/default 端点返回环境变量配置",
+                "删除或简化 POST /config/providers/{provider} 数据库保存逻辑",
+                "删除 GET /config/providers/default/active 或改为返回环境变量配置",
+                "保留 POST /config/test-connection 端点用于验证 API Key",
+                "创建/修改 backend/.env 添加 LLM_CONFIG 环境变量",
+                "验证: python -m py_compile app/api/config.py 无错误",
+                "验证: curl http://localhost:8000/api/v1/config/default 返回配置"
+            ],
+            "status": "pending",
+            "depends_on": [
+                "feat-001"
+            ]
+        },
+        {
+            "id": "feat-003",
+            "category": "frontend",
+            "priority": 3,
+            "description": "前端重写 llmConfig.ts 实现 localStorage 优先策略",
+            "steps": [
+                "读取 frontend/src/lib/llmConfig.ts",
+                "实现 getLLMConfigFromLocalStorage() 从 localStorage 读取配置",
+                "实现 saveLLMConfigToLocalStorage() 保存配置到 localStorage",
+                "实现 clearLLMConfigFromLocalStorage() 清除配置",
+                "实现 getDefaultLLMConfig() 从后端获取环境变量默认配置",
+                "修改 getLLMConfig() 优先 localStorage 其次后端默认",
+                "修改 requireLLMConfig() 使用新的获取逻辑",
+                "验证: pnpm tsc --noEmit 无错误"
+            ],
+            "status": "pending",
+            "depends_on": [
+                "feat-002"
+            ]
+        },
+        {
+            "id": "feat-004",
+            "category": "frontend",
+            "priority": 4,
+            "description": "前端修改设置页面改为 localStorage 保存",
+            "steps": [
+                "读取 frontend/src/app/settings/page.tsx",
+                "删除 loadSavedConfigs 后端 API 调用，改为从 localStorage 加载",
+                "删除 handleSetDefault 后端 API 调用",
+                "修改 handleSave 使用 saveLLMConfigToLocalStorage 保存到本地",
+                "修改 useEffect 初始化逻辑：优先 localStorage，其次后端默认配置",
+                "更新 UI 提示文字为：'API Key 仅保存在浏览器本地存储中，不会上传到服务器'",
+                "添加清除配置按钮调用 clearLLMConfigFromLocalStorage",
+                "验证: pnpm tsc --noEmit 无错误",
+                "验证: 设置页面保存后 localStorage 存在 llm_config 键"
+            ],
+            "status": "pending",
+            "depends_on": [
+                "feat-003"
+            ]
+        },
+        {
+            "id": "feat-005",
+            "category": "infra",
+            "priority": 5,
+            "description": "清空数据库 llm_config 表并配置环境变量",
+            "steps": [
+                "执行 sqlite3 backend/ai_teaching_ppt.db 'DELETE FROM llm_config;'",
+                "读取 .claude-coder/test.env 获取有效 LLM_CONFIG",
+                "创建/修改 backend/.env 添加 LLM_CONFIG 环境变量",
+                "验证: sqlite3 backend/ai_teaching_ppt.db 'SELECT COUNT(*) FROM llm_config;' 返回 0",
+                "验证: cat backend/.env 包含 LLM_CONFIG"
+            ],
+            "status": "pending",
+            "depends_on": [
+                "feat-002",
+                "feat-004"
+            ]
+        },
+        {
+            "id": "feat-006",
+            "category": "test",
+            "priority": 6,
+            "description": "验证 API Key 重构后润色功能正常工作",
+            "steps": [
+                "【规则】阅读 E:\\nvm\\v20.20.0\\node_modules\\claude-coder\\templates\\other\\test_rule.md",
+                "【环境】重启后端服务 uvicorn app.main:app --reload --port 8000",
+                "【环境】重启前端服务 pnpm dev",
+                "【环境】curl http://localhost:8000/health",
+                "【P0】browser_navigate http://localhost:3000/settings",
+                "【P0】browser_wait_for text='设置' timeout=10000",
+                "【P0】browser_snapshot 验证默认配置已加载（来自 test.env）",
+                "【P0】browser_click 保存按钮",
+                "【P0】验证: localStorage 存在 llm_config 键",
+                "【P0】browser_navigate http://localhost:3000/merge",
+                "【P0】上传测试 PPT 文件",
+                "【P0】browser_click 选择幻灯片",
+                "【P0】browser_click 润色按钮",
+                "【P0】browser_wait_for text='处理完成' timeout=60000",
+                "【P0】验证: 润色成功，无 API Key 错误"
+            ],
+            "status": "pending",
+            "depends_on": [
+                "feat-005"
+            ]
         }
     ]
 }
