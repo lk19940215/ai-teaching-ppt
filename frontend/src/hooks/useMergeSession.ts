@@ -375,6 +375,13 @@ export function useMergeSession(): UseMergeSessionReturn {
       formData.append('action', action)
       formData.append('provider', llmConfig.provider || 'deepseek')
       formData.append('api_key', llmConfig.apiKey)
+      // feat-247: 传递自定义 Base URL 和模型名称
+      if (llmConfig.baseUrl) {
+        formData.append('base_url', llmConfig.baseUrl)
+      }
+      if (llmConfig.model) {
+        formData.append('model', llmConfig.model)
+      }
       formData.append('temperature', '0.3')
       formData.append('max_tokens', '3000')
       if (prompt) {

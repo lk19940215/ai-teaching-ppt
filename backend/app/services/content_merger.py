@@ -157,6 +157,8 @@ class MergeConfig:
     """合并引擎配置"""
     provider: str = "deepseek"
     api_key: str = ""
+    base_url: str = ""  # feat-247: 支持自定义 API Base URL
+    model: str = ""     # feat-247: 支持自定义模型名称
     temperature: float = 0.3
     max_tokens: int = 3000
     strategy: MergeStrategy = MergeStrategy.INTELLIGENT
@@ -660,6 +662,8 @@ class ContentMerger:
             self._llm_service = get_llm_service(
                 provider=self._config.provider,
                 api_key=self._config.api_key,
+                base_url=self._config.base_url,  # feat-247: 传递自定义 Base URL
+                model=self._config.model,         # feat-247: 传递自定义模型名称
                 temperature=self._config.temperature,
                 max_tokens=self._config.max_tokens
             )
@@ -1498,6 +1502,8 @@ class ContentMerger:
 def get_content_merger(
     provider: str = "deepseek",
     api_key: str = "",
+    base_url: str = "",  # feat-247: 支持自定义 API Base URL
+    model: str = "",     # feat-247: 支持自定义模型名称
     temperature: float = 0.3,
     max_tokens: int = 3000
 ) -> ContentMerger:
@@ -1507,6 +1513,8 @@ def get_content_merger(
     Args:
         provider: LLM 服务商
         api_key: API Key
+        base_url: API Base URL（可选，用于自定义 API 端点）
+        model: 模型名称（可选，用于指定特定模型）
         temperature: 温度参数
         max_tokens: 最大输出 token
 
@@ -1516,6 +1524,8 @@ def get_content_merger(
     config = MergeConfig(
         provider=provider,
         api_key=api_key,
+        base_url=base_url,
+        model=model,
         temperature=temperature,
         max_tokens=max_tokens
     )

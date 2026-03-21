@@ -721,6 +721,8 @@ async def ai_merge_single_page(
     custom_prompt: Optional[str] = Form(None, description="自定义提示语"),
     provider: str = Form("deepseek", description="LLM 服务商"),
     api_key: str = Form(..., description="API Key"),
+    base_url: Optional[str] = Form(None, description="API Base URL（可选）"),
+    model: Optional[str] = Form(None, description="模型名称（可选）"),
     temperature: float = Form(0.3, description="温度参数"),
     max_tokens: int = Form(2000, description="最大输出 token"),
 ):
@@ -774,6 +776,8 @@ async def ai_merge_single_page(
         merger = get_content_merger(
             provider=provider,
             api_key=api_key,
+            base_url=base_url or "",  # feat-247: 传递自定义 Base URL
+            model=model or "",         # feat-247: 传递自定义模型名称
             temperature=temperature,
             max_tokens=max_tokens
         )
