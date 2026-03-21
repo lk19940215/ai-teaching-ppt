@@ -740,7 +740,7 @@
                 "验证: sqlite3 backend/ai_teaching_ppt.db 'SELECT COUNT(*) FROM llm_config;' 返回 0",
                 "验证: cat backend/.env 包含 LLM_CONFIG"
             ],
-            "status": "pending",
+            "status": "done",
             "depends_on": [
                 "feat-002",
                 "feat-004"
