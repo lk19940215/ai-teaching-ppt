@@ -1,655 +1,655 @@
 {
-  "project": "ai-teaching-ppt",
-  "last_updated": "2026-03-20",
-  "next_task_priority": 240,
-  "completed_milestones": [
-    {
-      "name": "基础设施搭建",
-      "summary": "后端 FastAPI、前端 Next.js、Docker 部署",
-      "at": "2026-03-02"
-    },
-    {
-      "name": "核心生成流程",
-      "summary": "文件上传/OCR、LLM 内容生成、PPTX 生成",
-      "at": "2026-03-02"
-    },
-    {
-      "name": "学科增强与自适应",
-      "summary": "英语专属页面、年级自适应、K-12 扩展",
-      "at": "2026-03-03"
-    },
-    {
-      "name": "历史记录与 LLM 配置",
-      "summary": "生成历史、LLM 服务商切换、参数配置",
-      "at": "2026-03-03"
-    },
-    {
-      "name": "PPT 质量优化",
-      "summary": "提示词优化、模板优化、动画效果、点击显示答案",
-      "at": "2026-03-04"
-    },
-    {
-      "name": "学科深度优化",
-      "summary": "提示词引擎、语文/数学/理科/文科/英语专属",
-      "at": "2026-03-04"
-    },
-    {
-      "name": "教学设计科学化",
-      "summary": "认知负荷、布鲁姆分类、情境创设、差异化教学",
-      "at": "2026-03-05"
-    },
-    {
-      "name": "前端优化与修复",
-      "summary": "Dark Mode、交互动画、API 环境变量、进度反馈",
-      "at": "2026-03-05"
-    },
-    {
-      "name": "后端优化与修复",
-      "summary": "JSON 解析、Playwright 测试、E2E 测试",
-      "at": "2026-03-06"
-    },
-    {
-      "name": "SSE 流式反馈",
-      "summary": "SSE 流式生成进度推送",
-      "at": "2026-03-05"
-    },
-    {
-      "name": "/merge 基础测试与修复",
-      "summary": "核心流程测试、多场景测试、错误处理",
-      "at": "2026-03-08"
-    },
-    {
-      "name": "/merge 增强 - Canvas 与提示词",
-      "summary": "Canvas 预览重构、提示词编辑器、AI 合并",
-      "at": "2026-03-09"
-    },
-    {
-      "name": "AI 内容级合并",
-      "summary": "PPT 解析、AI 融合引擎、真实渲染预览、单页编辑",
-      "at": "2026-03-10"
-    },
-    {
-      "name": "PPT 合并增强与版本化预览",
-      "summary": "实时预览生成、累积进度、最终PPT生成、兜底渲染",
-      "at": "2026-03-11"
-    },
-    {
-      "name": "/merge 问题修复与全流程优化",
-      "summary": "PPT上传CORS修复、数据类型安全、占位符过滤、单页处理、全流程监控",
-      "at": "2026-03-18"
-    },
-    {
-      "name": "PPT 渲染优化",
-      "summary": "PptxViewJSRenderer集成、SlideContentRenderer创建、Canvas渲染优化、降级链路、性能缓存、图片base64支持",
-      "at": "2026-03-19"
-    },
-    {
-      "name": "AI 内容渲染与类型安全",
-      "summary": "SlideContentRenderer elements渲染、单页处理结构化返回、路由格式统一、safe_join_list、字段类型验证",
-      "at": "2026-03-19"
-    },
-    {
-      "name": "E2E测试与监控系统",
-      "summary": "类型安全全流程测试、监控面板集成、JSON序列化日志、日志导出功能",
-      "at": "2026-03-19"
-    }
-  ],
-  "features": [
-    {
-      "id": "feat-214",
-      "category": "frontend",
-      "priority": 214,
-      "description": "删除不需要的页面：首页、上传、历史、测试页面",
-      "steps": [
-        "删除 frontend/src/app/page.tsx",
-        "删除 frontend/src/app/upload/page.tsx",
-        "删除 frontend/src/app/history/page.tsx",
-        "删除 frontend/src/app/home/page.tsx",
-        "删除 frontend/src/app/test-pptxviewjs/page.tsx",
-        "验证剩余页面功能正常",
-        "验证: git status 显示已删除上述文件"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-215",
-      "category": "frontend",
-      "priority": 215,
-      "description": "简化 Header 组件，仅保留合并和设置导航",
-      "steps": [
-        "读取 frontend/src/components/header.tsx",
-        "修改 Header 组件，仅保留 /merge 和 /settings 链接",
-        "删除首页、上传、历史相关代码",
-        "更新中文文案",
-        "验证: pnpm tsc --noEmit 无错误",
-        "验证: 手动检查 Header 导航项正确"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-214"
-      ]
-    },
-    {
-      "id": "feat-216",
-      "category": "frontend",
-      "priority": 216,
-      "description": "创建 components/merge/ 目录结构并移动组件",
-      "steps": [
-        "创建 frontend/src/components/merge/ 目录",
-        "创建 frontend/src/components/merge/panels/ 子目录",
-        "创建 frontend/src/components/merge/renderers/ 子目录",
-        "创建 frontend/src/components/merge/controls/ 子目录",
-        "创建 frontend/src/components/merge/upload/ 子目录",
-        "移动所有合并相关组件到新目录结构",
-        "验证: 所有组件文件正确移动",
-        "验证: git status 显示文件重命名"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-215"
-      ]
-    },
-    {
-      "id": "feat-217",
-      "category": "frontend",
-      "priority": 217,
-      "description": "更新 MergePage 组件导入路径并验证功能",
-      "steps": [
-        "读取 frontend/src/app/merge/page.tsx",
-        "更新所有组件导入路径指向新位置",
-        "删除旧的导入路径引用",
-        "验证: pnpm tsc --noEmit 无错误",
-        "验证: 页面加载正常，无控制台错误"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-216"
-      ]
-    },
-    {
-      "id": "feat-218",
-      "category": "frontend",
-      "priority": 218,
-      "description": "优化 MergePage 组件：提取子组件和简化代码",
-      "steps": [
-        "读取 frontend/src/app/merge/page.tsx",
-        "提取 UploadSection 为独立组件",
-        "提取 MergeSteps 为独立组件",
-        "将状态管理逻辑提取到独立 hooks",
-        "减少主组件代码量至 400 行以内",
-        "保留所有功能逻辑",
-        "验证: pnpm tsc --noEmit 无错误",
-        "验证: 页面功能完整"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-217"
-      ]
-    },
-    {
-      "id": "feat-219",
-      "category": "frontend",
-      "priority": 219,
-      "description": "创建统一的幻灯片渲染决策工具函数",
-      "steps": [
-        "创建 frontend/src/lib/slideRendering.ts",
-        "实现 getSlideRenderer 函数，包含渲染优先级逻辑",
-        "更新组件使用新的渲染决策函数",
-        "添加完整的 TypeScript 类型定义",
-        "编写单元测试",
-        "验证: pnpm tsc --noEmit 无错误",
-        "验证: 幻灯片预览功能正常"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-218"
-      ]
-    },
-    {
-      "id": "feat-220",
-      "category": "backend",
-      "priority": 220,
-      "description": "删除不需要的后端 API 文件",
-      "steps": [
-        "删除 backend/app/api/generate.py",
-        "删除 backend/app/api/upload.py",
-        "删除 backend/app/api/history.py",
-        "删除 backend/app/api/process.py",
-        "验证: 剩余 API 文件：ppt.py、config.py、main.py",
-        "验证: git status 显示已删除上述文件"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-221",
-      "category": "backend",
-      "priority": 221,
-      "description": "删除不需要的后端服务文件",
-      "steps": [
-        "删除 backend/app/services/pdf_parser.py",
-        "删除 backend/app/services/ocr.py",
-        "删除 backend/app/services/text_processor.py",
-        "删除 backend/app/models/history.py",
-        "删除 backend/app/models/upload.py",
-        "保留 content_merger.py、llm.py、ppt_generator.py、ppt_to_image.py",
-        "验证: 剩余服务文件符合方案要求",
-        "验证: python -m py_compile app/main.py 无错误"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-220"
-      ]
-    },
-    {
-      "id": "feat-222",
-      "category": "backend",
-      "priority": 222,
-      "description": "清理后端 requirements.txt 依赖",
-      "steps": [
-        "读取 backend/requirements.txt",
-        "移除 pdfminer.six 依赖",
-        "移除 pytesseract 依赖",
-        "移除不需要的 pillow 版本（保留基础版本）",
-        "验证: 保留的依赖：fastapi、sqlalchemy、anthropic、openai、python-pptx、pymupdf",
-        "验证: pip install -r requirements.txt 成功",
-        "验证: python -m py_compile app/main.py 无错误"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-221"
-      ]
-    },
-    {
-      "id": "feat-223",
-      "category": "backend",
-      "priority": 223,
-      "description": "精简 backend/app/main.py API 路由",
-      "steps": [
-        "读取 backend/app/main.py",
-        "删除 upload_router、generate_router、history_router、process_router 的 include",
-        "仅保留 ppt_router 和 config_router",
-        "验证路由前缀和标签正确",
-        "验证: python -m py_compile app/main.py 无错误",
-        "验证: curl http://localhost:8000/health 返回 200"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-222"
-      ]
-    },
-    {
-      "id": "feat-224",
-      "category": "backend",
-      "priority": 224,
-      "description": "重构 content_merger.py 为清晰的类结构",
-      "steps": [
-        "读取 backend/app/services/content_merger.py",
-        "创建 MergeConfig 配置类",
-        "定义类型别名：SlideContent、MergeResult",
-        "重构 ContentMerger 类，提取公共方法",
-        "实现 merge_single_slide 和 merge_multiple_slides 方法",
-        "提取构建提示词、调用 LLM、解析响应的私有方法",
-        "保留所有合并策略：sequential、parallel、intelligent",
-        "验证: python -m py_compile app/services/content_merger.py 无错误"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-223"
-      ]
-    },
-    {
-      "id": "feat-225",
-      "category": "backend",
-      "priority": 225,
-      "description": "创建 content_merger_utils.py 工具模块",
-      "steps": [
-        "创建 backend/app/services/content_merger_utils.py",
-        "实现 validate_merge_request 函数",
-        "实现 prepare_merge_context 函数",
-        "实现 execute_ai_merge 函数",
-        "添加完整的类型注解",
-        "编写文档字符串",
-        "更新 content_merger.py 引用新工具模块",
-        "验证: python -m py_compile app/services/content_merger.py 无错误",
-        "验证: python -m py_compile app/services/content_merger_utils.py 无错误"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-224"
-      ]
-    },
-    {
-      "id": "feat-226",
-      "category": "backend",
-      "priority": 226,
-      "description": "优化 ppt.py API 路由组织",
-      "steps": [
-        "读取 backend/app/api/ppt.py",
-        "删除无关端点（如果有）",
-        "确认保留端点：/ai-merge-single、/ai-merge、/generate-final",
-        "优化路由前缀为 /api/v1/ppt",
-        "添加正确的 tags 和文档",
-        "验证: python -m py_compile app/api/ppt.py 无错误",
-        "验证: curl http://localhost:8000/docs 查看 API 文档正确"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-225"
-      ]
-    },
-    {
-      "id": "feat-227",
-      "category": "backend",
-      "priority": 227,
-      "description": "优化 config.py API，保留 LLM 配置功能",
-      "steps": [
-        "读取 backend/app/api/config.py",
-        "验证所有 LLM 配置端点保留",
-        "优化代码结构和注释",
-        "确保支持 DeepSeek、OpenAI、Claude、GLM",
-        "验证: python -m py_compile app/api/config.py 无错误",
-        "验证: curl http://localhost:8000/api/v1/config/llm 获取配置列表"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-225"
-      ]
-    },
-    {
-      "id": "feat-228",
-      "category": "test",
-      "priority": 228,
-      "description": "编写文件上传和会话初始化测试",
-      "steps": [
-        "【规则】阅读 .claude-coder/testing-rules.md",
-        "【环境】curl http://localhost:8000/health",
-        "【P0】browser_navigate http://localhost:3000/merge",
-        "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
-        "【P0】browser_file_upload paths=['测试 PPT A']",
-        "【P0】browser_wait_for text='共 N 页' timeout=10000 (阶段1：解析)",
-        "【P0】browser_file_upload paths=['测试 PPT B']",
-        "【P0】browser_wait_for text='共 N 页' timeout=10000 (阶段2：解析)",
-        "【P0】browser_snapshot 验证两个 PPT 都已解析",
-        "【P0】验证: 幻灯片池显示正确数量的幻灯片",
-        "【P1】browser_file_upload paths=['空 PPT'] 测试错误处理",
-        "【P1】验证: 错误提示正确显示",
-        "【P1】browser_file_upload paths=['非 PPT 文件'] 测试错误处理",
-        "【P1】验证: 错误提示正确显示"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-219",
-        "feat-226"
-      ]
-    },
-    {
-      "id": "feat-229",
-      "category": "test",
-      "priority": 229,
-      "description": "编写单页处理功能测试",
-      "steps": [
-        "【规则】阅读 .claude-coder/testing-rules.md",
-        "【环境】curl http://localhost:8000/health",
-        "【P0】browser_navigate http://localhost:3000/merge",
-        "【P0】上传两个测试 PPT 文件",
-        "【P0】browser_click 选择第一个幻灯片",
-        "【P0】browser_click Polish 按钮",
-        "【P0】browser_click 处理按钮",
-        "【P0】browser_wait_for text='正在处理' timeout=5000 (阶段1：开始)",
-        "【P0】browser_wait_for text='处理完成' timeout=60000 (阶段2：AI 处理)",
-        "【P0】browser_snapshot 验证处理结果",
-        "【P0】验证: 版本历史记录正确",
-        "【P1】重复测试 Expand 动作",
-        "【P1】重复测试 Rewrite 动作",
-        "【P1】重复测试 Extract 动作",
-        "【P2】测试自定义提示词功能",
-        "【P2】测试处理失败重试功能"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-228"
-      ]
-    },
-    {
-      "id": "feat-230",
-      "category": "test",
-      "priority": 230,
-      "description": "编写多页合并功能测试",
-      "steps": [
-        "【规则】阅读 .claude-coder/testing-rules.md",
-        "【环境】curl http://localhost:8000/health",
-        "【P0】browser_navigate http://localhost:3000/merge",
-        "【P0】上传两个测试 PPT",
-        "【P0】browser_click 选择第一个幻灯片",
-        "【P0】browser_click 选择第二个幻灯片（多选）",
-        "【P0】browser_click 合并选中按钮",
-        "【P0】browser_wait_for text='正在合并' timeout=5000 (阶段1：开始)",
-        "【P0】browser_wait_for text='合并完成' timeout=60000 (阶段2：AI 合并)",
-        "【P0】browser_snapshot 验证合并结果",
-        "【P0】验证: 合并结果出现在幻灯片池",
-        "【P1】测试选择 3+ 个幻灯片合并",
-        "【P1】测试不同合并策略",
-        "【P2】测试合并失败处理"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-229"
-      ]
-    },
-    {
-      "id": "feat-231",
-      "category": "test",
-      "priority": 231,
-      "description": "编写最终选择和 PPT 生成测试",
-      "steps": [
-        "【规则】阅读 .claude-coder/testing-rules.md",
-        "【环境】curl http://localhost:8000/health",
-        "【P0】browser_navigate http://localhost:3000/merge",
-        "【P0】上传两个测试 PPT",
-        "【P0】处理几个幻灯片（单页或合并）",
-        "【P0】browser_click 合并结果项",
-        "【P0】browser_click '添加到最终选择' 按钮",
-        "【P0】验证: 最终选择栏显示选中的幻灯片",
-        "【P0】browser_drag 拖拽重新排序",
-        "【P0】验证: 排序正确",
-        "【P0】browser_click 生成最终 PPT 按钮",
-        "【P0】browser_wait_for text='正在生成' timeout=5000 (阶段1：开始)",
-        "【P0】browser_wait_for text='生成完成' timeout=30000 (阶段2：生成)",
-        "【P0】验证: 下载链接出现",
-        "【P0】browser_click 下载链接",
-        "【P0】验证: 文件下载成功",
-        "【P1】测试移除幻灯片功能",
-        "【P1】测试选择状态持久化"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-230"
-      ]
-    },
-    {
-      "id": "feat-232",
-      "category": "test",
-      "priority": 232,
-      "description": "编写 LLM 配置页面测试",
-      "steps": [
-        "【规则】阅读 .claude-coder/testing-rules.md",
-        "【环境】curl http://localhost:8000/health",
-        "【P0】browser_navigate http://localhost:3000/settings",
-        "【P0】browser_wait_for text='LLM 配置' timeout=10000",
-        "【P0】browser_type DeepSeek API Key",
-        "【P0】browser_click 保存按钮",
-        "【P0】验证: 配置保存成功提示",
-        "【P0】browser_navigate http://localhost:3000/settings",
-        "【P0】验证: 配置已加载",
-        "【P1】重复测试 OpenAI 配置",
-        "【P1】重复测试 Claude 配置",
-        "【P1】重复测试 GLM 配置",
-        "【P1】测试配置测试连接功能",
-        "【P2】测试无效 API Key 处理"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-231"
-      ]
-    },
-    {
-      "id": "feat-233",
-      "category": "infra",
-      "priority": 233,
-      "description": "清理和优化项目文档",
-      "steps": [
-        "更新 README.md 说明简化后的功能",
-        "更新 API 文档注释",
-        "删除不需要的文档引用",
-        "保留核心文档：canvas-preview.md、ppt-structure.md",
-        "创建优化后的用户使用指南",
-        "验证: 所有文档链接正确",
-        "验证: 文档内容与代码一致"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-227",
-        "feat-232"
-      ]
-    },
-    {
-      "id": "feat-234",
-      "category": "frontend",
-      "priority": 234,
-      "description": "修复根页面 404 和润色接口调用问题",
-      "steps": [
-        "创建 frontend/src/app/page.tsx，使用 redirect 重定向到 /merge",
-        "修改 frontend/src/lib/api.ts，开发环境使用相对路径通过 Next.js rewrite 代理",
-        "创建 frontend/.env.development 配置空 API URL",
-        "创建 frontend/.env.production 配置生产环境 API URL 模板",
-        "验证: pnpm tsc --noEmit 无错误",
-        "验证: 访问 http://localhost:3000/ 自动重定向到 /merge",
-        "验证: 润色接口调用成功，无 404 或 CORS 错误"
-      ],
-      "status": "done",
-      "depends_on": []
-    },
-    {
-      "id": "feat-235",
-      "category": "fullstack",
-      "priority": 235,
-      "description": "扩展 SlideContent 类型支持教学增强字段",
-      "steps": [
-        "修改 frontend/src/types/merge-plan.ts，添加 teaching_notes、interaction_prompts、exercise_questions、key_vocabulary 字段",
-        "修改 backend/app/services/content_merger.py 的 SlideContent TypedDict，同步新增字段",
-        "添加 ExerciseItem 类型定义（题型、题目、答案、解析）",
-        "更新类型注释和文档字符串",
-        "验证: pnpm tsc --noEmit 无错误",
-        "验证: python -m py_compile app/services/content_merger.py 无错误"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-234"
-      ]
-    },
-    {
-      "id": "feat-236",
-      "category": "backend",
-      "priority": 236,
-      "description": "增强提示词模板支持教学场景增强",
-      "steps": [
-        "读取 backend/app/prompts/merge_prompts.py",
-        "添加 TEACHING_ENHANCEMENT_PROMPT 常量，包含互动环节设计、练习题生成、教学笔记",
-        "更新 build_single_page_prompt 函数，集成教学增强提示词",
-        "添加练习题生成模板（基础练习、变式练习）",
-        "添加互动提示模板（思考问题、课堂讨论）",
-        "验证: python -m py_compile app/prompts/merge_prompts.py 无错误",
-        "验证: 润色/扩展操作返回包含教学增强字段的内容"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-235"
-      ]
-    },
-    {
-      "id": "feat-237",
-      "category": "frontend",
-      "priority": 237,
-      "description": "优化预览组件渲染增强内容展示",
-      "steps": [
-        "读取 frontend/src/components/merge/renderers/slide-content-renderer.tsx",
-        "实现分区渲染：主要内容区、互动区、练习区",
-        "添加视觉层次样式：不同颜色/样式区分内容类型",
-        "实现教学笔记折叠面板，默认折叠点击展开",
-        "添加练习题渲染样式（题型标签、题目、答案折叠显示）",
-        "验证: pnpm tsc --noEmit 无错误",
-        "验证: 预览组件正确渲染新增的教学增强字段"
-      ],
-      "status": "done",
-      "depends_on": [
-        "feat-235"
-      ]
-    },
-    {
-      "id": "feat-238",
-      "category": "test",
-      "priority": 241,
-      "description": "编写教学增强功能测试",
-      "steps": [
-        "【规则】阅读 .claude-coder/assets/test_rule.md",
-        "【环境】curl http://localhost:8000/health",
-        "【P0】browser_navigate http://localhost:3000/merge",
-        "【P0】上传测试 PPT 并执行润色操作",
-        "【P0】browser_wait_for text='处理完成' timeout=60000",
-        "【P0】browser_snapshot 验证返回内容包含教学增强字段",
-        "【P0】验证: 预览区正确显示互动提示、练习题、教学笔记",
-        "【P1】browser_click 展开教学笔记折叠面板",
-        "【P1】验证: 折叠面板正确展开显示内容",
-        "【P1】测试扩展操作返回完整的教学增强内容",
-        "【P2】测试不同学科的教学增强内容适配"
-      ],
-      "status": "failed",
-      "notes": "外部依赖阻塞：GLM API Key 过期返回 401。代码审查验证通过，需有效 API Key 完成 E2E 测试。",
-      "depends_on": [
-        "feat-236",
-        "feat-237",
-        "feat-240"
-      ]
-    },
-    {
-      "id": "feat-239",
-      "category": "backend",
-      "priority": 242,
-      "description": "创建内容质量评估器模块",
-      "steps": [
-        "创建 backend/app/services/content_quality_evaluator.py",
-        "定义评估维度：内容完整性、逻辑连贯性、表达准确性、教学适配性",
-        "实现 ContentQualityEvaluator 类，支持 0-1 评分",
-        "实现 evaluate_slide_content 方法评估单页内容",
-        "实现 generate_quality_report 方法生成评估报告",
-        "添加单元测试验证评估逻辑",
-        "验证: python -m py_compile app/services/content_quality_evaluator.py 无错误",
-        "验证: 单元测试通过"
-      ],
-      "status": "pending",
-      "depends_on": []
-    },
-    {
-      "id": "feat-240",
-      "category": "fullstack",
-      "priority": 240,
-      "description": "修复 LLM API Key 配置逻辑和同步机制",
-      "steps": [
-        "清空数据库 llm_config 表：sqlite3 backend/ai_teaching_ppt.db 'DELETE FROM llm_config;'",
-        "修复 test.env 的 provider 从 aliyun 改为 glm",
-        "添加后端 API 端点 /config/providers/default/active 返回完整配置",
-        "创建前端 lib/llmConfig.ts 工具函数从后端获取配置",
-        "修改 useMergeSession.ts 使用后端 API 获取配置",
-        "修改 single-page-processor.tsx 使用后端 API 获取配置",
-        "修复 settings/page.tsx 的 localStorage 写入逻辑",
-        "验证: pnpm tsc --noEmit 无错误",
-        "验证: python -m py_compile app/api/config.py 无错误",
-        "验证: 配置 API Key 后润色功能正常工作"
-      ],
-      "status": "done",
-      "depends_on": []
-    }
-  ]
+    "project": "ai-teaching-ppt",
+    "last_updated": "2026-03-20",
+    "next_task_priority": 240,
+    "completed_milestones": [
+        {
+            "name": "基础设施搭建",
+            "summary": "后端 FastAPI、前端 Next.js、Docker 部署",
+            "at": "2026-03-02"
+        },
+        {
+            "name": "核心生成流程",
+            "summary": "文件上传/OCR、LLM 内容生成、PPTX 生成",
+            "at": "2026-03-02"
+        },
+        {
+            "name": "学科增强与自适应",
+            "summary": "英语专属页面、年级自适应、K-12 扩展",
+            "at": "2026-03-03"
+        },
+        {
+            "name": "历史记录与 LLM 配置",
+            "summary": "生成历史、LLM 服务商切换、参数配置",
+            "at": "2026-03-03"
+        },
+        {
+            "name": "PPT 质量优化",
+            "summary": "提示词优化、模板优化、动画效果、点击显示答案",
+            "at": "2026-03-04"
+        },
+        {
+            "name": "学科深度优化",
+            "summary": "提示词引擎、语文/数学/理科/文科/英语专属",
+            "at": "2026-03-04"
+        },
+        {
+            "name": "教学设计科学化",
+            "summary": "认知负荷、布鲁姆分类、情境创设、差异化教学",
+            "at": "2026-03-05"
+        },
+        {
+            "name": "前端优化与修复",
+            "summary": "Dark Mode、交互动画、API 环境变量、进度反馈",
+            "at": "2026-03-05"
+        },
+        {
+            "name": "后端优化与修复",
+            "summary": "JSON 解析、Playwright 测试、E2E 测试",
+            "at": "2026-03-06"
+        },
+        {
+            "name": "SSE 流式反馈",
+            "summary": "SSE 流式生成进度推送",
+            "at": "2026-03-05"
+        },
+        {
+            "name": "/merge 基础测试与修复",
+            "summary": "核心流程测试、多场景测试、错误处理",
+            "at": "2026-03-08"
+        },
+        {
+            "name": "/merge 增强 - Canvas 与提示词",
+            "summary": "Canvas 预览重构、提示词编辑器、AI 合并",
+            "at": "2026-03-09"
+        },
+        {
+            "name": "AI 内容级合并",
+            "summary": "PPT 解析、AI 融合引擎、真实渲染预览、单页编辑",
+            "at": "2026-03-10"
+        },
+        {
+            "name": "PPT 合并增强与版本化预览",
+            "summary": "实时预览生成、累积进度、最终PPT生成、兜底渲染",
+            "at": "2026-03-11"
+        },
+        {
+            "name": "/merge 问题修复与全流程优化",
+            "summary": "PPT上传CORS修复、数据类型安全、占位符过滤、单页处理、全流程监控",
+            "at": "2026-03-18"
+        },
+        {
+            "name": "PPT 渲染优化",
+            "summary": "PptxViewJSRenderer集成、SlideContentRenderer创建、Canvas渲染优化、降级链路、性能缓存、图片base64支持",
+            "at": "2026-03-19"
+        },
+        {
+            "name": "AI 内容渲染与类型安全",
+            "summary": "SlideContentRenderer elements渲染、单页处理结构化返回、路由格式统一、safe_join_list、字段类型验证",
+            "at": "2026-03-19"
+        },
+        {
+            "name": "E2E测试与监控系统",
+            "summary": "类型安全全流程测试、监控面板集成、JSON序列化日志、日志导出功能",
+            "at": "2026-03-19"
+        }
+    ],
+    "features": [
+        {
+            "id": "feat-214",
+            "category": "frontend",
+            "priority": 214,
+            "description": "删除不需要的页面：首页、上传、历史、测试页面",
+            "steps": [
+                "删除 frontend/src/app/page.tsx",
+                "删除 frontend/src/app/upload/page.tsx",
+                "删除 frontend/src/app/history/page.tsx",
+                "删除 frontend/src/app/home/page.tsx",
+                "删除 frontend/src/app/test-pptxviewjs/page.tsx",
+                "验证剩余页面功能正常",
+                "验证: git status 显示已删除上述文件"
+            ],
+            "status": "done",
+            "depends_on": []
+        },
+        {
+            "id": "feat-215",
+            "category": "frontend",
+            "priority": 215,
+            "description": "简化 Header 组件，仅保留合并和设置导航",
+            "steps": [
+                "读取 frontend/src/components/header.tsx",
+                "修改 Header 组件，仅保留 /merge 和 /settings 链接",
+                "删除首页、上传、历史相关代码",
+                "更新中文文案",
+                "验证: pnpm tsc --noEmit 无错误",
+                "验证: 手动检查 Header 导航项正确"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-214"
+            ]
+        },
+        {
+            "id": "feat-216",
+            "category": "frontend",
+            "priority": 216,
+            "description": "创建 components/merge/ 目录结构并移动组件",
+            "steps": [
+                "创建 frontend/src/components/merge/ 目录",
+                "创建 frontend/src/components/merge/panels/ 子目录",
+                "创建 frontend/src/components/merge/renderers/ 子目录",
+                "创建 frontend/src/components/merge/controls/ 子目录",
+                "创建 frontend/src/components/merge/upload/ 子目录",
+                "移动所有合并相关组件到新目录结构",
+                "验证: 所有组件文件正确移动",
+                "验证: git status 显示文件重命名"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-215"
+            ]
+        },
+        {
+            "id": "feat-217",
+            "category": "frontend",
+            "priority": 217,
+            "description": "更新 MergePage 组件导入路径并验证功能",
+            "steps": [
+                "读取 frontend/src/app/merge/page.tsx",
+                "更新所有组件导入路径指向新位置",
+                "删除旧的导入路径引用",
+                "验证: pnpm tsc --noEmit 无错误",
+                "验证: 页面加载正常，无控制台错误"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-216"
+            ]
+        },
+        {
+            "id": "feat-218",
+            "category": "frontend",
+            "priority": 218,
+            "description": "优化 MergePage 组件：提取子组件和简化代码",
+            "steps": [
+                "读取 frontend/src/app/merge/page.tsx",
+                "提取 UploadSection 为独立组件",
+                "提取 MergeSteps 为独立组件",
+                "将状态管理逻辑提取到独立 hooks",
+                "减少主组件代码量至 400 行以内",
+                "保留所有功能逻辑",
+                "验证: pnpm tsc --noEmit 无错误",
+                "验证: 页面功能完整"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-217"
+            ]
+        },
+        {
+            "id": "feat-219",
+            "category": "frontend",
+            "priority": 219,
+            "description": "创建统一的幻灯片渲染决策工具函数",
+            "steps": [
+                "创建 frontend/src/lib/slideRendering.ts",
+                "实现 getSlideRenderer 函数，包含渲染优先级逻辑",
+                "更新组件使用新的渲染决策函数",
+                "添加完整的 TypeScript 类型定义",
+                "编写单元测试",
+                "验证: pnpm tsc --noEmit 无错误",
+                "验证: 幻灯片预览功能正常"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-218"
+            ]
+        },
+        {
+            "id": "feat-220",
+            "category": "backend",
+            "priority": 220,
+            "description": "删除不需要的后端 API 文件",
+            "steps": [
+                "删除 backend/app/api/generate.py",
+                "删除 backend/app/api/upload.py",
+                "删除 backend/app/api/history.py",
+                "删除 backend/app/api/process.py",
+                "验证: 剩余 API 文件：ppt.py、config.py、main.py",
+                "验证: git status 显示已删除上述文件"
+            ],
+            "status": "done",
+            "depends_on": []
+        },
+        {
+            "id": "feat-221",
+            "category": "backend",
+            "priority": 221,
+            "description": "删除不需要的后端服务文件",
+            "steps": [
+                "删除 backend/app/services/pdf_parser.py",
+                "删除 backend/app/services/ocr.py",
+                "删除 backend/app/services/text_processor.py",
+                "删除 backend/app/models/history.py",
+                "删除 backend/app/models/upload.py",
+                "保留 content_merger.py、llm.py、ppt_generator.py、ppt_to_image.py",
+                "验证: 剩余服务文件符合方案要求",
+                "验证: python -m py_compile app/main.py 无错误"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-220"
+            ]
+        },
+        {
+            "id": "feat-222",
+            "category": "backend",
+            "priority": 222,
+            "description": "清理后端 requirements.txt 依赖",
+            "steps": [
+                "读取 backend/requirements.txt",
+                "移除 pdfminer.six 依赖",
+                "移除 pytesseract 依赖",
+                "移除不需要的 pillow 版本（保留基础版本）",
+                "验证: 保留的依赖：fastapi、sqlalchemy、anthropic、openai、python-pptx、pymupdf",
+                "验证: pip install -r requirements.txt 成功",
+                "验证: python -m py_compile app/main.py 无错误"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-221"
+            ]
+        },
+        {
+            "id": "feat-223",
+            "category": "backend",
+            "priority": 223,
+            "description": "精简 backend/app/main.py API 路由",
+            "steps": [
+                "读取 backend/app/main.py",
+                "删除 upload_router、generate_router、history_router、process_router 的 include",
+                "仅保留 ppt_router 和 config_router",
+                "验证路由前缀和标签正确",
+                "验证: python -m py_compile app/main.py 无错误",
+                "验证: curl http://localhost:8000/health 返回 200"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-222"
+            ]
+        },
+        {
+            "id": "feat-224",
+            "category": "backend",
+            "priority": 224,
+            "description": "重构 content_merger.py 为清晰的类结构",
+            "steps": [
+                "读取 backend/app/services/content_merger.py",
+                "创建 MergeConfig 配置类",
+                "定义类型别名：SlideContent、MergeResult",
+                "重构 ContentMerger 类，提取公共方法",
+                "实现 merge_single_slide 和 merge_multiple_slides 方法",
+                "提取构建提示词、调用 LLM、解析响应的私有方法",
+                "保留所有合并策略：sequential、parallel、intelligent",
+                "验证: python -m py_compile app/services/content_merger.py 无错误"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-223"
+            ]
+        },
+        {
+            "id": "feat-225",
+            "category": "backend",
+            "priority": 225,
+            "description": "创建 content_merger_utils.py 工具模块",
+            "steps": [
+                "创建 backend/app/services/content_merger_utils.py",
+                "实现 validate_merge_request 函数",
+                "实现 prepare_merge_context 函数",
+                "实现 execute_ai_merge 函数",
+                "添加完整的类型注解",
+                "编写文档字符串",
+                "更新 content_merger.py 引用新工具模块",
+                "验证: python -m py_compile app/services/content_merger.py 无错误",
+                "验证: python -m py_compile app/services/content_merger_utils.py 无错误"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-224"
+            ]
+        },
+        {
+            "id": "feat-226",
+            "category": "backend",
+            "priority": 226,
+            "description": "优化 ppt.py API 路由组织",
+            "steps": [
+                "读取 backend/app/api/ppt.py",
+                "删除无关端点（如果有）",
+                "确认保留端点：/ai-merge-single、/ai-merge、/generate-final",
+                "优化路由前缀为 /api/v1/ppt",
+                "添加正确的 tags 和文档",
+                "验证: python -m py_compile app/api/ppt.py 无错误",
+                "验证: curl http://localhost:8000/docs 查看 API 文档正确"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-225"
+            ]
+        },
+        {
+            "id": "feat-227",
+            "category": "backend",
+            "priority": 227,
+            "description": "优化 config.py API，保留 LLM 配置功能",
+            "steps": [
+                "读取 backend/app/api/config.py",
+                "验证所有 LLM 配置端点保留",
+                "优化代码结构和注释",
+                "确保支持 DeepSeek、OpenAI、Claude、GLM",
+                "验证: python -m py_compile app/api/config.py 无错误",
+                "验证: curl http://localhost:8000/api/v1/config/llm 获取配置列表"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-225"
+            ]
+        },
+        {
+            "id": "feat-228",
+            "category": "test",
+            "priority": 228,
+            "description": "编写文件上传和会话初始化测试",
+            "steps": [
+                "【规则】阅读 .claude-coder/testing-rules.md",
+                "【环境】curl http://localhost:8000/health",
+                "【P0】browser_navigate http://localhost:3000/merge",
+                "【P0】browser_wait_for text='PPT 智能合并' timeout=10000",
+                "【P0】browser_file_upload paths=['测试 PPT A']",
+                "【P0】browser_wait_for text='共 N 页' timeout=10000 (阶段1：解析)",
+                "【P0】browser_file_upload paths=['测试 PPT B']",
+                "【P0】browser_wait_for text='共 N 页' timeout=10000 (阶段2：解析)",
+                "【P0】browser_snapshot 验证两个 PPT 都已解析",
+                "【P0】验证: 幻灯片池显示正确数量的幻灯片",
+                "【P1】browser_file_upload paths=['空 PPT'] 测试错误处理",
+                "【P1】验证: 错误提示正确显示",
+                "【P1】browser_file_upload paths=['非 PPT 文件'] 测试错误处理",
+                "【P1】验证: 错误提示正确显示"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-219",
+                "feat-226"
+            ]
+        },
+        {
+            "id": "feat-229",
+            "category": "test",
+            "priority": 229,
+            "description": "编写单页处理功能测试",
+            "steps": [
+                "【规则】阅读 .claude-coder/testing-rules.md",
+                "【环境】curl http://localhost:8000/health",
+                "【P0】browser_navigate http://localhost:3000/merge",
+                "【P0】上传两个测试 PPT 文件",
+                "【P0】browser_click 选择第一个幻灯片",
+                "【P0】browser_click Polish 按钮",
+                "【P0】browser_click 处理按钮",
+                "【P0】browser_wait_for text='正在处理' timeout=5000 (阶段1：开始)",
+                "【P0】browser_wait_for text='处理完成' timeout=60000 (阶段2：AI 处理)",
+                "【P0】browser_snapshot 验证处理结果",
+                "【P0】验证: 版本历史记录正确",
+                "【P1】重复测试 Expand 动作",
+                "【P1】重复测试 Rewrite 动作",
+                "【P1】重复测试 Extract 动作",
+                "【P2】测试自定义提示词功能",
+                "【P2】测试处理失败重试功能"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-228"
+            ]
+        },
+        {
+            "id": "feat-230",
+            "category": "test",
+            "priority": 230,
+            "description": "编写多页合并功能测试",
+            "steps": [
+                "【规则】阅读 .claude-coder/testing-rules.md",
+                "【环境】curl http://localhost:8000/health",
+                "【P0】browser_navigate http://localhost:3000/merge",
+                "【P0】上传两个测试 PPT",
+                "【P0】browser_click 选择第一个幻灯片",
+                "【P0】browser_click 选择第二个幻灯片（多选）",
+                "【P0】browser_click 合并选中按钮",
+                "【P0】browser_wait_for text='正在合并' timeout=5000 (阶段1：开始)",
+                "【P0】browser_wait_for text='合并完成' timeout=60000 (阶段2：AI 合并)",
+                "【P0】browser_snapshot 验证合并结果",
+                "【P0】验证: 合并结果出现在幻灯片池",
+                "【P1】测试选择 3+ 个幻灯片合并",
+                "【P1】测试不同合并策略",
+                "【P2】测试合并失败处理"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-229"
+            ]
+        },
+        {
+            "id": "feat-231",
+            "category": "test",
+            "priority": 231,
+            "description": "编写最终选择和 PPT 生成测试",
+            "steps": [
+                "【规则】阅读 .claude-coder/testing-rules.md",
+                "【环境】curl http://localhost:8000/health",
+                "【P0】browser_navigate http://localhost:3000/merge",
+                "【P0】上传两个测试 PPT",
+                "【P0】处理几个幻灯片（单页或合并）",
+                "【P0】browser_click 合并结果项",
+                "【P0】browser_click '添加到最终选择' 按钮",
+                "【P0】验证: 最终选择栏显示选中的幻灯片",
+                "【P0】browser_drag 拖拽重新排序",
+                "【P0】验证: 排序正确",
+                "【P0】browser_click 生成最终 PPT 按钮",
+                "【P0】browser_wait_for text='正在生成' timeout=5000 (阶段1：开始)",
+                "【P0】browser_wait_for text='生成完成' timeout=30000 (阶段2：生成)",
+                "【P0】验证: 下载链接出现",
+                "【P0】browser_click 下载链接",
+                "【P0】验证: 文件下载成功",
+                "【P1】测试移除幻灯片功能",
+                "【P1】测试选择状态持久化"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-230"
+            ]
+        },
+        {
+            "id": "feat-232",
+            "category": "test",
+            "priority": 232,
+            "description": "编写 LLM 配置页面测试",
+            "steps": [
+                "【规则】阅读 .claude-coder/testing-rules.md",
+                "【环境】curl http://localhost:8000/health",
+                "【P0】browser_navigate http://localhost:3000/settings",
+                "【P0】browser_wait_for text='LLM 配置' timeout=10000",
+                "【P0】browser_type DeepSeek API Key",
+                "【P0】browser_click 保存按钮",
+                "【P0】验证: 配置保存成功提示",
+                "【P0】browser_navigate http://localhost:3000/settings",
+                "【P0】验证: 配置已加载",
+                "【P1】重复测试 OpenAI 配置",
+                "【P1】重复测试 Claude 配置",
+                "【P1】重复测试 GLM 配置",
+                "【P1】测试配置测试连接功能",
+                "【P2】测试无效 API Key 处理"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-231"
+            ]
+        },
+        {
+            "id": "feat-233",
+            "category": "infra",
+            "priority": 233,
+            "description": "清理和优化项目文档",
+            "steps": [
+                "更新 README.md 说明简化后的功能",
+                "更新 API 文档注释",
+                "删除不需要的文档引用",
+                "保留核心文档：canvas-preview.md、ppt-structure.md",
+                "创建优化后的用户使用指南",
+                "验证: 所有文档链接正确",
+                "验证: 文档内容与代码一致"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-227",
+                "feat-232"
+            ]
+        },
+        {
+            "id": "feat-234",
+            "category": "frontend",
+            "priority": 234,
+            "description": "修复根页面 404 和润色接口调用问题",
+            "steps": [
+                "创建 frontend/src/app/page.tsx，使用 redirect 重定向到 /merge",
+                "修改 frontend/src/lib/api.ts，开发环境使用相对路径通过 Next.js rewrite 代理",
+                "创建 frontend/.env.development 配置空 API URL",
+                "创建 frontend/.env.production 配置生产环境 API URL 模板",
+                "验证: pnpm tsc --noEmit 无错误",
+                "验证: 访问 http://localhost:3000/ 自动重定向到 /merge",
+                "验证: 润色接口调用成功，无 404 或 CORS 错误"
+            ],
+            "status": "done",
+            "depends_on": []
+        },
+        {
+            "id": "feat-235",
+            "category": "fullstack",
+            "priority": 235,
+            "description": "扩展 SlideContent 类型支持教学增强字段",
+            "steps": [
+                "修改 frontend/src/types/merge-plan.ts，添加 teaching_notes、interaction_prompts、exercise_questions、key_vocabulary 字段",
+                "修改 backend/app/services/content_merger.py 的 SlideContent TypedDict，同步新增字段",
+                "添加 ExerciseItem 类型定义（题型、题目、答案、解析）",
+                "更新类型注释和文档字符串",
+                "验证: pnpm tsc --noEmit 无错误",
+                "验证: python -m py_compile app/services/content_merger.py 无错误"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-234"
+            ]
+        },
+        {
+            "id": "feat-236",
+            "category": "backend",
+            "priority": 236,
+            "description": "增强提示词模板支持教学场景增强",
+            "steps": [
+                "读取 backend/app/prompts/merge_prompts.py",
+                "添加 TEACHING_ENHANCEMENT_PROMPT 常量，包含互动环节设计、练习题生成、教学笔记",
+                "更新 build_single_page_prompt 函数，集成教学增强提示词",
+                "添加练习题生成模板（基础练习、变式练习）",
+                "添加互动提示模板（思考问题、课堂讨论）",
+                "验证: python -m py_compile app/prompts/merge_prompts.py 无错误",
+                "验证: 润色/扩展操作返回包含教学增强字段的内容"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-235"
+            ]
+        },
+        {
+            "id": "feat-237",
+            "category": "frontend",
+            "priority": 237,
+            "description": "优化预览组件渲染增强内容展示",
+            "steps": [
+                "读取 frontend/src/components/merge/renderers/slide-content-renderer.tsx",
+                "实现分区渲染：主要内容区、互动区、练习区",
+                "添加视觉层次样式：不同颜色/样式区分内容类型",
+                "实现教学笔记折叠面板，默认折叠点击展开",
+                "添加练习题渲染样式（题型标签、题目、答案折叠显示）",
+                "验证: pnpm tsc --noEmit 无错误",
+                "验证: 预览组件正确渲染新增的教学增强字段"
+            ],
+            "status": "done",
+            "depends_on": [
+                "feat-235"
+            ]
+        },
+        {
+            "id": "feat-238",
+            "category": "test",
+            "priority": 241,
+            "description": "编写教学增强功能测试",
+            "steps": [
+                "【规则】阅读 .claude-coder/assets/test_rule.md",
+                "【环境】curl http://localhost:8000/health",
+                "【P0】browser_navigate http://localhost:3000/merge",
+                "【P0】上传测试 PPT 并执行润色操作",
+                "【P0】browser_wait_for text='处理完成' timeout=60000",
+                "【P0】browser_snapshot 验证返回内容包含教学增强字段",
+                "【P0】验证: 预览区正确显示互动提示、练习题、教学笔记",
+                "【P1】browser_click 展开教学笔记折叠面板",
+                "【P1】验证: 折叠面板正确展开显示内容",
+                "【P1】测试扩展操作返回完整的教学增强内容",
+                "【P2】测试不同学科的教学增强内容适配"
+            ],
+            "status": "failed",
+            "notes": "外部依赖阻塞：GLM API Key 过期返回 401。代码审查验证通过，需有效 API Key 完成 E2E 测试。",
+            "depends_on": [
+                "feat-236",
+                "feat-237",
+                "feat-240"
+            ]
+        },
+        {
+            "id": "feat-239",
+            "category": "backend",
+            "priority": 242,
+            "description": "创建内容质量评估器模块",
+            "steps": [
+                "创建 backend/app/services/content_quality_evaluator.py",
+                "定义评估维度：内容完整性、逻辑连贯性、表达准确性、教学适配性",
+                "实现 ContentQualityEvaluator 类，支持 0-1 评分",
+                "实现 evaluate_slide_content 方法评估单页内容",
+                "实现 generate_quality_report 方法生成评估报告",
+                "添加单元测试验证评估逻辑",
+                "验证: python -m py_compile app/services/content_quality_evaluator.py 无错误",
+                "验证: 单元测试通过"
+            ],
+            "status": "done",
+            "depends_on": []
+        },
+        {
+            "id": "feat-240",
+            "category": "fullstack",
+            "priority": 240,
+            "description": "修复 LLM API Key 配置逻辑和同步机制",
+            "steps": [
+                "清空数据库 llm_config 表：sqlite3 backend/ai_teaching_ppt.db 'DELETE FROM llm_config;'",
+                "修复 test.env 的 provider 从 aliyun 改为 glm",
+                "添加后端 API 端点 /config/providers/default/active 返回完整配置",
+                "创建前端 lib/llmConfig.ts 工具函数从后端获取配置",
+                "修改 useMergeSession.ts 使用后端 API 获取配置",
+                "修改 single-page-processor.tsx 使用后端 API 获取配置",
+                "修复 settings/page.tsx 的 localStorage 写入逻辑",
+                "验证: pnpm tsc --noEmit 无错误",
+                "验证: python -m py_compile app/api/config.py 无错误",
+                "验证: 配置 API Key 后润色功能正常工作"
+            ],
+            "status": "done",
+            "depends_on": []
+        }
+    ]
 }
