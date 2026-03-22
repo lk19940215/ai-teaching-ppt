@@ -433,9 +433,10 @@ export function useMergeSession(): UseMergeSessionReturn {
 
       const newVersion = createNewVersion(slideItem, action, newContent, prompt)
 
-      // 附加服务端版本的预览图
+      // 附加服务端版本的预览图（按修改页面的索引取对应预览图）
       if (serverVersion?.preview_images?.length > 0) {
-        const pUrl = serverVersion.preview_images[0]
+        const pageIdx = slideItem.original_index
+        const pUrl = serverVersion.preview_images[pageIdx] || serverVersion.preview_images[0]
         newVersion.preview_url = pUrl.startsWith('http') ? pUrl : `${apiBaseUrl}${pUrl}`
       }
 
