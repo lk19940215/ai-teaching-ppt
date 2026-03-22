@@ -69,33 +69,3 @@ def build_prompt(slide_text: str, action: str, custom_prompt: str | None = None)
     ]
 
 
-def build_merge_prompt(slide_texts: list[str], custom_prompt: str | None = None) -> list[dict]:
-    """构建多页融合的提示词"""
-    system_prompt = _build_system_prompt("polish")
-    extra = f"\n\n用户额外要求：{custom_prompt}" if custom_prompt else ""
-
-    slides_str = ""
-    for i, text in enumerate(slide_texts):
-        slides_str += f"\n--- 第 {i+1} 页 ---\n{text}\n"
-
-    return [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"""请将以下多页 PPT 的内容进行**融合**：
-- 将多页内容合并整理为一页的内容
-- 去除重复信息，保留所有不重复的要点
-- 内容组织要有逻辑性和层次感
-- 输出的文本应适合放入一页幻灯片
-
-**多页内容**：
-{slides_str}
-{extra}
-
-**返回 JSON 格式**：
-```json
-{{
-  "merged_title": "融合后的标题",
-  "merged_content": "融合后的正文内容（用换行分段）",
-  "summary": "融合说明"
-}}
-```"""},
-    ]

@@ -6,7 +6,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 from ..core.models import (
-    ParsedPresentation, SlideModification, SlideSelector,
+    SlideSelector,
     PPTVersion, ProcessingResult,
 )
 
@@ -32,12 +32,6 @@ class ComposeRequest(BaseModel):
     """页面组合请求"""
     session_id: str
     selections: list[SlideSelector]
-
-
-class ApplyRequest(BaseModel):
-    """手动应用修改请求"""
-    session_id: str
-    modifications: list[SlideModification]
 
 
 # ---- 响应模型 ----

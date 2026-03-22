@@ -10,7 +10,6 @@ PPT 处理 API 路由
 """
 
 import uuid
-import shutil
 import logging
 from pathlib import Path
 from datetime import datetime

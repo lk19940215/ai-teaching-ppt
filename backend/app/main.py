@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import uvicorn
@@ -25,7 +25,6 @@ logger = logging.getLogger(__name__)
 
 # 配置 PPTX MIME 类型
 mimetypes.add_type('application/vnd.openxmlformats-officedocument.presentationml.presentation', '.pptx')
-mimetypes.add_type('application/vnd.openxmlformats-officedocument.presentationml.presentation', '.pptx', strict=True)
 
 app = FastAPI(
     title="AI 教学 PPT 生成器 API",

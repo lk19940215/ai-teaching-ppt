@@ -20,28 +20,73 @@
 
 ## 二、数据流架构
 
+### 2.1 上传与解析流程
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant FE as Frontend<br/>Next.js :3000
+    participant BE as Backend<br/>FastAPI :9501
+    participant LO as LibreOffice
+
+    U->>FE: 选择 PPT A + PPT B
+    FE->>BE: POST /upload (multipart)
+    BE->>BE: PPTXReader.parse(file_a)
+    BE->>LO: PPTX → PDF → PNG
+    LO-->>BE: 预览图 ×22
+    BE->>BE: PPTXReader.parse(file_b)
+    BE->>LO: PPTX → PDF → PNG
+    LO-->>BE: 预览图 ×22
+    BE-->>FE: {session_id, parsed, preview_images[44]}
+    FE->>FE: 构建 SlidePool → 进入合并设置
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                       Frontend (Next.js :3000)               │
-│                                                              │
-│  上传PPTX → useMergePage → useMergeSession → API调用        │
-│  ┌──────────┐  ┌──────────────┐  ┌──────────────────────┐   │
-│  │UploadStep│→ │ SlidePoolPanel│→ │ SlidePreviewPanel    │   │
-│  │(选文件)  │  │ (44页缩略图) │  │ (大图+AI操作+版本)   │   │
-│  └──────────┘  └──────────────┘  └──────────────────────┘   │
-│                                   ↕                          │
-│                         FinalSelectionBar (拖拽排序→生成PPT)  │
-└────────────────────────────┬─────────────────────────────────┘
-                             │ HTTP (直连 :9501，绕过 Next 代理)
-┌────────────────────────────▼─────────────────────────────────┐
-│                     Backend (FastAPI :9501)                    │
-│                                                              │
-│  POST /upload → PPTXReader.parse → 生成预览图 → 返回JSON     │
-│  POST /process → ContentExtractor → AIProcessor(LLM) →      │
-│                  PPTXWriter.apply → 生成预览图 → 返回版本     │
-│  POST /compose → PPTXWriter.compose → 生成预览图 → 返回版本  │
-│  GET  /download → FileResponse                               │
-└──────────────────────────────────────────────────────────────┘
+
+### 2.2 AI 处理流程
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant FE as Frontend
+    participant BE as Backend
+    participant LLM as LLM API
+    participant LO as LibreOffice
+
+    U->>FE: 选择页面 + 操作(润色/扩展/改写/提取)
+    FE->>BE: POST /process {session_id, slide_indices, action, api_key}
+    BE->>BE: ContentExtractor → format_for_ai()
+    Note over BE: 生成带标签的文本<br/>【页面信息】版式=...<br/>【正文·shape_N】...
+    BE->>LLM: system: prompt_template.md<br/>user: 幻灯片内容
+    LLM-->>BE: JSON {text_blocks, table_cells, summary}
+    BE->>BE: PPTXWriter.apply() — Run级别替换
+    BE->>LO: 新PPTX → PDF → PNG
+    LO-->>BE: 预览图
+    BE-->>FE: {version, preview_images}
+    FE->>FE: 更新版本历史 + 显示新预览图
+```
+
+### 2.3 页面组合与导出流程
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant FE as Frontend
+    participant BE as Backend
+    participant LO as LibreOffice
+
+    U->>FE: 选择多个页面 → "融合选中页面"
+    FE->>BE: POST /compose {session_id, selections[]}
+    BE->>BE: PPTXWriter.compose() — 复制选中页面到新PPTX
+    BE->>LO: 新PPTX → PDF → PNG
+    LO-->>BE: 预览图
+    BE-->>FE: {version, preview_images}
+    FE->>FE: 新增融合结果到幻灯片池
+
+    U->>FE: 点击"生成最终PPT"
+    FE->>BE: POST /compose {最终选择的页面}
+    BE-->>FE: {version, download_url}
+    U->>FE: 下载
+    FE->>BE: GET /download/{session_id}/{version_id}
+    BE-->>U: PPTX 文件
 ```
 
 ---
@@ -121,15 +166,27 @@ ai-teaching-ppt/
 │       │   └── use-pptx-fallback.ts ← 渲染降级策略
 │       │
 │       ├── components/merge/
-│       │   ├── upload/           ← 上传区域组件
-│       │   ├── panels/           ← 幻灯片池、预览、最终选择、监控面板
-│       │   ├── controls/         ← 操作按钮、进度条、版本切换、步骤指示器
-│       │   └── renderers/        ← 幻灯片渲染器（图片/Canvas/PptxViewJS）
+│       │   ├── upload/
+│       │   │   └── ppt-upload-area.tsx  ← 拖拽/点击上传 PPTX
+│       │   ├── panels/
+│       │   │   ├── slide-pool-panel.tsx ← 左栏：PPT A/B/融合结果缩略图
+│       │   │   ├── slide-preview-panel.tsx ← 中栏：大图预览+AI操作+版本切换
+│       │   │   ├── final-selection-bar.tsx ← 底部：最终页面排序
+│       │   │   └── monitor-panel.tsx   ← 右下角：请求/响应监控
+│       │   ├── controls/
+│       │   │   ├── step-indicator.tsx   ← 步骤指示器（上传→合并→下载）
+│       │   │   ├── download-complete.tsx ← 下载完成界面
+│       │   │   └── prompt-templates-panel.tsx ← 提示词模板选择
+│       │   └── renderers/
+│       │       ├── ppt-canvas-renderer.tsx ← Canvas 渲染（主渲染器）
+│       │       ├── pptxviewjs-renderer.tsx ← PptxViewJS 渲染
+│       │       └── slide-content-renderer.tsx ← AI 结构化内容渲染
 │       │
 │       ├── lib/
 │       │   ├── api.ts            ← apiBaseUrl 和 URL 构建
 │       │   ├── llmConfig.ts      ← LLM配置管理（localStorage + 后端默认）
-│       │   └── version-api.ts    ← 版本历史API客户端
+│       │   ├── slideRendering.ts ← 渲染策略决策（图片/Canvas/PptxViewJS）
+│       │   └── utils.ts          ← cn() 等通用工具
 │       │
 │       ├── types/
 │       │   ├── merge-session.ts  ← 前端领域类型（SlidePoolItem、SlideVersion等）
