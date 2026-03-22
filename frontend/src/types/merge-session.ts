@@ -155,6 +155,8 @@ export interface MergeSession {
     stage: string
     message: string
     percentage: number
+    batch_current?: number
+    batch_total?: number
   }
 }
 

@@ -114,6 +114,12 @@ class AIProcessor:
                     mods.append(mod)
                 else:
                     content = content_map.get(slide_idx)
+                    if content is None and len(content_map) == 1:
+                        content = next(iter(content_map.values()))
+                        logger.info(
+                            f"单页模式: AI 返回 slide_index={slide_idx}, "
+                            f"自动映射到实际 slide_index={content.slide_index}"
+                        )
                     if content is None:
                         logger.warning(
                             f"slides[] 中 slide_index={slide_idx} 不在输入中, 跳过"

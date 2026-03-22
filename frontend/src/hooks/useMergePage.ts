@@ -76,6 +76,7 @@ export interface UseMergePageReturn {
   handleSlideClick: (slideId: string) => void
   handleSwitchVersion: (versionId: string) => void
   handleProcess: (action: SlideAction, prompt?: string) => Promise<void>
+  handleBatchProcess: (slideIds: string[], action: SlideAction) => Promise<void>
   handleAddToFinal: () => void
   handleRemoveFromFinal: () => void
   addToFinal: (versionId: string) => void
@@ -116,6 +117,7 @@ export function useMergePage(): UseMergePageReturn {
     finalSelectionDetails,
     initSession,
     processSlide,
+    batchProcessSlides,
     mergeSlides,
     selectVersion,
     setActiveSlide,
@@ -178,6 +180,29 @@ export function useMergePage(): UseMergePageReturn {
       setError(result.error || '处理失败')
     }
   }, [activeSlide, processSlide, globalPrompt, subject, grade])
+
+  // 批量处理多个幻灯片
+  const handleBatchProcess = useCallback(async (slideIds: string[], action: SlideAction) => {
+    const actionTemplates: Record<string, string> = {
+      polish: '请优化这段内容的文字表达，使语言更加流畅自然、通俗易懂，同时保持教学内容的准确性和完整性。',
+      expand: '请在保持原有内容基础上，适当增加细节、例子或解释说明，使教学内容更加丰富和完整。',
+      rewrite: '请调整这段内容的语言风格，使其更符合目标学生的认知水平，保持专业性的同时增强可读性。',
+      extract: '请提取这段内容的核心知识点，以简洁清晰的方式呈现关键信息，去除冗余内容。',
+    }
+
+    let finalPrompt = globalPrompt || actionTemplates[action] || ''
+    if (grade && finalPrompt) {
+      finalPrompt = `当前年级：${grade}。${finalPrompt}`
+    } else if (grade) {
+      finalPrompt = `当前年级：${grade}`
+    }
+
+    const domain = subject === '_default' ? undefined : subject
+    const result = await batchProcessSlides(slideIds, action, finalPrompt, domain)
+    if (result.failed > 0) {
+      setError(`批量处理完成: ${result.succeeded}/${result.total} 成功, ${result.failed} 失败`)
+    }
+  }, [batchProcessSlides, globalPrompt, subject, grade])
 
   // 添加到最终选择
   const handleAddToFinal = useCallback(() => {
@@ -323,6 +348,7 @@ export function useMergePage(): UseMergePageReturn {
     handleSlideClick,
     handleSwitchVersion,
     handleProcess,
+    handleBatchProcess,
     handleAddToFinal,
     handleRemoveFromFinal,
     addToFinal,

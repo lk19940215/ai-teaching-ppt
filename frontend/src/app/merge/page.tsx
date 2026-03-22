@@ -44,6 +44,7 @@ export default function MergePage() {
     handleSlideClick,
     handleSwitchVersion,
     handleProcess,
+    handleBatchProcess,
     handleAddToFinal,
     handleRemoveFromFinal,
     addToFinal,
@@ -109,6 +110,7 @@ export default function MergePage() {
           onSlideClick={handleSlideClick}
           onSwitchVersion={handleSwitchVersion}
           onProcess={handleProcess}
+          onBatchProcess={handleBatchProcess}
           onAddToFinal={handleAddToFinal}
           onRemoveFromFinal={handleRemoveFromFinal}
           addToFinal={addToFinal}

@@ -239,7 +239,7 @@ class PPTXWriter:
           2. 对于每个新段落:
              - 如果对应位置有旧段落: 替换第一个 Run 文本，清空后续 Run
              - 如果没有旧段落: 追加新段落，继承最后一段格式
-          3. 多余的旧段落: 清空文本（保留段落结构避免 XML 异常）
+          3. 多余的旧段落: 从 XML 中移除（保留至少一个段落避免 XML 异常）
         """
         tf = shape.text_frame
         new_paras = new_text.split("\n")
@@ -254,8 +254,7 @@ class PPTXWriter:
                 if old_paras:
                     self._copy_paragraph_format(old_paras[-1], new_para)
 
-        for i in range(len(new_paras), len(old_paras)):
-            self._clear_paragraph(old_paras[i])
+        self._remove_excess_paragraphs(tf, len(new_paras), old_paras)
 
         self._enable_auto_fit(tf)
 
@@ -268,7 +267,7 @@ class PPTXWriter:
                 return
             for child in list(body_pr):
                 tag = child.tag.split("}")[-1] if "}" in child.tag else child.tag
-                if tag in ("noAutofit", "spAutoFit"):
+                if tag in ("noAutofit", "spAutoFit", "normAutofit"):
                     body_pr.remove(child)
             from lxml import etree
             etree.SubElement(body_pr, qn("a:normAutofit"), attrib={"fontScale": "100000"})
@@ -285,10 +284,20 @@ class PPTXWriter:
         else:
             para.text = new_text
 
-    def _clear_paragraph(self, para):
-        """清空段落文本（保留段落节点）"""
-        for run in para.runs:
-            run.text = ""
+    @staticmethod
+    def _remove_excess_paragraphs(text_frame, keep_count: int, old_paras: list):
+        """移除多余的旧段落 XML 节点，避免残留空行。至少保留一个段落。"""
+        txBody = text_frame._txBody
+        for i in range(len(old_paras) - 1, keep_count - 1, -1):
+            if i <= 0:
+                for run in old_paras[0].runs:
+                    run.text = ""
+                break
+            try:
+                txBody.remove(old_paras[i]._p)
+            except (ValueError, AttributeError):
+                for run in old_paras[i].runs:
+                    run.text = ""
 
     def _replace_cell_text(self, cell, new_text: str):
         """替换表格单元格文本，按换行分段，保留格式"""
@@ -305,8 +314,7 @@ class PPTXWriter:
                 if old_paras:
                     self._copy_paragraph_format(old_paras[-1], new_para)
 
-        for i in range(len(new_paras), len(old_paras)):
-            self._clear_paragraph(old_paras[i])
+        self._remove_excess_paragraphs(tf, len(new_paras), old_paras)
 
         self._enable_auto_fit(tf)
 
@@ -364,6 +372,8 @@ class PPTXWriter:
 
         slide = prs.slides.add_slide(layout)
 
+        used_placeholder_ids = set()
+
         if content.title:
             title_set = False
             for shape in slide.placeholders:
@@ -375,6 +385,7 @@ class PPTXWriter:
                             run.font.size = Pt(32)
                             run.font.bold = True
                     self._enable_auto_fit(shape.text_frame)
+                    used_placeholder_ids.add(0)
                     title_set = True
                     break
             if not title_set:
@@ -399,6 +410,8 @@ class PPTXWriter:
                 body_shape = slide.shapes.add_textbox(
                     Inches(0.5), Inches(1.8), Inches(9), Inches(5.2)
                 )
+            else:
+                used_placeholder_ids.add(1)
 
             tf = body_shape.text_frame
             tf.word_wrap = True
@@ -430,6 +443,15 @@ class PPTXWriter:
                         para.space_before = Pt(2)
 
             self._enable_auto_fit(tf)
+
+        for shape in list(slide.placeholders):
+            ph_idx = shape.placeholder_format.idx
+            if ph_idx not in used_placeholder_ids:
+                try:
+                    sp = shape._element
+                    sp.getparent().remove(sp)
+                except Exception:
+                    pass
 
         logger.info(f"创建新页面: title='{content.title[:30]}', body={len(content.body_texts)}段")
 

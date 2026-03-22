@@ -204,21 +204,27 @@ async def process_slides(req: ProcessRequest):
             slog.error("没有有效的源文件")
             raise HTTPException(400, "没有有效的源文件")
     else:
-        # 单源模式
+        # 单源模式：优先用最新版本，页码不足时回退原始文件
+        original_path = Path(session.original_files.get(source_key, ""))
         base_version_path = None
+
         if session.versions:
             last = session.versions[-1]
-            base_version_path = Path(last.output_path)
-            if not base_version_path.exists():
-                base_version_path = None
+            candidate = Path(last.output_path)
+            if candidate.exists():
+                candidate_parsed = _reader.parse(candidate)
+                max_idx = max(req.slide_indices) if req.slide_indices else 0
+                if max_idx < len(candidate_parsed.slides):
+                    base_version_path = candidate
+                    parsed = candidate_parsed
 
         if base_version_path is None:
-            base_version_path = Path(session.original_files.get(source_key, ""))
-            if not base_version_path.exists():
+            if not original_path.exists():
                 slog.error("找不到源文件")
                 raise HTTPException(400, "找不到源文件")
+            base_version_path = original_path
+            parsed = _reader.parse(base_version_path)
 
-        parsed = _reader.parse(base_version_path)
         for idx in req.slide_indices:
             if idx >= len(parsed.slides):
                 slog.error(f"页码超出范围: {idx}")

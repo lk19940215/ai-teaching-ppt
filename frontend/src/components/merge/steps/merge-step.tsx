@@ -1,7 +1,9 @@
 "use client"
 
+import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import type { useMergePage } from '@/hooks/useMergePage'
+import type { SlideAction } from '@/types/merge-session'
 import { SlidePoolPanel } from '@/components/merge/panels/slide-pool-panel'
 import { FinalSelectionBar } from '@/components/merge/panels/final-selection-bar'
 import { MergeMainArea } from './merge-main-area'
@@ -23,6 +25,7 @@ export interface MergeStepProps {
   onSlideClick: (slideId: string) => void
   onSwitchVersion: (versionId: string) => void
   onProcess: (action: any, prompt?: string) => Promise<void>
+  onBatchProcess: (slideIds: string[], action: SlideAction) => Promise<void>
   onAddToFinal: () => void
   onRemoveFromFinal: () => void
   addToFinal: (versionId: string) => void
@@ -55,6 +58,7 @@ export function MergeStep({
   onSlideClick,
   onSwitchVersion,
   onProcess,
+  onBatchProcess,
   onAddToFinal,
   onRemoveFromFinal,
   addToFinal,
@@ -69,6 +73,13 @@ export function MergeStep({
   onReset,
   reorderFinal,
 }: MergeStepProps) {
+  const [multiSelectedIds, setMultiSelectedIds] = useState<string[]>([])
+  const clearMultiSelect = useCallback(() => setMultiSelectedIds([]), [])
+
+  const batchProgress = session.progress_info?.batch_total
+    ? { current: session.progress_info.batch_current || 0, total: session.progress_info.batch_total }
+    : null
+
   return (
     <div className="space-y-4">
       {/* 顶部控制栏 */}
@@ -95,6 +106,8 @@ export function MergeStep({
         isProcessing={session.is_processing}
         isMerging={session.active_operation === 'merge'}
         onMergeSelected={onMergeSelected}
+        multiSelectedIds={multiSelectedIds}
+        onMultiSelectChange={setMultiSelectedIds}
         fileA={session.ppt_a_file}
         fileB={session.ppt_b_file}
         layout="horizontal"
@@ -135,6 +148,10 @@ export function MergeStep({
         onGradeChange={onGradeChange}
         onAddToFinal={onAddToFinal}
         onRemoveFromFinal={onRemoveFromFinal}
+        multiSelectedIds={multiSelectedIds}
+        onBatchProcess={onBatchProcess}
+        batchProgress={batchProgress}
+        onClearMultiSelect={clearMultiSelect}
       />
     </div>
   )

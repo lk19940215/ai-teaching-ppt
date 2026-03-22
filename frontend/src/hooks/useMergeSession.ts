@@ -44,6 +44,14 @@ const initialSession: MergeSession = {
   is_processing: false,
 }
 
+/** 批量处理结果 */
+export interface BatchProcessResult {
+  total: number
+  succeeded: number
+  failed: number
+  results: Array<{ slideId: string; result: ProcessingResult }>
+}
+
 /** Hook 返回类型 */
 export interface UseMergeSessionReturn {
   // 状态
@@ -66,6 +74,8 @@ export interface UseMergeSessionReturn {
   initSession: (pptA: File, pptB: File) => Promise<void>
   /** 处理单页 */
   processSlide: (slideId: string, action: SlideAction, prompt?: string, domain?: string) => Promise<ProcessingResult>
+  /** 批量处理多个幻灯片（逐个调用 AI） */
+  batchProcessSlides: (slideIds: string[], action: SlideAction, prompt?: string, domain?: string) => Promise<BatchProcessResult>
   /** 融合多个幻灯片（AI 内容级融合） */
   mergeSlides: (slideIds: string[], prompt?: string, domain?: string) => Promise<ProcessingResult>
   /** 切换版本 */
@@ -482,6 +492,154 @@ export function useMergeSession(): UseMergeSessionReturn {
     }
   }, [session.slide_pool])
 
+  // 批量处理多个幻灯片（逐个调用 API，支持进度跟踪）
+  const batchProcessSlides = useCallback(async (
+    slideIds: string[],
+    action: SlideAction,
+    prompt?: string,
+    domain?: string
+  ): Promise<BatchProcessResult> => {
+    const total = slideIds.length
+    if (total === 0) {
+      return { total: 0, succeeded: 0, failed: 0, results: [] }
+    }
+
+    const actionLabel = getActionLabel(action)
+
+    setSession(prev => ({
+      ...prev,
+      active_operation: action,
+      is_processing: true,
+      progress_info: {
+        stage: 'batch_processing',
+        message: `批量${actionLabel}中... (0/${total})`,
+        percentage: 0,
+        batch_current: 0,
+        batch_total: total,
+      },
+    }))
+
+    const results: Array<{ slideId: string; result: ProcessingResult }> = []
+    let succeeded = 0
+    let failed = 0
+
+    for (let i = 0; i < slideIds.length; i++) {
+      const slideId = slideIds[i]
+
+      setSession(prev => ({
+        ...prev,
+        active_slide_id: slideId,
+        progress_info: {
+          stage: 'batch_processing',
+          message: `批量${actionLabel}中... (${i + 1}/${total})`,
+          percentage: Math.round(((i) / total) * 100),
+          batch_current: i + 1,
+          batch_total: total,
+        },
+      }))
+
+      try {
+        const slideItem = session.slide_pool[slideId]
+        if (!slideItem) {
+          results.push({ slideId, result: { success: false, error: '幻灯片不存在' } })
+          failed++
+          continue
+        }
+
+        const currentVersion = getCurrentVersion(slideItem)
+        if (!currentVersion) {
+          results.push({ slideId, result: { success: false, error: '版本不存在' } })
+          failed++
+          continue
+        }
+
+        const llmConfig = await requireLLMConfig()
+
+        const requestBody = {
+          session_id: session.session_id,
+          slide_indices: [slideItem.original_index],
+          action,
+          custom_prompt: prompt || undefined,
+          domain: domain || undefined,
+          provider: llmConfig.provider || 'deepseek',
+          api_key: llmConfig.apiKey,
+          base_url: llmConfig.baseUrl || undefined,
+          model: llmConfig.model || undefined,
+          temperature: 0.3,
+          max_tokens: 3000,
+        }
+
+        const response = await fetch(`${apiBaseUrl}/api/v1/ppt/process`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }))
+          throw new Error(errorData.detail || `HTTP ${response.status}`)
+        }
+
+        const result = await response.json()
+        if (!result.success) throw new Error(result.error || '处理失败')
+
+        const serverVersion = result.version
+        const processResult = result.result
+
+        const newContent = {
+          title: currentVersion.content.title || '',
+          main_points: [...(currentVersion.content.main_points || [])],
+        }
+        if (processResult?.modifications) {
+          for (const mod of processResult.modifications) {
+            const newTexts = (mod.text_modifications || []).map((tm: any) => tm.new_text)
+            if (newTexts.length > 0) newContent.main_points = newTexts
+          }
+        }
+        if (processResult?.modifications?.[0]?.ai_summary) {
+          newContent.title = newContent.title || processResult.modifications[0].ai_summary
+        }
+
+        const newVersion = createNewVersion(slideItem, action, newContent, prompt)
+        if (serverVersion?.preview_images?.length > 0) {
+          const pageIdx = slideItem.original_index
+          const pUrl = serverVersion.preview_images[pageIdx] || serverVersion.preview_images[0]
+          newVersion.preview_url = pUrl.startsWith('http') ? pUrl : `${apiBaseUrl}${pUrl}`
+        }
+
+        setSession(prev => {
+          const updatedPool = { ...prev.slide_pool }
+          const latestItem = updatedPool[slideId] || slideItem
+          updatedPool[slideId] = {
+            ...latestItem,
+            versions: [...latestItem.versions, newVersion],
+            current_version: newVersion.version_id,
+            display_title: newContent.title || latestItem.display_title,
+          }
+          return { ...prev, slide_pool: updatedPool }
+        })
+
+        results.push({ slideId, result: { success: true, new_version: newVersion } })
+        succeeded++
+      } catch (err: any) {
+        console.error(`[batch] 处理 ${slideId} 失败:`, err)
+        results.push({ slideId, result: { success: false, error: err.message } })
+        failed++
+      }
+    }
+
+    setSession(prev => ({
+      ...prev,
+      active_operation: null,
+      is_processing: false,
+      progress_info: undefined,
+    }))
+
+    console.log(`[batchProcess_${action}] 完成: ${succeeded}/${total} 成功, ${failed} 失败`)
+
+    return { total, succeeded, failed, results }
+  }, [session.slide_pool, session.session_id])
+
   // 融合多个幻灯片（通过 AI 内容级融合）
   const mergeSlides = useCallback(async (
     slideIds: string[],
@@ -780,6 +938,7 @@ export function useMergeSession(): UseMergeSessionReturn {
     activeVersion,
     initSession,
     processSlide,
+    batchProcessSlides,
     mergeSlides,
     selectVersion,
     setActiveSlide,

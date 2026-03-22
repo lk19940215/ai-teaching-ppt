@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { SUBJECT_OPTIONS, GRADE_OPTIONS } from '@/hooks/useMergePage'
 import { SlidePreviewPanel } from '@/components/merge/panels/slide-preview-panel'
 import { PromptTemplatesPanel } from '@/components/merge/controls/prompt-templates-panel'
-import type { SlidePoolItem, SlideVersion } from "@/types/merge-session"
+import type { SlidePoolItem, SlideVersion, SlideAction } from "@/types/merge-session"
 
 const ACTION_CONFIG = {
   polish: { label: '润色', icon: '✨', template: '请优化这段内容的文字表达，使语言更加流畅自然、通俗易懂，同时保持教学内容的准确性和完整性。' },
@@ -41,6 +41,10 @@ export interface MergeMainAreaProps {
   onGradeChange: (grade: string) => void
   onAddToFinal: () => void
   onRemoveFromFinal: () => void
+  multiSelectedIds?: string[]
+  onBatchProcess?: (slideIds: string[], action: SlideAction) => Promise<void>
+  batchProgress?: { current: number; total: number } | null
+  onClearMultiSelect?: () => void
 }
 
 export function MergeMainArea({
@@ -67,8 +71,14 @@ export function MergeMainArea({
   onGradeChange,
   onAddToFinal,
   onRemoveFromFinal,
+  multiSelectedIds = [],
+  onBatchProcess,
+  batchProgress,
+  onClearMultiSelect,
 }: MergeMainAreaProps) {
   const [selectedAction, setSelectedAction] = useState<ActionKey | null>(null)
+
+  const isBatchMode = multiSelectedIds.length > 0
 
   const handleActionClick = (action: ActionKey) => {
     setSelectedAction(action)
@@ -80,6 +90,19 @@ export function MergeMainArea({
     if (selectedAction) {
       const combinedPrompt = [alwaysPrompt, globalPrompt].filter(Boolean).join('\n')
       onProcess(selectedAction, combinedPrompt || undefined)
+    }
+  }
+
+  const handleBatchExecute = () => {
+    if (!selectedAction || !onBatchProcess || multiSelectedIds.length === 0) return
+    const label = ACTION_CONFIG[selectedAction].label
+    const confirmed = window.confirm(
+      `确认对选中的 ${multiSelectedIds.length} 页执行「${label}」操作？\n\n将逐页调用 AI 处理，可能需要较长时间。`
+    )
+    if (confirmed) {
+      const ids = [...multiSelectedIds]
+      onClearMultiSelect?.()
+      onBatchProcess(ids, selectedAction)
     }
   }
 
@@ -140,7 +163,22 @@ export function MergeMainArea({
 
         {/* 操作类型 */}
         <div className="bg-white border rounded-lg p-3">
-          <p className="text-xs text-gray-500 mb-2">选择操作类型</p>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-gray-500">选择操作类型</p>
+            {isBatchMode && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
+                  已选 {multiSelectedIds.length} 页
+                </span>
+                <button
+                  onClick={onClearMultiSelect}
+                  className="text-[10px] text-purple-500 hover:text-purple-700 underline"
+                >
+                  取消
+                </button>
+              </div>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-2">
             {(Object.keys(ACTION_CONFIG) as ActionKey[]).map((action) => (
               <Button
@@ -160,7 +198,7 @@ export function MergeMainArea({
             ))}
           </div>
 
-          {selectedAction && globalPrompt && (
+          {selectedAction && globalPrompt && !isBatchMode && (
             <Button
               onClick={handleExecute}
               disabled={isProcessing}
@@ -181,6 +219,46 @@ export function MergeMainArea({
                 </>
               )}
             </Button>
+          )}
+
+          {selectedAction && isBatchMode && (
+            <Button
+              onClick={handleBatchExecute}
+              disabled={isProcessing}
+              className="w-full mt-2 bg-purple-600 hover:bg-purple-700"
+              size="sm"
+            >
+              {isProcessing ? (
+                <>
+                  <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
+                  批量{ACTION_CONFIG[selectedAction]?.label}中...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  批量{ACTION_CONFIG[selectedAction]?.label} ({multiSelectedIds.length} 页)
+                </>
+              )}
+            </Button>
+          )}
+
+          {batchProgress && (
+            <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-md">
+              <div className="flex items-center gap-2 text-xs text-amber-700">
+                <span className="w-3 h-3 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                <span className="font-medium">
+                  批量处理中... ({batchProgress.current}/{batchProgress.total})
+                </span>
+              </div>
+              <div className="mt-1.5 w-full bg-amber-200 rounded-full h-1.5">
+                <div
+                  className="bg-amber-500 h-1.5 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.round((batchProgress.current / batchProgress.total) * 100)}%` }}
+                />
+              </div>
+            </div>
           )}
         </div>
 

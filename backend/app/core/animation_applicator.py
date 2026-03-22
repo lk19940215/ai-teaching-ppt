@@ -94,14 +94,38 @@ class AnimationApplicator:
 
         return applied
 
+    def _get_shape_id(self, shape) -> str:
+        """从 shape 元素获取数值 ID"""
+        shape_el = shape._element
+        cNvPr = shape_el.find(".//" + qn("p:cNvPr"))
+        if cNvPr is not None:
+            return cNvPr.attrib.get("id", "1")
+        nvSpPr = shape_el.find(qn("p:nvSpPr"))
+        if nvSpPr is not None:
+            inner = nvSpPr.find(qn("p:cNvPr"))
+            if inner is not None:
+                return inner.attrib.get("id", "1")
+        return "1"
+
+    def _remove_existing_animations_for_shape(self, slide_el, sp_id: str):
+        """移除 slide 中已有的针对该 shape 的动画，避免重复"""
+        ns = {"p": "http://schemas.openxmlformats.org/presentationml/2006/main"}
+        for spTgt in slide_el.findall(".//p:spTgt", ns):
+            if spTgt.attrib.get("spid") == sp_id:
+                par_node = spTgt
+                while par_node is not None:
+                    parent = par_node.getparent()
+                    if parent is not None and parent.tag == qn("p:childTnLst"):
+                        parent.remove(par_node)
+                        break
+                    par_node = parent
+
     def _apply_entrance_animation(
         self, slide, shape, hint: AnimationHint
     ) -> bool:
         """
         通过 OOXML XML 操作添加入场动画。
-
-        python-pptx 不提供动画 API，但 PPTX 文件中的动画
-        存储在 slide XML 的 <p:timing> 节点中。
+        包含目标元素引用 (<p:tgtEl>) 和去重机制。
         """
         preset_id = EFFECT_PRESET_MAP.get(hint.effect)
         if preset_id is None:
@@ -112,20 +136,11 @@ class AnimationApplicator:
         duration = hint.duration_ms or 500
 
         try:
+            sp_id = self._get_shape_id(shape)
             spTree = slide.shapes._spTree
-            shape_el = shape._element
-            sp_id = shape_el.attrib.get("id") or shape_el.find(
-                qn("p:cNvPr")
-            )
-            if sp_id is None:
-                cNvPr = shape_el.find(".//" + qn("p:cNvPr"))
-                if cNvPr is None:
-                    cNvPr = shape_el.find(".//" + qn("p:cNvSpPr"))
-                sp_id = cNvPr.attrib.get("id", "1") if cNvPr is not None else "1"
-            else:
-                sp_id = str(sp_id)
-
             slide_el = spTree.getparent()
+
+            self._remove_existing_animations_for_shape(slide_el, sp_id)
 
             timing = slide_el.find(qn("p:timing"))
             if timing is None:
@@ -186,16 +201,33 @@ class AnimationApplicator:
                 "presetClass": "entr",
                 "presetSubtype": "0",
                 "fill": "hold",
+                "dur": str(duration),
                 "nodeType": "clickEffect" if trigger == "onClick" else "afterEffect",
             })
 
             anim_stCond = etree.SubElement(anim_cTn, qn("p:stCondLst"))
             etree.SubElement(anim_stCond, qn("p:cond"), attrib={"delay": "0"})
+            anim_child = etree.SubElement(anim_cTn, qn("p:childTnLst"))
+
+            anim_effect = etree.SubElement(anim_child, qn("p:set"))
+            set_cBhvr = etree.SubElement(anim_effect, qn("p:cBhvr"))
+            set_cTn = etree.SubElement(set_cBhvr, qn("p:cTn"), attrib={
+                "id": str(next_id + 2), "dur": "1", "fill": "hold",
+            })
+            etree.SubElement(set_cTn, qn("p:stCondLst")).append(
+                etree.Element(qn("p:cond"), attrib={"delay": "0"})
+            )
+            tgtEl = etree.SubElement(set_cBhvr, qn("p:tgtEl"))
+            etree.SubElement(tgtEl, qn("p:spTgt"), attrib={"spid": sp_id})
+            attrNameLst = etree.SubElement(set_cBhvr, qn("p:attrNameLst"))
+            etree.SubElement(attrNameLst, qn("p:attrName")).text = "style.visibility"
+            to_el = etree.SubElement(anim_effect, qn("p:to"))
+            val_el = etree.SubElement(to_el, qn("p:strVal"), attrib={"val": "visible"})
 
             logger.info(
-                f"动画已应用: shape_{hint.shape_index} "
+                f"动画已应用: shape_{hint.shape_index} (spid={sp_id}) "
                 f"effect={hint.effect}(preset={preset_id}) "
-                f"trigger={trigger}"
+                f"trigger={trigger} duration={duration}ms"
             )
             return True
 

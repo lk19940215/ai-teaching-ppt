@@ -51,6 +51,10 @@ export interface SlidePoolPanelProps {
   isMerging?: boolean
   /** 融合选中幻灯片回调 */
   onMergeSelected?: (slideIds: string[]) => void
+  /** 受控多选 ID 列表 */
+  multiSelectedIds?: string[]
+  /** 多选变更回调 */
+  onMultiSelectChange?: (ids: string[]) => void
   /** 拖拽添加到最终选择回调 */
   onDragToFinal?: (versionId: string) => void
   /** PPT A 文件引用（用于 PptxViewJSRenderer 渲染原始版本）*/
@@ -529,37 +533,41 @@ export function SlidePoolPanel({
   isProcessing,
   isMerging,
   onMergeSelected,
+  multiSelectedIds: controlledMultiSelectedIds,
+  onMultiSelectChange,
   fileA,
   fileB,
   layout = 'vertical',
   className,
 }: SlidePoolPanelProps) {
   const groups = useMemo(() => getSlidePoolGroups(slidePool), [slidePool])
-  const [multiSelectedIds, setMultiSelectedIds] = useState<string[]>([])
+  const [internalMultiSelectedIds, setInternalMultiSelectedIds] = useState<string[]>([])
+
+  const multiSelectedIds = controlledMultiSelectedIds ?? internalMultiSelectedIds
+  const setMultiSelectedIds = onMultiSelectChange ?? setInternalMultiSelectedIds
 
   const handleSlideClick = useCallback((slideId: string, e?: React.MouseEvent) => {
     if (e?.ctrlKey || e?.metaKey) {
-      setMultiSelectedIds(prev =>
-        prev.includes(slideId)
-          ? prev.filter(id => id !== slideId)
-          : [...prev, slideId]
-      )
+      const next = multiSelectedIds.includes(slideId)
+        ? multiSelectedIds.filter(id => id !== slideId)
+        : [...multiSelectedIds, slideId]
+      setMultiSelectedIds(next)
     } else {
       onSlideClick(slideId)
       setMultiSelectedIds([])
     }
-  }, [onSlideClick])
+  }, [onSlideClick, multiSelectedIds, setMultiSelectedIds])
 
   const handleMerge = useCallback(() => {
     if (multiSelectedIds.length >= 2 && onMergeSelected) {
       onMergeSelected(multiSelectedIds)
       setMultiSelectedIds([])
     }
-  }, [multiSelectedIds, onMergeSelected])
+  }, [multiSelectedIds, onMergeSelected, setMultiSelectedIds])
 
   const clearMultiSelection = useCallback(() => {
     setMultiSelectedIds([])
-  }, [])
+  }, [setMultiSelectedIds])
 
   if (groups.length === 0) {
     return (
@@ -574,41 +582,34 @@ export function SlidePoolPanel({
     )
   }
 
-  const mergeBar = (
-    <>
-      {multiSelectedIds.length >= 2 && (
-        <div className="px-3 py-2 bg-purple-50 border border-purple-200 rounded-lg text-xs text-purple-700 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span>已选择 {multiSelectedIds.length} 页</span>
-            <button onClick={clearMultiSelection} className="text-purple-500 hover:text-purple-700 underline">
-              取消选择
-            </button>
-          </div>
-          {onMergeSelected && (
-            <button
-              onClick={handleMerge}
-              disabled={isMerging}
-              className="px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 flex items-center gap-1"
-            >
-              {isMerging ? (
-                <>
-                  <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  融合中...
-                </>
-              ) : (
-                <>
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                  </svg>
-                  融合选中页面
-                </>
-              )}
-            </button>
-          )}
+  const multiSelectBar = multiSelectedIds.length >= 1 && !isProcessing ? (
+    <div className="px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-lg text-xs">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-indigo-700">
+          <span className="font-medium">已选择 {multiSelectedIds.length} 页</span>
+          <button onClick={clearMultiSelection} className="text-indigo-500 hover:text-indigo-700 underline">
+            取消
+          </button>
         </div>
-      )}
-    </>
-  )
+        {multiSelectedIds.length >= 2 && onMergeSelected && (
+          <button
+            onClick={handleMerge}
+            disabled={isMerging}
+            className="px-2.5 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 flex items-center gap-1"
+          >
+            {isMerging ? (
+              <>
+                <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                融合中...
+              </>
+            ) : (
+              '🔀 融合'
+            )}
+          </button>
+        )}
+      </div>
+    </div>
+  ) : null
 
   // ─── 水平布局模式 ───
   if (layout === 'horizontal') {
@@ -642,7 +643,7 @@ export function SlidePoolPanel({
           ))}
         </div>
 
-        {mergeBar}
+        {multiSelectBar}
 
         {isProcessing && (
           <div className="px-3 py-1.5 border-t bg-indigo-50 text-xs text-indigo-600 flex items-center gap-2">
@@ -688,11 +689,11 @@ export function SlidePoolPanel({
         </div>
       </ScrollArea>
 
-      {mergeBar}
+      {multiSelectBar}
 
       {multiSelectedIds.length === 0 && (
         <div className="px-3 py-2 border-t bg-gray-50 text-xs text-gray-500">
-          Ctrl/Cmd + 点击可多选页面进行融合
+          Ctrl/Cmd + 点击可多选页面进行批量操作或融合
         </div>
       )}
 
