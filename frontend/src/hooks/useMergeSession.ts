@@ -129,7 +129,8 @@ function mapParsedToOriginalSlides(
   const imageUrls: Record<number, string> = {}
   for (const img of previewImages) {
     if (img.source === sourceKey) {
-      imageUrls[img.slide_index] = img.url
+      const url = img.url.startsWith('http') ? img.url : `${apiBaseUrl}${img.url}`
+      imageUrls[img.slide_index] = url
     }
   }
 
@@ -434,7 +435,8 @@ export function useMergeSession(): UseMergeSessionReturn {
 
       // 附加服务端版本的预览图
       if (serverVersion?.preview_images?.length > 0) {
-        newVersion.preview_url = serverVersion.preview_images[0]
+        const pUrl = serverVersion.preview_images[0]
+        newVersion.preview_url = pUrl.startsWith('http') ? pUrl : `${apiBaseUrl}${pUrl}`
       }
 
       // 更新幻灯片池
@@ -553,7 +555,8 @@ export function useMergeSession(): UseMergeSessionReturn {
 
       // 附加服务端预览图
       if (result.version?.preview_images?.length > 0) {
-        newSlide.versions[0].preview_url = result.version.preview_images[0]
+        const pUrl = result.version.preview_images[0]
+        newSlide.versions[0].preview_url = pUrl.startsWith('http') ? pUrl : `${apiBaseUrl}${pUrl}`
       }
 
       // 更新幻灯片池

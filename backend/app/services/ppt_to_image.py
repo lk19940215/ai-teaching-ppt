@@ -301,7 +301,7 @@ class PptToImageConverter:
 
                     images.append({
                         "page": page_idx,
-                        "url": f"http://localhost:8000/public/versions/{session_id}/{final_name}",
+                        "url": f"/public/previews/{session_id}/{final_name}",
                         "path": str(final_path),
                         "width": pix.width,
                         "height": pix.height
@@ -358,7 +358,7 @@ class PptToImageConverter:
 
             images.append({
                 "page": page_num,
-                "url": f"http://localhost:8000/public/versions/{session_dir.name}/{png_file.name}",
+                "url": f"/public/previews/{session_dir.name}/{png_file.name}",
                 "path": str(png_file),
                 "width": 1920,  # LibreOffice 默认输出宽度
                 "height": 1080
@@ -449,7 +449,7 @@ def convert_single_slide_to_image(
     Returns:
         {
             success: bool,
-            url: str | None,      # 图片 URL（如 http://localhost:8000/public/images/xxx.png）
+            url: str | None,      # 图片 URL（如 /public/images/xxx.png）
             path: str | None,     # 图片本地路径
             width: int | None,    # 图片宽度
             height: int | None,   # 图片高度
@@ -517,7 +517,7 @@ def convert_single_slide_to_image(
         image_info = result.images[0]
 
         # 构建标准返回格式
-        # 图片 URL 格式：http://localhost:8000/public/images/{session_id}/{filename}
+        # 图片 URL 格式：/public/images/{session_id}/{filename}
         # 如果 output_dir 路径中包含 session_id，使用它构建 URL
         session_id = output_dir.name
         image_filename = Path(image_info["path"]).name
@@ -527,7 +527,7 @@ def convert_single_slide_to_image(
             image_url = image_info["url"]
         else:
             # 使用 images 路径格式
-            image_url = f"http://localhost:8000/public/images/{session_id}/{image_filename}"
+            image_url = f"/public/images/{session_id}/{image_filename}"
 
         return {
             "success": True,
