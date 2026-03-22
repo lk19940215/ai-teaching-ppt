@@ -42,7 +42,7 @@
             "description": "编写教学增强功能测试",
             "steps": [
                 "【规则】阅读 .claude-coder/assets/test_rule.md",
-                "【环境】curl http://localhost:8000/health",
+                "【环境】curl http://localhost:9501/health",
                 "【P0】browser_navigate http://localhost:3000/merge",
                 "【P0】上传测试 PPT 并执行润色操作",
                 "【P0】browser_wait_for text='处理完成' timeout=60000",
@@ -193,7 +193,7 @@
             "steps": [
                 "【规则】阅读 E:\\nvm\\v20.20.0\\node_modules\\claude-coder\\templates\\other\\test_rule.md",
                 "【环境】重启后端服务",
-                "【环境】curl http://localhost:8000/health",
+                "【环境】curl http://localhost:9501/health",
                 "【P0】browser_navigate http://localhost:3000/merge",
                 "【P0】上传测试 PPT 文件",
                 "【P0】browser_click 选择幻灯片",

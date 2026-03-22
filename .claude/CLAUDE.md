@@ -56,8 +56,8 @@ Frontend (Next.js 15)     Backend (FastAPI)      AI (OpenAI 兼容 API)
 ### 启动命令
 
 ```bash
-# 后端（端口 8000）
-cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+# 后端（端口 9501）
+cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port 9501 --reload
 
 # 前端（端口 3000）
 cd frontend && pnpm dev

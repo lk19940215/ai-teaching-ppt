@@ -50,7 +50,7 @@ python -m venv .venv
 pip install -r requirements.txt
 
 # 配置 LLM (编辑 .env)
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+python -m uvicorn app.main:app --host 0.0.0.0 --port 9501 --reload
 ```
 
 ### 2. 前端
@@ -64,7 +64,7 @@ pnpm dev
 ### 3. 访问
 
 - 前端：http://localhost:3000
-- 后端 API 文档：http://localhost:8000/docs
+- 后端 API 文档：http://localhost:9501/docs
 
 ## 功能
 

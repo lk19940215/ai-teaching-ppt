@@ -9,9 +9,10 @@ import requests
 from pathlib import Path
 
 NO_PROXY = {"http": None, "https": None}
-BASE = "http://127.0.0.1:9500/api/v1/ppt"
+_PORT = os.environ.get("BACKEND_PORT", "9501")
+BASE = f"http://127.0.0.1:{_PORT}/api/v1/ppt"
 
-r = requests.get("http://127.0.0.1:9500/health", proxies=NO_PROXY)
+r = requests.get(f"http://127.0.0.1:{_PORT}/health", proxies=NO_PROXY)
 print(f"Health: {r.status_code} {r.text}")
 
 pptx = Path(r"E:\Code\ai-teaching-ppt\uploads\generated\test_大龙猫.pptx")

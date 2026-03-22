@@ -41,17 +41,10 @@ async def log_requests(request: Request, call_next):
     logger.info(f"响应：{request.method} {request.url.path} - {response.status_code}")
     return response
 
-# 配置 CORS（开发环境支持所有本地端口）
+# 配置 CORS（开发环境允许所有本地来源）
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Next.js 默认端口
-        "http://localhost:8088",  # 备用开发端口
-        "http://localhost:8000",  # 同源访问
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:8088",
-        "http://127.0.0.1:8000",
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -75,5 +68,4 @@ async def health_check():
     return {"status": "healthy"}
 
 if __name__ == "__main__":
-    # 支持 python main.py 启动
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=settings.BACKEND_PORT, reload=True)

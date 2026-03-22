@@ -14,7 +14,8 @@ if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")
 
-BASE_URL = "http://localhost:8000/api/v1/ppt"
+_PORT = os.environ.get("BACKEND_PORT", "9501")
+BASE_URL = f"http://localhost:{_PORT}/api/v1/ppt"
 
 
 def test_upload():
@@ -117,7 +118,7 @@ def main():
 
     print("\n" + "=" * 60)
     print("API 基础测试通过！")
-    print(f"Swagger UI: http://localhost:8000/docs")
+    print(f"Swagger UI: http://localhost:{_PORT}/docs")
     print(f"会话 ID: {session_id}")
     print("=" * 60)
 

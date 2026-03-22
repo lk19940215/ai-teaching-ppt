@@ -1,4 +1,7 @@
 /** @type {import('next').NextConfig} */
+const BACKEND_PORT = process.env.BACKEND_PORT || '9501';
+const BACKEND_URL = `http://localhost:${BACKEND_PORT}`;
+
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
@@ -9,15 +12,15 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:9501/api/:path*',
+        destination: `${BACKEND_URL}/api/:path*`,
       },
       {
         source: '/uploads/:path*',
-        destination: 'http://localhost:9501/uploads/:path*',
+        destination: `${BACKEND_URL}/uploads/:path*`,
       },
       {
         source: '/health',
-        destination: 'http://localhost:9501/health',
+        destination: `${BACKEND_URL}/health`,
       },
     ];
   },

@@ -230,7 +230,7 @@ export async function monitoredFetch(
   options?: RequestInit
 ): Promise<Response> {
   // 提取端点路径（移除基础 URL）
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9501'
   const endpoint = url.replace(apiBaseUrl, '').replace(/^\/+/, '/')
   const method = options?.method || 'GET'
 

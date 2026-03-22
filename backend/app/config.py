@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     # 后端配置
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "AI 教学 PPT 生成器"
+    BACKEND_PORT: int = 9501
 
     # 文件上传配置
     UPLOAD_DIR: Path = BASE_DIR / "uploads"
