@@ -1,0 +1,70 @@
+{
+  "_description": "PPT 幻灯片 AI 处理的输入/输出格式模板。所有 AI 操作共用此模板理解数据结构。",
+  "_usage": "系统提示词中注入此模板，让 LLM 理解 shape_index 映射机制和返回格式要求。",
+
+  "input_example": {
+    "_说明": "以下是 ContentExtractor 提取后传给 AI 的幻灯片内容结构",
+    "slide_index": 0,
+    "title": "个人信息",
+    "text_blocks": [
+      {
+        "shape_index": 4,
+        "role": "title",
+        "text": "个人信息"
+      },
+      {
+        "shape_index": 5,
+        "role": "body",
+        "text": "工作简历："
+      }
+    ],
+    "table_blocks": [
+      {
+        "shape_index": 2,
+        "headers": ["时间段", "任职公司", "任职岗位", "工作概要", "工作成果"],
+        "rows": [
+          ["2019.11-至今", "某科技公司", "前端开发工程师", "负责核心产品开发", "完成3个重点项目"],
+          ["2018.04-2019.10", "某互联网公司", "Web开发工程师", "参与平台建设", "提升系统性能30%"]
+        ]
+      }
+    ],
+    "has_images": false,
+    "has_media": false
+  },
+
+  "output_format": {
+    "_说明": "AI 必须严格按此格式返回 JSON，通过 shape_index 精确映射到原始 PPT 元素",
+    "text_blocks": [
+      {
+        "shape_index": 5,
+        "new_text": "修改后的文字内容"
+      }
+    ],
+    "table_cells": [
+      {
+        "shape_index": 2,
+        "row": 1,
+        "col": 3,
+        "new_text": "修改后的单元格内容"
+      }
+    ],
+    "summary": "简要说明本次操作做了哪些修改"
+  },
+
+  "field_rules": {
+    "shape_index": "每个元素在 PPTX 页面中的唯一索引（对应 slide.shapes[index]），AI 返回时必须与输入中的 shape_index 完全一致，不可自行编造",
+    "role": "文本块的语义角色：title=标题, body=正文, subtitle=副标题, note=备注",
+    "text_blocks.new_text": "替换后的完整文本，系统会自动保留原始字体、颜色、大小等格式",
+    "table_cells.row": "表格行索引，0=表头行，1=第一行数据，2=第二行数据...以此类推",
+    "table_cells.col": "表格列索引，从 0 开始",
+    "summary": "必填，简要说明本次操作做了什么修改",
+    "不可修改的元素": "图片、音视频、动画等非文本内容不可修改，AI 不应尝试修改这些元素",
+    "格式保留机制": "系统使用 Run 级别文本替换技术，只替换文字内容（XML 中的 <a:t> 节点），原始格式属性（<a:rPr> 节点：字体、颜色、大小、粗体、斜体等）完全不动",
+    "选择性修改": "只返回需要修改的元素，不需要修改的元素不要包含在返回结果中"
+  },
+
+  "text_format_in_prompt": {
+    "_说明": "AI 实际收到的文本格式示例（format_for_ai 的输出）",
+    "example": "【标题·shape_4】个人信息\n【正文·shape_5】工作简历：\n【表格·shape_2】\n  表头: 时间段 | 任职公司 | 任职岗位 | 工作概要 | 工作成果\n  第1行: 2019.11-至今 | 某科技公司 | 前端开发工程师 | 负责核心产品开发 | 完成3个重点项目\n  第2行: 2018.04-2019.10 | 某互联网公司 | Web开发工程师 | 参与平台建设 | 提升系统性能30%\n【提示】此页包含图片（不可修改）"
+  }
+}

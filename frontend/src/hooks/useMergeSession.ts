@@ -87,112 +87,101 @@ export interface UseMergeSessionReturn {
 }
 
 /**
- * 解析 PPT 文件获取页面数据
- * feat-180: 启用增强模式，获取完整的 text_content runs 用于 PptCanvasRenderer 渲染
+ * 上传 PPT 文件并创建会话（新 API v2）
+ * 一次调用完成上传、解析、预览图生成
  */
-async function parsePptFile(file: File): Promise<OriginalSlideData[]> {
+async function uploadAndCreateSession(pptA: File, pptB?: File | null): Promise<{
+  session_id: string
+  parsed: Record<string, any>
+  preview_images: Array<{ slide_index: number; url: string; source: string }>
+}> {
   const formData = new FormData()
-  formData.append('file', file)
-  formData.append('extract_enhanced', 'true')  // feat-180: 启用增强模式
-  formData.append('max_image_size', '512')     // 限制图片尺寸
+  formData.append('file_a', pptA)
+  if (pptB) {
+    formData.append('file_b', pptB)
+  }
 
-  const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/parse`, {
+  const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/upload`, {
     method: 'POST',
     body: formData,
   })
 
   if (!response.ok) {
-    throw new Error(`PPT 解析失败: ${response.status}`)
+    const err = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }))
+    throw new Error(err.detail || `上传失败: ${response.status}`)
   }
 
-  const result = await response.json()
-
-  if (!result.pages || !Array.isArray(result.pages)) {
-    throw new Error('PPT 解析返回数据格式错误')
-  }
-
-  return result.pages.map((page: any) => ({
-    index: page.index,
-    title: page.title || '',
-    // feat-172: 处理增强模式返回的 content 对象数组，提取 .text 字段
-    content: (page.content || []).map((item: any) =>
-      typeof item === 'string' ? item : (item?.text || '')
-    ),
-    shapes: page.shapes,
-    layout: page.layout,  // feat-180: 保存布局信息
-    has_complex_elements: page.has_complex_elements,
-    complex_element_types: page.complex_element_types,
-  }))
+  return response.json()
 }
 
 /**
- * 创建后端会话并获取预览图
+ * 将后端 ParsedPresentation 的 slides 转换为前端 OriginalSlideData 格式
  */
-async function createBackendSession(pptA: File, pptB: File): Promise<{
-  session_id: string
-  slide_image_urls: {
-    ppt_a: Record<number, string>
-    ppt_b: Record<number, string>
-  }
-}> {
-  const formData = new FormData()
-  formData.append('ppt_a', pptA)
-  formData.append('ppt_b', pptB)
+function mapParsedToOriginalSlides(
+  parsed: any,
+  previewImages: Array<{ slide_index: number; url: string; source: string }>,
+  sourceKey: string,
+): { pages: OriginalSlideData[]; imageUrls: Record<number, string> } {
+  const slides = parsed.slides || []
+  const slideWidth = parsed.slide_width || 9144000
+  const slideHeight = parsed.slide_height || 5143500
 
-  // 创建会话
-  const createResponse = await monitoredFetch(`${apiBaseUrl}/api/v1/session/create`, {
-    method: 'POST',
-    body: formData,
+  const imageUrls: Record<number, string> = {}
+  for (const img of previewImages) {
+    if (img.source === sourceKey) {
+      imageUrls[img.slide_index] = img.url
+    }
+  }
+
+  const pages: OriginalSlideData[] = slides.map((slide: any) => {
+    const elements = slide.elements || []
+    const titleElem = elements.find((e: any) => e.is_title && e.plain_text)
+    const textElems = elements.filter((e: any) => e.plain_text)
+    const complexTypes: string[] = []
+    if (slide.has_animations) complexTypes.push('animation')
+    if (slide.has_media) complexTypes.push('media')
+
+    const shapes = elements.map((e: any) => ({
+      type: e.element_type || 'text_box',
+      name: e.name || '',
+      position: {
+        x: e.position?.left || 0,
+        y: e.position?.top || 0,
+        width: e.position?.width || 0,
+        height: e.position?.height || 0,
+      },
+      image_base64: e.image_base64 || undefined,
+      table_data: e.table_data
+        ? e.table_data.map((row: any[]) => row.map((cell: any) => cell.text || ''))
+        : undefined,
+      text_content: (e.paragraphs || []).map((para: any) => ({
+        runs: (para.runs || []).map((run: any) => ({
+          text: run.text || '',
+          font: {
+            name: run.font_name || undefined,
+            size: run.font_size || undefined,
+            color: run.font_color || undefined,
+            bold: run.bold || undefined,
+            italic: run.italic || undefined,
+            underline: run.underline || undefined,
+          },
+        })),
+        alignment: para.alignment || undefined,
+      })),
+    }))
+
+    return {
+      index: slide.slide_index,
+      title: titleElem?.plain_text || '',
+      content: textElems.map((e: any) => e.plain_text || ''),
+      shapes,
+      layout: { width: slideWidth, height: slideHeight },
+      has_complex_elements: complexTypes.length > 0,
+      complex_element_types: complexTypes,
+    }
   })
 
-  if (!createResponse.ok) {
-    throw new Error('创建会话失败')
-  }
-
-  const createResult = await createResponse.json()
-  const sessionId = createResult.session_id
-
-  // 获取完整会话数据（包含图片 URL）
-  const sessionResponse = await monitoredFetch(`${apiBaseUrl}/api/v1/session/${sessionId}`)
-
-  if (!sessionResponse.ok) {
-    // 如果获取失败，返回空 URL，但继续使用 session_id
-    console.warn('获取会话详情失败，预览图可能不可用')
-    const emptyUrls: Record<number, string> = {}
-    return {
-      session_id: sessionId,
-      slide_image_urls: { ppt_a: emptyUrls, ppt_b: emptyUrls }
-    }
-  }
-
-  const sessionData = await sessionResponse.json()
-
-  // 提取预览图 URL
-  const slide_image_urls: {
-    ppt_a: Record<number, string>
-    ppt_b: Record<number, string>
-  } = { ppt_a: {}, ppt_b: {} }
-
-  // 从返回的 documents 中提取图片 URL
-  if (sessionData.documents) {
-    for (const [docId, docData] of Object.entries(sessionData.documents)) {
-      const typedDoc = docData as { slides?: Record<string, { versions?: Array<{ image_url?: string }> }> }
-      if (typedDoc.slides) {
-        const targetKey = docId === 'ppt_a' ? 'ppt_a' : 'ppt_b'
-        for (const [slideIdx, slideData] of Object.entries(typedDoc.slides)) {
-          const typedSlide = slideData as { versions?: Array<{ image_url?: string }> }
-          if (typedSlide.versions && typedSlide.versions[0]?.image_url) {
-            slide_image_urls[targetKey][parseInt(slideIdx)] = typedSlide.versions[0].image_url
-          }
-        }
-      }
-    }
-  }
-
-  return {
-    session_id: sessionId,
-    slide_image_urls,
-  }
+  return { pages, imageUrls }
 }
 
 /**
@@ -244,64 +233,56 @@ export function useMergeSession(): UseMergeSessionReturn {
     return getCurrentVersion(activeSlide) || null
   }, [activeSlide])
 
-  // 初始化会话
+  // 初始化会话：一次上传完成解析+预览
   const initSession = useCallback(async (pptA: File, pptB: File) => {
-    // feat-205: 性能监控点
     const startTime = Date.now()
 
     setSession(prev => ({
       ...prev,
       is_processing: true,
       progress_info: {
-        stage: 'parsing',
-        message: '正在解析 PPT 文件...',
+        stage: 'uploading',
+        message: '正在上传并解析 PPT 文件...',
         percentage: 10,
       },
     }))
 
     try {
-      // 并行解析两个 PPT 和创建后端会话
-      const [pagesA, pagesB, backendResult] = await Promise.all([
-        parsePptFile(pptA),
-        parsePptFile(pptB),
-        createBackendSession(pptA, pptB).catch((err) => {
-          console.warn('创建后端会话失败，使用本地模式:', err)
-          const emptyUrls: Record<number, string> = {}
-          return { session_id: `local_${Date.now()}`, slide_image_urls: { ppt_a: emptyUrls, ppt_b: emptyUrls } }
-        }),
-      ])
+      const uploadResult = await uploadAndCreateSession(pptA, pptB)
+      const { session_id, parsed, preview_images } = uploadResult
 
-      const { session_id: backendSessionId, slide_image_urls } = backendResult
-
-      // 创建幻灯片池
       const slidePool: Record<string, SlidePoolItem> = {}
+      let pagesA: OriginalSlideData[] = []
+      let pagesB: OriginalSlideData[] = []
 
-      // 添加 PPT A 的幻灯片
-      for (let i = 0; i < pagesA.length; i++) {
-        const slideId = `ppt_a_${i}`
-        const item = createInitialSlidePoolItem('ppt_a', i, pagesA[i])
-        // 添加预览图 URL
-        const imageUrl = slide_image_urls.ppt_a[i]
-        if (imageUrl) {
-          item.versions[0].preview_url = imageUrl
+      if (parsed.ppt_a) {
+        const resultA = mapParsedToOriginalSlides(parsed.ppt_a, preview_images || [], 'ppt_a')
+        pagesA = resultA.pages
+        for (let i = 0; i < pagesA.length; i++) {
+          const slideId = `ppt_a_${i}`
+          const item = createInitialSlidePoolItem('ppt_a', i, pagesA[i])
+          if (resultA.imageUrls[i]) {
+            item.versions[0].preview_url = resultA.imageUrls[i]
+          }
+          slidePool[slideId] = item
         }
-        slidePool[slideId] = item
       }
 
-      // 添加 PPT B 的幻灯片
-      for (let i = 0; i < pagesB.length; i++) {
-        const slideId = `ppt_b_${i}`
-        const item = createInitialSlidePoolItem('ppt_b', i, pagesB[i])
-        // 添加预览图 URL
-        const imageUrl = slide_image_urls.ppt_b[i]
-        if (imageUrl) {
-          item.versions[0].preview_url = imageUrl
+      if (parsed.ppt_b) {
+        const resultB = mapParsedToOriginalSlides(parsed.ppt_b, preview_images || [], 'ppt_b')
+        pagesB = resultB.pages
+        for (let i = 0; i < pagesB.length; i++) {
+          const slideId = `ppt_b_${i}`
+          const item = createInitialSlidePoolItem('ppt_b', i, pagesB[i])
+          if (resultB.imageUrls[i]) {
+            item.versions[0].preview_url = resultB.imageUrls[i]
+          }
+          slidePool[slideId] = item
         }
-        slidePool[slideId] = item
       }
 
       setSession({
-        session_id: backendSessionId,
+        session_id,
         created_at: Date.now(),
         ppt_a_file: pptA,
         ppt_b_file: pptB,
@@ -315,7 +296,6 @@ export function useMergeSession(): UseMergeSessionReturn {
         progress_info: undefined,
       })
 
-      // feat-205: 记录 initSession 性能
       monitor.logPerformance('initSession', Date.now() - startTime)
     } catch (err: any) {
       console.error('初始化会话失败:', err)
@@ -375,16 +355,9 @@ export function useMergeSession(): UseMergeSessionReturn {
         },
       }))
 
-      // feat-252: 使用已解析的内容，不再传文件
-      // 从当前版本的 content 中获取已解析的内容
-      const slideContent = {
-        title: currentVersion.content.title || '',
-        content: currentVersion.content.main_points || [],
-        shapes: currentVersion.shapes,  // 可选，用于增强渲染
-      }
-
       const requestBody = {
-        slide_content: slideContent,
+        session_id: session.session_id,
+        slide_indices: [slideItem.original_index],
         action: action,
         custom_prompt: prompt || undefined,
         provider: llmConfig.provider || 'deepseek',
@@ -395,7 +368,7 @@ export function useMergeSession(): UseMergeSessionReturn {
         max_tokens: 3000,
       }
 
-      const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/ai-merge-single`, {
+      const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/process`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
@@ -433,61 +406,35 @@ export function useMergeSession(): UseMergeSessionReturn {
         },
       }))
 
-      const newContent = result.content
+      // 从新 API 返回的 result 和 version 提取内容
+      const serverVersion = result.version
+      const processResult = result.result
 
-      // feat-202: 增强 main_points 类型处理，兼容 str/dict/混合类型
-      if (newContent.main_points && Array.isArray(newContent.main_points)) {
-        // 记录原始数据，便于调试
-        console.log('[processSlide] main_points 原始数据:', {
-          slideId,
-          action,
-          original_main_points: JSON.stringify(newContent.main_points).slice(0, 500),
-          types: newContent.main_points.map((p: any) => typeof p)
-        })
-
-        // 类型转换逻辑：将所有元素转换为字符串
-        newContent.main_points = newContent.main_points.map((point: any) => {
-          if (typeof point === 'string') {
-            return point
-          } else if (point && typeof point === 'object') {
-            // 字典类型：按优先级提取字段
-            const extracted = point.text || point.content || point.point || point.description || point.item || null
-            if (extracted && typeof extracted === 'string') {
-              return extracted
-            }
-            // 无法提取则转为 JSON 字符串
-            try {
-              return JSON.stringify(point)
-            } catch {
-              return String(point)
-            }
-          } else if (point === null || point === undefined) {
-            return '' // 空值返回空字符串，后续过滤
-          } else {
-            return String(point)
-          }
-        }).filter((p: string) => p !== '') // 过滤空字符串
-
-        console.log('[processSlide] main_points 转换后:', {
-          slideId,
-          action,
-          converted_main_points: newContent.main_points.slice(0, 3),
-          total_count: newContent.main_points.length
-        })
+      // 从修改指令中提取新内容，构建 SlideContent
+      const newContent: SlideContent = {
+        title: currentVersion.content.title || '',
+        main_points: [...(currentVersion.content.main_points || [])],
       }
 
-      // 创建新版本
+      // 如果有文本修改，用修改后的文本更新 main_points
+      if (processResult?.modifications) {
+        for (const mod of processResult.modifications) {
+          const newTexts = (mod.text_modifications || []).map((tm: any) => tm.new_text)
+          if (newTexts.length > 0) {
+            newContent.main_points = newTexts
+          }
+        }
+      }
+
+      if (processResult?.modifications?.[0]?.ai_summary) {
+        newContent.title = newContent.title || processResult.modifications[0].ai_summary
+      }
+
       const newVersion = createNewVersion(slideItem, action, newContent, prompt)
 
-      // feat-213: 附加 preview_url 到新版本
-      if (result.preview_url) {
-        newVersion.preview_url = result.preview_url
-        console.log('[processSlide] preview_url 已附加:', result.preview_url)
-      }
-
-      // 记录是否使用了降级模式
-      if (result.degraded) {
-        console.warn('[processSlide] 使用降级模式，图片预览不可用')
+      // 附加服务端版本的预览图
+      if (serverVersion?.preview_images?.length > 0) {
+        newVersion.preview_url = serverVersion.preview_images[0]
       }
 
       // 更新幻灯片池
@@ -553,60 +500,21 @@ export function useMergeSession(): UseMergeSessionReturn {
     }))
 
     try {
-      // feat-240: 从后端获取 LLM 配置，避免 localStorage 配置丢失
-      const llmConfig = await requireLLMConfig()
-
-      // 分离 A/B 来源
-      const pagesA: number[] = []
-      const pagesB: number[] = []
-
-      for (const slideId of slideIds) {
+      // 构建 selections：从选中的幻灯片中提取 source + slide_index
+      const selections = slideIds.map(slideId => {
         const item = session.slide_pool[slideId]
-        if (!item) continue
-
-        if (item.original_source === 'ppt_a') {
-          pagesA.push(item.original_index)
-        } else if (item.original_source === 'ppt_b') {
-          pagesB.push(item.original_index)
+        return {
+          source: item?.original_source as string,
+          slide_index: item?.original_index || 0,
         }
-      }
-
-      // 将文件转换为 Base64
-      const fileToBase64 = async (file: File | null): Promise<string | undefined> => {
-        if (!file) return undefined
-        const fileBuffer = await file.arrayBuffer()
-        const uint8Array = new Uint8Array(fileBuffer)
-        let base64 = ''
-        const chunkSize = 8192
-        for (let i = 0; i < uint8Array.length; i += chunkSize) {
-          const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length))
-          base64 += String.fromCharCode.apply(null, Array.from(chunk))
-        }
-        return btoa(base64)
-      }
-
-      const fileAContent = await fileToBase64(session.ppt_a_file)
-      const fileBContent = await fileToBase64(session.ppt_b_file)
+      }).filter(s => s.source === 'ppt_a' || s.source === 'ppt_b')
 
       const requestBody = {
-        file_a_content: fileAContent,
-        file_a_name: session.ppt_a_file?.name || 'PPT_A.pptx',
-        file_b_content: fileBContent,
-        file_b_name: session.ppt_b_file?.name || 'PPT_B.pptx',
-        merge_type: 'partial',
-        selected_pages_a: pagesA,
-        selected_pages_b: pagesB,
-        custom_prompt: prompt || undefined,
-        provider: llmConfig.provider || 'deepseek',
-        api_key: llmConfig.apiKey,
-        base_url: llmConfig.baseUrl || undefined,
-        model: llmConfig.model || undefined,
-        temperature: 0.3,
-        max_tokens: 3000,
+        session_id: session.session_id,
+        selections,
       }
 
-      // feat-205: 使用 monitoredFetch 替代 fetch
-      const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/ai-merge`, {
+      const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/compose`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
@@ -617,60 +525,12 @@ export function useMergeSession(): UseMergeSessionReturn {
         throw new Error(errorData.detail || `HTTP ${response.status}`)
       }
 
-      // 解析 SSE 响应
-      const reader = response.body?.getReader()
-      if (!reader) {
-        throw new Error('无法读取响应')
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || '组合失败')
       }
 
-      const decoder = new TextDecoder()
-      let buffer = ''
-      let finalResult: any = null
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const dataStr = line.slice(6)
-            let event: any
-            try {
-              event = JSON.parse(dataStr)
-            } catch (e) {
-              continue
-            }
-            if (event.type === 'heartbeat') continue
-            if (event.stage === 'error') {
-              throw new Error(event.message || '融合失败')
-            }
-            if (event.stage === 'complete' && event.result) {
-              finalResult = event.result
-            }
-            if (event.stage) {
-              setSession(prev => ({
-                ...prev,
-                progress_info: {
-                  stage: event.stage,
-                  message: event.message || '处理中...',
-                  percentage: event.progress || 50,
-                },
-              }))
-            }
-          }
-        }
-      }
-
-      // 适配响应格式
-      if (!finalResult) {
-        throw new Error('未收到融合结果')
-      }
-
-      // 创建融合幻灯片
       const mergedIndex = Object.values(session.slide_pool)
         .filter(item => item.original_source === 'merge').length
 
@@ -682,16 +542,19 @@ export function useMergeSession(): UseMergeSessionReturn {
         }
       })
 
-      // 从结果中提取内容
-      const resultContent = finalResult.new_slide || finalResult
       const newSlide = createMergedSlidePoolItem(
         mergedIndex,
         sources,
         {
-          title: resultContent.title || '融合幻灯片',
-          main_points: resultContent.main_points || resultContent.elements?.map((e: any) => e.content) || [],
+          title: result.version?.description || '组合幻灯片',
+          main_points: [`从 ${selections.length} 页组合而成`],
         }
       )
+
+      // 附加服务端预览图
+      if (result.version?.preview_images?.length > 0) {
+        newSlide.versions[0].preview_url = result.version.preview_images[0]
+      }
 
       // 更新幻灯片池
       setSession(prev => {
@@ -823,36 +686,26 @@ export function useMergeSession(): UseMergeSessionReturn {
     }))
 
     try {
-      // 为 merged 和 AI 处理过的版本附带内容快照，确保后端能重建页面
-      const contentSnapshots: Record<string, any> = {}
+      // 从 final_selection 中的 version_id 提取 source + slide_index
+      const selections: Array<{ source: string; slide_index: number }> = []
       for (const versionId of session.final_selection) {
-        for (const item of Object.values(session.slide_pool)) {
-          const version = item.versions.find(v => v.version_id === versionId)
-          if (version && (item.original_source === 'merge' || version.action)) {
-            contentSnapshots[versionId] = {
-              title: version.content.title,
-              main_points: version.content.main_points,
-              elements: version.content.elements,
-              additional_content: version.content.additional_content,
-            }
-            break
-          }
-        }
+        const match = versionId.match(/^(.*)_v\d+$/)
+        if (!match) continue
+        const slideId = match[1]
+        const item = session.slide_pool[slideId]
+        if (!item) continue
+        selections.push({
+          source: item.original_source === 'merge' ? 'latest' : item.original_source,
+          slide_index: item.original_index,
+        })
       }
 
-      // feat-205: 使用 monitoredFetch 替代 fetch
-      const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/generate-final`, {
+      const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/compose`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           session_id: session.session_id,
-          final_selection: session.final_selection,
-          title: '智能合并课件',
-          grade: '6',
-          subject: 'general',
-          style: 'simple',
-          custom_prompt: globalPrompt || undefined,
-          content_snapshots: contentSnapshots,
+          selections,
         }),
       })
 
@@ -863,15 +716,20 @@ export function useMergeSession(): UseMergeSessionReturn {
 
       const result = await response.json()
 
+      if (!result.success) {
+        throw new Error(result.error || '组合失败')
+      }
+
       setSession(prev => ({
         ...prev,
         is_processing: false,
         progress_info: undefined,
       }))
 
+      const versionId = result.version?.version_id || ''
       return {
-        download_url: `${apiBaseUrl}${result.download_url}`,
-        file_name: result.file_name,
+        download_url: `${apiBaseUrl}/api/v1/ppt/download/${session.session_id}/${versionId}`,
+        file_name: `final_${session.session_id}.pptx`,
       }
     } catch (err: any) {
       console.error('生成最终 PPT 失败:', err)

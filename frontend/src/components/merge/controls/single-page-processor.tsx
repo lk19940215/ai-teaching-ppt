@@ -174,14 +174,9 @@ export function SinglePageProcessor({
       // feat-240: 从后端获取 LLM 配置，避免 localStorage 配置丢失
       const llmConfig = await requireLLMConfig()
 
-      // feat-252: 使用已解析的内容，不再传文件
-      const slideContent = {
-        title: pageData.title || '',
-        content: pageData.content || [],
-      }
-
       const requestBody = {
-        slide_content: slideContent,
+        session_id: sessionId,
+        slide_indices: [pageData.index],
         action: selectedAction,
         custom_prompt: customPrompt || undefined,
         provider: llmConfig.provider || "deepseek",
@@ -194,7 +189,7 @@ export function SinglePageProcessor({
 
       setProgress({ stage: "thinking", message: "AI 正在处理..." })
 
-      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/ai-merge-single`, {
+      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/process`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
@@ -211,12 +206,22 @@ export function SinglePageProcessor({
         throw new Error(result.error || "处理失败")
       }
 
-      // 转换结果格式
+      // 从新 API 响应中提取内容
+      const modifications = result.result?.modifications || []
+      const textMods = modifications.flatMap((m: any) =>
+        (m.text_modifications || []).map((t: any) => t.new_text)
+      )
+
       const finalResult: ProcessingResult = {
         action: selectedAction,
         original_summary: pageData.title,
-        new_content: result.content,
-        changes: []
+        new_content: {
+          title: pageData.title,
+          main_points: textMods.length > 0 ? textMods : pageData.content,
+        },
+        changes: modifications.flatMap((m: any) =>
+          (m.text_modifications || []).map((t: any) => `${t.original_text} → ${t.new_text}`)
+        ),
       }
 
       setResult(finalResult)
