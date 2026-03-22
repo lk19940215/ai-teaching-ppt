@@ -203,19 +203,22 @@ class PPTXWriter:
             run.text = ""
 
     def _replace_cell_text(self, cell, new_text: str):
-        """替换表格单元格文本"""
-        if cell.text_frame.paragraphs:
-            para = cell.text_frame.paragraphs[0]
-            runs = list(para.runs)
-            if runs:
-                runs[0].text = new_text
-                for run in runs[1:]:
-                    run.text = ""
+        """替换表格单元格文本，按换行分段，保留格式"""
+        tf = cell.text_frame
+        new_paras = new_text.split("\n")
+        old_paras = list(tf.paragraphs)
+
+        for i, new_para_text in enumerate(new_paras):
+            if i < len(old_paras):
+                self._replace_paragraph_text(old_paras[i], new_para_text)
             else:
-                para.text = new_text
-            for p in list(cell.text_frame.paragraphs)[1:]:
-                for run in p.runs:
-                    run.text = ""
+                new_para = tf.add_paragraph()
+                new_para.text = new_para_text
+                if old_paras:
+                    self._copy_paragraph_format(old_paras[-1], new_para)
+
+        for i in range(len(new_paras), len(old_paras)):
+            self._clear_paragraph(old_paras[i])
 
     def _copy_paragraph_format(self, source_para, target_para):
         """复制段落格式"""
@@ -331,13 +334,15 @@ class PPTXWriter:
             new_slide.shapes._spTree.append(el)
 
         for rel in src_slide.part.rels.values():
-            if "image" in rel.reltype:
+            if rel.is_external:
+                new_slide.part.rels.get_or_add_ext_rel(rel.reltype, rel.target_ref)
+            else:
                 try:
                     new_slide.part.rels.get_or_add(
                         rel.rId, rel.reltype, rel.target_part
                     )
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug(f"复制关系失败 {rel.reltype}: {e}")
 
     def _text_similarity(self, a: str, b: str) -> float:
         """简单的文本相似度（字符级 Jaccard）"""

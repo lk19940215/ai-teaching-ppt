@@ -120,11 +120,13 @@ class PPTXReader:
             return self._parse_text(shape, shape_idx, position)
 
         if shape_type == MSO_SHAPE_TYPE.GROUP:
+            group_text = self._extract_group_text(shape)
             return SlideElement(
                 shape_index=shape_idx,
                 element_type=ElementType.GROUP,
                 position=position,
                 name=shape.name,
+                plain_text=group_text if group_text else None,
             )
 
         if shape_type in (MSO_SHAPE_TYPE.CHART,):
@@ -350,14 +352,18 @@ class PPTXReader:
             return False
 
     def _get_placeholder_type(self, shape) -> Optional[str]:
-        """获取占位符类型名"""
+        """获取占位符类型名（基于 OOXML 标准 placeholder idx）"""
         if not shape.is_placeholder:
             return None
         try:
             ph_idx = shape.placeholder_format.idx
             types = {
-                0: "title", 1: "body", 2: "subtitle",
-                10: "title", 12: "subtitle", 13: "body",
+                0: "title",
+                1: "body",
+                10: "title",
+                11: "subtitle",
+                12: "subtitle",
+                13: "body",
             }
             return types.get(ph_idx, f"placeholder_{ph_idx}")
         except Exception:
@@ -407,6 +413,23 @@ class PPTXReader:
         except Exception as e:
             logger.warning(f"图片压缩失败: {e}")
             return None
+
+    def _extract_group_text(self, shape) -> Optional[str]:
+        """递归提取 Group 内所有文本（只读，不用于写回）"""
+        texts = []
+        try:
+            for child_shape in shape.shapes:
+                if child_shape.has_text_frame:
+                    text = child_shape.text_frame.text.strip()
+                    if text and not self._is_placeholder_text(text):
+                        texts.append(text)
+                elif child_shape.shape_type == MSO_SHAPE_TYPE.GROUP:
+                    sub_text = self._extract_group_text(child_shape)
+                    if sub_text:
+                        texts.append(sub_text)
+        except Exception as e:
+            logger.debug(f"Group 文本提取失败: {e}")
+        return " | ".join(texts) if texts else None
 
     def _extract_doc_title(self, slides: list[ParsedSlide]) -> Optional[str]:
         """从第一页提取文档标题"""

@@ -81,7 +81,6 @@ class ElementType(str, Enum):
     TEXT_BOX = "text_box"
     TABLE = "table"
     IMAGE = "image"
-    PLACEHOLDER = "placeholder"
     SHAPE = "shape"
     GROUP = "group"
     CHART = "chart"

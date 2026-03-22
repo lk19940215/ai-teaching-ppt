@@ -37,6 +37,13 @@ class ContentExtractor:
                 if elem.is_title and title is None:
                     title = elem.plain_text
 
+            elif elem.element_type == ElementType.GROUP and elem.plain_text:
+                text_blocks.append(TextBlock(
+                    shape_index=elem.shape_index,
+                    role="group_readonly",
+                    text=elem.plain_text,
+                ))
+
             elif elem.element_type == ElementType.TABLE and elem.table_data:
                 headers = []
                 rows = []
@@ -96,15 +103,20 @@ class ContentExtractor:
         for block in content.text_blocks:
             if block.role == "title":
                 continue
+            if block.role == "group_readonly":
+                parts.append(f"【组合文本·只读】{block.text}")
+                continue
             label = {"body": "正文", "subtitle": "副标题", "note": "备注"}.get(block.role, "文本")
             parts.append(f"【{label}·shape_{block.shape_index}】{block.text}")
 
         for table in content.table_blocks:
-            header_str = " | ".join(table.headers) if table.headers else ""
+            clean_headers = [h.replace("\n", " ").strip() for h in table.headers] if table.headers else []
+            header_str = " | ".join(clean_headers)
             parts.append(f"【表格·shape_{table.shape_index}】")
             if header_str:
                 parts.append(f"  表头: {header_str}")
             for row_idx, row in enumerate(table.rows):
-                parts.append(f"  第{row_idx + 1}行: {' | '.join(row)}")
+                clean_cells = [c.replace("\n", " ").strip() for c in row]
+                parts.append(f"  第{row_idx + 1}行: {' | '.join(clean_cells)}")
 
         return "\n".join(parts)
