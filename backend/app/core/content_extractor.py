@@ -64,6 +64,9 @@ class ContentExtractor:
             table_blocks=table_blocks,
             has_images=has_images,
             has_media=slide.has_media,
+            has_animations=slide.has_animations,
+            layout_name=slide.layout_name,
+            element_count=len(slide.elements),
         )
 
     def extract_all(self, presentation: ParsedPresentation) -> list[SlideContent]:
@@ -73,6 +76,19 @@ class ContentExtractor:
     def format_for_ai(self, content: SlideContent) -> str:
         """将 SlideContent 格式化为 AI 可读的文本描述"""
         parts = []
+
+        # 页面上下文信息
+        ctx_items = []
+        if content.layout_name:
+            ctx_items.append(f"版式={content.layout_name}")
+        ctx_items.append(f"共{content.element_count}个元素")
+        if content.has_animations:
+            ctx_items.append("含入场动画")
+        if content.has_images:
+            ctx_items.append("含图片")
+        if content.has_media:
+            ctx_items.append("含音视频")
+        parts.append(f"【页面信息】{', '.join(ctx_items)}")
 
         if content.title:
             parts.append(f"【标题】{content.title}")
@@ -90,11 +106,5 @@ class ContentExtractor:
                 parts.append(f"  表头: {header_str}")
             for row_idx, row in enumerate(table.rows):
                 parts.append(f"  第{row_idx + 1}行: {' | '.join(row)}")
-
-        if content.has_images:
-            parts.append("【提示】此页包含图片（不可修改）")
-
-        if content.has_media:
-            parts.append("【提示】此页包含音视频（不可修改）")
 
         return "\n".join(parts)

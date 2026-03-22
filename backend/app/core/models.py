@@ -178,6 +178,9 @@ class SlideContent(BaseModel):
     table_blocks: list[TableBlock] = []
     has_images: bool = False
     has_media: bool = False
+    has_animations: bool = False
+    layout_name: Optional[str] = None
+    element_count: int = 0
 
 
 # ============================================================
