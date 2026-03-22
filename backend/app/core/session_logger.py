@@ -88,6 +88,16 @@ class SessionLogger:
             lines.append(f"  {k}: {v}")
         self._write(lines)
 
+    def dump(self, label: str, content: str) -> None:
+        """记录完整内容块（不截断），用于记录 system prompt / LLM 输入 / LLM 输出"""
+        border = "-" * 40
+        self._write([
+            f"[{self._ts()}] [{self.session_id}] 📄 {label}",
+            border,
+            content,
+            border,
+        ])
+
 
 _loggers: dict[str, SessionLogger] = {}
 

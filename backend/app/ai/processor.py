@@ -5,8 +5,9 @@ AI 内容处理器
 每次处理立即生成新版本的 PPTX 文件。
 """
 
+import json
 import logging
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from ..core.models import (
     SlideContent, SlideModification,
@@ -16,15 +17,19 @@ from ..core.content_extractor import ContentExtractor
 from .llm_client import LLMClient
 from .prompts import build_prompt
 
+if TYPE_CHECKING:
+    from ..core.session_logger import SessionLogger
+
 logger = logging.getLogger(__name__)
 
 
 class AIProcessor:
     """AI 内容处理器"""
 
-    def __init__(self, llm_client: LLMClient):
+    def __init__(self, llm_client: LLMClient, session_logger: Optional["SessionLogger"] = None):
         self.llm = llm_client
         self.extractor = ContentExtractor()
+        self._slog = session_logger
 
     def process_slide(
         self,
@@ -46,15 +51,25 @@ class AIProcessor:
         ai_text = self.extractor.format_for_ai(content)
         messages = build_prompt(ai_text, action, custom_prompt)
 
+        if self._slog:
+            self._slog.info(f"LLM 调用 - 第{content.slide_index + 1}页 [{action}]")
+            self._slog.dump("SYSTEM PROMPT", messages[0]["content"])
+            self._slog.dump("USER INPUT", messages[1]["content"])
+
         try:
             data = self.llm.chat_json(messages)
         except Exception as e:
             logger.error(f"AI 处理失败: {e}")
+            if self._slog:
+                self._slog.error(f"LLM 调用失败 - 第{content.slide_index + 1}页", exception=str(e))
             return ProcessingResult(
                 success=False,
                 action=action,
                 error=str(e),
             )
+
+        if self._slog:
+            self._slog.dump("LLM OUTPUT", json.dumps(data, ensure_ascii=False, indent=2))
 
         slide_mod = self._parse_response(data, content)
 

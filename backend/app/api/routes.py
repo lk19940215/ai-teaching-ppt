@@ -156,7 +156,7 @@ async def process_slides(req: ProcessRequest):
         slog.error(f"LLM 客户端创建失败: {e}")
         raise HTTPException(400, str(e))
 
-    processor = AIProcessor(llm)
+    processor = AIProcessor(llm, session_logger=slog)
 
     source_key = "ppt_a"
     base_version_path = None
