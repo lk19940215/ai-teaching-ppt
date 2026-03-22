@@ -41,6 +41,8 @@ export interface FinalSelectionBarProps {
   onRemove: (versionId: string) => void
   /** 生成最终 PPT 回调 */
   onGenerate: () => void
+  /** 从幻灯片池拖入时添加回调 */
+  onDropFromPool?: (versionId: string) => void
   /** 类名 */
   className?: string
 }
@@ -170,10 +172,12 @@ export function FinalSelectionBar({
   onReorder,
   onRemove,
   onGenerate,
+  onDropFromPool,
   className,
 }: FinalSelectionBarProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const [isDropTarget, setIsDropTarget] = useState(false)
 
   // 拖拽开始
   const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
@@ -218,13 +222,36 @@ export function FinalSelectionBar({
       </div>
 
       {/* 内容区域 */}
-      <div className="px-4 py-3">
+      <div
+        className="px-4 py-3"
+        onDragOver={(e) => {
+          if (e.dataTransfer.types.includes('application/x-slide-version')) {
+            e.preventDefault()
+            e.dataTransfer.dropEffect = 'copy'
+            setIsDropTarget(true)
+          }
+        }}
+        onDragLeave={() => setIsDropTarget(false)}
+        onDrop={(e) => {
+          const versionId = e.dataTransfer.getData('application/x-slide-version')
+          if (versionId && onDropFromPool) {
+            e.preventDefault()
+            onDropFromPool(versionId)
+          }
+          setIsDropTarget(false)
+        }}
+      >
         {items.length === 0 ? (
-          <div className="text-center py-4 text-gray-500 text-sm">
-            <svg className="mx-auto h-8 w-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className={cn(
+            "text-center py-4 text-sm rounded-lg transition-colors",
+            isDropTarget
+              ? "bg-indigo-50 border-2 border-dashed border-indigo-300 text-indigo-600"
+              : "text-gray-500"
+          )}>
+            <svg className={cn("mx-auto h-8 w-8 mb-2", isDropTarget ? "text-indigo-400" : "text-gray-300")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
             </svg>
-            从幻灯片池中选择页面添加到此处
+            {isDropTarget ? '松开鼠标添加到最终选择' : '从幻灯片池拖拽或点击"添加到最终选择"'}
           </div>
         ) : (
           <>

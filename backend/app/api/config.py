@@ -13,9 +13,9 @@ LLM 服务商配置管理 API
 - 新增 /config/default 端点返回环境变量中的默认配置
 - /config/providers/default/active 改为返回环境变量配置
 """
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, Body
 from fastapi.responses import JSONResponse
-from typing import Optional, List
+from typing import Optional
 from sqlalchemy.orm import Session
 import logging
 
@@ -24,8 +24,6 @@ from ..models.llm_config_crud import (
     get_all_configs,
     get_config_by_provider,
     get_default_config,
-    create_config,
-    update_config,
     delete_config,
     set_default_provider,
     validate_api_key,

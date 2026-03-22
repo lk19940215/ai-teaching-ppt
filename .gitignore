@@ -49,9 +49,7 @@ uploads/
 backend/test_*.pptx
 
 # 动态生成的图片预览文件
-public/versions/
-public/previews/
-public/images/
+public/
 
 # 会话日志
 logs/

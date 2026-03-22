@@ -13,11 +13,10 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { useMergePage } from '@/hooks/useMergePage'
+import { useMergePage, SUBJECT_OPTIONS, GRADE_OPTIONS } from '@/hooks/useMergePage'
 import { SlidePoolPanel } from '@/components/merge/panels/slide-pool-panel'
 import { SlidePreviewPanel } from '@/components/merge/panels/slide-preview-panel'
 import { FinalSelectionBar } from '@/components/merge/panels/final-selection-bar'
-import { MonitorPanel } from '@/components/merge/panels/monitor-panel'
 import { PptUploadArea } from '@/components/merge/upload/ppt-upload-area'
 import { StepIndicator } from '@/components/merge/controls/step-indicator'
 import { DownloadComplete } from '@/components/merge/controls/download-complete'
@@ -90,15 +89,21 @@ function MergeStep({
   finalSelectionDetails,
   globalPrompt,
   showTemplates,
+  subject,
+  grade,
   onSlideClick,
   onSwitchVersion,
   onProcess,
   onAddToFinal,
   onRemoveFromFinal,
+  addToFinal,
+  removeFromFinal,
   onMergeSelected,
   onGenerateFinal,
   onPromptChange,
   onToggleTemplates,
+  onSubjectChange,
+  onGradeChange,
   onStepBack,
   onReset,
   reorderFinal,
@@ -112,15 +117,21 @@ function MergeStep({
   finalSelectionDetails: ReturnType<typeof useMergePage>['finalSelectionDetails']
   globalPrompt: string
   showTemplates: boolean
+  subject: string
+  grade: string
   onSlideClick: (slideId: string) => void
   onSwitchVersion: (versionId: string) => void
   onProcess: (action: any, prompt?: string) => Promise<void>
   onAddToFinal: () => void
   onRemoveFromFinal: () => void
+  addToFinal: (versionId: string) => void
+  removeFromFinal: (versionId: string) => void
   onMergeSelected: (slideIds: string[]) => Promise<void>
   onGenerateFinal: () => Promise<void>
   onPromptChange: (prompt: string) => void
   onToggleTemplates: () => void
+  onSubjectChange: (subject: string) => void
+  onGradeChange: (grade: string) => void
   onStepBack: () => void
   onReset: () => void
   reorderFinal: (from: number, to: number) => void
@@ -171,6 +182,12 @@ function MergeStep({
             globalPrompt={globalPrompt}
             fileA={session.ppt_a_file}
             fileB={session.ppt_b_file}
+            subject={subject}
+            grade={grade}
+            subjectOptions={SUBJECT_OPTIONS}
+            gradeOptions={GRADE_OPTIONS}
+            onSubjectChange={onSubjectChange}
+            onGradeChange={onGradeChange}
             onSwitchVersion={onSwitchVersion}
             onProcess={onProcess}
             onInjectPrompt={onPromptChange}
@@ -219,9 +236,8 @@ function MergeStep({
       <FinalSelectionBar
         items={finalSelectionDetails}
         onReorder={reorderFinal}
-        onRemove={(versionId) => {
-          // removeFromFinal 需要从 useMergePage 获取
-        }}
+        onRemove={(versionId) => removeFromFinal(versionId)}
+        onDropFromPool={(versionId) => addToFinal(versionId)}
         onGenerate={onGenerateFinal}
         isGenerating={session.is_processing}
       />
@@ -244,6 +260,10 @@ export default function MergePage() {
     setGlobalPrompt,
     showTemplates,
     setShowTemplates,
+    subject,
+    setSubject,
+    grade,
+    setGrade,
     downloadUrl,
     fileName,
     session,
@@ -258,6 +278,8 @@ export default function MergePage() {
     handleProcess,
     handleAddToFinal,
     handleRemoveFromFinal,
+    addToFinal,
+    removeFromFinal,
     handleMergeSelected,
     handleGenerateFinal,
     handleDownload,
@@ -315,15 +337,21 @@ export default function MergePage() {
           finalSelectionDetails={finalSelectionDetails}
           globalPrompt={globalPrompt}
           showTemplates={showTemplates}
+          subject={subject}
+          grade={grade}
           onSlideClick={handleSlideClick}
           onSwitchVersion={handleSwitchVersion}
           onProcess={handleProcess}
           onAddToFinal={handleAddToFinal}
           onRemoveFromFinal={handleRemoveFromFinal}
+          addToFinal={addToFinal}
+          removeFromFinal={removeFromFinal}
           onMergeSelected={handleMergeSelected}
           onGenerateFinal={handleGenerateFinal}
           onPromptChange={setGlobalPrompt}
           onToggleTemplates={() => setShowTemplates(!showTemplates)}
+          onSubjectChange={setSubject}
+          onGradeChange={setGrade}
           onStepBack={() => handleStepClick('upload')}
           onReset={handleReset}
           reorderFinal={reorderFinal}
@@ -341,8 +369,6 @@ export default function MergePage() {
         />
       )}
 
-      {/* feat-204: 监控面板 */}
-      <MonitorPanel />
     </div>
   )
 }

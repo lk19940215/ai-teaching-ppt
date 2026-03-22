@@ -231,3 +231,16 @@ backend/app/
 - [ ] 无孤立导入/未使用的依赖
 - [ ] 后端启动无报错
 - [ ] 前端构建无报错
+
+### Phase 6 完成标准 — 提示词架构重构（已完成 2026-03-22）
+- [x] prompt_template.md 重写为通用 PPT 协议（非教学专用）
+- [x] 多槽位注入架构：{{domain_context}} + {{operation_guide}} + {{custom_instructions}}
+- [x] 领域预设目录 ai/domains/：_default.md + english_teaching.md
+- [x] 操作预设目录 ai/operations/：polish.md / expand.md / rewrite.md / extract.md
+- [x] 输出 Schema 扩展：style_hints (可选) + animation_hints (可选)
+- [x] 可插拔插件：StyleApplicator (样式应用) + AnimationApplicator (动画应用)
+- [x] PPTXWriter 集成插件，支持样式写入
+- [x] API 层支持 domain 参数传递
+- [x] 基于 LLM 注意力研究优化 prompt 布局（U形注意力 → TOP/BOTTOM 放关键约束）
+- [x] 15 项自动化测试通过，0 linter 错误
+- [x] PROJECT.md / technical-spec.md / refactor-plan.md 文档同步更新

@@ -51,6 +51,8 @@ export interface SlidePoolPanelProps {
   isMerging?: boolean
   /** 融合选中幻灯片回调 */
   onMergeSelected?: (slideIds: string[]) => void
+  /** 拖拽添加到最终选择回调 */
+  onDragToFinal?: (versionId: string) => void
   /** PPT A 文件引用（用于 PptxViewJSRenderer 渲染原始版本）*/
   fileA?: File | null
   /** PPT B 文件引用 */
@@ -160,8 +162,19 @@ function SlideThumbnail({
   // 判断是否为 AI 版本（有 action 或版本号 > 1）
   const isAIVersion = currentVersion?.action || item.versions.length > 1
 
+  const handleDragStart = useCallback((e: React.DragEvent) => {
+    const currentVer = getCurrentVersion(item)
+    if (currentVer) {
+      e.dataTransfer.setData('application/x-slide-version', currentVer.version_id)
+      e.dataTransfer.setData('application/x-slide-id', item.slide_id)
+      e.dataTransfer.effectAllowed = 'copy'
+    }
+  }, [item])
+
   return (
     <div
+      draggable
+      onDragStart={handleDragStart}
       className={cn(
         "relative group rounded-lg border-2 cursor-pointer transition-all",
         isActive

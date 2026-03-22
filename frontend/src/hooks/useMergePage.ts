@@ -10,6 +10,29 @@ import type { SlideAction } from '@/types/merge-session'
 // 步骤类型
 export type Step = 'upload' | 'merge' | 'confirm'
 
+/** 学科选项 */
+export const SUBJECT_OPTIONS = [
+  { value: '_default', label: '通用' },
+  { value: 'english_teaching', label: '英语' },
+] as const
+
+/** 年级选项 */
+export const GRADE_OPTIONS = [
+  { value: '', label: '不限' },
+  { value: '一年级', label: '一年级' },
+  { value: '二年级', label: '二年级' },
+  { value: '三年级', label: '三年级' },
+  { value: '四年级', label: '四年级' },
+  { value: '五年级', label: '五年级' },
+  { value: '六年级', label: '六年级' },
+  { value: '七年级', label: '七年级' },
+  { value: '八年级', label: '八年级' },
+  { value: '九年级', label: '九年级' },
+  { value: '高一', label: '高一' },
+  { value: '高二', label: '高二' },
+  { value: '高三', label: '高三' },
+] as const
+
 export interface UseMergePageReturn {
   // 步骤状态
   currentStep: Step
@@ -32,6 +55,12 @@ export interface UseMergePageReturn {
   showTemplates: boolean
   setShowTemplates: (show: boolean) => void
 
+  // 学科/年级
+  subject: string
+  setSubject: (subject: string) => void
+  grade: string
+  setGrade: (grade: string) => void
+
   // 下载状态
   downloadUrl: string | null
   fileName: string | null
@@ -49,6 +78,8 @@ export interface UseMergePageReturn {
   handleProcess: (action: SlideAction, prompt?: string) => Promise<void>
   handleAddToFinal: () => void
   handleRemoveFromFinal: () => void
+  addToFinal: (versionId: string) => void
+  removeFromFinal: (versionId: string) => void
   handleMergeSelected: (slideIds: string[]) => Promise<void>
   handleGenerateFinal: () => Promise<void>
   handleDownload: () => Promise<void>
@@ -72,6 +103,10 @@ export function useMergePage(): UseMergePageReturn {
   // 全局提示语状态
   const [globalPrompt, setGlobalPrompt] = useState('')
   const [showTemplates, setShowTemplates] = useState(false)
+
+  // 学科/年级
+  const [subject, setSubject] = useState('_default')
+  const [grade, setGrade] = useState('')
 
   // 使用会话 Hook
   const {
@@ -128,13 +163,21 @@ export function useMergePage(): UseMergePageReturn {
     if (!activeSlide) return
 
     // 合并全局提示语和局部提示语
-    const finalPrompt = prompt || globalPrompt || undefined
+    let finalPrompt = prompt || globalPrompt || undefined
 
-    const result = await processSlide(activeSlide.slide_id, action, finalPrompt)
+    // 注入年级上下文
+    if (grade && finalPrompt) {
+      finalPrompt = `当前年级：${grade}。${finalPrompt}`
+    } else if (grade) {
+      finalPrompt = `当前年级：${grade}`
+    }
+
+    const domain = subject === '_default' ? undefined : subject
+    const result = await processSlide(activeSlide.slide_id, action, finalPrompt, domain)
     if (!result.success) {
       setError(result.error || '处理失败')
     }
-  }, [activeSlide, processSlide, globalPrompt])
+  }, [activeSlide, processSlide, globalPrompt, subject, grade])
 
   // 添加到最终选择
   const handleAddToFinal = useCallback(() => {
@@ -150,18 +193,26 @@ export function useMergePage(): UseMergePageReturn {
     }
   }, [activeVersion, removeFromFinal])
 
-  // 处理跨 PPT 融合
+  // 处理跨 PPT 融合（AI 内容级融合）
   const handleMergeSelected = useCallback(async (slideIds: string[]) => {
     if (slideIds.length < 2) {
       setError('请选择至少两个幻灯片进行融合')
       return
     }
 
-    const result = await mergeSlides(slideIds, globalPrompt)
+    let finalPrompt = globalPrompt || undefined
+    if (grade && finalPrompt) {
+      finalPrompt = `当前年级：${grade}。${finalPrompt}`
+    } else if (grade) {
+      finalPrompt = `当前年级：${grade}`
+    }
+
+    const domain = subject === '_default' ? undefined : subject
+    const result = await mergeSlides(slideIds, finalPrompt, domain)
     if (!result.success) {
       setError(result.error || '融合失败')
     }
-  }, [mergeSlides, globalPrompt])
+  }, [mergeSlides, globalPrompt, subject, grade])
 
   // 生成最终 PPT
   const handleGenerateFinal = useCallback(async () => {
@@ -251,6 +302,12 @@ export function useMergePage(): UseMergePageReturn {
     showTemplates,
     setShowTemplates,
 
+    // 学科/年级
+    subject,
+    setSubject,
+    grade,
+    setGrade,
+
     // 下载状态
     downloadUrl,
     fileName,
@@ -268,6 +325,8 @@ export function useMergePage(): UseMergePageReturn {
     handleProcess,
     handleAddToFinal,
     handleRemoveFromFinal,
+    addToFinal,
+    removeFromFinal,
     handleMergeSelected,
     handleGenerateFinal,
     handleDownload,

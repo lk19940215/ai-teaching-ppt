@@ -4,65 +4,121 @@ PPTX 写回器
 将修改指令 (SlideModification) 应用到原始 PPTX 文件，
 在 Run 级别替换文本以保留所有格式属性。
 
-技术文档: docs/technical-spec.md §5.4, §8
+插件集成：
+  - StyleApplicator:     应用 AI 返回的样式提示 (bold, color, font_size 等)
+  - AnimationApplicator: 应用 AI 返回的动画提示 (可插拔，默认关闭)
 
-核心算法: _replace_text_preserve_format
-  - 按段落分配新文本到已有段落
-  - 在每个段落内替换第一个 Run 的文本、清空后续 Run
-  - 所有格式属性 (字体、颜色、大小) 来自原始 Run，不做修改
+技术文档: docs/technical-spec.md §5.4, §8
 """
 
 import logging
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Optional
 from uuid import uuid4
 
 from pptx import Presentation
 from pptx.oxml.ns import qn
+from pptx.util import Pt, Emu
 
-from .models import SlideModification, TextModification, TableCellModification, SlideSelector
+from .models import SlideModification, TextModification, TableCellModification, SlideSelector, NewSlideContent
+from .style_applicator import StyleApplicator
+from .animation_applicator import AnimationApplicator
 
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class ApplyResult:
+    """apply() 的返回值，包含输出路径和页面索引元数据"""
+    output_path: Path
+    modified_indices: list[int] = field(default_factory=list)
+    new_slide_indices: list[int] = field(default_factory=list)
+
+
 class PPTXWriter:
-    """PPTX 写回器：原始 PPTX + 修改指令 → 新 PPTX 文件"""
+    """PPTX 写回器：原始 PPTX + 修改指令 → 新 PPTX 文件
+
+    通过构造函数注入 StyleApplicator 和 AnimationApplicator，
+    实现样式/动画处理的可插拔。
+    """
+
+    def __init__(
+        self,
+        style_applicator: Optional[StyleApplicator] = None,
+        animation_applicator: Optional[AnimationApplicator] = None,
+    ):
+        self._style = style_applicator or StyleApplicator()
+        self._anim = animation_applicator or AnimationApplicator(enabled=False)
 
     def apply(
         self,
         source_path: Path,
         modifications: list[SlideModification],
         output_dir: Path,
-    ) -> Path:
+    ) -> ApplyResult:
         """
-        应用修改到原始 PPTX，保存为新文件。
+        应用修改并产出**干净的结果 PPTX**，只包含 AI 处理过的页面。
 
-        Args:
-            source_path: 原始 PPTX 文件路径
-            modifications: 修改指令列表
-            output_dir: 输出目录
+        对于修改已有页面：先从源 PPTX 复制该页，再应用修改。
+        对于新建页面：直接创建。
+        输出文件不携带任何未处理的原始页面。
 
         Returns:
-            新 PPTX 文件路径
+            ApplyResult，其中 output_path 只包含结果页面
         """
-        prs = Presentation(str(source_path))
+        from copy import deepcopy
+
+        source_prs = Presentation(str(source_path))
+
+        output_prs = Presentation(str(source_path))
+        while len(output_prs.slides._sldIdLst):
+            rId = output_prs.slides._sldIdLst[0].get(qn("r:id"))
+            output_prs.part.drop_rel(rId)
+            output_prs.slides._sldIdLst.remove(output_prs.slides._sldIdLst[0])
+
         total_applied = 0
         total_skipped = 0
+        total_styled = 0
+        total_animated = 0
+        result_page_count = 0
 
-        for slide_mod in modifications:
-            if slide_mod.slide_index >= len(prs.slides):
+        # 新建页面排在前面，方便 preview_images[0] 直接展示最重要的结果
+        sorted_mods = sorted(modifications, key=lambda m: (0 if m.is_new_slide else 1))
+
+        for slide_mod in sorted_mods:
+            if slide_mod.is_new_slide and slide_mod.new_slide_content:
+                self._create_new_slide(output_prs, slide_mod.new_slide_content)
+                result_page_count += 1
+                new_slide = output_prs.slides[-1]
+                if slide_mod.animation_hints:
+                    shapes = list(new_slide.shapes)
+                    self._anim.apply(new_slide, shapes, slide_mod.animation_hints)
+                    total_animated += len(slide_mod.animation_hints)
+                continue
+
+            if slide_mod.slide_index >= len(source_prs.slides):
                 logger.warning(
                     f"slide_index {slide_mod.slide_index} 超出范围 "
-                    f"(共 {len(prs.slides)} 页), 跳过"
+                    f"(共 {len(source_prs.slides)} 页), 跳过"
                 )
                 continue
 
-            slide = prs.slides[slide_mod.slide_index]
+            src_slide = source_prs.slides[slide_mod.slide_index]
+            self._copy_slide(output_prs, src_slide, source_prs)
+            result_page_count += 1
+
+            slide = output_prs.slides[-1]
             shapes = list(slide.shapes)
 
             for text_mod in slide_mod.text_modifications:
                 applied = self._apply_text_modification(shapes, text_mod, slide_mod.slide_index)
                 if applied:
                     total_applied += 1
+                    if text_mod.style_hints:
+                        shape = shapes[text_mod.shape_index]
+                        n = self._style.apply(shape, text_mod.style_hints)
+                        total_styled += n
                 else:
                     total_skipped += 1
 
@@ -73,15 +129,26 @@ class PPTXWriter:
                 else:
                     total_skipped += 1
 
-        output_dir.mkdir(parents=True, exist_ok=True)
-        output_path = output_dir / f"modified_{uuid4().hex[:8]}.pptx"
-        prs.save(str(output_path))
+            if slide_mod.animation_hints:
+                n = self._anim.apply(slide, shapes, slide_mod.animation_hints)
+                total_animated += n
 
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_path = output_dir / f"ai_result_{uuid4().hex[:8]}.pptx"
+        output_prs.save(str(output_path))
+
+        all_indices = list(range(result_page_count))
         logger.info(
             f"写回完成: {output_path.name}, "
-            f"应用 {total_applied} 项修改, 跳过 {total_skipped} 项"
+            f"结果 {result_page_count} 页, "
+            f"文本 {total_applied} 项(跳过 {total_skipped}), "
+            f"样式 {total_styled} 项, 动画 {total_animated} 项"
         )
-        return output_path
+        return ApplyResult(
+            output_path=output_path,
+            modified_indices=all_indices,
+            new_slide_indices=[],
+        )
 
     def _apply_text_modification(
         self, shapes: list, mod: TextModification, slide_idx: int
@@ -187,6 +254,24 @@ class PPTXWriter:
         for i in range(len(new_paras), len(old_paras)):
             self._clear_paragraph(old_paras[i])
 
+        self._enable_auto_fit(tf)
+
+    @staticmethod
+    def _enable_auto_fit(text_frame):
+        """启用文本框自动缩放，防止文字超出边界"""
+        try:
+            body_pr = text_frame._txBody.find(qn("a:bodyPr"))
+            if body_pr is None:
+                return
+            for child in list(body_pr):
+                tag = child.tag.split("}")[-1] if "}" in child.tag else child.tag
+                if tag in ("noAutofit", "spAutoFit"):
+                    body_pr.remove(child)
+            from lxml import etree
+            etree.SubElement(body_pr, qn("a:normAutofit"), attrib={"fontScale": "100000"})
+        except Exception:
+            pass
+
     def _replace_paragraph_text(self, para, new_text: str):
         """替换段落文本，保留第一个 Run 的格式"""
         runs = list(para.runs)
@@ -219,6 +304,8 @@ class PPTXWriter:
 
         for i in range(len(new_paras), len(old_paras)):
             self._clear_paragraph(old_paras[i])
+
+        self._enable_auto_fit(tf)
 
     def _copy_paragraph_format(self, source_para, target_para):
         """复制段落格式"""
@@ -255,6 +342,93 @@ class PPTXWriter:
                     pass
         except Exception:
             pass
+
+    def _create_new_slide(self, prs, content: NewSlideContent):
+        """根据 AI 返回的 NewSlideContent 创建全新页面"""
+        from pptx.util import Inches
+        from pptx.enum.text import PP_ALIGN
+
+        layout_map = {
+            "blank": 6,
+            "title_and_content": 1,
+            "title_only": 5,
+        }
+        layout_idx = layout_map.get(content.layout_hint, 1)
+        try:
+            layout = prs.slide_layouts[layout_idx]
+        except IndexError:
+            layout = prs.slide_layouts[0]
+
+        slide = prs.slides.add_slide(layout)
+
+        if content.title:
+            title_set = False
+            for shape in slide.placeholders:
+                if shape.placeholder_format.idx == 0:
+                    shape.text = content.title
+                    for para in shape.text_frame.paragraphs:
+                        para.alignment = PP_ALIGN.LEFT
+                        for run in para.runs:
+                            run.font.size = Pt(32)
+                            run.font.bold = True
+                    self._enable_auto_fit(shape.text_frame)
+                    title_set = True
+                    break
+            if not title_set:
+                txBox = slide.shapes.add_textbox(Inches(0.5), Inches(0.3), Inches(9), Inches(1))
+                tf = txBox.text_frame
+                tf.word_wrap = True
+                p = tf.paragraphs[0]
+                p.text = content.title
+                p.alignment = PP_ALIGN.LEFT
+                for run in p.runs:
+                    run.font.size = Pt(32)
+                    run.font.bold = True
+
+        if content.body_texts:
+            body_shape = None
+            for shape in slide.placeholders:
+                if shape.placeholder_format.idx == 1:
+                    body_shape = shape
+                    break
+
+            if not body_shape or not body_shape.has_text_frame:
+                body_shape = slide.shapes.add_textbox(
+                    Inches(0.5), Inches(1.8), Inches(9), Inches(5.2)
+                )
+
+            tf = body_shape.text_frame
+            tf.word_wrap = True
+
+            first_para = True
+            for block_idx, block in enumerate(content.body_texts):
+                lines = block.split("\n")
+                for line_idx, line in enumerate(lines):
+                    if first_para:
+                        para = tf.paragraphs[0]
+                        first_para = False
+                    else:
+                        para = tf.add_paragraph()
+
+                    para.text = line
+                    para.alignment = PP_ALIGN.LEFT
+                    is_heading = line_idx == 0 and len(lines) > 1 and ":" in line
+                    for run in para.runs:
+                        if is_heading:
+                            run.font.size = Pt(22)
+                            run.font.bold = True
+                        else:
+                            run.font.size = Pt(18)
+                    if is_heading:
+                        para.space_before = Pt(16) if block_idx > 0 else Pt(4)
+                        para.space_after = Pt(4)
+                    else:
+                        para.space_after = Pt(6)
+                        para.space_before = Pt(2)
+
+            self._enable_auto_fit(tf)
+
+        logger.info(f"创建新页面: title='{content.title[:30]}', body={len(content.body_texts)}段")
 
     def compose(
         self,
@@ -318,11 +492,20 @@ class PPTXWriter:
         return output_path
 
     def _copy_slide(self, dest_prs, src_slide, src_prs):
-        """将一页幻灯片从源复制到目标演示文稿"""
+        """将一页幻灯片从源复制到目标演示文稿，尽量匹配源布局"""
         from copy import deepcopy
         from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 
-        slide_layout = dest_prs.slide_layouts[6]  # blank layout as fallback
+        src_layout_name = src_slide.slide_layout.name if src_slide.slide_layout else None
+        slide_layout = None
+        if src_layout_name:
+            for layout in dest_prs.slide_layouts:
+                if layout.name == src_layout_name:
+                    slide_layout = layout
+                    break
+        if slide_layout is None:
+            slide_layout = dest_prs.slide_layouts[min(6, len(dest_prs.slide_layouts) - 1)]
+
         new_slide = dest_prs.slides.add_slide(slide_layout)
 
         for shape in new_slide.shapes:
@@ -332,6 +515,17 @@ class PPTXWriter:
         for shape in src_slide.shapes:
             el = deepcopy(shape._element)
             new_slide.shapes._spTree.append(el)
+
+        if src_slide.background and src_slide.background._element is not None:
+            try:
+                bg_elem = deepcopy(src_slide.background._element)
+                existing_bg = new_slide._element.find(qn("p:bg"))
+                if existing_bg is not None:
+                    new_slide._element.remove(existing_bg)
+                cs_sld = new_slide._element
+                cs_sld.insert(0, bg_elem)
+            except Exception:
+                pass
 
         for rel in src_slide.part.rels.values():
             if rel.is_external:

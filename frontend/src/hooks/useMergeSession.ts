@@ -13,8 +13,7 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { apiBaseUrl } from '@/lib/api'
-import { monitor, monitoredFetch } from '@/utils/monitor'  // feat-205: 导入监控工具
-import { requireLLMConfig } from '@/lib/llmConfig'  // feat-240: 从后端获取 LLM 配置
+import { requireLLMConfig } from '@/lib/llmConfig'
 import {
   type MergeSession,
   type SlidePoolItem,
@@ -65,9 +64,9 @@ export interface UseMergeSessionReturn {
   /** 初始化会话 */
   initSession: (pptA: File, pptB: File) => Promise<void>
   /** 处理单页 */
-  processSlide: (slideId: string, action: SlideAction, prompt?: string) => Promise<ProcessingResult>
-  /** 融合多个幻灯片 */
-  mergeSlides: (slideIds: string[], prompt?: string) => Promise<ProcessingResult>
+  processSlide: (slideId: string, action: SlideAction, prompt?: string, domain?: string) => Promise<ProcessingResult>
+  /** 融合多个幻灯片（AI 内容级融合） */
+  mergeSlides: (slideIds: string[], prompt?: string, domain?: string) => Promise<ProcessingResult>
   /** 切换版本 */
   selectVersion: (slideId: string, versionId: string) => void
   /** 设置活动幻灯片 */
@@ -101,7 +100,7 @@ async function uploadAndCreateSession(pptA: File, pptB?: File | null): Promise<{
     formData.append('file_b', pptB)
   }
 
-  const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/upload`, {
+  const response = await fetch(`${apiBaseUrl}/api/v1/ppt/upload`, {
     method: 'POST',
     body: formData,
   })
@@ -297,7 +296,7 @@ export function useMergeSession(): UseMergeSessionReturn {
         progress_info: undefined,
       })
 
-      monitor.logPerformance('initSession', Date.now() - startTime)
+      console.log('[initSession]', `耗时 ${Date.now() - startTime}ms`)
     } catch (err: any) {
       console.error('初始化会话失败:', err)
       setSession(prev => ({
@@ -314,7 +313,8 @@ export function useMergeSession(): UseMergeSessionReturn {
   const processSlide = useCallback(async (
     slideId: string,
     action: SlideAction,
-    prompt?: string
+    prompt?: string,
+    domain?: string
   ): Promise<ProcessingResult> => {
     // feat-205: 性能监控点
     const startTime = Date.now()
@@ -361,6 +361,7 @@ export function useMergeSession(): UseMergeSessionReturn {
         slide_indices: [slideItem.original_index],
         action: action,
         custom_prompt: prompt || undefined,
+        domain: domain || undefined,
         provider: llmConfig.provider || 'deepseek',
         api_key: llmConfig.apiKey,
         base_url: llmConfig.baseUrl || undefined,
@@ -369,7 +370,7 @@ export function useMergeSession(): UseMergeSessionReturn {
         max_tokens: 3000,
       }
 
-      const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/process`, {
+      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/process`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
@@ -459,8 +460,7 @@ export function useMergeSession(): UseMergeSessionReturn {
         }
       })
 
-      // feat-205: 记录 processSlide 性能
-      monitor.logPerformance(`processSlide_${action}`, Date.now() - startTime)
+      console.log(`[processSlide_${action}]`, `耗时 ${Date.now() - startTime}ms`)
 
       return {
         success: true,
@@ -481,29 +481,30 @@ export function useMergeSession(): UseMergeSessionReturn {
     }
   }, [session.slide_pool])
 
-  // 融合多个幻灯片
+  // 融合多个幻灯片（通过 AI 内容级融合）
   const mergeSlides = useCallback(async (
     slideIds: string[],
-    prompt?: string
+    prompt?: string,
+    domain?: string
   ): Promise<ProcessingResult> => {
     if (slideIds.length < 2) {
       return { success: false, error: '需要选择至少两个幻灯片进行融合' }
     }
 
-    // 设置处理状态
     setSession(prev => ({
       ...prev,
       active_operation: 'merge',
       is_processing: true,
       progress_info: {
         stage: 'merging',
-        message: '正在融合幻灯片...',
+        message: '正在 AI 融合幻灯片...',
         percentage: 20,
       },
     }))
 
     try {
-      // 构建 selections：从选中的幻灯片中提取 source + slide_index
+      const llmConfig = await requireLLMConfig()
+
       const selections = slideIds.map(slideId => {
         const item = session.slide_pool[slideId]
         return {
@@ -514,10 +515,28 @@ export function useMergeSession(): UseMergeSessionReturn {
 
       const requestBody = {
         session_id: session.session_id,
+        action: 'fuse',
         selections,
+        custom_prompt: prompt || undefined,
+        domain: domain || undefined,
+        provider: llmConfig.provider || 'deepseek',
+        api_key: llmConfig.apiKey,
+        base_url: llmConfig.baseUrl || undefined,
+        model: llmConfig.model || undefined,
+        temperature: 0.3,
+        max_tokens: 4000,
       }
 
-      const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/compose`, {
+      setSession(prev => ({
+        ...prev,
+        progress_info: {
+          stage: 'ai_processing',
+          message: '正在调用 AI 融合内容...',
+          percentage: 40,
+        },
+      }))
+
+      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/process`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
@@ -531,7 +550,7 @@ export function useMergeSession(): UseMergeSessionReturn {
       const result = await response.json()
 
       if (!result.success) {
-        throw new Error(result.error || '组合失败')
+        throw new Error(result.error || '融合失败')
       }
 
       const mergedIndex = Object.values(session.slide_pool)
@@ -545,22 +564,23 @@ export function useMergeSession(): UseMergeSessionReturn {
         }
       })
 
+      const serverVersion = result.version
+      const processResult = result.result
+
       const newSlide = createMergedSlidePoolItem(
         mergedIndex,
         sources,
         {
-          title: result.version?.description || '组合幻灯片',
-          main_points: [`从 ${selections.length} 页组合而成`],
+          title: processResult?.modifications?.[0]?.ai_summary || serverVersion?.description || 'AI 融合结果',
+          main_points: [`从 ${selections.length} 页 AI 融合而成`],
         }
       )
 
-      // 附加服务端预览图
-      if (result.version?.preview_images?.length > 0) {
-        const pUrl = result.version.preview_images[0]
+      if (serverVersion?.preview_images?.length > 0) {
+        const pUrl = serverVersion.preview_images[0]
         newSlide.versions[0].preview_url = pUrl.startsWith('http') ? pUrl : `${apiBaseUrl}${pUrl}`
       }
 
-      // 更新幻灯片池
       setSession(prev => {
         const updatedPool = { ...prev.slide_pool }
         updatedPool[newSlide.slide_id] = newSlide
@@ -704,7 +724,7 @@ export function useMergeSession(): UseMergeSessionReturn {
         })
       }
 
-      const response = await monitoredFetch(`${apiBaseUrl}/api/v1/ppt/compose`, {
+      const response = await fetch(`${apiBaseUrl}/api/v1/ppt/compose`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

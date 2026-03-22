@@ -120,3 +120,17 @@ class ContentExtractor:
                 parts.append(f"  第{row_idx + 1}行: {' | '.join(clean_cells)}")
 
         return "\n".join(parts)
+
+    def format_multi_for_ai(self, contents: list[SlideContent]) -> str:
+        """将多页 SlideContent 格式化为 AI 可读的文本（批量输入）
+
+        单页时退化为 format_for_ai；多页时用页面分隔标记区分。
+        """
+        if len(contents) == 1:
+            return self.format_for_ai(contents[0])
+
+        parts = []
+        for i, content in enumerate(contents):
+            parts.append(f"===== 第{i + 1}页 (slide_index={content.slide_index}) =====")
+            parts.append(self.format_for_ai(content))
+        return "\n\n".join(parts)

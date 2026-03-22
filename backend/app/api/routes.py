@@ -22,6 +22,8 @@ from ..config import settings
 from ..core.pptx_reader import PPTXReader
 from ..core.content_extractor import ContentExtractor
 from ..core.pptx_writer import PPTXWriter
+from ..core.style_applicator import StyleApplicator
+from ..core.animation_applicator import AnimationApplicator
 from ..core.models import PPTSession, PPTVersion, SlideSelector
 from ..core.session_logger import get_session_logger
 from ..ai.llm_client import LLMClient
@@ -37,7 +39,10 @@ router = APIRouter(prefix="/ppt", tags=["PPT"])
 _sessions: dict[str, PPTSession] = {}
 _reader = PPTXReader()
 _extractor = ContentExtractor()
-_writer = PPTXWriter()
+_writer = PPTXWriter(
+    style_applicator=StyleApplicator(),
+    animation_applicator=AnimationApplicator(enabled=True),
+)
 
 
 def _get_session(session_id: str) -> PPTSession:
@@ -51,19 +56,30 @@ def _session_dir(session_id: str) -> Path:
     return Path(settings.UPLOAD_DIR) / session_id
 
 
-def _generate_previews(session_id: str, pptx_path: Path) -> list[dict]:
-    """生成预览图（如果 LibreOffice 可用）"""
+def _generate_previews(
+    session_id: str, pptx_path: Path, pages: list[int] | None = None
+) -> list[dict]:
+    """生成预览图（如果 LibreOffice 可用）
+
+    Args:
+        pages: 只为指定页面生成预览（0-based），None 表示全部。
+               返回顺序与 pages 参数一致（新页面可排在前面）。
+    """
     try:
         from ..services.ppt_to_image import PptToImageConverter, Resolution
         preview_dir = Path(settings.PUBLIC_DIR) / "previews" / session_id
         preview_dir.mkdir(parents=True, exist_ok=True)
         converter = PptToImageConverter(preview_dir, Resolution.MEDIUM)
-        result = converter.convert(pptx_path)
+        result = converter.convert(pptx_path, pages=pages)
         if result.success:
-            return [
+            images = [
                 {"slide_index": img["page"], "url": img["url"]}
                 for img in result.images
             ]
+            if pages is not None:
+                page_to_img = {img["slide_index"]: img for img in images}
+                images = [page_to_img[p] for p in pages if p in page_to_img]
+            return images
     except Exception as e:
         logger.warning(f"预览图生成失败 (可忽略): {e}")
     return []
@@ -75,7 +91,7 @@ async def upload_pptx(
     file_b: Optional[UploadFile] = File(None, alias="file_b"),
 ):
     """上传 1-2 个 PPTX 文件，解析并创建会话"""
-    session_id = uuid.uuid4().hex[:12]
+    session_id = f"{uuid.uuid4().hex[:8]}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
     slog = get_session_logger(session_id)
     slog.section("新会话 - 上传 PPTX")
 
@@ -139,6 +155,7 @@ async def process_slides(req: ProcessRequest):
     slog.info("请求参数",
               action=req.action,
               slide_indices=str(req.slide_indices),
+              domain=req.domain or "_default",
               provider=req.provider or "default",
               model=req.model or "default")
 
@@ -157,36 +174,67 @@ async def process_slides(req: ProcessRequest):
 
     processor = AIProcessor(llm, session_logger=slog)
 
-    source_key = "ppt_a"
-    base_version_path = None
+    # 提取内容：支持单源(slide_indices)和多源(selections)
+    slog.begin("extract_content")
+    contents = []
+    source_key = req.source
 
-    if session.versions:
-        last = session.versions[-1]
-        base_version_path = Path(last.output_path)
-        if not base_version_path.exists():
-            base_version_path = None
+    if req.action == "fuse" and req.selections:
+        # 多源融合：从不同源文件提取页面
+        base_version_path = None
+        for sel in req.selections:
+            src_path_str = session.original_files.get(sel.source)
+            if not src_path_str:
+                slog.error(f"源文件 {sel.source} 不存在")
+                continue
+            src_path = Path(src_path_str)
+            if not src_path.exists():
+                slog.error(f"源文件不存在: {src_path}")
+                continue
+            parsed = _reader.parse(src_path)
+            if sel.slide_index >= len(parsed.slides):
+                slog.error(f"页码超出范围: {sel.source}[{sel.slide_index}]")
+                continue
+            content = _extractor.extract_slide(parsed.slides[sel.slide_index])
+            contents.append(content)
+            if base_version_path is None:
+                base_version_path = src_path
 
-    if base_version_path is None:
-        base_version_path = Path(session.original_files.get(source_key, ""))
-        if not base_version_path.exists():
-            slog.error("找不到源文件")
-            raise HTTPException(400, "找不到源文件")
+        if not base_version_path:
+            slog.error("没有有效的源文件")
+            raise HTTPException(400, "没有有效的源文件")
+    else:
+        # 单源模式
+        base_version_path = None
+        if session.versions:
+            last = session.versions[-1]
+            base_version_path = Path(last.output_path)
+            if not base_version_path.exists():
+                base_version_path = None
+
+        if base_version_path is None:
+            base_version_path = Path(session.original_files.get(source_key, ""))
+            if not base_version_path.exists():
+                slog.error("找不到源文件")
+                raise HTTPException(400, "找不到源文件")
+
+        parsed = _reader.parse(base_version_path)
+        for idx in req.slide_indices:
+            if idx >= len(parsed.slides):
+                slog.error(f"页码超出范围: {idx}")
+                raise HTTPException(400, f"页码超出范围: {idx} (共 {parsed.slide_count} 页)")
+            content = _extractor.extract_slide(parsed.slides[idx])
+            contents.append(content)
+
+    slog.end("extract_content", slides=len(contents))
+
+    if not contents:
+        return ProcessResponse(success=False, error="没有可处理的内容")
 
     slog.info("基础版本", path=str(base_version_path.name))
 
-    slog.begin("extract_content")
-    parsed = _reader.parse(base_version_path)
-    contents = []
-    for idx in req.slide_indices:
-        if idx >= len(parsed.slides):
-            slog.error(f"页码超出范围: {idx}")
-            raise HTTPException(400, f"页码超出范围: {idx} (共 {parsed.slide_count} 页)")
-        content = _extractor.extract_slide(parsed.slides[idx])
-        contents.append(content)
-    slog.end("extract_content", slides=len(contents))
-
     slog.begin("llm_call")
-    result = processor.process_slides(contents, req.action, req.custom_prompt)
+    result = processor.process_slides(contents, req.action, req.domain, req.custom_prompt)
     slog.end("llm_call", success=result.success, total_changes=result.total_changes)
 
     if not result.success:
@@ -198,26 +246,35 @@ async def process_slides(req: ProcessRequest):
 
     slog.begin("write_pptx")
     sdir = _session_dir(req.session_id)
-    output_path = _writer.apply(base_version_path, result.modifications, sdir)
-    slog.end("write_pptx", output=output_path.name)
+    apply_result = _writer.apply(base_version_path, result.modifications, sdir)
+    output_path = apply_result.output_path
+    slog.end("write_pptx", output=output_path.name,
+             result_pages=len(apply_result.modified_indices))
 
     version_number = len(session.versions) + 1
     version_id = uuid.uuid4().hex[:8]
 
+    # 干净输出：文件只含 AI 结果页面，直接全量生成预览
     slog.begin("generate_preview")
     preview_images = _generate_previews(req.session_id, output_path)
     slog.end("generate_preview", count=len(preview_images))
+
+    slide_selection = []
+    if req.selections:
+        slide_selection = req.selections
+    else:
+        slide_selection = [
+            SlideSelector(source=source_key, slide_index=i) for i in req.slide_indices
+        ]
 
     version = PPTVersion(
         version_id=version_id,
         version_number=version_number,
         created_at=datetime.now().isoformat(),
         action=req.action,
-        description=result.modifications[0].ai_summary if result.modifications else "",
+        description=(result.modifications[0].ai_summary or "") if result.modifications else "",
         output_path=str(output_path),
-        slide_selection=[
-            SlideSelector(source=source_key, slide_index=i) for i in req.slide_indices
-        ],
+        slide_selection=slide_selection,
         modifications=result.modifications,
         preview_images=[p.get("url", "") for p in preview_images],
         source_version_id=session.current_version_id,

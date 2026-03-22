@@ -75,6 +75,19 @@ export interface SlidePreviewPanelProps {
   /** PPT B 文件引用 */
   fileB?: File | null
 
+  /** 学科 */
+  subject?: string
+  /** 年级 */
+  grade?: string
+  /** 学科选项 */
+  subjectOptions?: ReadonlyArray<{ value: string; label: string }>
+  /** 年级选项 */
+  gradeOptions?: ReadonlyArray<{ value: string; label: string }>
+  /** 学科变更回调 */
+  onSubjectChange?: (subject: string) => void
+  /** 年级变更回调 */
+  onGradeChange?: (grade: string) => void
+
   // 回调
   /** 切换版本 */
   onSwitchVersion: (versionId: string) => void
@@ -184,6 +197,12 @@ export function SlidePreviewPanel({
   globalPrompt = '',
   fileA,
   fileB,
+  subject,
+  grade,
+  subjectOptions,
+  gradeOptions,
+  onSubjectChange,
+  onGradeChange,
   onSwitchVersion,
   onProcess,
   onInjectPrompt,
@@ -404,6 +423,36 @@ export function SlidePreviewPanel({
 
       {/* 操作面板 */}
       <div className="px-4 py-3 border-t bg-gray-50">
+        {/* 学科/年级选择器 */}
+        {subjectOptions && gradeOptions && (
+          <div className="mb-3 flex gap-2">
+            <div className="flex-1">
+              <label className="text-xs text-gray-500 mb-1 block">学科</label>
+              <select
+                value={subject || '_default'}
+                onChange={(e) => onSubjectChange?.(e.target.value)}
+                className="w-full text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                {subjectOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="text-xs text-gray-500 mb-1 block">年级</label>
+              <select
+                value={grade || ''}
+                onChange={(e) => onGradeChange?.(e.target.value)}
+                className="w-full text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                {gradeOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+
         {/* 处理操作按钮 - 点击选择操作并注入模板 */}
         <div className="mb-3">
           <p className="text-xs text-gray-500 mb-2">选择操作类型</p>

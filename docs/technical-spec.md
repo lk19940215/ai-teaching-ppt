@@ -389,34 +389,48 @@ class ContentExtractor:
 
 ```python
 class AIProcessor:
-    def __init__(self, llm_client: LLMClient): ...
-    async def process_slide(
+    def __init__(self, llm_client: LLMClient, session_logger=None): ...
+    def process_slide(
         self, content: SlideContent, action: str,
+        domain: Optional[str] = None,
         custom_prompt: Optional[str] = None
     ) -> ProcessingResult: ...
 ```
 
-输入：`SlideContent` + 操作类型
-输出：`ProcessingResult`（含修改指令列表）
+输入：`SlideContent` + 操作类型 + 领域预设（可选）
+输出：`ProcessingResult`（含修改指令列表，包括 style_hints 和 animation_hints）
 
-支持的 action：
+支持的 action（可通过 `ai/operations/` 目录扩展）：
 - `polish`：润色文字表达
-- `expand`：扩展内容（用户在前端预览后决定是否采用）
+- `expand`：扩展内容
 - `rewrite`：改写风格
 - `extract`：提取知识点
+
+支持的 domain（可通过 `ai/domains/` 目录扩展）：
+- `_default`：通用默认规则
+- `english_teaching`：英语教学规则
 
 AI 输出格式要求（JSON）：
 ```json
 {
   "text_blocks": [
-    {"shape_index": 0, "new_text": "修改后的文字"}
+    {
+      "shape_index": 0,
+      "new_text": "修改后的文字",
+      "style_hints": {"bold": true, "font_color": "#2E4057"}
+    }
   ],
   "table_cells": [
     {"shape_index": 1, "row": 0, "col": 1, "new_text": "修改后的单元格"}
   ],
+  "animation_hints": [
+    {"shape_index": 0, "effect": "fade", "trigger": "on_click"}
+  ],
   "summary": "修改说明"
 }
 ```
+
+`style_hints` 和 `animation_hints` 为可选字段。
 
 ### 5.4 PPTXWriter
 

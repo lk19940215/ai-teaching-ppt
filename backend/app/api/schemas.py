@@ -14,18 +14,28 @@ from ..core.models import (
 # ---- 请求模型 ----
 
 class ProcessRequest(BaseModel):
-    """AI 处理请求"""
+    """AI 处理请求
+
+    单源模式（polish/expand/rewrite/extract）:
+      slide_indices + source → 从同一个源文件提取多页
+
+    多源模式（fuse）:
+      selections → 从不同源文件提取页面进行融合
+    """
     session_id: str
-    slide_indices: list[int]
-    action: str = Field(..., pattern="^(polish|expand|rewrite|extract)$")
+    slide_indices: list[int] = []
+    action: str = Field(..., pattern="^(polish|expand|rewrite|extract|fuse)$")
     custom_prompt: Optional[str] = None
+    domain: Optional[str] = None
+    source: str = "ppt_a"
+    selections: Optional[list[SlideSelector]] = None
 
     provider: str = "deepseek"
     api_key: str
     base_url: Optional[str] = None
     model: Optional[str] = None
     temperature: float = 0.3
-    max_tokens: int = 3000
+    max_tokens: int = 4000
 
 
 class ComposeRequest(BaseModel):

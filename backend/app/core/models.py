@@ -186,6 +186,29 @@ class SlideContent(BaseModel):
 # 第三层: 修改指令模型
 # ============================================================
 
+class StyleHints(BaseModel):
+    """可选的样式提示 — AI 可返回，由 StyleApplicator 应用"""
+    model_config = ConfigDict(extra="ignore")
+
+    bold: Optional[bool] = None
+    italic: Optional[bool] = None
+    underline: Optional[bool] = None
+    font_size_pt: Optional[float] = None
+    font_color: Optional[str] = None        # "#RRGGBB"
+    font_name: Optional[str] = None
+    alignment: Optional[str] = None         # left / center / right / justify
+
+
+class AnimationHint(BaseModel):
+    """可选的动画提示 — AI 可返回，由 AnimationApplicator 应用（可插拔）"""
+    model_config = ConfigDict(extra="ignore")
+
+    shape_index: int
+    effect: str = "fade"                    # fade / fly_in / appear / zoom / wipe
+    trigger: str = "on_click"              # on_click / with_previous / after_previous
+    duration_ms: Optional[int] = None
+
+
 class TextModification(BaseModel):
     """文本修改指令"""
     model_config = ConfigDict(extra="ignore")
@@ -193,6 +216,7 @@ class TextModification(BaseModel):
     shape_index: int
     original_text: str
     new_text: str
+    style_hints: Optional[StyleHints] = None
 
 
 class TableCellModification(BaseModel):
@@ -206,14 +230,30 @@ class TableCellModification(BaseModel):
     new_text: str
 
 
+class NewSlideContent(BaseModel):
+    """AI 生成的全新页面内容（非修改已有 shape，而是从零创建）"""
+    model_config = ConfigDict(extra="ignore")
+
+    title: str = ""
+    body_texts: list[str] = []
+    layout_hint: str = "blank"
+
+
 class SlideModification(BaseModel):
-    """单页的全部修改指令"""
+    """单页的全部修改指令
+
+    is_new_slide=False：修改已有页面（通过 slide_index + shape_index 定位）
+    is_new_slide=True ：AI 要求创建新页面（new_slide_content 提供内容）
+    """
     model_config = ConfigDict(extra="ignore")
 
     slide_index: int
     text_modifications: list[TextModification] = []
     table_modifications: list[TableCellModification] = []
+    animation_hints: list[AnimationHint] = []
     ai_summary: Optional[str] = None
+    is_new_slide: bool = False
+    new_slide_content: Optional[NewSlideContent] = None
 
 
 class ProcessingResult(BaseModel):

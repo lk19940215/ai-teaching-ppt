@@ -4,7 +4,7 @@
 每个会话生成独立日志文件，记录完整的处理流程：
   上传 → 解析 → AI 处理 → 预览图生成 → 组合 → 下载
 
-日志存放在 logs/ 目录下，按日期分文件。
+日志存放在 logs/ 目录下，每个会话一个文件（{session_id}.log）。
 """
 
 import json
@@ -28,7 +28,7 @@ class SessionLogger:
     def __init__(self, session_id: str):
         self.session_id = session_id
         self._start_times: dict[str, float] = {}
-        self._log_path = _LOG_DIR / f"session_{datetime.now():%Y%m%d}.log"
+        self._log_path = _LOG_DIR / f"{session_id}.log"
 
     def _write(self, lines: list[str]) -> None:
         with open(self._log_path, "a", encoding="utf-8") as f:
@@ -109,6 +109,3 @@ def get_session_logger(session_id: str) -> SessionLogger:
     return _loggers[session_id]
 
 
-def cleanup_session_logger(session_id: str) -> None:
-    """清理会话日志器"""
-    _loggers.pop(session_id, None)
