@@ -156,16 +156,6 @@ export async function getLLMConfig(): Promise<LLMConfig | null> {
 }
 
 /**
- * 检查 LLM 是否已配置
- *
- * @returns 如果已配置返回 true，否则返回 false
- */
-export async function isLLMConfigured(): Promise<boolean> {
-  const config = await getLLMConfig()
-  return config !== null && !!config.apiKey && config.apiKey.trim() !== ''
-}
-
-/**
  * 获取 LLM 配置或抛出错误
  *
  * 用于需要确保配置存在的场景，如果未配置则抛出友好的错误信息。
@@ -185,14 +175,4 @@ export async function requireLLMConfig(): Promise<LLMConfig> {
   }
 
   return config
-}
-
-/**
- * 更新 localStorage 中的 LLM 配置
- *
- * @deprecated 请使用 saveLLMConfigToLocalStorage
- * @param config LLM 配置对象
- */
-export function updateLocalStorageConfig(config: LLMConfig): void {
-  saveLLMConfigToLocalStorage(config)
 }

@@ -46,7 +46,6 @@ import {
   getPptFile,
   RENDERER_DEFAULTS,
   type RenderDecision,
-  type RendererType,
 } from "@/lib/slideRendering"
 
 export interface SlidePreviewPanelProps {
@@ -259,11 +258,11 @@ export function SlidePreviewPanel({
       case "image":
         return (
           <img
+            key={imageUrl}
             src={imageUrl!}
             alt={slide?.display_title || `幻灯片 ${(slide?.original_index ?? 0) + 1}`}
             className="w-full h-full object-contain"
             onError={(e) => {
-              // 图片加载失败时隐藏，触发降级渲染
               (e.target as HTMLImageElement).style.display = 'none'
             }}
           />
@@ -354,7 +353,6 @@ export function SlidePreviewPanel({
           </Badge>
         </div>
         <div className="flex items-center gap-3">
-          {/* 版本切换器 */}
           {slide.versions.length > 1 && (
             <VersionSwitcher
               versions={slide.versions}
@@ -369,10 +367,9 @@ export function SlidePreviewPanel({
         </div>
       </div>
 
-      {/* feat-219: 渲染优先级决策使用统一的 getSlideRenderer 函数 */}
+      {/* 预览区域 */}
       <div className="flex-1 p-4">
-        <div className="aspect-video bg-gray-50 rounded-lg overflow-hidden border relative">
-          {/* feat-185: 降级提示 Badge */}
+        <div key={version.version_id} className="aspect-video bg-gray-50 rounded-lg overflow-hidden border relative group">
           {fallbackMode && (
             <Badge
               variant="outline"
@@ -400,11 +397,38 @@ export function SlidePreviewPanel({
           ) : (
             renderSlideContent()
           )}
+
+          {/* 悬浮操作按钮（居中显示） */}
+          {!isProcessing && (
+            <div className="absolute inset-x-0 bottom-4 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+              {isInFinalSelection ? (
+                <button
+                  onClick={onRemoveFromFinal}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-white/95 border-2 border-red-300 text-red-600 text-sm font-semibold rounded-xl shadow-lg hover:bg-red-50 transition-colors backdrop-blur-sm"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  从最终选择移除
+                </button>
+              ) : (
+                <button
+                  onClick={onAddToFinal}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600/95 text-white text-sm font-semibold rounded-xl shadow-lg hover:bg-indigo-700 transition-colors backdrop-blur-sm"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  添加到最终选择
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 内容摘要 */}
         {version.content.main_points && version.content.main_points.length > 0 && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
             <h4 className="text-xs font-medium text-gray-700 mb-2">内容摘要</h4>
             <ul className="space-y-1 text-xs text-gray-600">
               {version.content.main_points.slice(0, 5).map((point, idx) => (
@@ -419,116 +443,6 @@ export function SlidePreviewPanel({
             </ul>
           </div>
         )}
-      </div>
-
-      {/* 操作面板 */}
-      <div className="px-4 py-3 border-t bg-gray-50">
-        {/* 学科/年级选择器 */}
-        {subjectOptions && gradeOptions && (
-          <div className="mb-3 flex gap-2">
-            <div className="flex-1">
-              <label className="text-xs text-gray-500 mb-1 block">学科</label>
-              <select
-                value={subject || '_default'}
-                onChange={(e) => onSubjectChange?.(e.target.value)}
-                className="w-full text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                {subjectOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex-1">
-              <label className="text-xs text-gray-500 mb-1 block">年级</label>
-              <select
-                value={grade || ''}
-                onChange={(e) => onGradeChange?.(e.target.value)}
-                className="w-full text-xs border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                {gradeOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        )}
-
-        {/* 处理操作按钮 - 点击选择操作并注入模板 */}
-        <div className="mb-3">
-          <p className="text-xs text-gray-500 mb-2">选择操作类型</p>
-          <div className="grid grid-cols-4 gap-2">
-            {(['polish', 'expand', 'rewrite', 'extract'] as SlideAction[]).map((action) => (
-              <Button
-                key={action}
-                variant={selectedAction === action ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleActionClick(action)}
-                disabled={isProcessing}
-                title={ACTION_CONFIG[action].template}
-                className={cn(
-                  "flex flex-col items-center gap-1 h-auto py-2",
-                  selectedAction === action && "ring-2 ring-indigo-300"
-                )}
-              >
-                <span className="text-lg">{ACTION_CONFIG[action].icon}</span>
-                <span className="text-xs">{ACTION_CONFIG[action].label}</span>
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* 执行处理按钮 - 当选择了操作且有提示词时显示 */}
-        {selectedAction && globalPrompt && (
-          <div className="mb-3">
-            <Button
-              onClick={handleExecute}
-              disabled={isProcessing}
-              className="w-full"
-            >
-              {isProcessing ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  {ACTION_CONFIG[selectedAction]?.label || '处理'}中...
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  执行{ACTION_CONFIG[selectedAction]?.label || '处理'}
-                </>
-              )}
-            </Button>
-          </div>
-        )}
-
-        {/* 最终选择按钮 */}
-        <div className="flex gap-2">
-          {isInFinalSelection ? (
-            <Button
-              variant="outline"
-              onClick={onRemoveFromFinal}
-              disabled={isProcessing}
-              className="flex-1"
-            >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              从最终选择移除
-            </Button>
-          ) : (
-            <Button
-              onClick={onAddToFinal}
-              disabled={isProcessing}
-              className="flex-1"
-            >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              添加到最终选择
-            </Button>
-          )}
-        </div>
       </div>
     </div>
   )

@@ -23,6 +23,7 @@ import {
   type ProcessingResult,
   createInitialSlidePoolItem,
   createMergedSlidePoolItem,
+  getActionLabel,
   createNewVersion,
   getCurrentVersion,
 } from '@/types/merge-session'
@@ -789,21 +790,6 @@ export function useMergeSession(): UseMergeSessionReturn {
     generateFinal,
     resetSession,
   }
-}
-
-/**
- * 获取动作的中文标签
- */
-function getActionLabel(action: SlideAction): string {
-  const labels: Record<SlideAction, string> = {
-    polish: '润色',
-    expand: '扩展',
-    rewrite: '改写',
-    extract: '提取',
-    merge: '融合',
-    create: '创建',
-  }
-  return labels[action] || action
 }
 
 export default useMergeSession

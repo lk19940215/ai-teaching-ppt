@@ -283,13 +283,6 @@ export function getCurrentVersion(item: SlidePoolItem): SlideVersion | undefined
 }
 
 /**
- * 获取幻灯片的最新版本
- */
-export function getLatestVersion(item: SlidePoolItem): SlideVersion | undefined {
-  return item.versions[item.versions.length - 1]
-}
-
-/**
  * 获取幻灯片池的分组列表
  */
 export function getSlidePoolGroups(slidePool: Record<string, SlidePoolItem>): SlidePoolGroup[] {
@@ -351,45 +344,6 @@ export function getSlidePoolGroups(slidePool: Record<string, SlidePoolItem>): Sl
 }
 
 /**
- * 获取最终选择的幻灯片详情列表
- */
-export function getFinalSelectionDetails(
-  finalSelection: string[],
-  slidePool: Record<string, SlidePoolItem>
-): Array<{
-  version_id: string
-  slide_item: SlidePoolItem
-  version: SlideVersion
-}> {
-  const result: Array<{
-    version_id: string
-    slide_item: SlidePoolItem
-    version: SlideVersion
-  }> = []
-
-  for (const versionId of finalSelection) {
-    // 从 version_id 解析 slide_id
-    const match = versionId.match(/^(.*)_v\d+$/)
-    if (!match) continue
-
-    const slideId = match[1]
-    const slideItem = slidePool[slideId]
-    if (!slideItem) continue
-
-    const version = slideItem.versions.find(v => v.version_id === versionId)
-    if (!version) continue
-
-    result.push({
-      version_id: versionId,
-      slide_item: slideItem,
-      version,
-    })
-  }
-
-  return result
-}
-
-/**
  * 获取动作的中文描述
  */
 export function getActionLabel(action: SlideAction): string {
@@ -402,21 +356,6 @@ export function getActionLabel(action: SlideAction): string {
     create: '创建',
   }
   return labels[action] || action
-}
-
-/**
- * 获取动作的图标
- */
-export function getActionIcon(action: SlideAction): string {
-  const icons: Record<SlideAction, string> = {
-    polish: '✨',
-    expand: '📈',
-    rewrite: '📝',
-    extract: '🎯',
-    merge: '🔀',
-    create: '➕',
-  }
-  return icons[action] || '📄'
 }
 
 /**

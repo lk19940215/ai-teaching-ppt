@@ -60,56 +60,36 @@ class PPTXWriter:
         """
         应用修改并产出**干净的结果 PPTX**，只包含 AI 处理过的页面。
 
-        对于修改已有页面：先从源 PPTX 复制该页，再应用修改。
-        对于新建页面：直接创建。
-        输出文件不携带任何未处理的原始页面。
-
-        Returns:
-            ApplyResult，其中 output_path 只包含结果页面
+        策略：单 Presentation 就地修改 + 删除未处理页面。
+        避免双实例 deepcopy 导致 python-pptx 序列化时丢失文本修改。
         """
-        from copy import deepcopy
-
-        source_prs = Presentation(str(source_path))
-
-        output_prs = Presentation(str(source_path))
-        while len(output_prs.slides._sldIdLst):
-            rId = output_prs.slides._sldIdLst[0].get(qn("r:id"))
-            output_prs.part.drop_rel(rId)
-            output_prs.slides._sldIdLst.remove(output_prs.slides._sldIdLst[0])
+        prs = Presentation(str(source_path))
 
         total_applied = 0
         total_skipped = 0
         total_styled = 0
         total_animated = 0
-        result_page_count = 0
 
-        # 新建页面排在前面，方便 preview_images[0] 直接展示最重要的结果
+        mod_slide_indices: set[int] = set()
+        new_slide_mods: list[SlideModification] = []
+
         sorted_mods = sorted(modifications, key=lambda m: (0 if m.is_new_slide else 1))
 
         for slide_mod in sorted_mods:
             if slide_mod.is_new_slide and slide_mod.new_slide_content:
-                self._create_new_slide(output_prs, slide_mod.new_slide_content)
-                result_page_count += 1
-                new_slide = output_prs.slides[-1]
-                if slide_mod.animation_hints:
-                    shapes = list(new_slide.shapes)
-                    self._anim.apply(new_slide, shapes, slide_mod.animation_hints)
-                    total_animated += len(slide_mod.animation_hints)
+                new_slide_mods.append(slide_mod)
                 continue
 
-            if slide_mod.slide_index >= len(source_prs.slides):
+            if slide_mod.slide_index >= len(prs.slides):
                 logger.warning(
                     f"slide_index {slide_mod.slide_index} 超出范围 "
-                    f"(共 {len(source_prs.slides)} 页), 跳过"
+                    f"(共 {len(prs.slides)} 页), 跳过"
                 )
                 continue
 
-            src_slide = source_prs.slides[slide_mod.slide_index]
-            self._copy_slide(output_prs, src_slide, source_prs)
-            result_page_count += 1
-
-            slide = output_prs.slides[-1]
+            slide = prs.slides[slide_mod.slide_index]
             shapes = list(slide.shapes)
+            mod_slide_indices.add(slide_mod.slide_index)
 
             for text_mod in slide_mod.text_modifications:
                 applied = self._apply_text_modification(shapes, text_mod, slide_mod.slide_index)
@@ -133,9 +113,30 @@ class PPTXWriter:
                 n = self._anim.apply(slide, shapes, slide_mod.animation_hints)
                 total_animated += n
 
+        for new_mod in new_slide_mods:
+            if new_mod.new_slide_content:
+                self._create_new_slide(prs, new_mod.new_slide_content)
+                mod_slide_indices.add(len(prs.slides) - 1)
+                new_slide = prs.slides[-1]
+                if new_mod.animation_hints:
+                    shapes = list(new_slide.shapes)
+                    self._anim.apply(new_slide, shapes, new_mod.animation_hints)
+                    total_animated += len(new_mod.animation_hints)
+
+        indices_to_remove = sorted(
+            [i for i in range(len(prs.slides)) if i not in mod_slide_indices],
+            reverse=True,
+        )
+        for idx in indices_to_remove:
+            rId = prs.slides._sldIdLst[idx].get(qn("r:id"))
+            prs.part.drop_rel(rId)
+            prs.slides._sldIdLst.remove(prs.slides._sldIdLst[idx])
+
+        result_page_count = len(prs.slides)
+
         output_dir.mkdir(parents=True, exist_ok=True)
         output_path = output_dir / f"ai_result_{uuid4().hex[:8]}.pptx"
-        output_prs.save(str(output_path))
+        prs.save(str(output_path))
 
         all_indices = list(range(result_page_count))
         logger.info(
@@ -186,9 +187,11 @@ class PPTXWriter:
             )
 
         self._replace_text_preserve_format(shape, mod.new_text)
-        logger.debug(
-            f"第{slide_idx}页 shape_{mod.shape_index}: "
-            f"'{expected[:30]}...' → '{mod.new_text[:30]}...'"
+
+        after_text = shape.text_frame.text.strip()[:60]
+        logger.info(
+            f"第{slide_idx}页 shape_{mod.shape_index} 替换完成: "
+            f"'{expected[:40]}' → '{after_text}'"
         )
         return True
 

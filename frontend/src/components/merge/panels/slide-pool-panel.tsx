@@ -57,6 +57,8 @@ export interface SlidePoolPanelProps {
   fileA?: File | null
   /** PPT B 文件引用 */
   fileB?: File | null
+  /** 布局模式：vertical（纵向列表，默认）| horizontal（水平滚动行） */
+  layout?: 'vertical' | 'horizontal'
   /** 类名 */
   className?: string
 }
@@ -260,26 +262,14 @@ function SlideThumbnail({
         </Badge>
       )}
 
-      {/* 信息栏 */}
-      <div className="px-2 py-1.5">
-        <div className="flex items-center justify-between gap-1">
-          <span className="text-xs font-medium text-gray-700 truncate">
-            {item.display_title || `第 ${item.original_index + 1} 页`}
-          </span>
-          {versionCount > 1 && (
-            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
-              v{versionCount}
-            </Badge>
-          )}
-        </div>
-        <div className="flex items-center gap-1 mt-0.5">
-          <span className={cn("text-[10px] px-1.5 py-0.5 rounded", sourceColor)}>
-            {sourceLabel}
-          </span>
-          <span className="text-[10px] text-gray-400">
-            P{item.original_index + 1}
-          </span>
-        </div>
+      {/* 信息栏（极简） */}
+      <div className="px-1.5 py-1 flex items-center justify-between">
+        <span className="text-[10px] font-medium text-gray-600">
+          P{item.original_index}
+        </span>
+        {versionCount > 1 && (
+          <span className="text-[9px] text-amber-600 font-medium">v{versionCount}</span>
+        )}
       </div>
 
       {/* 选中标记 */}
@@ -311,7 +301,7 @@ function SlideThumbnail({
 }
 
 /**
- * 幻灯片分组
+ * 幻灯片分组（纵向布局）
  */
 function SlideGroup({
   group,
@@ -338,7 +328,6 @@ function SlideGroup({
 
   return (
     <div className="mb-4">
-      {/* 分组标题 */}
       <button
         type="button"
         onClick={() => setIsCollapsed(!isCollapsed)}
@@ -360,7 +349,6 @@ function SlideGroup({
         </div>
       </button>
 
-      {/* 幻灯片列表 */}
       {!isCollapsed && (
         <div className="grid grid-cols-2 gap-2 mt-2 px-2">
           {group.items.map((item) => {
@@ -393,6 +381,142 @@ function SlideGroup({
 }
 
 /**
+ * 水平滚动分组行 — 每个分组（PPT A / PPT B / 融合结果）一行
+ */
+function HorizontalSlideRow({
+  group,
+  activeSlideId,
+  finalSelection,
+  multiSelectedIds,
+  slideImageUrls,
+  fileA,
+  fileB,
+  onSlideClick,
+  onSlideDoubleClick,
+}: {
+  group: SlidePoolGroup
+  activeSlideId: string | null
+  finalSelection: string[]
+  multiSelectedIds: string[]
+  slideImageUrls?: Record<string, string>
+  fileA?: File | null
+  fileB?: File | null
+  onSlideClick: (slideId: string, e?: React.MouseEvent) => void
+  onSlideDoubleClick?: (slideId: string) => void
+}) {
+  const scrollRef = React.useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  const checkScroll = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 4)
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4)
+  }, [])
+
+  React.useEffect(() => {
+    checkScroll()
+    const el = scrollRef.current
+    if (el) {
+      el.addEventListener('scroll', checkScroll, { passive: true })
+      const ro = new ResizeObserver(checkScroll)
+      ro.observe(el)
+      return () => { el.removeEventListener('scroll', checkScroll); ro.disconnect() }
+    }
+  }, [checkScroll, group.items.length])
+
+  const scroll = useCallback((dir: 'left' | 'right') => {
+    const el = scrollRef.current
+    if (!el) return
+    const amount = el.clientWidth * 0.6
+    el.scrollBy({ left: dir === 'left' ? -amount : amount, behavior: 'smooth' })
+  }, [])
+
+  const groupColor =
+    group.group_id === 'ppt_a' ? 'border-l-blue-500 bg-blue-50/30' :
+    group.group_id === 'ppt_b' ? 'border-l-green-500 bg-green-50/30' :
+    'border-l-purple-500 bg-purple-50/30'
+
+  const labelColor =
+    group.group_id === 'ppt_a' ? 'bg-blue-100 text-blue-700' :
+    group.group_id === 'ppt_b' ? 'bg-green-100 text-green-700' :
+    'bg-purple-100 text-purple-700'
+
+  return (
+    <div className={cn("relative border-l-4 rounded-r-lg", groupColor)}>
+      <div className="flex items-center">
+        {/* 分组标签 */}
+        <div className="flex-shrink-0 w-20 px-2 py-2 flex flex-col items-center justify-center">
+          <span className={cn("text-[11px] font-semibold px-2 py-0.5 rounded-full", labelColor)}>
+            {group.group_label}
+          </span>
+          <span className="text-[10px] text-gray-400 mt-0.5">{group.items.length} 页</span>
+        </div>
+
+        {/* 左箭头 */}
+        {canScrollLeft && (
+          <button
+            onClick={() => scroll('left')}
+            className="flex-shrink-0 z-10 w-7 h-16 flex items-center justify-center bg-white/90 border border-gray-200 rounded-md shadow-sm hover:bg-gray-100 transition-colors"
+          >
+            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
+
+        {/* 水平滚动区 */}
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-300"
+          style={{ scrollbarWidth: 'thin' }}
+        >
+          <div className="flex gap-2 py-2 px-1">
+            {group.items.map((item) => {
+              const currentVersion = getCurrentVersion(item)
+              const isSelected = currentVersion
+                ? finalSelection.includes(currentVersion.version_id)
+                : false
+              const isMultiSelected = multiSelectedIds.includes(item.slide_id)
+              const imageUrl = slideImageUrls?.[item.slide_id]
+
+              return (
+                <div key={item.slide_id} className="flex-shrink-0 w-[140px]">
+                  <SlideThumbnail
+                    item={item}
+                    isActive={activeSlideId === item.slide_id}
+                    isSelected={isSelected}
+                    isMultiSelected={isMultiSelected}
+                    imageUrl={imageUrl}
+                    fileA={fileA}
+                    fileB={fileB}
+                    onClick={(e) => onSlideClick(item.slide_id, e)}
+                    onDoubleClick={onSlideDoubleClick ? () => onSlideDoubleClick(item.slide_id) : undefined}
+                  />
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* 右箭头 */}
+        {canScrollRight && (
+          <button
+            onClick={() => scroll('right')}
+            className="flex-shrink-0 z-10 w-7 h-16 flex items-center justify-center bg-white/90 border border-gray-200 rounded-md shadow-sm hover:bg-gray-100 transition-colors"
+          >
+            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/**
  * 幻灯片池面板
  */
 export function SlidePoolPanel({
@@ -407,37 +531,25 @@ export function SlidePoolPanel({
   onMergeSelected,
   fileA,
   fileB,
+  layout = 'vertical',
   className,
 }: SlidePoolPanelProps) {
-  // 计算分组
   const groups = useMemo(() => getSlidePoolGroups(slidePool), [slidePool])
-
-  // 多选状态
   const [multiSelectedIds, setMultiSelectedIds] = useState<string[]>([])
 
-  // 检查是否为当前版本被选中
-  const isVersionSelected = (item: SlidePoolItem): boolean => {
-    const currentVersion = getCurrentVersion(item)
-    return currentVersion ? finalSelection.includes(currentVersion.version_id) : false
-  }
-
-  // 处理幻灯片点击（支持 Ctrl/Cmd 多选）
   const handleSlideClick = useCallback((slideId: string, e?: React.MouseEvent) => {
     if (e?.ctrlKey || e?.metaKey) {
-      // Ctrl/Cmd + 点击：添加到多选
       setMultiSelectedIds(prev =>
         prev.includes(slideId)
           ? prev.filter(id => id !== slideId)
           : [...prev, slideId]
       )
     } else {
-      // 普通点击：设置为活动幻灯片，清除多选
       onSlideClick(slideId)
       setMultiSelectedIds([])
     }
   }, [onSlideClick])
 
-  // 融合选中的幻灯片
   const handleMerge = useCallback(() => {
     if (multiSelectedIds.length >= 2 && onMergeSelected) {
       onMergeSelected(multiSelectedIds)
@@ -445,16 +557,15 @@ export function SlidePoolPanel({
     }
   }, [multiSelectedIds, onMergeSelected])
 
-  // 清除多选
   const clearMultiSelection = useCallback(() => {
     setMultiSelectedIds([])
   }, [])
 
   if (groups.length === 0) {
     return (
-      <div className={cn("flex items-center justify-center h-64 text-gray-500", className)}>
+      <div className={cn("flex items-center justify-center h-32 text-gray-500 bg-white border rounded-lg", className)}>
         <div className="text-center">
-          <svg className="mx-auto h-12 w-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="mx-auto h-8 w-8 text-gray-300 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
           <p className="text-sm">上传 PPT 后显示幻灯片</p>
@@ -463,50 +574,13 @@ export function SlidePoolPanel({
     )
   }
 
-  return (
-    <div className={cn("bg-white border rounded-lg overflow-hidden", className)}>
-      {/* 头部 */}
-      <div className="px-3 py-2 border-b bg-gray-50 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-gray-900">幻灯片池</h3>
-        <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span>共 {Object.keys(slidePool).length} 页</span>
-          {finalSelection.length > 0 && (
-            <Badge variant="default" className="text-[10px]">
-              已选 {finalSelection.length}
-            </Badge>
-          )}
-        </div>
-      </div>
-
-      {/* 分组列表 */}
-      <ScrollArea className="h-[calc(100vh-340px)]">
-        <div className="py-2">
-          {groups.map((group) => (
-            <SlideGroup
-              key={group.group_id}
-              group={group}
-              activeSlideId={activeSlideId}
-              finalSelection={finalSelection}
-              multiSelectedIds={multiSelectedIds}
-              slideImageUrls={slideImageUrls}
-              fileA={fileA}
-              fileB={fileB}
-              onSlideClick={handleSlideClick}
-              onSlideDoubleClick={onSlideDoubleClick}
-            />
-          ))}
-        </div>
-      </ScrollArea>
-
-      {/* 多选操作栏 */}
+  const mergeBar = (
+    <>
       {multiSelectedIds.length >= 2 && (
-        <div className="px-3 py-2 border-t bg-purple-50 text-xs text-purple-700 flex items-center justify-between">
+        <div className="px-3 py-2 bg-purple-50 border border-purple-200 rounded-lg text-xs text-purple-700 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span>已选择 {multiSelectedIds.length} 页</span>
-            <button
-              onClick={clearMultiSelection}
-              className="text-purple-500 hover:text-purple-700 underline"
-            >
+            <button onClick={clearMultiSelection} className="text-purple-500 hover:text-purple-700 underline">
               取消选择
             </button>
           </div>
@@ -533,15 +607,95 @@ export function SlidePoolPanel({
           )}
         </div>
       )}
+    </>
+  )
 
-      {/* 多选提示 */}
+  // ─── 水平布局模式 ───
+  if (layout === 'horizontal') {
+    return (
+      <div className={cn("bg-white border rounded-lg overflow-hidden", className)}>
+        <div className="px-3 py-1.5 border-b bg-gray-50 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-medium text-gray-900">幻灯片池</h3>
+            <span className="text-xs text-gray-400">共 {Object.keys(slidePool).length} 页</span>
+            {finalSelection.length > 0 && (
+              <Badge variant="default" className="text-[10px]">已选 {finalSelection.length}</Badge>
+            )}
+          </div>
+          <span className="text-[10px] text-gray-400">Ctrl+点击多选 | 可拖拽到底部</span>
+        </div>
+
+        <div className="space-y-0 divide-y divide-gray-100">
+          {groups.map((group) => (
+            <HorizontalSlideRow
+              key={group.group_id}
+              group={group}
+              activeSlideId={activeSlideId}
+              finalSelection={finalSelection}
+              multiSelectedIds={multiSelectedIds}
+              slideImageUrls={slideImageUrls}
+              fileA={fileA}
+              fileB={fileB}
+              onSlideClick={handleSlideClick}
+              onSlideDoubleClick={onSlideDoubleClick}
+            />
+          ))}
+        </div>
+
+        {mergeBar}
+
+        {isProcessing && (
+          <div className="px-3 py-1.5 border-t bg-indigo-50 text-xs text-indigo-600 flex items-center gap-2">
+            <span className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+            处理中...
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ─── 纵向布局模式（原有逻辑） ───
+  return (
+    <div className={cn("bg-white border rounded-lg overflow-hidden", className)}>
+      <div className="px-3 py-2 border-b bg-gray-50 flex items-center justify-between">
+        <h3 className="text-sm font-medium text-gray-900">幻灯片池</h3>
+        <div className="flex items-center gap-2 text-xs text-gray-500">
+          <span>共 {Object.keys(slidePool).length} 页</span>
+          {finalSelection.length > 0 && (
+            <Badge variant="default" className="text-[10px]">
+              已选 {finalSelection.length}
+            </Badge>
+          )}
+        </div>
+      </div>
+
+      <ScrollArea className="h-[calc(100vh-340px)]">
+        <div className="py-2">
+          {groups.map((group) => (
+            <SlideGroup
+              key={group.group_id}
+              group={group}
+              activeSlideId={activeSlideId}
+              finalSelection={finalSelection}
+              multiSelectedIds={multiSelectedIds}
+              slideImageUrls={slideImageUrls}
+              fileA={fileA}
+              fileB={fileB}
+              onSlideClick={handleSlideClick}
+              onSlideDoubleClick={onSlideDoubleClick}
+            />
+          ))}
+        </div>
+      </ScrollArea>
+
+      {mergeBar}
+
       {multiSelectedIds.length === 0 && (
         <div className="px-3 py-2 border-t bg-gray-50 text-xs text-gray-500">
-          💡 Ctrl/Cmd + 点击可多选页面进行融合
+          Ctrl/Cmd + 点击可多选页面进行融合
         </div>
       )}
 
-      {/* 底部提示 */}
       {isProcessing && (
         <div className="px-3 py-2 border-t bg-indigo-50 text-xs text-indigo-600 flex items-center gap-2">
           <span className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />

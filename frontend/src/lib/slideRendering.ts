@@ -267,74 +267,6 @@ export { getPptFile } from "@/hooks/use-pptx-fallback"
 
 /**
  * 判断是否应该使用 PptxViewJSRenderer
- *
- * @param decision 渲染决策结果
- * @returns 是否应该使用 PptxViewJSRenderer
- */
-export function shouldUsePptxViewJS(decision: RenderDecision): boolean {
-  return decision.renderer === "pptxviewjs" || decision.renderer === "pptxviewjs_fallback"
-}
-
-/**
- * 判断是否应该使用 Canvas 渲染器
- *
- * @param decision 渲染决策结果
- * @returns 是否应该使用 Canvas 渲染器
- */
-export function shouldUseCanvas(decision: RenderDecision): boolean {
-  return (
-    decision.renderer === "ppt_canvas" ||
-    decision.renderer === "pptxviewjs_fallback"
-  )
-}
-
-/**
- * 判断是否应该使用 SlideContentRenderer
- *
- * @param decision 渲染决策结果
- * @returns 是否应该使用 SlideContentRenderer
- */
-export function shouldUseSlideContent(decision: RenderDecision): boolean {
-  return decision.renderer === "slide_content"
-}
-
-/**
- * 获取渲染器的中文描述
- *
- * @param renderer 渲染器类型
- * @returns 渲染器描述
- */
-export function getRendererLabel(renderer: RendererType): string {
-  const labels: Record<RendererType, string> = {
-    image: "图片渲染",
-    pptxviewjs: "PptxViewJS 渲染",
-    pptxviewjs_fallback: "Canvas 降级渲染",
-    slide_content: "AI 内容渲染",
-    ppt_canvas: "Canvas 渲染",
-    placeholder: "占位符",
-  }
-  return labels[renderer] || renderer
-}
-
-/**
- * 获取渲染决策的调试信息
- *
- * @param decision 渲染决策结果
- * @returns 调试信息字符串
- */
-export function getRenderDecisionDebug(decision: RenderDecision): string {
-  return [
-    `渲染器: ${getRendererLabel(decision.renderer)}`,
-    `原因: ${decision.reason}`,
-    `有 action: ${decision.hasAction}`,
-    `有 PPT 文件: ${decision.hasPptFile}`,
-    `有预览图: ${decision.hasImageUrl}`,
-    `有 content: ${decision.hasContent}`,
-    `有 shapes: ${decision.hasShapes}`,
-    `降级模式: ${decision.fallbackMode}`,
-  ].join("\n")
-}
-
 // ============ 常量导出 ============
 
 /** 渲染器默认尺寸配置 */
@@ -345,11 +277,4 @@ export const RENDERER_DEFAULTS = {
   thumbnailHeight: 169,
   quality: 1.0 as const,
   thumbnailQuality: 0.5 as const,
-} as const
-
-/** 渲染器质量选项 */
-export const RENDER_QUALITY = {
-  low: 0.5,
-  medium: 0.75,
-  high: 1.0,
 } as const
