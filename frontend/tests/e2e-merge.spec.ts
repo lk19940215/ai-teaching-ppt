@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import path from 'path'
 
-const TEST_PPT = path.resolve('E:\\Code\\ai-teaching-ppt\\backend\\test_downloaded.pptx')
+const TEST_PPT = path.resolve('E:\\Code\\ai-teaching-ppt\\uploads\\cc29e001dff6\\ppt_a_test_downloaded.pptx')
 
 test.describe('PPT Merge Page E2E', () => {
   test('should load merge page and upload PPT', async ({ page }) => {

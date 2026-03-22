@@ -12,7 +12,7 @@ for action in ACTION_INSTRUCTIONS:
     msgs = build_prompt("test content", action)
     sys_content = msgs[0]["content"]
 
-    sections = ["## 角色", "## 数据映射", "## 输入格式", "## 输出格式", "## 操作指导"]
+    sections = ["## 你的角色", "## 数据映射", "## 输入格式", "## 输出格式", "## 操作指导"]
     missing = [s for s in sections if s not in sys_content]
     placeholder_ok = "{{action_instruction}}" not in sys_content
 
