@@ -53,6 +53,9 @@ public/versions/
 public/previews/
 public/images/
 
+# 会话日志
+logs/
+
 .claude-coder/*
 !.claude-coder/tasks.json
 !.claude-coder/project_profile.json

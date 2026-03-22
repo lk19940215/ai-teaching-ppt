@@ -24,6 +24,7 @@ from ..core.pptx_reader import PPTXReader
 from ..core.content_extractor import ContentExtractor
 from ..core.pptx_writer import PPTXWriter
 from ..core.models import PPTSession, PPTVersion, SlideSelector
+from ..core.session_logger import get_session_logger
 from ..ai.llm_client import LLMClient
 from ..ai.processor import AIProcessor
 from .schemas import (
@@ -76,6 +77,9 @@ async def upload_pptx(
 ):
     """上传 1-2 个 PPTX 文件，解析并创建会话"""
     session_id = uuid.uuid4().hex[:12]
+    slog = get_session_logger(session_id)
+    slog.section("新会话 - 上传 PPTX")
+
     sdir = _session_dir(session_id)
     sdir.mkdir(parents=True, exist_ok=True)
 
@@ -92,16 +96,19 @@ async def upload_pptx(
         file_path = sdir / f"{key}_{upload.filename}"
         content = await upload.read()
         file_path.write_bytes(content)
-
         original_files[key] = str(file_path)
 
+        slog.begin("parse", key=key, filename=upload.filename, size_mb=f"{len(content)/1024/1024:.1f}")
         parsed = _reader.parse(file_path)
         parsed_data[key] = parsed.model_dump()
+        slog.end("parse", slide_count=parsed.slide_count)
 
+        slog.begin("preview", key=key)
         previews = _generate_previews(session_id, file_path)
         for p in previews:
             p["source"] = key
         all_previews.extend(previews)
+        slog.end("preview", count=len(previews))
 
     session = PPTSession(
         session_id=session_id,
@@ -115,10 +122,7 @@ async def upload_pptx(
     for key, data in parsed_data.items():
         combined_parsed[key] = data
 
-    logger.info(
-        f"会话创建: {session_id}, "
-        f"文件: {list(original_files.keys())}"
-    )
+    slog.info("会话创建完成", files=str(list(original_files.keys())), total_previews=len(all_previews))
 
     return UploadResponse(
         session_id=session_id,
@@ -131,6 +135,13 @@ async def upload_pptx(
 async def process_slides(req: ProcessRequest):
     """AI 处理选定页面 → 立即写回生成新版本"""
     session = _get_session(req.session_id)
+    slog = get_session_logger(req.session_id)
+    slog.section(f"AI 处理 - {req.action}")
+    slog.info("请求参数",
+              action=req.action,
+              slide_indices=str(req.slide_indices),
+              provider=req.provider or "default",
+              model=req.model or "default")
 
     try:
         llm = LLMClient(
@@ -142,6 +153,7 @@ async def process_slides(req: ProcessRequest):
             max_tokens=req.max_tokens,
         )
     except ValueError as e:
+        slog.error(f"LLM 客户端创建失败: {e}")
         raise HTTPException(400, str(e))
 
     processor = AIProcessor(llm)
@@ -158,29 +170,44 @@ async def process_slides(req: ProcessRequest):
     if base_version_path is None:
         base_version_path = Path(session.original_files.get(source_key, ""))
         if not base_version_path.exists():
+            slog.error("找不到源文件")
             raise HTTPException(400, "找不到源文件")
 
-    parsed = _reader.parse(base_version_path)
+    slog.info("基础版本", path=str(base_version_path.name))
 
+    slog.begin("extract_content")
+    parsed = _reader.parse(base_version_path)
     contents = []
     for idx in req.slide_indices:
         if idx >= len(parsed.slides):
+            slog.error(f"页码超出范围: {idx}")
             raise HTTPException(400, f"页码超出范围: {idx} (共 {parsed.slide_count} 页)")
         content = _extractor.extract_slide(parsed.slides[idx])
         contents.append(content)
+    slog.end("extract_content", slides=len(contents))
 
+    slog.begin("llm_call")
     result = processor.process_slides(contents, req.action, req.custom_prompt)
+    slog.end("llm_call", success=result.success, total_changes=result.total_changes)
 
     if not result.success:
+        slog.error(f"AI 处理失败: {result.error}")
         return ProcessResponse(success=False, error=result.error)
 
+    if result.modifications:
+        slog.info("AI 摘要", summary=result.modifications[0].ai_summary or "")
+
+    slog.begin("write_pptx")
     sdir = _session_dir(req.session_id)
     output_path = _writer.apply(base_version_path, result.modifications, sdir)
+    slog.end("write_pptx", output=output_path.name)
 
     version_number = len(session.versions) + 1
     version_id = uuid.uuid4().hex[:8]
 
+    slog.begin("generate_preview")
     preview_images = _generate_previews(req.session_id, output_path)
+    slog.end("generate_preview", count=len(preview_images))
 
     version = PPTVersion(
         version_id=version_id,
@@ -200,10 +227,9 @@ async def process_slides(req: ProcessRequest):
     session.versions.append(version)
     session.current_version_id = version_id
 
-    logger.info(
-        f"版本 v{version_number} 创建: {version_id}, "
-        f"action={req.action}, changes={result.total_changes}"
-    )
+    slog.info(f"版本 v{version_number} 创建完成",
+              version_id=version_id,
+              changes=result.total_changes)
 
     return ProcessResponse(
         success=True,
@@ -216,6 +242,11 @@ async def process_slides(req: ProcessRequest):
 async def compose_slides(req: ComposeRequest):
     """从多个 PPT 选择页面组合新 PPT"""
     session = _get_session(req.session_id)
+    slog = get_session_logger(req.session_id)
+    slog.section("页面组合 - compose")
+
+    selections_desc = [f"{s.source}[{s.slide_index}]" for s in req.selections]
+    slog.info("组合请求", pages=str(selections_desc))
 
     source_files = {}
     for key, path_str in session.original_files.items():
@@ -228,16 +259,20 @@ async def compose_slides(req: ComposeRequest):
             source_files["latest"] = last_path
 
     try:
+        slog.begin("compose_pptx")
         sdir = _session_dir(req.session_id)
         output_path = _writer.compose(source_files, req.selections, sdir)
+        slog.end("compose_pptx", output=output_path.name)
     except Exception as e:
-        logger.error(f"页面组合失败: {e}")
+        slog.error(f"页面组合失败: {e}")
         return ComposeResponse(success=False, error=str(e))
 
     version_number = len(session.versions) + 1
     version_id = uuid.uuid4().hex[:8]
 
+    slog.begin("generate_preview")
     preview_images = _generate_previews(req.session_id, output_path)
+    slog.end("generate_preview", count=len(preview_images))
 
     version = PPTVersion(
         version_id=version_id,
@@ -253,6 +288,8 @@ async def compose_slides(req: ComposeRequest):
 
     session.versions.append(version)
     session.current_version_id = version_id
+
+    slog.info(f"组合完成 v{version_number}", version_id=version_id, pages=len(req.selections))
 
     return ComposeResponse(success=True, version=version)
 
@@ -272,6 +309,7 @@ async def get_versions(session_id: str):
 async def download_version(session_id: str, version_id: str):
     """下载指定版本的 PPTX"""
     session = _get_session(session_id)
+    slog = get_session_logger(session_id)
 
     version = next((v for v in session.versions if v.version_id == version_id), None)
     if not version:
@@ -280,6 +318,8 @@ async def download_version(session_id: str, version_id: str):
     path = Path(version.output_path)
     if not path.exists():
         raise HTTPException(404, f"文件不存在: {path}")
+
+    slog.info("下载版本", version_id=version_id, version=f"v{version.version_number}", file=path.name)
 
     return FileResponse(
         path=str(path),
