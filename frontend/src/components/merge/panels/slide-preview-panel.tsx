@@ -34,6 +34,8 @@ import type {
 import {
   getCurrentVersion,
   getSourceLabel,
+  getActionLabel,
+  ACTION_CONFIG,
 } from "@/types/merge-session"
 import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/merge/renderers/ppt-canvas-renderer"
 import { PptxViewJSRenderer } from "@/components/merge/renderers/pptxviewjs-renderer"
@@ -105,46 +107,6 @@ export interface SlidePreviewPanelProps {
   className?: string
 }
 
-/** 操作配置 - 包含模板提示词 */
-const ACTION_CONFIG: Record<SlideAction, { label: string; description: string; icon: string; template: string }> = {
-  polish: {
-    label: '润色',
-    description: '优化文字表达',
-    icon: '✨',
-    template: '请优化这段内容的文字表达，使语言更加流畅自然、通俗易懂，同时保持教学内容的准确性和完整性。'
-  },
-  expand: {
-    label: '扩展',
-    description: '增加细节内容',
-    icon: '📈',
-    template: '请在保持原有内容基础上，适当增加细节、例子或解释说明，使教学内容更加丰富和完整。'
-  },
-  rewrite: {
-    label: '改写',
-    description: '调整语言风格',
-    icon: '📝',
-    template: '请调整这段内容的语言风格，使其更符合目标学生的认知水平，保持专业性的同时增强可读性。'
-  },
-  extract: {
-    label: '提取',
-    description: '提取核心知识点',
-    icon: '🎯',
-    template: '请提取这段内容的核心知识点，以简洁清晰的方式呈现关键信息，去除冗余内容。'
-  },
-  merge: {
-    label: '融合',
-    description: '多页融合',
-    icon: '🔀',
-    template: ''
-  },
-  create: {
-    label: '创建',
-    description: '创建新幻灯片',
-    icon: '➕',
-    template: ''
-  },
-}
-
 /**
  * 版本切换器
  */
@@ -160,25 +122,21 @@ function VersionSwitcher({
   disabled?: boolean
 }) {
   return (
-    <div className="flex items-center gap-1">
+    <select
+      value={currentVersionId}
+      onChange={(e) => onSwitch(e.target.value)}
+      disabled={disabled}
+      className={cn(
+        "text-xs font-medium bg-white border border-gray-300 rounded-md px-2 py-1 cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500",
+        disabled && "opacity-50 cursor-not-allowed"
+      )}
+    >
       {versions.map((v, idx) => (
-        <button
-          key={v.version_id}
-          type="button"
-          onClick={() => onSwitch(v.version_id)}
-          disabled={disabled}
-          className={cn(
-            "px-2 py-1 text-xs font-medium rounded transition-colors",
-            v.version_id === currentVersionId
-              ? "bg-indigo-100 text-indigo-700"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200",
-            disabled && "opacity-50 cursor-not-allowed"
-          )}
-        >
-          v{idx + 1}
-        </button>
+        <option key={v.version_id} value={v.version_id}>
+          v{idx + 1}{v.action ? ` (${getActionLabel(v.action)})` : ''}
+        </option>
       ))}
-    </div>
+    </select>
   )
 }
 

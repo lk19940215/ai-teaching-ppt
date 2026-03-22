@@ -43,17 +43,20 @@ export default function MergePage() {
     setPptB,
     handleSlideClick,
     handleSwitchVersion,
+    selectVersion,
     handleProcess,
     handleBatchProcess,
     handleAddToFinal,
     handleRemoveFromFinal,
     addToFinal,
     removeFromFinal,
+    clearFinalSelection,
     handleMergeSelected,
     handleGenerateFinal,
     handleDownload,
     handleReset,
     handleStepClick,
+    handleUploadConfirm,
     reorderFinal,
   } = useMergePage()
 
@@ -89,6 +92,7 @@ export default function MergePage() {
           isInitializing={isInitializing}
           onSetPptA={setPptA}
           onSetPptB={setPptB}
+          onConfirm={handleUploadConfirm}
         />
       )}
 
@@ -109,12 +113,14 @@ export default function MergePage() {
           onAlwaysPromptChange={setAlwaysPrompt}
           onSlideClick={handleSlideClick}
           onSwitchVersion={handleSwitchVersion}
+          onSelectVersion={selectVersion}
           onProcess={handleProcess}
           onBatchProcess={handleBatchProcess}
           onAddToFinal={handleAddToFinal}
           onRemoveFromFinal={handleRemoveFromFinal}
           addToFinal={addToFinal}
           removeFromFinal={removeFromFinal}
+          clearFinalSelection={clearFinalSelection}
           onMergeSelected={handleMergeSelected}
           onGenerateFinal={handleGenerateFinal}
           onPromptChange={setGlobalPrompt}

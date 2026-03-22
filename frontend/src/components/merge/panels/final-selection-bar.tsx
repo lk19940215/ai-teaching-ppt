@@ -39,6 +39,8 @@ export interface FinalSelectionBarProps {
   onReorder: (fromIndex: number, toIndex: number) => void
   /** 移除回调 */
   onRemove: (versionId: string) => void
+  /** 清空所有选择回调 */
+  onClearAll?: () => void
   /** 生成最终 PPT 回调 */
   onGenerate: () => void
   /** 从幻灯片池拖入时添加回调 */
@@ -171,6 +173,7 @@ export function FinalSelectionBar({
   isGenerating,
   onReorder,
   onRemove,
+  onClearAll,
   onGenerate,
   onDropFromPool,
   className,
@@ -216,9 +219,19 @@ export function FinalSelectionBar({
   return (
     <div className={cn("bg-white border-t rounded-lg", className)}>
       {/* 头部 */}
-      <div className="px-4 py-2 border-b bg-gray-50 flex items-center gap-2">
-        <h4 className="text-sm font-medium text-gray-900">最终 PPT 页面顺序</h4>
-        <span className="text-xs text-gray-500">({items.length} 页)</span>
+      <div className="px-4 py-2 border-b bg-gray-50 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h4 className="text-sm font-medium text-gray-900">最终 PPT 页面顺序</h4>
+          <span className="text-xs text-gray-500">({items.length} 页)</span>
+        </div>
+        {items.length > 0 && onClearAll && (
+          <button
+            onClick={onClearAll}
+            className="text-[11px] text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-0.5 rounded transition-colors"
+          >
+            清空
+          </button>
+        )}
       </div>
 
       {/* 内容区域 */}

@@ -345,19 +345,54 @@ export function getSlidePoolGroups(slidePool: Record<string, SlidePoolItem>): Sl
   return groups
 }
 
-/**
- * 获取动作的中文描述
- */
+export interface ActionConfig {
+  label: string
+  description: string
+  icon: string
+  template: string
+}
+
+export const ACTION_CONFIG: Record<SlideAction, ActionConfig> = {
+  polish: {
+    label: '润色',
+    description: '优化文字表达',
+    icon: '✨',
+    template: '请润色优化：重点改善文字的流畅度和专业性，修正语病和冗余表述，确保教学语言清晰准确、适合课堂展示。保持原有信息完整，不增删知识点。',
+  },
+  expand: {
+    label: '扩展',
+    description: '增加细节内容',
+    icon: '📈',
+    template: '请扩展内容：为现有知识点补充具体示例、详细解释或应用场景，帮助学生更好地理解。优先添加贴近学生生活的实例，保持与原文主题一致。',
+  },
+  rewrite: {
+    label: '改写',
+    description: '调整语言风格',
+    icon: '📝',
+    template: '请改写内容：用全新的表达方式重新组织，可以改变句式结构、调整呈现顺序、转换表达视角。目标是让内容更易理解、更有教学吸引力，核心知识点不变。',
+  },
+  extract: {
+    label: '提取',
+    description: '提取核心知识点',
+    icon: '🎯',
+    template: '请提取知识点：从内容中提炼核心概念、关键方法和重要结论，按"核心概念→关键方法→注意事项"的层次组织，用简洁的列表格式呈现。',
+  },
+  merge: {
+    label: '融合',
+    description: '多页融合',
+    icon: '🔀',
+    template: '',
+  },
+  create: {
+    label: '创建',
+    description: '创建新幻灯片',
+    icon: '➕',
+    template: '',
+  },
+}
+
 export function getActionLabel(action: SlideAction): string {
-  const labels: Record<SlideAction, string> = {
-    polish: '润色',
-    expand: '扩展',
-    rewrite: '改写',
-    extract: '提取',
-    merge: '融合',
-    create: '创建',
-  }
-  return labels[action] || action
+  return ACTION_CONFIG[action]?.label || action
 }
 
 /**

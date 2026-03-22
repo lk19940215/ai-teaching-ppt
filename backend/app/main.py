@@ -20,6 +20,7 @@ logging.basicConfig(
 from app.config import settings
 from app.api import config as config_router
 from app.api.routes import router as ppt_v2_router
+from app.api.generate import router as generate_router
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,7 @@ app.add_middleware(
 # 注册 API 路由
 app.include_router(config_router.router)
 app.include_router(ppt_v2_router, prefix=settings.API_V1_STR)
+app.include_router(generate_router, prefix=settings.API_V1_STR)
 
 # 静态文件服务
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")

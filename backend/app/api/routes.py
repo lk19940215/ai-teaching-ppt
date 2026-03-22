@@ -11,6 +11,8 @@ PPT 处理 API 路由
 
 import uuid
 import logging
+import subprocess
+import shutil
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
@@ -28,6 +30,7 @@ from ..core.models import PPTSession, PPTVersion, SlideSelector
 from ..core.session_logger import get_session_logger
 from ..ai.llm_client import LLMClient
 from ..ai.processor import AIProcessor
+from ..services.ppt_to_image import LibreOfficeDetector
 from .schemas import (
     ProcessRequest, ComposeRequest,
     UploadResponse, ProcessResponse, ComposeResponse, VersionListResponse,
@@ -85,6 +88,40 @@ def _generate_previews(
     return []
 
 
+def _convert_ppt_to_pptx(ppt_path: Path, output_dir: Path, slog) -> Path:
+    """Use LibreOffice to convert legacy .ppt to .pptx"""
+    soffice = LibreOfficeDetector.find_soffice()
+    if not soffice:
+        raise HTTPException(
+            500,
+            "上传了 .ppt 文件但服务器未安装 LibreOffice，无法自动转换。"
+            "请手动转为 .pptx 后重新上传，或安装 LibreOffice。"
+        )
+
+    slog.begin("convert_ppt", src=str(ppt_path))
+    try:
+        subprocess.run(
+            [soffice, "--headless", "--convert-to", "pptx", "--outdir", str(output_dir), str(ppt_path)],
+            timeout=60,
+            capture_output=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError as e:
+        slog.end("convert_ppt", success=False, error=e.stderr.decode(errors="replace"))
+        raise HTTPException(500, f".ppt 转换失败: {e.stderr.decode(errors='replace')}")
+    except subprocess.TimeoutExpired:
+        slog.end("convert_ppt", success=False, error="timeout")
+        raise HTTPException(500, ".ppt 转换超时，文件可能过大")
+
+    pptx_path = output_dir / (ppt_path.stem + ".pptx")
+    if not pptx_path.exists():
+        slog.end("convert_ppt", success=False, error="output not found")
+        raise HTTPException(500, ".ppt 转换后未找到 .pptx 输出文件")
+
+    slog.end("convert_ppt", success=True, output=str(pptx_path))
+    return pptx_path
+
+
 @router.post("/upload", response_model=UploadResponse)
 async def upload_pptx(
     file_a: UploadFile = File(..., alias="file_a"),
@@ -105,12 +142,17 @@ async def upload_pptx(
     for key, upload in [("ppt_a", file_a), ("ppt_b", file_b)]:
         if upload is None:
             continue
-        if not upload.filename.lower().endswith(".pptx"):
-            raise HTTPException(400, f"{key}: 只支持 .pptx 文件")
+        fname_lower = upload.filename.lower()
+        if not (fname_lower.endswith(".pptx") or fname_lower.endswith(".ppt")):
+            raise HTTPException(400, f"{key}: 只支持 .ppt 或 .pptx 文件")
 
         file_path = sdir / f"{key}_{upload.filename}"
         content = await upload.read()
         file_path.write_bytes(content)
+
+        if fname_lower.endswith(".ppt") and not fname_lower.endswith(".pptx"):
+            file_path = _convert_ppt_to_pptx(file_path, sdir, slog)
+
         original_files[key] = str(file_path)
 
         slog.begin("parse", key=key, filename=upload.filename, size_mb=f"{len(content)/1024/1024:.1f}")

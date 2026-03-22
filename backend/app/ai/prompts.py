@@ -114,6 +114,12 @@ def build_prompt(
             "每个body_texts条目是一个独立板块，格式：\"板块标题:\\n• 要点1\\n• 要点2\"。"
             "控制每页3-5个板块，每个板块不超过5行。"
         )
+    elif action in ("rewrite", "expand"):
+        user_suffix = (
+            "请严格按协议中的 JSON 格式返回结果。"
+            "**你必须对每一个文本框都进行修改并返回 new_text**，不要跳过任何一个 shape。"
+            "确保修改后的文本与原文有明显区别。"
+        )
     else:
         user_suffix = "请严格按协议中的 JSON 格式返回结果。只返回需要修改的元素。"
 

@@ -26,6 +26,7 @@ import {
   getSlidePoolGroups,
   getCurrentVersion,
   getSourceLabel,
+  getActionLabel,
 } from "@/types/merge-session"
 import { PptCanvasRenderer, type EnhancedPptPageData } from "@/components/merge/renderers/ppt-canvas-renderer"
 import { PptxViewJSRenderer } from "@/components/merge/renderers/pptxviewjs-renderer"
@@ -47,20 +48,20 @@ export interface SlidePoolPanelProps {
   slideImageUrls?: Record<string, string>
   /** 是否正在处理 */
   isProcessing?: boolean
-  /** 是否正在融合 */
-  isMerging?: boolean
-  /** 融合选中幻灯片回调 */
-  onMergeSelected?: (slideIds: string[]) => void
   /** 受控多选 ID 列表 */
   multiSelectedIds?: string[]
   /** 多选变更回调 */
   onMultiSelectChange?: (ids: string[]) => void
+  /** 切换幻灯片版本 */
+  onSelectVersion?: (slideId: string, versionId: string) => void
   /** 拖拽添加到最终选择回调 */
   onDragToFinal?: (versionId: string) => void
   /** PPT A 文件引用（用于 PptxViewJSRenderer 渲染原始版本）*/
   fileA?: File | null
   /** PPT B 文件引用 */
   fileB?: File | null
+  /** 将一组幻灯片全部添加到最终选择 */
+  onAddAllToFinal?: (versionIds: string[]) => void
   /** 布局模式：vertical（纵向列表，默认）| horizontal（水平滚动行） */
   layout?: 'vertical' | 'horizontal'
   /** 类名 */
@@ -131,6 +132,7 @@ function SlideThumbnail({
   fileB,
   onClick,
   onDoubleClick,
+  onSelectVersion,
 }: {
   item: SlidePoolItem
   isActive: boolean
@@ -141,6 +143,7 @@ function SlideThumbnail({
   fileB?: File | null
   onClick: (e?: React.MouseEvent) => void
   onDoubleClick?: () => void
+  onSelectVersion?: (slideId: string, versionId: string) => void
 }) {
   const currentVersion = getCurrentVersion(item)
   const versionCount = item.versions.length
@@ -266,14 +269,30 @@ function SlideThumbnail({
         </Badge>
       )}
 
-      {/* 信息栏（极简） */}
+      {/* 信息栏 */}
       <div className="px-1.5 py-1 flex items-center justify-between">
         <span className="text-[10px] font-medium text-gray-600">
           P{item.original_index}
         </span>
-        {versionCount > 1 && (
+        {versionCount > 1 && onSelectVersion ? (
+          <select
+            value={currentVersion?.version_id || ''}
+            onChange={(e) => {
+              e.stopPropagation()
+              onSelectVersion(item.slide_id, e.target.value)
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="text-[9px] text-amber-700 font-medium bg-amber-50 border border-amber-300 rounded px-1 py-0 cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-400"
+          >
+            {item.versions.map((v, i) => (
+              <option key={v.version_id} value={v.version_id}>
+                v{i + 1}{v.action ? ` (${getActionLabel(v.action)})` : ''}
+              </option>
+            ))}
+          </select>
+        ) : versionCount > 1 ? (
           <span className="text-[9px] text-amber-600 font-medium">v{versionCount}</span>
-        )}
+        ) : null}
       </div>
 
       {/* 选中标记 */}
@@ -317,6 +336,7 @@ function SlideGroup({
   fileB,
   onSlideClick,
   onSlideDoubleClick,
+  onSelectVersion,
 }: {
   group: SlidePoolGroup
   activeSlideId: string | null
@@ -327,6 +347,7 @@ function SlideGroup({
   fileB?: File | null
   onSlideClick: (slideId: string, e?: React.MouseEvent) => void
   onSlideDoubleClick?: (slideId: string) => void
+  onSelectVersion?: (slideId: string, versionId: string) => void
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
 
@@ -375,6 +396,7 @@ function SlideGroup({
                 fileB={fileB}
                 onClick={(e) => onSlideClick(item.slide_id, e)}
                 onDoubleClick={onSlideDoubleClick ? () => onSlideDoubleClick(item.slide_id) : undefined}
+                onSelectVersion={onSelectVersion}
               />
             )
           })}
@@ -397,6 +419,8 @@ function HorizontalSlideRow({
   fileB,
   onSlideClick,
   onSlideDoubleClick,
+  onSelectVersion,
+  onAddAllToFinal,
 }: {
   group: SlidePoolGroup
   activeSlideId: string | null
@@ -407,6 +431,8 @@ function HorizontalSlideRow({
   fileB?: File | null
   onSlideClick: (slideId: string, e?: React.MouseEvent) => void
   onSlideDoubleClick?: (slideId: string) => void
+  onSelectVersion?: (slideId: string, versionId: string) => void
+  onAddAllToFinal?: (versionIds: string[]) => void
 }) {
   const scrollRef = React.useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
@@ -447,15 +473,40 @@ function HorizontalSlideRow({
     group.group_id === 'ppt_b' ? 'bg-green-100 text-green-700' :
     'bg-purple-100 text-purple-700'
 
+  const allVersionIds = useMemo(() =>
+    group.items.map(item => getCurrentVersion(item)?.version_id).filter(Boolean) as string[],
+    [group.items]
+  )
+
+  const allInFinal = allVersionIds.length > 0 && allVersionIds.every(id => finalSelection.includes(id))
+
+  const handleAddAll = useCallback(() => {
+    if (!onAddAllToFinal) return
+    const toAdd = allVersionIds.filter(id => !finalSelection.includes(id))
+    if (toAdd.length > 0) onAddAllToFinal(toAdd)
+  }, [onAddAllToFinal, allVersionIds, finalSelection])
+
   return (
     <div className={cn("relative border-l-4 rounded-r-lg", groupColor)}>
       <div className="flex items-center">
-        {/* 分组标签 */}
-        <div className="flex-shrink-0 w-20 px-2 py-2 flex flex-col items-center justify-center">
+        {/* 分组标签 + 全选按钮 */}
+        <div className="flex-shrink-0 w-20 px-2 py-2 flex flex-col items-center justify-center gap-1">
           <span className={cn("text-[11px] font-semibold px-2 py-0.5 rounded-full", labelColor)}>
             {group.group_label}
           </span>
-          <span className="text-[10px] text-gray-400 mt-0.5">{group.items.length} 页</span>
+          <span className="text-[10px] text-gray-400">{group.items.length} 页</span>
+          {onAddAllToFinal && !allInFinal && (
+            <button
+              onClick={handleAddAll}
+              className="text-[10px] px-1.5 py-0.5 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors whitespace-nowrap"
+              title="将此分组所有页面添加到最终 PPT"
+            >
+              全选
+            </button>
+          )}
+          {allInFinal && (
+            <span className="text-[10px] text-green-600 font-medium">已全选</span>
+          )}
         </div>
 
         {/* 左箭头 */}
@@ -497,6 +548,7 @@ function HorizontalSlideRow({
                     fileB={fileB}
                     onClick={(e) => onSlideClick(item.slide_id, e)}
                     onDoubleClick={onSlideDoubleClick ? () => onSlideDoubleClick(item.slide_id) : undefined}
+                    onSelectVersion={onSelectVersion}
                   />
                 </div>
               )
@@ -531,10 +583,10 @@ export function SlidePoolPanel({
   onSlideDoubleClick,
   slideImageUrls,
   isProcessing,
-  isMerging,
-  onMergeSelected,
   multiSelectedIds: controlledMultiSelectedIds,
   onMultiSelectChange,
+  onSelectVersion,
+  onAddAllToFinal,
   fileA,
   fileB,
   layout = 'vertical',
@@ -558,13 +610,6 @@ export function SlidePoolPanel({
     }
   }, [onSlideClick, multiSelectedIds, setMultiSelectedIds])
 
-  const handleMerge = useCallback(() => {
-    if (multiSelectedIds.length >= 2 && onMergeSelected) {
-      onMergeSelected(multiSelectedIds)
-      setMultiSelectedIds([])
-    }
-  }, [multiSelectedIds, onMergeSelected, setMultiSelectedIds])
-
   const clearMultiSelection = useCallback(() => {
     setMultiSelectedIds([])
   }, [setMultiSelectedIds])
@@ -584,29 +629,11 @@ export function SlidePoolPanel({
 
   const multiSelectBar = multiSelectedIds.length >= 1 && !isProcessing ? (
     <div className="px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-lg text-xs">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-indigo-700">
-          <span className="font-medium">已选择 {multiSelectedIds.length} 页</span>
-          <button onClick={clearMultiSelection} className="text-indigo-500 hover:text-indigo-700 underline">
-            取消
-          </button>
-        </div>
-        {multiSelectedIds.length >= 2 && onMergeSelected && (
-          <button
-            onClick={handleMerge}
-            disabled={isMerging}
-            className="px-2.5 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 flex items-center gap-1"
-          >
-            {isMerging ? (
-              <>
-                <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                融合中...
-              </>
-            ) : (
-              '🔀 融合'
-            )}
-          </button>
-        )}
+      <div className="flex items-center gap-2 text-indigo-700">
+        <span className="font-medium">已选择 {multiSelectedIds.length} 页</span>
+        <button onClick={clearMultiSelection} className="text-indigo-500 hover:text-indigo-700 underline">
+          取消
+        </button>
       </div>
     </div>
   ) : null
@@ -639,6 +666,8 @@ export function SlidePoolPanel({
               fileB={fileB}
               onSlideClick={handleSlideClick}
               onSlideDoubleClick={onSlideDoubleClick}
+              onSelectVersion={onSelectVersion}
+              onAddAllToFinal={onAddAllToFinal}
             />
           ))}
         </div>
@@ -684,6 +713,7 @@ export function SlidePoolPanel({
               fileB={fileB}
               onSlideClick={handleSlideClick}
               onSlideDoubleClick={onSlideDoubleClick}
+              onSelectVersion={onSelectVersion}
             />
           ))}
         </div>

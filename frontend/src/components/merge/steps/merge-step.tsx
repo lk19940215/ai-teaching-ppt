@@ -24,12 +24,14 @@ export interface MergeStepProps {
   onAlwaysPromptChange: (prompt: string) => void
   onSlideClick: (slideId: string) => void
   onSwitchVersion: (versionId: string) => void
+  onSelectVersion: (slideId: string, versionId: string) => void
   onProcess: (action: any, prompt?: string) => Promise<void>
   onBatchProcess: (slideIds: string[], action: SlideAction) => Promise<void>
   onAddToFinal: () => void
   onRemoveFromFinal: () => void
   addToFinal: (versionId: string) => void
   removeFromFinal: (versionId: string) => void
+  clearFinalSelection: () => void
   onMergeSelected: (slideIds: string[]) => Promise<void>
   onGenerateFinal: () => Promise<void>
   onPromptChange: (prompt: string) => void
@@ -57,12 +59,14 @@ export function MergeStep({
   onAlwaysPromptChange,
   onSlideClick,
   onSwitchVersion,
+  onSelectVersion,
   onProcess,
   onBatchProcess,
   onAddToFinal,
   onRemoveFromFinal,
   addToFinal,
   removeFromFinal,
+  clearFinalSelection,
   onMergeSelected,
   onGenerateFinal,
   onPromptChange,
@@ -75,6 +79,12 @@ export function MergeStep({
 }: MergeStepProps) {
   const [multiSelectedIds, setMultiSelectedIds] = useState<string[]>([])
   const clearMultiSelect = useCallback(() => setMultiSelectedIds([]), [])
+
+  const handleAddAllToFinal = useCallback((versionIds: string[]) => {
+    for (const vid of versionIds) {
+      addToFinal(vid)
+    }
+  }, [addToFinal])
 
   const batchProgress = session.progress_info?.batch_total
     ? { current: session.progress_info.batch_current || 0, total: session.progress_info.batch_total }
@@ -89,7 +99,7 @@ export function MergeStep({
             ← 返回上传
           </Button>
           <span className="text-sm text-gray-500">
-            {pptA?.name} + {pptB?.name}
+            {pptA?.name}{pptB ? ` + ${pptB.name}` : ''}
           </span>
         </div>
         <Button onClick={onReset} variant="outline" size="sm">
@@ -104,10 +114,10 @@ export function MergeStep({
         finalSelection={session.final_selection}
         onSlideClick={onSlideClick}
         isProcessing={session.is_processing}
-        isMerging={session.active_operation === 'merge'}
-        onMergeSelected={onMergeSelected}
         multiSelectedIds={multiSelectedIds}
         onMultiSelectChange={setMultiSelectedIds}
+        onSelectVersion={onSelectVersion}
+        onAddAllToFinal={handleAddAllToFinal}
         fileA={session.ppt_a_file}
         fileB={session.ppt_b_file}
         layout="horizontal"
@@ -118,6 +128,7 @@ export function MergeStep({
         items={finalSelectionDetails}
         onReorder={reorderFinal}
         onRemove={(versionId) => removeFromFinal(versionId)}
+        onClearAll={clearFinalSelection}
         onDropFromPool={(versionId) => addToFinal(versionId)}
         onGenerate={onGenerateFinal}
         isGenerating={session.is_processing}
@@ -150,6 +161,8 @@ export function MergeStep({
         onRemoveFromFinal={onRemoveFromFinal}
         multiSelectedIds={multiSelectedIds}
         onBatchProcess={onBatchProcess}
+        onMergeSelected={onMergeSelected}
+        isMerging={session.active_operation === 'merge'}
         batchProgress={batchProgress}
         onClearMultiSelect={clearMultiSelect}
       />

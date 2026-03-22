@@ -6,6 +6,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useMergeSession } from '@/hooks/useMergeSession'
 import type { SlideAction } from '@/types/merge-session'
+import { ACTION_CONFIG } from '@/types/merge-session'
 
 // 步骤类型
 export type Step = 'upload' | 'merge' | 'confirm'
@@ -44,6 +45,7 @@ export interface UseMergePageReturn {
   setPptA: (file: File | null) => void
   setPptB: (file: File | null) => void
   isInitializing: boolean
+  handleUploadConfirm: () => void
 
   // 错误状态
   error: string | null
@@ -75,12 +77,14 @@ export interface UseMergePageReturn {
   // 操作方法
   handleSlideClick: (slideId: string) => void
   handleSwitchVersion: (versionId: string) => void
+  selectVersion: (slideId: string, versionId: string) => void
   handleProcess: (action: SlideAction, prompt?: string) => Promise<void>
   handleBatchProcess: (slideIds: string[], action: SlideAction) => Promise<void>
   handleAddToFinal: () => void
   handleRemoveFromFinal: () => void
   addToFinal: (versionId: string) => void
   removeFromFinal: (versionId: string) => void
+  clearFinalSelection: () => void
   handleMergeSelected: (slideIds: string[]) => Promise<void>
   handleGenerateFinal: () => Promise<void>
   handleDownload: () => Promise<void>
@@ -123,29 +127,28 @@ export function useMergePage(): UseMergePageReturn {
     setActiveSlide,
     addToFinal,
     removeFromFinal,
+    clearFinalSelection,
     reorderFinal,
     generateFinal,
     resetSession,
   } = useMergeSession()
 
-  // 初始化会话
-  useEffect(() => {
-    if (pptA && pptB && !session.session_id && !isInitializing) {
-      setIsInitializing(true)
-      setError(null)
+  const handleUploadConfirm = useCallback(() => {
+    if (!pptA || session.session_id || isInitializing) return
+    setIsInitializing(true)
+    setError(null)
 
-      initSession(pptA, pptB)
-        .then(() => {
-          setCurrentStep('merge')
-        })
-        .catch((err) => {
-          console.error('初始化会话失败:', err)
-          setError(err.message || '初始化失败，请重试')
-        })
-        .finally(() => {
-          setIsInitializing(false)
-        })
-    }
+    initSession(pptA, pptB)
+      .then(() => {
+        setCurrentStep('merge')
+      })
+      .catch((err) => {
+        console.error('初始化会话失败:', err)
+        setError(err.message || '初始化失败，请重试')
+      })
+      .finally(() => {
+        setIsInitializing(false)
+      })
   }, [pptA, pptB, session.session_id, isInitializing, initSession])
 
   // 处理幻灯片点击
@@ -183,14 +186,7 @@ export function useMergePage(): UseMergePageReturn {
 
   // 批量处理多个幻灯片
   const handleBatchProcess = useCallback(async (slideIds: string[], action: SlideAction) => {
-    const actionTemplates: Record<string, string> = {
-      polish: '请优化这段内容的文字表达，使语言更加流畅自然、通俗易懂，同时保持教学内容的准确性和完整性。',
-      expand: '请在保持原有内容基础上，适当增加细节、例子或解释说明，使教学内容更加丰富和完整。',
-      rewrite: '请调整这段内容的语言风格，使其更符合目标学生的认知水平，保持专业性的同时增强可读性。',
-      extract: '请提取这段内容的核心知识点，以简洁清晰的方式呈现关键信息，去除冗余内容。',
-    }
-
-    let finalPrompt = globalPrompt || actionTemplates[action] || ''
+    let finalPrompt = globalPrompt || ACTION_CONFIG[action]?.template || ''
     if (grade && finalPrompt) {
       finalPrompt = `当前年级：${grade}。${finalPrompt}`
     } else if (grade) {
@@ -316,6 +312,7 @@ export function useMergePage(): UseMergePageReturn {
     setPptA,
     setPptB,
     isInitializing,
+    handleUploadConfirm,
 
     // 错误状态
     error,
@@ -347,12 +344,14 @@ export function useMergePage(): UseMergePageReturn {
     // 操作方法
     handleSlideClick,
     handleSwitchVersion,
+    selectVersion,
     handleProcess,
     handleBatchProcess,
     handleAddToFinal,
     handleRemoveFromFinal,
     addToFinal,
     removeFromFinal,
+    clearFinalSelection,
     handleMergeSelected,
     handleGenerateFinal,
     handleDownload,

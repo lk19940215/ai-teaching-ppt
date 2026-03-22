@@ -25,12 +25,17 @@ export function PptUploadArea({
 }: PptUploadAreaProps) {
   const [isDragging, setIsDragging] = useState(false)
 
+  const isPptFile = (name: string) => {
+    const lower = name.toLowerCase()
+    return lower.endsWith('.pptx') || lower.endsWith('.ppt')
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
-    if (selectedFile && selectedFile.name.toLowerCase().endsWith('.pptx')) {
+    if (selectedFile && isPptFile(selectedFile.name)) {
       onFileSelect(selectedFile)
     } else if (selectedFile) {
-      alert('请选择 .pptx 格式的文件')
+      alert('请选择 .ppt 或 .pptx 格式的文件')
     }
   }
 
@@ -38,7 +43,7 @@ export function PptUploadArea({
     e.preventDefault()
     setIsDragging(false)
     const droppedFile = e.dataTransfer.files?.[0]
-    if (droppedFile && droppedFile.name.toLowerCase().endsWith('.pptx')) {
+    if (droppedFile && isPptFile(droppedFile.name)) {
       onFileSelect(droppedFile)
     }
   }
@@ -96,7 +101,7 @@ export function PptUploadArea({
       <input
         id={`file-input-${label}`}
         type="file"
-        accept=".pptx"
+        accept=".ppt,.pptx"
         className="hidden"
         onChange={handleFileChange}
         disabled={disabled}

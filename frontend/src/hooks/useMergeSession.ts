@@ -71,7 +71,7 @@ export interface UseMergeSessionReturn {
 
   // 操作
   /** 初始化会话 */
-  initSession: (pptA: File, pptB: File) => Promise<void>
+  initSession: (pptA: File, pptB?: File | null) => Promise<void>
   /** 处理单页 */
   processSlide: (slideId: string, action: SlideAction, prompt?: string, domain?: string) => Promise<ProcessingResult>
   /** 批量处理多个幻灯片（逐个调用 AI） */
@@ -86,6 +86,8 @@ export interface UseMergeSessionReturn {
   addToFinal: (versionId: string) => void
   /** 从最终选择移除 */
   removeFromFinal: (versionId: string) => void
+  /** 清空最终选择 */
+  clearFinalSelection: () => void
   /** 重排最终选择 */
   reorderFinal: (fromIndex: number, toIndex: number) => void
   /** 切换最终选择（添加或移除） */
@@ -245,7 +247,7 @@ export function useMergeSession(): UseMergeSessionReturn {
   }, [activeSlide])
 
   // 初始化会话：一次上传完成解析+预览
-  const initSession = useCallback(async (pptA: File, pptB: File) => {
+  const initSession = useCallback(async (pptA: File, pptB?: File | null) => {
     const startTime = Date.now()
 
     setSession(prev => ({
@@ -296,7 +298,7 @@ export function useMergeSession(): UseMergeSessionReturn {
         session_id,
         created_at: Date.now(),
         ppt_a_file: pptA,
-        ppt_b_file: pptB,
+        ppt_b_file: pptB || null,
         ppt_a_pages: pagesA,
         ppt_b_pages: pagesB,
         slide_pool: slidePool,
@@ -835,6 +837,10 @@ export function useMergeSession(): UseMergeSessionReturn {
     })
   }, [])
 
+  const clearFinalSelection = useCallback(() => {
+    setSession(prev => ({ ...prev, final_selection: [] }))
+  }, [])
+
   // 切换最终选择
   const toggleFinalSelection = useCallback((versionId: string) => {
     setSession(prev => {
@@ -944,6 +950,7 @@ export function useMergeSession(): UseMergeSessionReturn {
     setActiveSlide,
     addToFinal,
     removeFromFinal,
+    clearFinalSelection,
     reorderFinal,
     toggleFinalSelection,
     generateFinal,

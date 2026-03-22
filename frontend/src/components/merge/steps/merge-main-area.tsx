@@ -7,15 +7,10 @@ import { SUBJECT_OPTIONS, GRADE_OPTIONS } from '@/hooks/useMergePage'
 import { SlidePreviewPanel } from '@/components/merge/panels/slide-preview-panel'
 import { PromptTemplatesPanel } from '@/components/merge/controls/prompt-templates-panel'
 import type { SlidePoolItem, SlideVersion, SlideAction } from "@/types/merge-session"
+import { ACTION_CONFIG } from "@/types/merge-session"
 
-const ACTION_CONFIG = {
-  polish: { label: '润色', icon: '✨', template: '请优化这段内容的文字表达，使语言更加流畅自然、通俗易懂，同时保持教学内容的准确性和完整性。' },
-  expand: { label: '扩展', icon: '📈', template: '请在保持原有内容基础上，适当增加细节、例子或解释说明，使教学内容更加丰富和完整。' },
-  rewrite: { label: '改写', icon: '📝', template: '请调整这段内容的语言风格，使其更符合目标学生的认知水平，保持专业性的同时增强可读性。' },
-  extract: { label: '提取', icon: '🎯', template: '请提取这段内容的核心知识点，以简洁清晰的方式呈现关键信息，去除冗余内容。' },
-} as const
-
-type ActionKey = keyof typeof ACTION_CONFIG
+const MAIN_ACTIONS = ['polish', 'expand', 'rewrite', 'extract'] as const
+type ActionKey = (typeof MAIN_ACTIONS)[number]
 
 export interface MergeMainAreaProps {
   activeSlide: SlidePoolItem | null
@@ -43,6 +38,8 @@ export interface MergeMainAreaProps {
   onRemoveFromFinal: () => void
   multiSelectedIds?: string[]
   onBatchProcess?: (slideIds: string[], action: SlideAction) => Promise<void>
+  onMergeSelected?: (slideIds: string[]) => Promise<void>
+  isMerging?: boolean
   batchProgress?: { current: number; total: number } | null
   onClearMultiSelect?: () => void
 }
@@ -73,6 +70,8 @@ export function MergeMainArea({
   onRemoveFromFinal,
   multiSelectedIds = [],
   onBatchProcess,
+  onMergeSelected,
+  isMerging,
   batchProgress,
   onClearMultiSelect,
 }: MergeMainAreaProps) {
@@ -104,6 +103,13 @@ export function MergeMainArea({
       onClearMultiSelect?.()
       onBatchProcess(ids, selectedAction)
     }
+  }
+
+  const handleMerge = () => {
+    if (!onMergeSelected || multiSelectedIds.length < 2) return
+    const ids = [...multiSelectedIds]
+    onClearMultiSelect?.()
+    onMergeSelected(ids)
   }
 
   return (
@@ -170,6 +176,15 @@ export function MergeMainArea({
                 <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
                   已选 {multiSelectedIds.length} 页
                 </span>
+                {multiSelectedIds.length >= 2 && onMergeSelected && (
+                  <button
+                    onClick={handleMerge}
+                    disabled={isMerging}
+                    className="text-[10px] px-2 py-0.5 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50"
+                  >
+                    {isMerging ? '融合中...' : '融合'}
+                  </button>
+                )}
                 <button
                   onClick={onClearMultiSelect}
                   className="text-[10px] text-purple-500 hover:text-purple-700 underline"
@@ -180,7 +195,7 @@ export function MergeMainArea({
             )}
           </div>
           <div className="grid grid-cols-2 gap-2">
-            {(Object.keys(ACTION_CONFIG) as ActionKey[]).map((action) => (
+            {MAIN_ACTIONS.map((action) => (
               <Button
                 key={action}
                 variant={selectedAction === action ? "default" : "outline"}
